@@ -1,0 +1,102 @@
+{
+  "id": "cyberpunk-blue",
+  "title": "Cyberpunk Blue",
+  "description": "The Cyberpunk Blue system for FoundryVTT!",
+  "authors": [
+    {
+      "name": "Asacolips",
+      "discord": "asacolips"
+    },
+    {
+      "name": "Lee Talman",
+      "discord": ".pizzaWizard"
+    }
+  ],
+  "url": "https://github.com/Neph-lab/cyberpunk-blue-foundry",
+  "license": "LICENSE.txt",
+  "readme": "README.md",
+  "bugs": "https://github.com/Neph-lab/cyberpunk-blue-foundry/issues",
+  "changelog": "CHANGELOG.md",
+  "media": [
+    {
+      "type": "setup",
+      "url": "systems/cyberpunk-blue/assets/anvil-impact.png",
+      "thumbnail": "systems/cyberpunk-blue/assets/anvil-impact.png"
+    }
+  ],
+  "version": "3.1.0",
+  "compatibility": {
+    "minimum": 14,
+    "verified": "14.359"
+  },
+  "esmodules": ["module/cyberpunk-blue.mjs"],
+  "styles": ["css/cyberpunk-blue.css"],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "documentTypes": {
+    "Actor": {
+      "character": {
+        "htmlFields": [
+          "details.background",
+          "details.appearance",
+          "details.personality",
+          "details.style"
+        ]
+      },
+      "npc": {
+        "htmlFields": [
+          "details.background",
+          "details.appearance",
+          "details.personality",
+          "details.style"
+        ]
+      }
+    },
+    "Item": {
+      "role": {
+        "htmlFields": [
+          "description",
+          "lifepathLinks",
+          "lifepathQuestions",
+          "abilityOverview",
+          "abilitySections.content",
+          "notes"
+        ]
+      },
+      "ability": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "cyberware": {
+        "htmlFields": [
+          "description",
+          "notes"
+        ]
+      },
+      "gear": {
+        "htmlFields": [
+          "description"
+        ]
+      }
+    }
+  },
+  "packs": [],
+  "packFolders": [],
+  "socket": false,
+  "initiative": "1d10 + @stats.rflx.value",
+  "manifest": "https://raw.githubusercontent.com/Neph-lab/cyberpunk-blue-foundry/main/system.json",
+  "download": "https://github.com/Neph-lab/cyberpunk-blue-foundry/archive/refs/heads/main.zip",
+  "background": "systems/cyberpunk-blue/assets/anvil-impact.png",
+  "grid": {
+    "distance": 2,
+    "units": "m"
+  },
+  "primaryTokenAttribute": "resources.hp",
+  "secondaryTokenAttribute": "resources.psyche"
+}

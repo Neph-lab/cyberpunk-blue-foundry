@@ -1,0 +1,452 @@
+<form class="{{cssClass}} {{actor.type}} flexcol" autocomplete="off">
+  <header class="sheet-header">
+    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" />
+    <div class="header-fields">
+      <h1 class="charname">
+        <input name="name" type="text" value="{{actor.name}}" placeholder="Name" />
+      </h1>
+      <div class="header-stats">
+        {{#each stats as |stat|}}
+          <label class="header-stat" title="{{stat.label}}">
+            <span class="stat-short">{{stat.shortLabel}}</span>
+            <input type="number" name="system.stats.{{stat.slug}}.value" value="{{stat.value}}" data-dtype="Number" />
+          </label>
+        {{/each}}
+      </div>
+    </div>
+  </header>
+
+  <nav class="sheet-tabs tabs" data-group="primary">
+    <a class="item" data-tab="overview">{{localize "CYBER_BLUE.Sheet.Tabs.Overview"}}</a>
+    <a class="item" data-tab="skills">{{localize "CYBER_BLUE.Sheet.Tabs.Skills"}}</a>
+    <a class="item" data-tab="cyberware">{{localize "CYBER_BLUE.Sheet.Tabs.Cyberware"}}</a>
+    <a class="item" data-tab="inventory">{{localize "CYBER_BLUE.Sheet.Tabs.Inventory"}}</a>
+    <a class="item" data-tab="notes">{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
+  </nav>
+
+  <section class="sheet-body">
+    <div class="tab active" data-group="primary" data-tab="overview">
+      <section class="sheet-panel health-panel">
+        <h2>{{localize "CYBER_BLUE.Sheet.Labels.Health"}}</h2>
+        <div class="health-grid">
+          <div class="health-block health-hp">
+            <h3>HP</h3>
+            <div class="resource-fields">
+              <input type="number" name="system.resources.hp.value" value="{{health.hp.value}}" data-dtype="Number" />
+              <span>/</span>
+              <input type="number" value="{{health.hp.max}}" disabled />
+            </div>
+          </div>
+
+          <div class="health-block health-threshold">
+            <h3>{{localize "CYBER_BLUE.Sheet.Labels.SeriousWoundThreshold"}}</h3>
+            <div class="health-value">{{health.seriousWoundThreshold}}</div>
+          </div>
+
+          <div class="health-block health-threshold">
+            <h3>{{localize "CYBER_BLUE.Sheet.Labels.DeathSave"}}</h3>
+            <div class="health-value">{{health.deathSave}}</div>
+          </div>
+
+          <div class="health-block health-effects">
+            <h3>{{localize "CYBER_BLUE.Sheet.Labels.HealthEffects"}}</h3>
+            <div class="health-effects-list">
+              {{#if health.effects.length}}
+                {{#each health.effects as |effect|}}
+                  <button type="button" class="health-effect {{#if effect.isHealthTagged}}is-tagged{{/if}}" data-action="open-health-effect" data-effect-id="{{effect.id}}" title="{{#if effect.canEdit}}Open and edit effect{{else}}Open effect{{/if}}">
+                    <img src="{{effect.icon}}" alt="{{effect.name}}" />
+                    <span>{{effect.name}}</span>
+                    {{#if effect.duration}}
+                      <span class="effect-duration">{{effect.duration}}</span>
+                    {{/if}}
+                  </button>
+                {{/each}}
+              {{else}}
+                <p class="hint">No direct health effects on this character.</p>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="quick-stats-row">
+        <label class="sheet-panel stat-card move-card">
+          <span class="stat-short">{{move.shortLabel}}</span>
+          <input type="number" name="system.stats.move.value" value="{{move.value}}" data-dtype="Number" />
+        </label>
+
+        <div class="sheet-panel stat-card move-card">
+          <span class="stat-short">{{psyche.label}}</span>
+          <div class="resource-fields">
+            <input type="number" name="system.resources.psyche.value" value="{{psyche.value}}" data-dtype="Number" />
+            <span>/</span>
+            <input type="number" value="{{psyche.max}}" disabled />
+          </div>
+        </div>
+
+        <div class="sheet-panel stat-card move-card luck-card">
+          <span class="stat-short">{{luck.label}}</span>
+          <div class="resource-fields">
+            <input type="number" name="system.resources.luck.value" value="{{luck.value}}" data-dtype="Number" />
+            <span>/</span>
+            <input type="number" value="{{luck.max}}" disabled />
+          </div>
+        </div>
+      </section>
+
+      {{#if otherResources.length}}
+        <section class="resources-grid overview-resources">
+          {{#each otherResources as |resource|}}
+            <div class="sheet-panel resource-card">
+              <div class="resource-name">{{resource.label}}</div>
+              <div class="resource-fields">
+                <input type="number" name="system.resources.{{resource.slug}}.value" value="{{resource.value}}" data-dtype="Number" />
+                <span>/</span>
+                <input type="number" value="{{resource.max}}" disabled />
+              </div>
+            </div>
+          {{/each}}
+        </section>
+      {{/if}}
+
+      <section class="traits-grid">
+        <div class="sheet-panel">
+          <div class="panel-header">
+            <h2>{{localize "CYBER_BLUE.Sheet.Tabs.Roles"}}</h2>
+            <button type="button" data-action="create-item" data-item-type="role" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddRole"}}">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+
+          <table class="embedded-table">
+            <colgroup>
+              <col />
+              <col class="column-compact" />
+              <col class="column-controls" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Rank"}}</th>
+                <th>Controls</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each roles as |role|}}
+                <tr data-item-id="{{role.id}}">
+                  <td>
+                    <button type="button" class="item-name-link embedded-name">
+                      <img src="{{role.img}}" alt="{{role.name}}" />
+                      <span>{{role.name}}</span>
+                    </button>
+                  </td>
+                  <td class="numeric-column">{{role.system.rank}}</td>
+                  <td>
+                    <div class="embedded-controls">
+                      {{#unless role.isAlwaysActive}}
+                        <button type="button" data-action="toggle-active-role" title="{{#if role.isLowRankActive}}{{localize "CYBER_BLUE.Sheet.Labels.ClearActive"}}{{else}}{{localize "CYBER_BLUE.Sheet.Labels.SetActive"}}{{/if}}">
+                          <i class="fas {{#if role.isLowRankActive}}fa-toggle-on{{else}}fa-toggle-off{{/if}}"></i>
+                        </button>
+                      {{/unless}}
+                      <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}">
+                        <i class="fas fa-arrow-up"></i>
+                      </button>
+                      <button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}">
+                        <i class="fas fa-arrow-down"></i>
+                      </button>
+                      <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}">
+                        <i class="fas fa-pen"></i>
+                      </button>
+                      <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="sheet-panel">
+          <div class="panel-header">
+            <h2>{{localize "CYBER_BLUE.Sheet.Tabs.Abilities"}}</h2>
+            <button type="button" data-action="create-item" data-item-type="ability" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddAbility"}}">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+
+          <table class="embedded-table">
+            <colgroup>
+              <col />
+              <col class="column-compact" />
+              <col />
+              <col class="column-controls" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Ability</th>
+                <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Rank"}}</th>
+                <th>{{localize "CYBER_BLUE.Sheet.Labels.Note"}}</th>
+                <th>Controls</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each abilities as |ability|}}
+                <tr data-item-id="{{ability.id}}">
+                  <td>
+                    <button type="button" class="item-name-link embedded-name">
+                      <img src="{{ability.img}}" alt="{{ability.name}}" />
+                      <span>{{ability.name}}</span>
+                    </button>
+                  </td>
+                  <td class="numeric-column">
+                    {{ability.system.rank}}
+                    {{#if ability.maxRankDisplay}}
+                      / {{ability.maxRankDisplay}}
+                    {{/if}}
+                  </td>
+                  <td class="embedded-summary">{{ability.system.note}}</td>
+                  <td>
+                    <div class="embedded-controls">
+                      <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}">
+                        <i class="fas fa-arrow-up"></i>
+                      </button>
+                      <button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}">
+                        <i class="fas fa-arrow-down"></i>
+                      </button>
+                      <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}">
+                        <i class="fas fa-pen"></i>
+                      </button>
+                      <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="skills">
+      <section class="sheet-panel">
+        <div class="skill-table-container">
+          <div class="skill-header skill-row">
+            <span>Skill</span>
+            <span class="numeric-column">Stat</span>
+            <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Rank"}}</span>
+            <span>{{localize "CYBER_BLUE.Sheet.Labels.LinkedComponents"}}</span>
+            <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Modifier"}}</span>
+            <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Roll"}}</span>
+          </div>
+          {{#each skills as |skill|}}
+            <div class="skill-row" data-skill-row data-skill-slug="{{skill.slug}}">
+              <span class="skill-name">{{skill.label}}</span>
+              <span class="skill-stat">{{skill.statLabel}}</span>
+              <input class="numeric-column" type="number" name="system.skills.{{skill.slug}}.rank" value="{{skill.rank}}" data-dtype="Number" />
+              <div class="component-pill-list">
+                {{#each skill.components as |component|}}
+                  <button type="button" class="component-pill" data-action="roll-skill" data-skill-slug="{{../slug}}" data-component-slug="{{component.slug}}">
+                    {{component.label}} ({{component.rank}})
+                  </button>
+                {{/each}}
+              </div>
+              <input class="numeric-column" type="number" value="0" data-field="modifier" />
+              <button type="button" class="roll-button" data-action="roll-skill" data-skill-slug="{{skill.slug}}">
+                {{localize "CYBER_BLUE.Sheet.Labels.Roll"}}
+              </button>
+            </div>
+          {{/each}}
+        </div>
+      </section>
+
+      <section class="sheet-panel component-panel">
+        <div class="panel-header">
+          <h2>{{localize "CYBER_BLUE.Sheet.Labels.ActorComponents"}}</h2>
+          <div class="component-add">
+            <select data-component-select>
+              {{#each availableComponents as |component|}}
+                <option value="{{component.slug}}">{{component.label}}</option>
+              {{/each}}
+            </select>
+            <button type="button" data-action="add-component" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddComponent"}}">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+        </div>
+        {{#if components.length}}
+          <div class="component-table">
+            <div class="component-header component-row">
+              <span>{{localize "CYBER_BLUE.Sheet.Labels.Components"}}</span>
+              <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Rank"}}</span>
+              <span>{{localize "CYBER_BLUE.Sheet.Labels.LinkedSkills"}}</span>
+              <span></span>
+            </div>
+            {{#each components as |component|}}
+              <div class="component-row">
+                <span class="component-name">{{component.label}}</span>
+                <input class="numeric-column" type="number" name="system.components.{{component.slug}}.rank" value="{{component.rank}}" data-dtype="Number" />
+                <span class="component-links">{{component.linkedSkills}}</span>
+                <button type="button" data-action="remove-component" data-component-slug="{{component.slug}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.RemoveComponent"}}">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            {{/each}}
+          </div>
+        {{else}}
+          <p class="hint">No components added to this character yet.</p>
+        {{/if}}
+      </section>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="cyberware">
+      <section class="sheet-panel">
+        <div class="panel-header panel-actions">
+          <span></span>
+          <button type="button" data-action="create-item" data-item-type="cyberware" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddCyberware"}}">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+        {{#if cyberwareGroups.length}}
+          {{#each cyberwareGroups as |group|}}
+            <section class="cyberware-group">
+              <h2>{{group.label}}</h2>
+              <div class="embedded-list">
+                <div class="embedded-header embedded-row cyberware-row">
+                  <span>Cyberware</span>
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.Integration"}}</span>
+                  <span class="numeric-column">Slots</span>
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.Platform"}}</span>
+                  <span>Controls</span>
+                </div>
+                {{#each group.items as |item|}}
+                  <div class="embedded-row cyberware-row" data-item-id="{{item.id}}">
+                    <button type="button" class="item-name-link embedded-name">
+                      <img src="{{item.img}}" alt="{{item.name}}" />
+                      <span>{{item.name}}</span>
+                    </button>
+                    <div class="embedded-summary">{{item.integrationLabel}}</div>
+                    <span class="embedded-rank numeric-column">{{item.slotText}}</span>
+                    <div class="embedded-summary">{{item.platformName}}</div>
+                    <div class="embedded-controls">
+                      <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>
+                      <button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>
+                      <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>
+                      <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}"><i class="fas fa-trash"></i></button>
+                    </div>
+                  </div>
+                {{/each}}
+              </div>
+            </section>
+          {{/each}}
+        {{else}}
+          <p class="hint">No installed cyberware on this actor yet.</p>
+        {{/if}}
+      </section>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="inventory">
+      <section class="sheet-panel">
+        <div class="panel-header panel-actions">
+          <span></span>
+          <button type="button" data-action="create-item" data-item-type="gear" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddGear"}}">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+
+        <div class="embedded-list">
+          <div class="embedded-header embedded-row">
+            <span>Item</span>
+            <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Quantity"}}</span>
+            <span>{{localize "CYBER_BLUE.Sheet.Labels.State"}}</span>
+            <span>Controls</span>
+          </div>
+          {{#each inventory as |item|}}
+            <div class="embedded-row" data-item-id="{{item.id}}">
+              <button type="button" class="item-name-link embedded-name">
+                <img src="{{item.img}}" alt="{{item.name}}" />
+                <span>{{item.name}}</span>
+              </button>
+              <span class="embedded-rank numeric-column">{{item.system.quantity}}</span>
+              <div class="embedded-summary">
+                {{#if item.system.equipped}}
+                  <span class="state-chip state-active">{{localize "CYBER_BLUE.Sheet.Labels.Equipped"}}</span>
+                {{/if}}
+                {{#if item.system.carried}}
+                  <span class="state-chip">{{localize "CYBER_BLUE.Sheet.Labels.Carried"}}</span>
+                {{/if}}
+                {{#unless item.system.carried}}
+                  {{#unless item.system.equipped}}
+                    <span class="state-chip">{{localize "CYBER_BLUE.Sheet.Labels.Stored"}}</span>
+                  {{/unless}}
+                {{/unless}}
+              </div>
+              <div class="embedded-controls">
+                <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>
+                <button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>
+                <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>
+                <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}"><i class="fas fa-trash"></i></button>
+              </div>
+            </div>
+          {{/each}}
+        </div>
+      </section>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="notes">
+      <section class="notes-grid">
+        <div class="sheet-panel note-panel">
+          <h2>{{localize "CYBER_BLUE.Sheet.Labels.Background"}}</h2>
+          {{#if editable}}
+            <prose-mirror name="system.details.background" value="{{system.details.background}}" document-uuid="{{actor.uuid}}" compact>
+              {{{enrichedDetails.background}}}
+            </prose-mirror>
+          {{else}}
+            <div class="editor">
+              <div class="editor-content">{{{enrichedDetails.background}}}</div>
+            </div>
+          {{/if}}
+        </div>
+        <div class="sheet-panel note-panel">
+          <h2>{{localize "CYBER_BLUE.Sheet.Labels.Appearance"}}</h2>
+          {{#if editable}}
+            <prose-mirror name="system.details.appearance" value="{{system.details.appearance}}" document-uuid="{{actor.uuid}}" compact>
+              {{{enrichedDetails.appearance}}}
+            </prose-mirror>
+          {{else}}
+            <div class="editor">
+              <div class="editor-content">{{{enrichedDetails.appearance}}}</div>
+            </div>
+          {{/if}}
+        </div>
+        <div class="sheet-panel note-panel">
+          <h2>{{localize "CYBER_BLUE.Sheet.Labels.Personality"}}</h2>
+          {{#if editable}}
+            <prose-mirror name="system.details.personality" value="{{system.details.personality}}" document-uuid="{{actor.uuid}}" compact>
+              {{{enrichedDetails.personality}}}
+            </prose-mirror>
+          {{else}}
+            <div class="editor">
+              <div class="editor-content">{{{enrichedDetails.personality}}}</div>
+            </div>
+          {{/if}}
+        </div>
+        <div class="sheet-panel note-panel">
+          <h2>{{localize "CYBER_BLUE.Sheet.Labels.Style"}}</h2>
+          {{#if editable}}
+            <prose-mirror name="system.details.style" value="{{system.details.style}}" document-uuid="{{actor.uuid}}" compact>
+              {{{enrichedDetails.style}}}
+            </prose-mirror>
+          {{else}}
+            <div class="editor">
+              <div class="editor-content">{{{enrichedDetails.style}}}</div>
+            </div>
+          {{/if}}
+        </div>
+      </section>
+    </div>
+  </section>
+</form>

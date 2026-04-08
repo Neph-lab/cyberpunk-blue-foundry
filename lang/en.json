@@ -1,0 +1,163 @@
+{
+  "CYBER_BLUE": {
+    "SheetLabels": {
+      "Actor": "Cyberpunk Blue Actor Sheet",
+      "Item": "Cyberpunk Blue Item Sheet"
+    },
+    "Sheet": {
+      "Tabs": {
+        "Overview": "Overview",
+        "Skills": "Skills",
+        "Traits": "Roles & Abilities",
+        "Roles": "Roles",
+        "Abilities": "Abilities",
+        "Cyberware": "Cyberware",
+        "Inventory": "Inventory",
+        "Notes": "Notes",
+        "Description": "Description",
+        "Details": "Details",
+        "Effects": "Effects",
+        "Lifepath": "Lifepath"
+      },
+      "Labels": {
+        "Stats": "Stats",
+        "Resources": "Resources",
+        "Components": "Components",
+        "Modifier": "Mod",
+        "DifficultyValue": "DV",
+        "Roll": "Roll",
+        "Rank": "Rank",
+        "State": "State",
+        "Summary": "Summary",
+        "ProgressionNotes": "Progression Notes",
+        "AlwaysActive": "Always Active",
+        "Active": "Active",
+        "InactiveLowRank": "Inactive (Rank 3 or lower)",
+        "SetActive": "Set Active",
+        "ClearActive": "Clear Active",
+        "Background": "Background",
+        "Appearance": "Appearance",
+        "Personality": "Personality",
+        "Style": "Style",
+        "LinkedSkills": "Linked Skills",
+        "LinkedComponents": "Linked Components",
+        "ActorSkills": "Skill Ratings",
+        "ActorComponents": "Component Ratings",
+        "Installed": "Installed",
+        "Equipped": "Equipped",
+        "Carried": "Carried",
+        "Quantity": "Quantity",
+        "Manufacturer": "Manufacturer",
+        "Move": "MOVE",
+        "Health": "Health",
+        "Cost": "Cost",
+        "MultipleInstalls": "Multiple Installs",
+        "Integration": "Integration",
+        "SlotsUsed": "Slots Used",
+        "SlotsProvided": "Slots Provided",
+        "PsycheLoss": "PSYCHE Loss",
+        "SuggestedLoss": "Suggested",
+        "MaxPsycheReduction": "Max PSYCHE Reduction",
+        "HardwareCost": "Hardware Cost",
+        "Facilities": "Facilities",
+        "InstallationCost": "Installation Cost",
+        "InstallationDv": "Installation DV",
+        "UseCyberneticsComponent": "Use Cybernetics Component",
+        "Platform": "Platform",
+        "Note": "Note",
+        "MaxRank": "Max Rank",
+        "Stored": "Stored",
+        "DeathSave": "Death Save",
+        "SeriousWoundThreshold": "Serious Wound Threshold",
+        "HealthEffects": "Health Effects",
+        "UnlockRank": "Unlock Rank",
+        "ConnectingQuestions": "Connecting Questions",
+        "Links": "Links",
+        "GeneralAbility": "General Ability",
+        "UnlockedAt": "Unlocked at Rank {rank}"
+      },
+      "Buttons": {
+        "AddRole": "Add Role",
+        "AddAbility": "Add Ability",
+        "AddCyberware": "Add Cyberware",
+        "AddGear": "Add Gear",
+        "AddComponent": "Add Component",
+        "AddSection": "Add Section",
+        "RemoveComponent": "Remove Component",
+        "Edit": "Edit",
+        "Delete": "Delete",
+        "MoveUp": "Move Up",
+        "MoveDown": "Move Down"
+      },
+      "Roll": {
+        "Standard": "Standard Skill Test",
+        "Component": "Component Test",
+        "AgainstDv": "Against DV {dv}",
+        "Success": "Success",
+        "Failure": "Failure",
+        "UsesLowerRank": "Using the lower of skill and component ranks"
+      }
+    },
+    "Cyberware": {
+      "Details": "Installation & PSYCHE",
+      "ChoosePsycheLoss": "Choose PSYCHE Loss",
+      "UseSuggested": "Use Suggested",
+      "RollLoss": "Roll Loss",
+      "SkipLoss": "Skip",
+      "PlatformAssignment": "Platform Assignment",
+      "NoEligiblePlatforms": "No eligible platforms available",
+      "InstalledUnder": "Installed under {platform}",
+      "FreeSlots": "{free}/{total} free slots",
+      "Type": {
+        "neuralware": "Neuralware",
+        "cyberoptics": "Cyberoptics",
+        "cyberaudio": "Cyberaudio",
+        "cyberarms": "Cyberarms",
+        "cyberlegs": "Cyberlegs",
+        "internal": "Internal",
+        "external": "External",
+        "fashionware": "Fashionware",
+        "borgware": "Borgware"
+      },
+      "IntegrationType": {
+        "platform": "Platform",
+        "extension": "Extension",
+        "standalone": "Stand-Alone"
+      },
+      "FacilityType": {
+        "mall": "Mall",
+        "clinic": "Clinic",
+        "hospital": "Hospital"
+      },
+      "Errors": {
+        "DuplicateInstall": "This cyberware cannot be installed multiple times on the same actor.",
+        "MissingPlatform": "Extension cyberware must be assigned to a compatible platform.",
+        "InvalidPlatform": "The selected platform is not available on this actor.",
+        "PlatformRequired": "Extensions must be attached to a platform cyberware item.",
+        "TypeMismatch": "Extensions must use a platform of the same cyberware type.",
+        "NotEnoughSlots": "The selected platform does not have enough free slots."
+      }
+    },
+    "Effect": {
+      "Source": "Source",
+      "Toggle": "Toggle Effect",
+      "Temporary": "Temporary Effects",
+      "Passive": "Passive Effects",
+      "Inactive": "Inactive Effects",
+      "SeriouslyWounded": "Seriously Wounded",
+      "PsycheLoss": "PSYCHE Loss"
+    }
+  },
+  "TYPES": {
+    "Actor": {
+      "character": "Character",
+      "npc": "NPC"
+    },
+    "Item": {
+      "role": "Role",
+      "ability": "Ability",
+      "cyberware": "Cyberware",
+      "gear": "Gear"
+    }
+  }
+}
