@@ -70,6 +70,24 @@
       </section>
 
       <section class="quick-stats-row">
+        <div class="sheet-panel stat-card armor-card">
+          <span class="stat-short">{{localize "CYBER_BLUE.Sheet.Labels.StoppingPower"}}</span>
+          <select name="system.combat.activeArmorItemId">
+            {{#if armor.options.length}}
+              {{#each armor.options as |option|}}
+                <option value="{{option.id}}" {{#if (eq option.id ../armor.activeId)}}selected{{/if}}>{{option.name}}</option>
+              {{/each}}
+            {{else}}
+              <option value="">{{localize "CYBER_BLUE.Sheet.Labels.NoArmor"}}</option>
+            {{/if}}
+          </select>
+          <div class="resource-fields">
+            <input type="number" value="{{armor.current}}" disabled />
+            <span>/</span>
+            <input type="number" value="{{armor.max}}" disabled />
+          </div>
+        </div>
+
         <label class="sheet-panel stat-card move-card">
           <span class="stat-short">{{move.shortLabel}}</span>
           <input type="number" name="system.stats.move.value" value="{{move.value}}" data-dtype="Number" />
@@ -94,6 +112,64 @@
         </div>
       </section>
 
+      {{#if combatWeapons.length}}
+        <section class="sheet-panel combat-weapon-panel">
+          <table class="embedded-table combat-weapon-table">
+            <colgroup>
+              <col />
+              <col class="column-compact" />
+              <col class="column-compact" />
+              <col class="column-compact" />
+              <col class="column-controls" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Weapon</th>
+                <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Attack"}}</th>
+                <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.RateOfFire"}}</th>
+                <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Mag"}}</th>
+                <th class="numeric-column">Controls</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each combatWeapons as |weapon|}}
+                <tr data-item-id="{{weapon.itemId}}">
+                  <td>
+                    <button type="button" class="item-name-link embedded-name">
+                      <span>{{weapon.name}}</span>
+                    </button>
+                  </td>
+                  <td class="numeric-column">
+                    <button type="button" data-action="weapon-attack" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.attackTooltip}}">
+                      {{weapon.attackLabel}}
+                    </button>
+                  </td>
+                  <td class="numeric-column">{{weapon.rateOfFire}}</td>
+                  <td class="numeric-column">
+                    {{#if weapon.showsAmmo}}
+                      <div class="resource-fields compact-resource">
+                        <input type="number" value="{{weapon.ammoCurrent}}" data-action="update-item-field" data-field-path="system.weapons.{{weapon.weaponIndex}}.ammoCurrent" data-dtype="Number" />
+                        <span>/</span>
+                        <input type="number" value="{{weapon.magazine}}" disabled />
+                      </div>
+                    {{else}}
+                      <span>&mdash;</span>
+                    {{/if}}
+                  </td>
+                  <td class="numeric-column">
+                    {{#if weapon.showsAmmo}}
+                      <button type="button" data-action="weapon-reload" data-weapon-index="{{weapon.weaponIndex}}" data-magazine="{{weapon.magazine}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Reload"}}">
+                        <i class="fas fa-rotate-right"></i>
+                      </button>
+                    {{/if}}
+                  </td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </section>
+      {{/if}}
+
       {{#if otherResources.length}}
         <section class="resources-grid overview-resources">
           {{#each otherResources as |resource|}}
@@ -111,18 +187,11 @@
 
       <section class="traits-grid">
         <div class="sheet-panel">
-          <div class="panel-header">
-            <h2>{{localize "CYBER_BLUE.Sheet.Tabs.Roles"}}</h2>
-            <button type="button" data-action="create-item" data-item-type="role" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddRole"}}">
-              <i class="fas fa-plus"></i>
-            </button>
-          </div>
-
           <table class="embedded-table">
             <colgroup>
               <col />
               <col class="column-compact" />
-              <col class="column-controls" />
+              <col class="column-controls roles-controls-column" />
             </colgroup>
             <thead>
               <tr>
@@ -169,19 +238,12 @@
         </div>
 
         <div class="sheet-panel">
-          <div class="panel-header">
-            <h2>{{localize "CYBER_BLUE.Sheet.Tabs.Abilities"}}</h2>
-            <button type="button" data-action="create-item" data-item-type="ability" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddAbility"}}">
-              <i class="fas fa-plus"></i>
-            </button>
-          </div>
-
           <table class="embedded-table">
             <colgroup>
               <col />
               <col class="column-compact" />
-              <col />
-              <col class="column-controls" />
+              <col class="abilities-note-column" />
+              <col class="column-controls roles-controls-column" />
             </colgroup>
             <thead>
               <tr>
@@ -245,7 +307,7 @@
           {{#each skills as |skill|}}
             <div class="skill-row" data-skill-row data-skill-slug="{{skill.slug}}">
               <span class="skill-name">{{skill.label}}</span>
-              <span class="skill-stat">{{skill.statLabel}}</span>
+              <span class="skill-stat numeric-column">{{skill.statLabel}}</span>
               <input class="numeric-column" type="number" name="system.skills.{{skill.slug}}.rank" value="{{skill.rank}}" data-dtype="Number" />
               <div class="component-pill-list">
                 {{#each skill.components as |component|}}
@@ -285,16 +347,18 @@
               <span>{{localize "CYBER_BLUE.Sheet.Labels.LinkedSkills"}}</span>
               <span></span>
             </div>
-            {{#each components as |component|}}
-              <div class="component-row">
-                <span class="component-name">{{component.label}}</span>
-                <input class="numeric-column" type="number" name="system.components.{{component.slug}}.rank" value="{{component.rank}}" data-dtype="Number" />
-                <span class="component-links">{{component.linkedSkills}}</span>
-                <button type="button" data-action="remove-component" data-component-slug="{{component.slug}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.RemoveComponent"}}">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            {{/each}}
+            <div class="component-entries">
+              {{#each components as |component|}}
+                <div class="component-row">
+                  <span class="component-name">{{component.label}}</span>
+                  <input class="numeric-column" type="number" name="system.components.{{component.slug}}.rank" value="{{component.rank}}" data-dtype="Number" />
+                  <span class="component-links">{{component.linkedSkills}}</span>
+                  <button type="button" data-action="remove-component" data-component-slug="{{component.slug}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.RemoveComponent"}}">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              {{/each}}
+            </div>
           </div>
         {{else}}
           <p class="hint">No components added to this character yet.</p>
@@ -304,12 +368,6 @@
 
     <div class="tab" data-group="primary" data-tab="cyberware">
       <section class="sheet-panel">
-        <div class="panel-header panel-actions">
-          <span></span>
-          <button type="button" data-action="create-item" data-item-type="cyberware" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddCyberware"}}">
-            <i class="fas fa-plus"></i>
-          </button>
-        </div>
         {{#if cyberwareGroups.length}}
           {{#each cyberwareGroups as |group|}}
             <section class="cyberware-group">
@@ -322,29 +380,107 @@
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.Platform"}}</span>
                   <span>Controls</span>
                 </div>
-                {{#each group.items as |item|}}
-                  <div class="embedded-row cyberware-row" data-item-id="{{item.id}}">
-                    <button type="button" class="item-name-link embedded-name">
-                      <img src="{{item.img}}" alt="{{item.name}}" />
-                      <span>{{item.name}}</span>
-                    </button>
-                    <div class="embedded-summary">{{item.integrationLabel}}</div>
-                    <span class="embedded-rank numeric-column">{{item.slotText}}</span>
-                    <div class="embedded-summary">{{item.platformName}}</div>
-                    <div class="embedded-controls">
-                      <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>
-                      <button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>
-                      <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>
-                      <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}"><i class="fas fa-trash"></i></button>
+                <div class="embedded-entries">
+                  {{#each group.items as |item|}}
+                    <div class="embedded-entry {{#if item.isDisabled}}is-disabled{{/if}}" data-item-id="{{item.id}}" title="{{item.disabledTooltip}}">
+                      <div class="embedded-row cyberware-row">
+                        <button type="button" class="item-name-link embedded-name">
+                          <img src="{{item.img}}" alt="{{item.name}}" />
+                          <span class="embedded-name-text">
+                            <span>{{item.name}}</span>
+                            {{#if item.system.manufacturer}}
+                              <span class="manufacturer-summary">
+                                {{#if item.manufacturerLogo}}
+                                  <img class="manufacturer-logo" src="{{item.manufacturerLogo}}" alt="{{item.system.manufacturer}}" />
+                                {{/if}}
+                                <span>{{item.system.manufacturer}}</span>
+                              </span>
+                            {{/if}}
+                          </span>
+                          {{#if item.isDisabled}}
+                            <span class="state-chip state-disabled">{{localize "CYBER_BLUE.Cyberware.Disable.Label"}}</span>
+                          {{/if}}
+                        </button>
+                        <div class="embedded-summary">{{item.integrationLabel}}</div>
+                        <span class="embedded-rank numeric-column">{{item.slotText}}</span>
+                        <div class="embedded-summary">{{item.platformName}}</div>
+                        <div class="embedded-controls">
+                          {{#if item.canDetachPlatform}}
+                            <button type="button" data-action="remove-platform" title="{{localize "CYBER_BLUE.Sheet.Buttons.RemovePlatform"}}"><i class="fas fa-link-slash"></i></button>
+                          {{/if}}
+                          <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>
+                          <button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>
+                          <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>
+                          <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}"><i class="fas fa-trash"></i></button>
+                        </div>
+                      </div>
+                      {{#if item.description}}
+                        <div class="embedded-description">{{{item.description}}}</div>
+                      {{/if}}
                     </div>
-                  </div>
-                {{/each}}
+                  {{/each}}
+                </div>
               </div>
             </section>
           {{/each}}
         {{else}}
           <p class="hint">No installed cyberware on this actor yet.</p>
         {{/if}}
+
+        <section class="cyberware-group">
+          <h2>{{localize "CYBER_BLUE.Cyberware.Unconnected"}}</h2>
+          {{#if unconnectedCyberware.length}}
+            <div class="embedded-list">
+              <div class="embedded-header embedded-row cyberware-row">
+                <span>Cyberware</span>
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Integration"}}</span>
+                <span class="numeric-column">Slots</span>
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Platform"}}</span>
+                <span>Controls</span>
+              </div>
+              <div class="embedded-entries">
+                {{#each unconnectedCyberware as |item|}}
+                  <div class="embedded-entry {{#if item.isDisabled}}is-disabled{{/if}}" data-item-id="{{item.id}}" title="{{item.disabledTooltip}}">
+                    <div class="embedded-row cyberware-row">
+                      <button type="button" class="item-name-link embedded-name">
+                        <img src="{{item.img}}" alt="{{item.name}}" />
+                        <span class="embedded-name-text">
+                          <span>{{item.name}}</span>
+                          {{#if item.system.manufacturer}}
+                            <span class="manufacturer-summary">
+                              {{#if item.manufacturerLogo}}
+                                <img class="manufacturer-logo" src="{{item.manufacturerLogo}}" alt="{{item.system.manufacturer}}" />
+                              {{/if}}
+                              <span>{{item.system.manufacturer}}</span>
+                            </span>
+                          {{/if}}
+                        </span>
+                        {{#if item.isDisabled}}
+                          <span class="state-chip state-disabled">{{localize "CYBER_BLUE.Cyberware.Disable.Label"}}</span>
+                        {{/if}}
+                      </button>
+                      <div class="embedded-summary">{{item.integrationLabel}}</div>
+                      <span class="embedded-rank numeric-column">{{item.slotText}}</span>
+                      <div class="embedded-summary">{{localize "CYBER_BLUE.Cyberware.Unassigned"}}</div>
+                      <div class="embedded-controls">
+                        <button type="button" data-action="assign-platform" title="{{localize "CYBER_BLUE.Sheet.Buttons.AssignPlatform"}}" {{#unless item.hasEligiblePlatforms}}disabled{{/unless}}><i class="fas fa-link"></i></button>
+                        <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>
+                        <button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>
+                        <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>
+                        <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}"><i class="fas fa-trash"></i></button>
+                      </div>
+                    </div>
+                    {{#if item.description}}
+                      <div class="embedded-description">{{{item.description}}}</div>
+                    {{/if}}
+                  </div>
+                {{/each}}
+              </div>
+            </div>
+          {{else}}
+            <p class="hint">{{localize "CYBER_BLUE.Cyberware.NoUnconnected"}}</p>
+          {{/if}}
+        </section>
       </section>
     </div>
 
@@ -357,42 +493,69 @@
           </button>
         </div>
 
-        <div class="embedded-list">
-          <div class="embedded-header embedded-row">
-            <span>Item</span>
-            <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Quantity"}}</span>
-            <span>{{localize "CYBER_BLUE.Sheet.Labels.State"}}</span>
-            <span>Controls</span>
-          </div>
-          {{#each inventory as |item|}}
-            <div class="embedded-row" data-item-id="{{item.id}}">
-              <button type="button" class="item-name-link embedded-name">
-                <img src="{{item.img}}" alt="{{item.name}}" />
-                <span>{{item.name}}</span>
-              </button>
-              <span class="embedded-rank numeric-column">{{item.system.quantity}}</span>
-              <div class="embedded-summary">
-                {{#if item.system.equipped}}
-                  <span class="state-chip state-active">{{localize "CYBER_BLUE.Sheet.Labels.Equipped"}}</span>
-                {{/if}}
-                {{#if item.system.carried}}
-                  <span class="state-chip">{{localize "CYBER_BLUE.Sheet.Labels.Carried"}}</span>
-                {{/if}}
-                {{#unless item.system.carried}}
-                  {{#unless item.system.equipped}}
-                    <span class="state-chip">{{localize "CYBER_BLUE.Sheet.Labels.Stored"}}</span>
-                  {{/unless}}
-                {{/unless}}
+        {{#each inventoryGroups as |group|}}
+          <section class="inventory-group">
+            <h2>{{group.label}}</h2>
+            {{#if group.items.length}}
+              <div class="embedded-list inventory-list">
+                <div class="embedded-header embedded-row inventory-row">
+                  <span>Item</span>
+                  <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Quantity"}}</span>
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.Details"}}</span>
+                  <span class="numeric-column">Controls</span>
+                </div>
+                <div class="embedded-entries">
+                  {{#each group.items as |item|}}
+                    <div class="embedded-row inventory-row" data-item-id="{{item.id}}">
+                      <button type="button" class="item-name-link embedded-name">
+                        <img src="{{item.img}}" alt="{{item.name}}" />
+                        <span class="embedded-name-text">
+                          <span>{{item.name}}</span>
+                          {{#if item.system.manufacturer}}
+                            <span class="manufacturer-summary">
+                              {{#if item.manufacturerLogo}}
+                                <img class="manufacturer-logo" src="{{item.manufacturerLogo}}" alt="{{item.system.manufacturer}}" />
+                              {{/if}}
+                              <span>{{item.system.manufacturer}}</span>
+                            </span>
+                          {{/if}}
+                        </span>
+                      </button>
+                      <input class="numeric-column" type="number" value="{{item.system.quantity}}" data-action="update-item-field" data-field-path="system.quantity" data-dtype="Number" />
+                      <div class="embedded-summary">
+                        {{#if item.system.note}}
+                          <div class="embedded-note">{{item.system.note}}</div>
+                        {{/if}}
+                        {{#if item.system.cost}}
+                          <div>{{item.system.cost}}</div>
+                        {{/if}}
+                        {{#if item.armorText}}
+                          <div>{{localize "CYBER_BLUE.Sheet.Labels.StoppingPower"}}: {{item.armorText}}</div>
+                        {{/if}}
+                        {{#each item.weaponSummaries as |weapon|}}
+                          {{#if weapon.ammoText}}
+                            <div>{{weapon.label}}: {{weapon.ammoText}}</div>
+                          {{/if}}
+                        {{/each}}
+                      </div>
+                      <div class="embedded-controls">
+                        <button type="button" data-action="set-gear-state" data-state="equipped" title="{{localize "CYBER_BLUE.Sheet.Buttons.Equip"}}"><i class="fas fa-shield-halved"></i></button>
+                        <button type="button" data-action="set-gear-state" data-state="carried" title="{{localize "CYBER_BLUE.Sheet.Buttons.Bring"}}"><i class="fas fa-briefcase"></i></button>
+                        <button type="button" data-action="set-gear-state" data-state="owned" title="{{localize "CYBER_BLUE.Sheet.Buttons.Leave"}}"><i class="fas fa-house"></i></button>
+                        <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>
+                        <button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>
+                        <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>
+                        <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}"><i class="fas fa-trash"></i></button>
+                      </div>
+                    </div>
+                  {{/each}}
+                </div>
               </div>
-              <div class="embedded-controls">
-                <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>
-                <button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>
-                <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>
-                <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}"><i class="fas fa-trash"></i></button>
-              </div>
-            </div>
-          {{/each}}
-        </div>
+            {{else}}
+              <p class="hint">{{localize "CYBER_BLUE.Sheet.Labels.NoItemsInState" state=group.label}}</p>
+            {{/if}}
+          </section>
+        {{/each}}
       </section>
     </div>
 

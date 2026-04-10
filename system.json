@@ -76,12 +76,14 @@
       "cyberware": {
         "htmlFields": [
           "description",
-          "notes"
+          "notes",
+          "mods.description"
         ]
       },
       "gear": {
         "htmlFields": [
-          "description"
+          "description",
+          "mods.description"
         ]
       }
     }
@@ -98,5 +100,5 @@
     "units": "m"
   },
   "primaryTokenAttribute": "resources.hp",
-  "secondaryTokenAttribute": "resources.psyche"
+  "secondaryTokenAttribute": "resources.armor"
 }

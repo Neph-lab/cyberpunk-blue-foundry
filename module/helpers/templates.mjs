@@ -7,5 +7,7 @@ export const preloadHandlebarsTemplates = async function () {
   return loadTemplates([
     // Item partials
     'systems/cyberpunk-blue/templates/item/parts/item-effects.hbs',
+    'systems/cyberpunk-blue/templates/item/parts/item-combat.hbs',
+    'systems/cyberpunk-blue/templates/item/parts/item-mods.hbs',
   ]);
 };

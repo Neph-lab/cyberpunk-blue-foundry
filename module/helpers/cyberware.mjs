@@ -107,6 +107,42 @@ export function getEligiblePlatforms(actor, currentItemId, system) {
     .sort((left, right) => left.name.localeCompare(right.name));
 }
 
+export async function promptForCyberwarePlatform(eligiblePlatforms) {
+  if (!eligiblePlatforms.length) {
+    return null;
+  }
+
+  if (eligiblePlatforms.length === 1) {
+    return eligiblePlatforms[0].id;
+  }
+
+  const optionsMarkup = eligiblePlatforms.map((platform) => `
+    <option value="${platform.id}">${platform.name} (${game.i18n.format('CYBER_BLUE.Cyberware.FreeSlots', {
+      free: platform.freeSlots,
+      total: platform.slotsProvided,
+    })})</option>
+  `).join('');
+
+  return foundry.applications.api.DialogV2.prompt({
+    window: {
+      title: game.i18n.localize('CYBER_BLUE.Cyberware.PlatformAssignment'),
+    },
+    content: `
+      <form>
+        <div class="form-group">
+          <label>${game.i18n.localize('CYBER_BLUE.Sheet.Labels.Platform')}</label>
+          <select name="platformId">${optionsMarkup}</select>
+        </div>
+      </form>
+    `,
+    ok: {
+      label: game.i18n.localize('CYBER_BLUE.Sheet.Buttons.AssignPlatform'),
+      callback: (_event, _button, dialog) => dialog.element.querySelector('[name="platformId"]')?.value,
+    },
+    rejectClose: false,
+  });
+}
+
 export function validateCyberwareConfiguration(actor, { itemId = null, itemName = '', system } = {}) {
   const entries = getCyberwareEntries(actor, {
     pendingItemId: itemId ?? '__pending__',
@@ -138,10 +174,7 @@ export function validateCyberwareConfiguration(actor, { itemId = null, itemName 
     }
 
     if (!entry.system.parentCyberwareId) {
-      return {
-        valid: false,
-        reason: game.i18n.localize('CYBER_BLUE.Cyberware.Errors.MissingPlatform'),
-      };
+      continue;
     }
 
     const platform = entries.find((candidate) => candidate.id === entry.system.parentCyberwareId);

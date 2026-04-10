@@ -4,6 +4,15 @@ import { CyberBlueActorSheet } from './sheets/actor-sheet.mjs';
 import { CyberBlueItemSheet } from './sheets/item-sheet.mjs';
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
 import { CYBER_BLUE } from './helpers/config.mjs';
+import { applyWeaponTypeDefaults, createWeaponData } from './helpers/combat.mjs';
+import {
+  CYBERWARE_DISABLE_CHANGE_KEYS,
+  getActorCyberwareDisableState,
+  resolveCyberwareDisableSelections,
+  syncDisabledCyberwareItemEffects,
+  syncActorCyberwareDisableEffects,
+} from './helpers/cyberware-disable.mjs';
+import { syncItemModificationEffects } from './helpers/mods.mjs';
 import * as models from './data/_module.mjs';
 
 Hooks.once('init', function () {
@@ -11,6 +20,18 @@ Hooks.once('init', function () {
     CyberBlueActor,
     CyberBlueItem,
     config: CYBER_BLUE,
+    combat: {
+      createWeaponData,
+      applyWeaponTypeDefaults,
+      applyDamage: async (actor, amount, options = {}) => actor.applyDamage(amount, options),
+    },
+    cyberwareDisable: {
+      keys: CYBERWARE_DISABLE_CHANGE_KEYS,
+      getState: getActorCyberwareDisableState,
+      resolve: resolveCyberwareDisableSelections,
+      syncItemEffects: syncDisabledCyberwareItemEffects,
+      sync: syncActorCyberwareDisableEffects,
+    },
   };
 
   CONFIG.CYBER_BLUE = CYBER_BLUE;
@@ -26,11 +47,11 @@ Hooks.once('init', function () {
   };
   CONFIG.Actor.trackableAttributes = {
     character: {
-      bar: ['resources.hp', 'resources.psyche', 'resources.luck'],
+      bar: ['resources.hp', 'resources.armor', 'resources.psyche', 'resources.luck'],
       value: ['resources.deathSave.value', 'resources.seriousWoundThreshold.value'],
     },
     npc: {
-      bar: ['resources.hp', 'resources.psyche', 'resources.luck'],
+      bar: ['resources.hp', 'resources.armor', 'resources.psyche', 'resources.luck'],
       value: ['resources.deathSave.value', 'resources.seriousWoundThreshold.value'],
     },
   };
@@ -120,8 +141,17 @@ const promptCyberwarePsycheLoss = async (item, options = {}, userId = null) => {
     return;
   }
 
+  if (item.isUnconnectedExtension()) {
+    return;
+  }
+
+  if (item.getFlag('cyberpunk-blue', CyberBlueItem.PSYCHE_PROMPT_FLAG)) {
+    return;
+  }
+
   const psycheLoss = item.getCyberwarePsycheLossData();
   if (!psycheLoss.valid || psycheLoss.maxReduction <= 0) {
+    await item.setFlag('cyberpunk-blue', CyberBlueItem.PSYCHE_PROMPT_FLAG, true);
     return;
   }
 
@@ -180,15 +210,36 @@ const promptCyberwarePsycheLoss = async (item, options = {}, userId = null) => {
     loss = psycheLoss.suggested;
   }
 
+  await item.setFlag('cyberpunk-blue', CyberBlueItem.PSYCHE_PROMPT_FLAG, true);
+
   if (loss <= 0) {
     return;
   }
 
   const currentPsyche = actor.system.resources.psyche.value ?? 0;
-  const reducedMaxPsyche = Math.max((actor.system.resources.psyche.max ?? 0) - psycheLoss.maxReduction, 0);
   await actor.update({
-    'system.resources.psyche.value': Math.min(Math.max(currentPsyche - loss, 0), reducedMaxPsyche),
+    'system.resources.psyche.value': Math.max(currentPsyche - loss, 0),
   });
+};
+
+const onCreateCyberwarePsycheLoss = (item, options, userId) =>
+  promptCyberwarePsycheLoss(item, options, userId);
+
+const onUpdateCyberwarePsycheLoss = (item, changed, options, userId) => {
+  if (!(item instanceof CyberBlueItem) || item.type !== 'cyberware') {
+    return;
+  }
+
+  const systemChange = changed?.system ?? {};
+  const shouldCheckPrompt = 'parentCyberwareId' in systemChange
+    || 'integration' in systemChange
+    || 'installed' in systemChange;
+
+  if (!shouldCheckPrompt) {
+    return;
+  }
+
+  return promptCyberwarePsycheLoss(item, options, userId);
 };
 
 Hooks.on('createItem', syncCyberwarePsycheLossEffect);
@@ -196,7 +247,90 @@ Hooks.on('updateItem', syncCyberwarePsycheLossEffect);
 Hooks.on('createActiveEffect', syncCyberwarePsycheLossEffect);
 Hooks.on('updateActiveEffect', syncCyberwarePsycheLossEffect);
 Hooks.on('deleteActiveEffect', syncCyberwarePsycheLossEffect);
-Hooks.on('createItem', promptCyberwarePsycheLoss);
+Hooks.on('createItem', onCreateCyberwarePsycheLoss);
+Hooks.on('updateItem', onUpdateCyberwarePsycheLoss);
+
+const syncCyberwareOperationalEffects = (document, options = {}) => {
+  if (options?.cyberBlueSyncOperationalEffects) {
+    return;
+  }
+
+  const item = document instanceof Item
+    ? document
+    : document?.parent instanceof Item
+      ? document.parent
+      : null;
+
+  if (!(item instanceof CyberBlueItem) || item.type !== 'cyberware') {
+    return;
+  }
+
+  return item.syncCyberwareOperationalEffects(options);
+};
+
+const syncModificationEffects = (document, options = {}) => {
+  if (options?.cyberBlueSyncModEffects) {
+    return;
+  }
+
+  const item = document instanceof Item
+    ? document
+    : document?.parent instanceof Item
+      ? document.parent
+      : null;
+
+  if (!(item instanceof CyberBlueItem) || !['gear', 'cyberware'].includes(item.type)) {
+    return;
+  }
+
+  return syncItemModificationEffects(item, options);
+};
+
+const syncCyberwareDisableEffects = (document, options = {}) => {
+  if (options?.cyberBlueSyncCyberwareDisable) {
+    return;
+  }
+
+  const actor = document instanceof Actor
+    ? document
+    : document instanceof Item && document.parent instanceof Actor
+      ? document.parent
+      : document instanceof ActiveEffect && document.parent instanceof Actor
+        ? document.parent
+        : null;
+
+  if (!(actor instanceof CyberBlueActor)) {
+    return;
+  }
+
+  const forceReroll = document instanceof ActiveEffect && document.parent instanceof Actor
+    ? true
+    : document instanceof Item && document.type === 'cyberware'
+      ? true
+      : false;
+
+  return syncActorCyberwareDisableEffects(actor, {
+    ...options,
+    forceCyberBlueCyberwareDisableReroll: forceReroll,
+  });
+};
+
+Hooks.on('createItem', syncCyberwareDisableEffects);
+Hooks.on('updateItem', syncCyberwareDisableEffects);
+Hooks.on('deleteItem', syncCyberwareDisableEffects);
+Hooks.on('createActiveEffect', syncCyberwareDisableEffects);
+Hooks.on('updateActiveEffect', syncCyberwareDisableEffects);
+Hooks.on('deleteActiveEffect', syncCyberwareDisableEffects);
+Hooks.on('createItem', syncModificationEffects);
+Hooks.on('updateItem', syncModificationEffects);
+Hooks.on('createActiveEffect', syncModificationEffects);
+Hooks.on('updateActiveEffect', syncModificationEffects);
+Hooks.on('deleteActiveEffect', syncModificationEffects);
+Hooks.on('createItem', syncCyberwareOperationalEffects);
+Hooks.on('updateItem', syncCyberwareOperationalEffects);
+Hooks.on('createActiveEffect', syncCyberwareOperationalEffects);
+Hooks.on('updateActiveEffect', syncCyberwareOperationalEffects);
+Hooks.on('deleteActiveEffect', syncCyberwareOperationalEffects);
 
 Hooks.once('ready', async () => {
   if (!game.user.isGM) {
@@ -218,6 +352,26 @@ Hooks.once('ready', async () => {
 
   for (const item of cyberwareItems) {
     await item.syncCyberwarePsycheLossEffect({ cyberBlueSyncPsycheLoss: true });
+    await item.syncCyberwareOperationalEffects({ cyberBlueSyncOperationalEffects: true });
+  }
+
+  const modItems = [
+    ...game.items.contents,
+    ...game.actors.contents.flatMap((actor) => actor.items.contents),
+  ].filter((item) => item instanceof CyberBlueItem && ['gear', 'cyberware'].includes(item.type))
+    .filter((item) => {
+      if (seen.has(`${item.uuid}-mods`)) {
+        return false;
+      }
+      seen.add(`${item.uuid}-mods`);
+      return true;
+    });
+  for (const item of modItems) {
+    await syncItemModificationEffects(item, { cyberBlueSyncModEffects: true });
+  }
+
+  for (const actor of game.actors.contents) {
+    await syncActorCyberwareDisableEffects(actor, { cyberBlueSyncCyberwareDisable: true });
   }
 });
 

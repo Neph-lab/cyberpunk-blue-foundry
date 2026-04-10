@@ -1,5 +1,19 @@
+import { getEligiblePlatforms, promptForCyberwarePlatform } from '../helpers/cyberware.mjs';
+import { normalizeGearState } from '../helpers/gear.mjs';
+
 export class CyberBlueActor extends Actor {
   static SERIOUS_WOUND_FLAG = 'autoSeriousWound';
+
+  prepareDerivedData() {
+    super.prepareDerivedData();
+
+    const activeArmor = this.getActiveArmorItem();
+    const currentSp = activeArmor ? Math.max(Math.min(activeArmor.system.armor?.currentSp ?? 0, activeArmor.system.armor?.maxSp ?? 0), 0) : 0;
+    const maxSp = activeArmor ? Math.max(activeArmor.system.armor?.maxSp ?? 0, 0) : 0;
+
+    this.system.resources.armor.value = currentSp;
+    this.system.resources.armor.max = maxSp;
+  }
 
   async createEmbeddedDocuments(embeddedName, data = [], options = {}) {
     if (embeddedName === 'Item') {
@@ -12,7 +26,10 @@ export class CyberBlueActor extends Actor {
 
       for (const entry of data) {
         if (entry?.type !== 'role') {
-          filteredData.push(entry);
+          const prepared = await this._prepareIncomingItemData(entry);
+          if (prepared) {
+            filteredData.push(prepared);
+          }
           continue;
         }
 
@@ -34,6 +51,98 @@ export class CyberBlueActor extends Actor {
     }
 
     return super.createEmbeddedDocuments(embeddedName, data, options);
+  }
+
+  async _prepareIncomingItemData(entry) {
+    if (entry?.type !== 'cyberware') {
+      return entry;
+    }
+
+    const nextEntry = foundry.utils.deepClone(entry);
+    const system = nextEntry.system ?? {};
+    if (system.integration !== 'extension' || system.parentCyberwareId) {
+      return nextEntry;
+    }
+
+    const selectedPlatformId = await promptForCyberwarePlatform(getEligiblePlatforms(this, null, system));
+    if (selectedPlatformId === undefined || selectedPlatformId === '') {
+      return null;
+    }
+
+    if (selectedPlatformId) {
+      nextEntry.system = {
+        ...system,
+        parentCyberwareId: selectedPlatformId,
+      };
+      return nextEntry;
+    }
+
+    nextEntry.system = {
+      ...system,
+      parentCyberwareId: null,
+    };
+    return nextEntry;
+  }
+
+  getAvailableArmorItems() {
+    return this.items.contents
+      .filter((item) => item.type === 'gear' || item.type === 'cyberware')
+      .filter((item) => item.system?.isArmor)
+      .filter((item) => {
+        if (item.type === 'gear') {
+          return normalizeGearState(item.system) === 'equipped';
+        }
+
+        return Boolean(item.system.installed)
+          && !item.isUnconnectedExtension?.()
+          && !item.isCyberwareDisabled?.();
+      })
+      .sort((left, right) => (left.sort ?? 0) - (right.sort ?? 0) || left.name.localeCompare(right.name));
+  }
+
+  getActiveArmorItem() {
+    const availableArmor = this.getAvailableArmorItems();
+    if (!availableArmor.length) {
+      return null;
+    }
+
+    return availableArmor.find((item) => item.id === this.system.combat.activeArmorItemId) ?? availableArmor[0];
+  }
+
+  async applyDamage(amount, { ignoreArmor = false } = {}) {
+    const totalDamage = Math.max(Number(amount) || 0, 0);
+    const activeArmor = ignoreArmor ? null : this.getActiveArmorItem();
+    const currentHp = this.system.resources.hp.value ?? 0;
+    const currentSp = activeArmor ? Math.max(Math.min(activeArmor.system.armor?.currentSp ?? 0, activeArmor.system.armor?.maxSp ?? 0), 0) : 0;
+    const penetrated = activeArmor ? totalDamage - currentSp : totalDamage;
+    const hpLoss = penetrated > 0 ? penetrated : 0;
+    const shouldAblateArmor = Boolean(activeArmor) && currentSp > 0 && penetrated >= 0;
+    const updates = [];
+
+    if (hpLoss > 0) {
+      updates.push(this.update({
+        'system.resources.hp.value': Math.max(currentHp - hpLoss, 0),
+      }));
+    }
+
+    if (shouldAblateArmor) {
+      updates.push(activeArmor.update({
+        'system.armor.currentSp': Math.max(currentSp - 1, 0),
+      }));
+    }
+
+    if (updates.length) {
+      await Promise.all(updates);
+    }
+
+    return {
+      totalDamage,
+      armorId: activeArmor?.id ?? null,
+      armorName: activeArmor?.name ?? null,
+      armorBlocked: activeArmor ? Math.min(currentSp, totalDamage) : 0,
+      hpLoss,
+      ablatedArmor: shouldAblateArmor ? 1 : 0,
+    };
   }
 
   getRollData() {
@@ -171,7 +280,7 @@ export class CyberBlueActor extends Actor {
     }));
     const effectData = {
       name: game.i18n.localize('CYBER_BLUE.Effect.SeriouslyWounded'),
-      icon: 'icons/svg/blood.svg',
+      icon: 'systems/cyberpunk-blue/assets/pummeled.svg',
       origin: this.uuid,
       disabled: false,
       transfer: false,

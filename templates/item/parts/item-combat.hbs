@@ -1,0 +1,131 @@
+<div class="combat-layout">
+  {{#if system.isArmor}}
+    <section class="sheet-panel">
+      <div class="item-meta-row combat-armor-row">
+        <label class="armor-inline-field">
+          <span>{{localize "CYBER_BLUE.Sheet.Labels.StoppingPower"}}</span>
+          <div class="resource-fields">
+            <input type="number" name="system.armor.currentSp" value="{{system.armor.currentSp}}" data-dtype="Number" />
+            <span>/</span>
+            <input type="number" name="system.armor.maxSp" value="{{system.armor.maxSp}}" data-dtype="Number" />
+          </div>
+        </label>
+      </div>
+    </section>
+  {{/if}}
+
+  {{#if system.isWeapon}}
+    <section class="sheet-panel">
+      <div class="panel-header">
+        <h2>{{localize "CYBER_BLUE.Sheet.Labels.Weapons"}}</h2>
+        <button type="button" data-action="add-weapon" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddWeapon"}}">
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
+
+      {{#if weapons.length}}
+        <div class="weapon-list">
+          {{#each weapons as |weapon|}}
+            <section class="weapon-block">
+              <div class="panel-header">
+                <h3>{{weapon.definition.label}}</h3>
+                <button type="button" data-action="remove-weapon" data-weapon-index="{{weapon.index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.RemoveWeapon"}}">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+
+              <div class="weapon-grid">
+                <label>
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.WeaponType"}}</span>
+                  <select name="system.weapons.{{weapon.index}}.type" data-weapon-index="{{weapon.index}}" data-weapon-type-select>
+                    {{#each @root.combatConfig.weaponTypeGroups as |group|}}
+                      <optgroup label="{{group.label}}">
+                        {{#each group.options as |option|}}
+                          <option value="{{option.value}}" {{#if (eq option.value weapon.type)}}selected{{/if}}>{{option.label}}</option>
+                        {{/each}}
+                      </optgroup>
+                    {{/each}}
+                  </select>
+                </label>
+
+                <label>
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.WeaponSkill"}}</span>
+                  <select name="system.weapons.{{weapon.index}}.skill">
+                    {{#each weapon.skillOptions as |option|}}
+                      <option value="{{option.value}}" {{#if (eq option.value weapon.skill)}}selected{{/if}}>{{option.label}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+
+                <label>
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.Damage"}}</span>
+                  <input type="text" name="system.weapons.{{weapon.index}}.damage" value="{{weapon.damage}}" />
+                </label>
+
+                {{#if weapon.definition.showRateOfFire}}
+                  <label class="compact-field">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.RateOfFire"}}</span>
+                    <input type="number" name="system.weapons.{{weapon.index}}.rateOfFire" value="{{weapon.rateOfFire}}" data-dtype="Number" />
+                  </label>
+                {{/if}}
+
+                {{#if weapon.definition.showMagazine}}
+                  <label class="compact-field">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.Mag"}}</span>
+                    <div class="resource-fields">
+                      <input type="number" name="system.weapons.{{weapon.index}}.ammoCurrent" value="{{weapon.ammoCurrent}}" data-dtype="Number" />
+                      <span>/</span>
+                      <input type="number" name="system.weapons.{{weapon.index}}.magazine" value="{{weapon.magazine}}" data-dtype="Number" />
+                    </div>
+                  </label>
+                {{/if}}
+
+                {{#if weapon.definition.showShots}}
+                  <label class="compact-field">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.Shots"}}</span>
+                    <input type="number" name="system.weapons.{{weapon.index}}.shots" value="{{weapon.shots}}" data-dtype="Number" />
+                  </label>
+                {{/if}}
+
+                <label class="compact-field">
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.Hands"}}</span>
+                  <input type="number" name="system.weapons.{{weapon.index}}.hands" value="{{weapon.hands}}" data-dtype="Number" />
+                </label>
+
+                <label class="checkbox-label">
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.Concealable"}}</span>
+                  <input type="checkbox" name="system.weapons.{{weapon.index}}.concealable" {{checked weapon.concealable}} />
+                </label>
+              </div>
+
+              {{#if weapon.definition.usesRangeTable}}
+                <div class="weapon-range-table-wrap">
+                  <table class="weapon-range-table">
+                    <thead>
+                      <tr>
+                        {{#each weapon.rangeBands as |band|}}
+                          <th>{{band.label}}</th>
+                        {{/each}}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        {{#each weapon.rangeBands as |band|}}
+                          <td class="{{#if band.isBlocked}}is-blocked{{/if}}">
+                            <input type="number" name="system.weapons.{{weapon.index}}.rangeTable.{{band.index}}" value="{{band.value}}" data-dtype="Number" />
+                          </td>
+                        {{/each}}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              {{/if}}
+            </section>
+          {{/each}}
+        </div>
+      {{else}}
+        <p class="hint">{{localize "CYBER_BLUE.Sheet.Labels.NoWeapons"}}</p>
+      {{/if}}
+    </section>
+  {{/if}}
+</div>

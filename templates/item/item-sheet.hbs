@@ -1,6 +1,11 @@
 <form class="{{cssClass}}" autocomplete="off">
-  <datalist id="cyberware-cost-ladder">
+  <datalist id="cyber-blue-cost-ladder">
     {{#each costLadder as |entry|}}
+      <option value="{{entry}}"></option>
+    {{/each}}
+  </datalist>
+  <datalist id="cyber-blue-manufacturers">
+    {{#each manufacturers as |entry|}}
       <option value="{{entry}}"></option>
     {{/each}}
   </datalist>
@@ -32,6 +37,15 @@
       {{else}}
         {{#if isCyberware}}
           <div class="item-meta-row cyberware-header">
+            <label class="manufacturer-field">
+              <span>{{localize "CYBER_BLUE.Sheet.Labels.Manufacturer"}}</span>
+              <div class="manufacturer-input-row">
+                {{#if manufacturerLogo}}
+                  <img class="manufacturer-logo" src="{{manufacturerLogo}}" alt="{{system.manufacturer}}" />
+                {{/if}}
+                <input type="text" name="system.manufacturer" value="{{system.manufacturer}}" list="cyber-blue-manufacturers" />
+              </div>
+            </label>
             <label>
               <span>Type</span>
               <select name="system.cyberwareType">
@@ -42,12 +56,26 @@
             </label>
             <label>
               <span>{{localize "CYBER_BLUE.Sheet.Labels.Cost"}}</span>
-              <input type="text" name="system.cost" value="{{system.cost}}" list="cyberware-cost-ladder" />
+              <input type="text" name="system.cost" value="{{system.cost}}" list="cyber-blue-cost-ladder" />
             </label>
             <label class="checkbox-label">
               <span>{{localize "CYBER_BLUE.Sheet.Labels.MultipleInstalls"}}</span>
               <input type="checkbox" name="system.multipleInstalls" {{checked system.multipleInstalls}} />
             </label>
+            {{#if canManageRestricted}}
+              <label class="checkbox-label checkbox-bottom">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Armor"}}</span>
+                <input type="checkbox" name="system.isArmor" {{checked system.isArmor}} />
+              </label>
+              <label class="checkbox-label checkbox-bottom">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Weapon"}}</span>
+                <input type="checkbox" name="system.isWeapon" {{checked system.isWeapon}} />
+              </label>
+              <label class="checkbox-label checkbox-bottom">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Computer"}}</span>
+                <input type="checkbox" name="system.isComputer" {{checked system.isComputer}} />
+              </label>
+            {{/if}}
             <label>
               <span>{{localize "CYBER_BLUE.Sheet.Labels.Integration"}}</span>
               <select name="system.integration">
@@ -89,10 +117,41 @@
               </label>
             {{/if}}
             {{#if isGear}}
+              <label class="manufacturer-field">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Manufacturer"}}</span>
+                <div class="manufacturer-input-row">
+                  {{#if manufacturerLogo}}
+                    <img class="manufacturer-logo" src="{{manufacturerLogo}}" alt="{{system.manufacturer}}" />
+                  {{/if}}
+                  <input type="text" name="system.manufacturer" value="{{system.manufacturer}}" list="cyber-blue-manufacturers" />
+                </div>
+              </label>
               <label>
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Cost"}}</span>
+                <input type="text" name="system.cost" value="{{system.cost}}" list="cyber-blue-cost-ladder" />
+              </label>
+              <label class="compact-field">
                 <span>{{localize "CYBER_BLUE.Sheet.Labels.Quantity"}}</span>
                 <input type="number" name="system.quantity" value="{{system.quantity}}" data-dtype="Number" />
               </label>
+              <label class="ability-note-field">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Note"}}</span>
+                <input type="text" name="system.note" value="{{system.note}}" />
+              </label>
+              {{#if canManageRestricted}}
+                <label class="checkbox-label checkbox-bottom">
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.Armor"}}</span>
+                  <input type="checkbox" name="system.isArmor" {{checked system.isArmor}} />
+                </label>
+                <label class="checkbox-label checkbox-bottom">
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.Weapon"}}</span>
+                  <input type="checkbox" name="system.isWeapon" {{checked system.isWeapon}} />
+                </label>
+                <label class="checkbox-label checkbox-bottom">
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.Computer"}}</span>
+                  <input type="checkbox" name="system.isComputer" {{checked system.isComputer}} />
+                </label>
+              {{/if}}
             {{/if}}
           </div>
         {{/if}}
@@ -122,85 +181,110 @@
     </section>
   {{else}}
     {{#if isCyberware}}
-      <section class="sheet-body cyberware-sheet">
-        <details class="sheet-panel foldout-panel" open>
-          <summary>{{localize "CYBER_BLUE.Cyberware.Details"}}</summary>
-          <div class="cyberware-detail-grid">
-            <label>
-              <span>{{localize "CYBER_BLUE.Sheet.Labels.PsycheLoss"}}</span>
-              <input type="text" name="system.psycheLossFormula" value="{{system.psycheLossFormula}}" placeholder="1d6" />
-            </label>
-            <div class="derived-field">
-              <span>{{localize "CYBER_BLUE.Sheet.Labels.SuggestedLoss"}}</span>
-              <strong>{{cyberwarePsyche.suggested}}</strong>
-            </div>
-            <div class="derived-field">
-              <span>{{localize "CYBER_BLUE.Sheet.Labels.MaxPsycheReduction"}}</span>
-              <strong>{{cyberwarePsyche.maxReduction}}</strong>
-            </div>
-            <label>
-              <span>{{localize "CYBER_BLUE.Sheet.Labels.Facilities"}}</span>
-              <select name="system.facilities">
-                {{#each cyberwareConfig.facilities as |option|}}
-                  <option value="{{option.value}}" {{#if (eq option.value ../system.facilities)}}selected{{/if}}>{{option.label}}</option>
-                {{/each}}
-              </select>
-            </label>
-            <label>
-              <span>{{localize "CYBER_BLUE.Sheet.Labels.InstallationCost"}}</span>
-              <input type="text" name="system.installationCost" value="{{system.installationCost}}" list="cyberware-cost-ladder" />
-            </label>
-            <label class="compact-field">
-              <span>{{localize "CYBER_BLUE.Sheet.Labels.InstallationDv"}}</span>
-              <input type="number" name="system.installationDv" value="{{system.installationDv}}" data-dtype="Number" />
-            </label>
-            <label class="checkbox-label">
-              <span>{{localize "CYBER_BLUE.Sheet.Labels.UseCyberneticsComponent"}}</span>
-              <input type="checkbox" name="system.useCyberneticsComponent" {{checked system.useCyberneticsComponent}} />
-            </label>
-          </div>
-          {{#if ownerActor}}
-            {{#if (eq system.integration "extension")}}
-              {{#unless eligiblePlatforms.length}}
-                <p class="hint">{{localize "CYBER_BLUE.Cyberware.NoEligiblePlatforms"}}</p>
-              {{/unless}}
-              {{#if currentPlatform}}
-                <p class="hint">{{localize "CYBER_BLUE.Cyberware.InstalledUnder" platform=currentPlatform.name}}</p>
-              {{/if}}
-            {{/if}}
-          {{/if}}
-        </details>
+      {{#if showCombatTab}}
+        <nav class="sheet-tabs tabs" data-group="primary">
+          <a class="item" data-tab="description">{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</a>
+          <a class="item" data-tab="combat">{{localize "CYBER_BLUE.Sheet.Tabs.Combat"}}</a>
+        </nav>
+      {{/if}}
 
-        <section class="sheet-panel">
-          {{#if editable}}
-            <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
-              {{{enrichedDescription}}}
-            </prose-mirror>
-          {{else}}
-            <div class="editor">
-              <div class="editor-content">{{{enrichedDescription}}}</div>
-            </div>
-          {{/if}}
-        </section>
-
-        {{#if showCyberwareNotes}}
-          <section class="sheet-panel">
-            {{#if editable}}
-              <prose-mirror name="system.notes" value="{{system.notes}}" document-uuid="{{item.uuid}}" compact>
-                {{{enrichedNotes}}}
-              </prose-mirror>
-            {{else}}
-              <div class="editor">
-                <div class="editor-content">{{{enrichedNotes}}}</div>
-              </div>
-            {{/if}}
-          </section>
+      <section class="sheet-body cyberware-sheet {{#if cyberwareDisable}}is-disabled{{/if}}">
+        {{#if showCombatTab}}
+          <div class="tab active" data-group="primary" data-tab="description">
         {{/if}}
+            {{#if cyberwareDisable}}
+              <section class="sheet-panel sheet-status status-disabled" title="{{cyberwareDisable.tooltip}}">
+                <i class="fas fa-ban"></i>
+                <span>{{cyberwareDisableText}}</span>
+              </section>
+            {{/if}}
+            <details class="sheet-panel foldout-panel" open>
+              <summary>{{localize "CYBER_BLUE.Cyberware.Details"}}</summary>
+              <div class="cyberware-detail-grid">
+                <label>
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.PsycheLoss"}}</span>
+                  <input type="text" name="system.psycheLossFormula" value="{{system.psycheLossFormula}}" placeholder="1d6" />
+                </label>
+                <div class="derived-field">
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.SuggestedLoss"}}</span>
+                  <strong>{{cyberwarePsyche.suggested}}</strong>
+                </div>
+                <div class="derived-field">
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.MaxPsycheReduction"}}</span>
+                  <strong>{{cyberwarePsyche.maxReduction}}</strong>
+                </div>
+                <label>
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.Facilities"}}</span>
+                  <select name="system.facilities">
+                    {{#each cyberwareConfig.facilities as |option|}}
+                      <option value="{{option.value}}" {{#if (eq option.value ../system.facilities)}}selected{{/if}}>{{option.label}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+                <label>
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.InstallationCost"}}</span>
+                  <input type="text" name="system.installationCost" value="{{system.installationCost}}" list="cyber-blue-cost-ladder" />
+                </label>
+                <label class="compact-field">
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.InstallationDv"}}</span>
+                  <input type="number" name="system.installationDv" value="{{system.installationDv}}" data-dtype="Number" />
+                </label>
+                <label class="checkbox-label">
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.UseCyberneticsComponent"}}</span>
+                  <input type="checkbox" name="system.useCyberneticsComponent" {{checked system.useCyberneticsComponent}} />
+                </label>
+              </div>
+              {{#if ownerActor}}
+                {{#if (eq system.integration "extension")}}
+                  {{#unless eligiblePlatforms.length}}
+                    <p class="hint">{{localize "CYBER_BLUE.Cyberware.NoEligiblePlatforms"}}</p>
+                  {{/unless}}
+                  {{#if currentPlatform}}
+                    <p class="hint">{{localize "CYBER_BLUE.Cyberware.InstalledUnder" platform=currentPlatform.name}}</p>
+                  {{/if}}
+                {{/if}}
+              {{/if}}
+            </details>
 
-        {{#if canManageRestricted}}
-          <section class="sheet-panel">
-            {{> "systems/cyberpunk-blue/templates/item/parts/item-effects.hbs"}}
-          </section>
+            <section class="sheet-panel">
+              {{#if editable}}
+                <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
+                  {{{enrichedDescription}}}
+                </prose-mirror>
+              {{else}}
+                <div class="editor">
+                  <div class="editor-content">{{{enrichedDescription}}}</div>
+                </div>
+              {{/if}}
+            </section>
+
+            {{> "systems/cyberpunk-blue/templates/item/parts/item-mods.hbs"}}
+
+            {{#if showCyberwareNotes}}
+              <section class="sheet-panel">
+                {{#if editable}}
+                  <prose-mirror name="system.notes" value="{{system.notes}}" document-uuid="{{item.uuid}}" compact>
+                    {{{enrichedNotes}}}
+                  </prose-mirror>
+                {{else}}
+                  <div class="editor">
+                    <div class="editor-content">{{{enrichedNotes}}}</div>
+                  </div>
+                {{/if}}
+              </section>
+            {{/if}}
+
+            {{#if canManageRestricted}}
+              <section class="sheet-panel">
+                {{> "systems/cyberpunk-blue/templates/item/parts/item-effects.hbs"}}
+              </section>
+            {{/if}}
+        {{#if showCombatTab}}
+          </div>
+
+          <div class="tab" data-group="primary" data-tab="combat">
+            {{> "systems/cyberpunk-blue/templates/item/parts/item-combat.hbs"}}
+          </div>
         {{/if}}
       </section>
     {{else}}
@@ -213,8 +297,15 @@
             <a class="item" data-tab="notes">{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
           {{/if}}
         {{else}}
-          <a class="item" data-tab="details">{{localize "CYBER_BLUE.Sheet.Tabs.Details"}}</a>
-          <a class="item" data-tab="effects">{{localize "CYBER_BLUE.Sheet.Tabs.Effects"}}</a>
+          {{#unless isGear}}
+            <a class="item" data-tab="details">{{localize "CYBER_BLUE.Sheet.Tabs.Details"}}</a>
+          {{/unless}}
+          {{#if showCombatTab}}
+            <a class="item" data-tab="combat">{{localize "CYBER_BLUE.Sheet.Tabs.Combat"}}</a>
+          {{/if}}
+          {{#if showEffectsTab}}
+            <a class="item" data-tab="effects">{{localize "CYBER_BLUE.Sheet.Tabs.Effects"}}</a>
+          {{/if}}
         {{/if}}
       </nav>
 
@@ -231,6 +322,22 @@
               </div>
             {{/if}}
           </section>
+          {{#if isGear}}
+            {{> "systems/cyberpunk-blue/templates/item/parts/item-mods.hbs"}}
+
+            <section class="sheet-panel">
+              <div class="item-meta-row">
+                <label>
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.State"}}</span>
+                  <select name="system.state">
+                    {{#each gearStates as |option|}}
+                      <option value="{{option.value}}" {{#if (eq option.value ../system.state)}}selected{{/if}}>{{option.label}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+              </div>
+            </section>
+          {{/if}}
         </div>
 
         {{#if isRole}}
@@ -326,8 +433,8 @@
             </div>
           {{/if}}
         {{else}}
-          <div class="tab" data-group="primary" data-tab="details">
-            {{#if isGear}}
+          {{#unless isGear}}
+            <div class="tab" data-group="primary" data-tab="details">
               <section class="sheet-panel">
                 <div class="item-meta-row">
                   <label>
@@ -335,23 +442,31 @@
                     <input type="text" name="system.manufacturer" value="{{system.manufacturer}}" />
                   </label>
                   <label>
-                    <span>{{localize "CYBER_BLUE.Sheet.Labels.Carried"}}</span>
-                    <input type="checkbox" name="system.carried" {{checked system.carried}} />
-                  </label>
-                  <label>
-                    <span>{{localize "CYBER_BLUE.Sheet.Labels.Equipped"}}</span>
-                    <input type="checkbox" name="system.equipped" {{checked system.equipped}} />
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.State"}}</span>
+                    <select name="system.state">
+                      {{#each gearStates as |option|}}
+                        <option value="{{option.value}}" {{#if (eq option.value ../system.state)}}selected{{/if}}>{{option.label}}</option>
+                      {{/each}}
+                    </select>
                   </label>
                 </div>
               </section>
-            {{/if}}
-          </div>
+            </div>
+          {{/unless}}
 
-          <div class="tab effects" data-group="primary" data-tab="effects">
-            <section class="sheet-panel">
-              {{> "systems/cyberpunk-blue/templates/item/parts/item-effects.hbs"}}
-            </section>
-          </div>
+          {{#if showCombatTab}}
+            <div class="tab" data-group="primary" data-tab="combat">
+              {{> "systems/cyberpunk-blue/templates/item/parts/item-combat.hbs"}}
+            </div>
+          {{/if}}
+
+          {{#if showEffectsTab}}
+            <div class="tab effects" data-group="primary" data-tab="effects">
+              <section class="sheet-panel">
+                {{> "systems/cyberpunk-blue/templates/item/parts/item-effects.hbs"}}
+              </section>
+            </div>
+          {{/if}}
         {{/if}}
       </section>
     {{/if}}

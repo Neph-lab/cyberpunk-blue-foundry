@@ -45,6 +45,7 @@ export default class CyberBlueCharacter extends CyberBlueActorBase {
     return {
       stats: foundry.utils.deepClone(this.stats),
       resources: foundry.utils.deepClone(this.resources),
+      combat: foundry.utils.deepClone(this.combat),
       skills: foundry.utils.deepClone(this.skills),
       components: foundry.utils.deepClone(this.components),
       roleState: foundry.utils.deepClone(this.roleState),

@@ -22,6 +22,7 @@ body {
   scrollbar-color: #006600;
   --cpb-bg: linear-gradient(180deg, rgba(0, 0, 0, 0.94), rgba(2, 2, 2, 0.87));
   --cpb-sidebar-bg: linear-gradient(180deg, rgba(0,0,0,0.8),rgba(2,2,2,0.7));
+  --cpb-table-alt-bg: rgba(0, 63, 0, 0.4);
   --cpb-panel: rgba(12, 20, 30, 0.2);
   --cpb-panel-border: rgba(0, 0, 0, 0.22);
   --cpb-accent: #006600;
@@ -204,7 +205,6 @@ button, .cyberpunk-blue button {
   /* background: var(--cpb-bg);
   border: 1px solid var(--cpb-border); */
   border-radius: 0;
-  animation: chromatic-jitter 0.8s steps(2) infinite;
 }
 
 .cyberpunk-blue form {
@@ -416,6 +416,13 @@ button, .cyberpunk-blue button {
   gap: 2px;
 }
 
+.cyberpunk-blue .component-entries,
+.cyberpunk-blue .embedded-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .cyberpunk-blue .skill-table {
   column-gap: 1rem;
   columns: 2 520px;
@@ -509,6 +516,40 @@ button, .cyberpunk-blue button {
   gap: 0.45rem;
 }
 
+.cyberpunk-blue .manufacturer-field {
+  min-width: min(100%, 18rem);
+}
+
+.cyberpunk-blue .manufacturer-input-row {
+  align-items: center;
+  display: flex;
+  gap: 0.45rem;
+}
+
+.cyberpunk-blue .manufacturer-logo {
+  height: 1.6rem;
+  object-fit: contain;
+  width: 1.6rem;
+}
+
+.cyberpunk-blue .embedded-entry {
+  break-inside: avoid;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cyberpunk-blue .embedded-description {
+  background: var(--cpb-panel);
+  color: var(--cpb-muted);
+  font-size: 0.9rem;
+  padding: 0.55rem 0.7rem 0.7rem;
+}
+
+.cyberpunk-blue .embedded-entry.is-disabled {
+  opacity: 0.5;
+}
+
 .cyberpunk-blue .embedded-controls {
   display: flex;
   flex-wrap: nowrap;
@@ -576,6 +617,10 @@ button, .cyberpunk-blue button {
   max-width: 220px;
 }
 
+.cyberpunk-blue .armor-card {
+  max-width: 260px;
+}
+
 .cyberpunk-blue .embedded-name {
   align-items: center;
   background: none;
@@ -584,6 +629,30 @@ button, .cyberpunk-blue button {
   gap: 0.65rem;
   justify-content: flex-start;
   padding: 0;
+}
+
+.cyberpunk-blue .embedded-name-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.cyberpunk-blue .manufacturer-summary,
+.cyberpunk-blue .embedded-note {
+  color: var(--cpb-muted);
+  font-size: 0.8rem;
+}
+
+.cyberpunk-blue .manufacturer-summary {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.cyberpunk-blue .manufacturer-summary .manufacturer-logo {
+  height: 1rem;
+  width: 1rem;
 }
 
 .cyberpunk-blue .embedded-name img {
@@ -605,6 +674,11 @@ button, .cyberpunk-blue button {
 .cyberpunk-blue .state-active {
   border-color: var(--cpb-border);
   color: var(--cpb-accent);
+}
+
+.cyberpunk-blue .state-disabled {
+  border-color: var(--cpb-warning);
+  color: var(--cpb-warning);
 }
 
 .cyberpunk-blue .state-always {
@@ -664,9 +738,6 @@ button, .cyberpunk-blue button {
 
 .cyberpunk-blue .quick-stats-row {
   align-items: stretch;
-}
-
-.cyberpunk-blue .quick-stats-row .stat-card {
 }
 
 .cyberpunk-blue .traits-grid {
@@ -767,6 +838,10 @@ button, .cyberpunk-blue button {
   width: 100%;
 }
 
+.cyberpunk-blue table.embedded-table tbody tr:nth-child(even) td {
+  background: var(--cpb-table-alt-bg);
+}
+
 .cyberpunk-blue .embedded-table .column-compact,
 .cyberpunk-blue .embedded-table .column-controls,
 .cyberpunk-blue .embedded-table th.numeric-column,
@@ -848,6 +923,63 @@ button, .cyberpunk-blue button {
   grid-template-columns: minmax(180px, 1.4fr) minmax(110px, 0.8fr) 72px minmax(160px, 1fr) minmax(180px, 1fr);
 }
 
+.cyberpunk-blue .cyberware-sheet.is-disabled .sheet-panel:not(.status-disabled) {
+  opacity: 0.7;
+}
+
+.cyberpunk-blue .combat-layout,
+.cyberpunk-blue .weapon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cyberpunk-blue .weapon-block {
+  border: 1px solid var(--cpb-panel-border);
+  padding: 0.85rem;
+}
+
+.cyberpunk-blue .weapon-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.cyberpunk-blue .weapon-range-table {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  margin-top: 0.9rem;
+}
+
+.cyberpunk-blue .range-band {
+  align-items: center;
+  background: var(--cpb-panel);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.45rem;
+}
+
+.cyberpunk-blue .range-band.is-blocked {
+  background: #000;
+}
+
+.cyberpunk-blue .range-band.is-blocked input {
+  background: #000;
+}
+
+.cyberpunk-blue .sheet-status {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+}
+
+.cyberpunk-blue .status-disabled {
+  border-color: var(--cpb-warning);
+  color: var(--cpb-warning);
+}
+
 .cyberpunk-blue .lifepath-layout {
   display: flex;
   flex-wrap: wrap;
@@ -876,8 +1008,188 @@ button, .cyberpunk-blue button {
   width: 100%;
 }
 
+.cyberpunk-blue .skill-table-container > .skill-row:not(.skill-header):nth-child(odd),
+.cyberpunk-blue .component-entries > .component-row:nth-child(even),
+.cyberpunk-blue .embedded-entries > .embedded-row:nth-child(even),
+.cyberpunk-blue .embedded-entries > .embedded-entry:nth-child(even) .embedded-row,
+.cyberpunk-blue .embedded-entries > .embedded-entry:nth-child(even) .embedded-description {
+  background: var(--cpb-table-alt-bg);
+}
+
 .cyberpunk-blue .notes-grid > .sheet-panel {
   margin-top: 0.9rem;
+}
+
+.cyberpunk-blue .traits-grid .sheet-panel > .embedded-table {
+  margin-top: 0;
+}
+
+.cyberpunk-blue .roles-controls-column {
+  width: 9.5rem;
+}
+
+.cyberpunk-blue .abilities-note-column {
+  width: 42%;
+}
+
+.cyberpunk-blue table.embedded-table td {
+  overflow: hidden;
+}
+
+.cyberpunk-blue table.embedded-table td .embedded-summary,
+.cyberpunk-blue .inventory-row .embedded-summary {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.cyberpunk-blue .quick-stats-row .stat-card {
+  justify-content: space-between;
+}
+
+.cyberpunk-blue .quick-stats-row .resource-fields,
+.cyberpunk-blue .armor-inline-field .resource-fields,
+.cyberpunk-blue .compact-resource {
+  align-items: center;
+  min-height: 38px;
+}
+
+.cyberpunk-blue .compact-resource input {
+  min-width: 0;
+}
+
+.cyberpunk-blue .embedded-list,
+.cyberpunk-blue .embedded-entries {
+  gap: 0.5rem;
+}
+
+.cyberpunk-blue .inventory-group + .inventory-group {
+  margin-top: 1rem;
+}
+
+.cyberpunk-blue .inventory-row {
+  grid-template-columns: minmax(180px, 1.2fr) 70px minmax(220px, 1.6fr) minmax(220px, 1fr);
+}
+
+.cyberpunk-blue .inventory-row .embedded-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.cyberpunk-blue .inventory-row input[type=number] {
+  width: 100%;
+}
+
+.cyberpunk-blue .combat-weapon-table .numeric-column button {
+  width: 100%;
+}
+
+.cyberpunk-blue .checkbox-bottom {
+  align-self: end;
+}
+
+.cyberpunk-blue .item-meta-row .compact-field {
+  max-width: 8rem;
+}
+
+.cyberpunk-blue .item-meta-row .checkbox-label + .checkbox-label {
+  margin-left: 0.35rem;
+}
+
+.cyberpunk-blue .armor-inline-field {
+  min-width: min(100%, 16rem);
+}
+
+.cyberpunk-blue .weapon-grid .checkbox-label {
+  align-self: end;
+}
+
+.cyberpunk-blue .weapon-range-table-wrap {
+  margin-top: 0.9rem;
+  overflow-x: auto;
+}
+
+.cyberpunk-blue .weapon-range-table {
+  border-collapse: collapse;
+  min-width: 32rem;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.cyberpunk-blue .weapon-range-table th,
+.cyberpunk-blue .weapon-range-table td {
+  background: var(--cpb-panel);
+  border: 1px solid var(--cpb-panel-border);
+  padding: 0.25rem;
+  text-align: center;
+}
+
+.cyberpunk-blue .weapon-range-table td.is-blocked,
+.cyberpunk-blue .weapon-range-table td.is-blocked input {
+  background: #000;
+}
+
+.cyberpunk-blue .weapon-range-table input {
+  min-height: 30px;
+  width: 100%;
+}
+
+.cyberpunk-blue .mod-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cyberpunk-blue .mod-card {
+  border: 1px solid var(--cpb-panel-border);
+  padding: 0.85rem;
+}
+
+.cyberpunk-blue .mod-card.is-invalid {
+  border-color: var(--cpb-error);
+  color: var(--cpb-error);
+}
+
+.cyberpunk-blue .mod-card.is-invalid .state-chip {
+  border-color: var(--cpb-error);
+  color: var(--cpb-error);
+}
+
+.cyberpunk-blue .mod-heading {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.cyberpunk-blue .weapon-change-list,
+.cyberpunk-blue .mod-effect-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cyberpunk-blue .weapon-change-row,
+.cyberpunk-blue .mod-effect-row {
+  align-items: center;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(120px, 1fr) minmax(110px, 0.9fr) minmax(90px, 0.8fr) 42px;
+}
+
+.cyberpunk-blue .mod-effect-row {
+  grid-template-columns: minmax(160px, 1fr) auto;
+}
+
+.cyberpunk-blue .mod-effect-name {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.45rem;
+}
+
+.cyberpunk-blue .mod-effect-name img {
+  height: 20px;
+  width: 20px;
 }
 
 @media (max-width: 900px) {
@@ -904,6 +1216,12 @@ button, .cyberpunk-blue button {
 
   .cyberpunk-blue .skill-table-container {
     columns: 1;
+  }
+
+  .cyberpunk-blue .inventory-row,
+  .cyberpunk-blue .weapon-change-row,
+  .cyberpunk-blue .mod-effect-row {
+    grid-template-columns: 1fr;
   }
 }
 

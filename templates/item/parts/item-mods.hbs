@@ -1,0 +1,152 @@
+<section class="sheet-panel modifications-panel">
+  <div class="panel-header">
+    <h2>{{localize "CYBER_BLUE.Sheet.Labels.Modifications"}}</h2>
+    <div class="component-add">
+      <select data-mod-type-select>
+        {{#each modificationConfig.types as |option|}}
+          <option value="{{option.value}}">{{option.label}}</option>
+        {{/each}}
+      </select>
+      <button type="button" data-action="add-mod" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddMod"}}">
+        <i class="fas fa-plus"></i>
+      </button>
+    </div>
+  </div>
+
+  {{#if mods.length}}
+    <div class="mod-list">
+      {{#each mods as |mod|}}
+        <section class="mod-card {{#unless mod.isValid}}is-invalid{{/unless}}">
+          <div class="panel-header">
+            <div class="mod-heading">
+              <strong>{{mod.name}}</strong>
+              <span class="state-chip">{{mod.typeLabel}}</span>
+              {{#unless mod.isValid}}
+                <span class="state-chip state-disabled">{{mod.validation.reason}}</span>
+              {{/unless}}
+            </div>
+            <button type="button" data-action="delete-mod" data-mod-index="{{mod.index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+
+          {{#if mod.isValid}}
+            <div class="item-meta-row mod-meta-row">
+              <label>
+                <span>Name</span>
+                <input type="text" name="system.mods.{{mod.index}}.name" value="{{mod.name}}" />
+              </label>
+              <label>
+                <span>Type</span>
+                <select name="system.mods.{{mod.index}}.type">
+                  {{#each @root.modificationConfig.types as |option|}}
+                    <option value="{{option.value}}" {{#if (eq option.value mod.type)}}selected{{/if}}>{{option.label}}</option>
+                  {{/each}}
+                </select>
+              </label>
+              <label class="compact-field">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Cost"}}</span>
+                <input type="text" name="system.mods.{{mod.index}}.cost" value="{{mod.cost}}" list="cyber-blue-cost-ladder" />
+              </label>
+              {{#if (eq mod.type "weaponMod")}}
+                <label>
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.Weapon"}}</span>
+                  <select name="system.mods.{{mod.index}}.targetWeaponIndex">
+                    <option value="-1"></option>
+                    {{#each mod.weaponOptions as |weaponOption|}}
+                      <option value="{{weaponOption.index}}" {{#if weaponOption.selected}}selected{{/if}}>{{weaponOption.label}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+              {{/if}}
+            </div>
+
+            {{#if @root.editable}}
+              <prose-mirror name="system.mods.{{mod.index}}.description" value="{{mod.description}}" document-uuid="{{@root.item.uuid}}" compact>
+                {{{mod.enrichedDescription}}}
+              </prose-mirror>
+            {{else}}
+              <div class="editor">
+                <div class="editor-content">{{{mod.enrichedDescription}}}</div>
+              </div>
+            {{/if}}
+
+            {{#if (eq mod.type "weaponMod")}}
+              <section class="mod-weapon-panel">
+                <div class="panel-header">
+                  <h3>{{localize "CYBER_BLUE.Sheet.Labels.WeaponAdjustments"}}</h3>
+                  <button type="button" data-action="add-weapon-change" data-mod-index="{{mod.index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddWeaponChange"}}">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
+
+                {{#if mod.weaponChanges.length}}
+                  <div class="weapon-change-list">
+                    {{#each mod.weaponChanges as |change|}}
+                      <div class="weapon-change-row">
+                        <select name="system.mods.{{../index}}.weaponChanges.{{@index}}.key">
+                          {{#each @root.modificationConfig.weaponFields as |field|}}
+                            <option value="{{field.value}}" {{#if (eq field.value change.key)}}selected{{/if}}>{{field.label}}</option>
+                          {{/each}}
+                        </select>
+                        <select name="system.mods.{{../index}}.weaponChanges.{{@index}}.mode">
+                          {{#each @root.modificationConfig.weaponModes as |mode|}}
+                            <option value="{{mode.value}}" {{#if (eq mode.value change.mode)}}selected{{/if}}>{{mode.label}}</option>
+                          {{/each}}
+                        </select>
+                        <input type="text" name="system.mods.{{../index}}.weaponChanges.{{@index}}.value" value="{{change.value}}" />
+                        <button type="button" data-action="remove-weapon-change" data-mod-index="{{../index}}" data-change-index="{{@index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    {{/each}}
+                  </div>
+                {{else}}
+                  <p class="hint">{{localize "CYBER_BLUE.Sheet.Labels.NoWeaponAdjustments"}}</p>
+                {{/if}}
+              </section>
+            {{/if}}
+
+            {{#if @root.canManageRestricted}}
+              <section class="mod-effects-panel">
+                <div class="panel-header">
+                  <h3>{{localize "CYBER_BLUE.Sheet.Tabs.Effects"}}</h3>
+                  <button type="button" data-action="create-mod-effect" data-mod-id="{{mod.id}}" title="{{localize "DOCUMENT.Create" type="Effect"}}">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
+                {{#if mod.effects.length}}
+                  <div class="mod-effect-list">
+                    {{#each mod.effects as |effect|}}
+                      <div class="mod-effect-row">
+                        <span class="mod-effect-name">
+                          <img src="{{effect.icon}}" alt="{{effect.name}}" />
+                          <span>{{effect.name}}</span>
+                        </span>
+                        <div class="embedded-controls">
+                          <button type="button" data-action="toggle-mod-effect" data-effect-id="{{effect.id}}" title="{{localize "CYBER_BLUE.Effect.Toggle"}}">
+                            <i class="fas {{#if effect.disabled}}fa-check{{else}}fa-times{{/if}}"></i>
+                          </button>
+                          <button type="button" data-action="edit-mod-effect" data-effect-id="{{effect.id}}" title="{{localize "DOCUMENT.Update" type="Effect"}}">
+                            <i class="fas fa-pen"></i>
+                          </button>
+                          <button type="button" data-action="delete-mod-effect" data-effect-id="{{effect.id}}" title="{{localize "DOCUMENT.Delete" type="Effect"}}">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+                    {{/each}}
+                  </div>
+                {{else}}
+                  <p class="hint">{{localize "CYBER_BLUE.Sheet.Labels.NoEffects"}}</p>
+                {{/if}}
+              </section>
+            {{/if}}
+          {{/if}}
+        </section>
+      {{/each}}
+    </div>
+  {{else}}
+    <p class="hint">{{localize "CYBER_BLUE.Sheet.Labels.NoModifications"}}</p>
+  {{/if}}
+</section>

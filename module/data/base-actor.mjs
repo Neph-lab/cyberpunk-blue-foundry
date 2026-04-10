@@ -18,6 +18,12 @@ export default class CyberBlueActorBase extends CyberBlueDataModel {
         value: new fields.NumberField({ ...requiredInteger, initial, min: 0 }),
         max: new fields.NumberField({ ...requiredInteger, initial, min: 0 }),
       });
+    const buildBonusResourceField = (initial = 0) =>
+      new fields.SchemaField({
+        value: new fields.NumberField({ ...requiredInteger, initial, min: 0 }),
+        max: new fields.NumberField({ ...requiredInteger, initial, min: 0 }),
+        maxBonus: new fields.NumberField({ ...requiredInteger, initial: 0 }),
+      });
     const buildDerivedValueField = (initial = 0) =>
       new fields.SchemaField({
         value: new fields.NumberField({ ...requiredInteger, initial, min: 0 }),
@@ -35,10 +41,19 @@ export default class CyberBlueActorBase extends CyberBlueDataModel {
       }),
       resources: new fields.SchemaField({
         hp: buildResourceField(40),
-        psyche: buildResourceField(60),
+        armor: buildResourceField(0),
+        psyche: buildBonusResourceField(60),
         luck: buildResourceField(5),
         seriousWoundThreshold: buildValueField(20),
         deathSave: buildDerivedValueField(6),
+      }),
+      combat: new fields.SchemaField({
+        activeArmorItemId: new fields.StringField({
+          required: false,
+          nullable: true,
+          blank: true,
+          initial: null,
+        }),
       }),
       details: new fields.SchemaField({
         background: new fields.HTMLField({ initial: "" }),
@@ -53,7 +68,8 @@ export default class CyberBlueActorBase extends CyberBlueDataModel {
     super.prepareDerivedData();
 
     this.resources.hp.max = (5 * this.stats.body.value) + 10;
-    this.resources.psyche.max = 60;
+    this.resources.armor.max = Math.max(this.resources.armor.max ?? 0, 0);
+    this.resources.psyche.max = Math.max(60 + (this.resources.psyche.maxBonus ?? 0), 0);
     this.resources.luck.max = 5;
     this.resources.seriousWoundThreshold.value = Math.floor(this.resources.hp.max / 2);
     this.resources.deathSave.value = Math.max(this.stats.body.value + (this.resources.deathSave.bonus ?? 0), 0);
