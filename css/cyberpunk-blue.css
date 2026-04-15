@@ -1,72 +1,60 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
-@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=PT+Mono&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Cutive+Mono&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Overpass+Mono&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Rubik+Glitch&family=Rubik+Iso&family=Share+Tech&family=Share+Tech+Mono&display=swap');
 
 body {
-  font-family: 'Courier Prime', 'Share Tech Mono', 'Consolas', 'Menlo', 'Monaco', monospace;
-  scrollbar-color: #006600 !important;
+  font-family: 'Share Tech', monospace;
+  scrollbar-color: #6E00FF !important;
 }
 
 :root, body, .window-app, .application{
-  scrollbar-color: #006600;
+  scrollbar-color: #6E00FF;
   --cpb-bg: linear-gradient(180deg, rgba(0, 0, 0, 0.94), rgba(2, 2, 2, 0.87));
   --cpb-sidebar-bg: linear-gradient(180deg, rgba(0,0,0,0.8),rgba(2,2,2,0.7));
   --cpb-table-alt-bg: rgba(0, 63, 0, 0.4);
   --cpb-panel: rgba(12, 20, 30, 0.2);
   --cpb-panel-border: rgba(0, 0, 0, 0.22);
-  --cpb-accent: #006600;
-  --cpb-accent-strong: #00c500;
+  --cpb-accent: #27B0FF;
+  --cpb-accent-strong: #FFFB00;
   --cpb-text: #ffffff;
-  --cpb-muted: #678f67;
-  --cpb-shadow: 0 0 7px rgba(128, 255, 128, 0.4);
-  --terminal-text: #008800;
+  --cpb-muted: #6E00FF;
+  --cpb-shadow: 0 0 7px rgba(110, 0, 255, 0.4);
+  --terminal-text: #27B0FF;
   --cpb-warning: #FFA901;
   --cpb-error: #cc0000;
-  --cpb-border: #008800;
-  --cpb-font: 'Courier Prime', 'Share Tech Mono', monospace;
-  --cpb-glow: 0 0 2px #4ad64a, 0 0 4px #009900, 0 0 6px #009900;
-  --cpb-text-shadow: 0 0 1px #009900;
+  --cpb-border: #27B0FF;
+  --cpb-font: 'Share Tech', monospace;
+  --cpb-glow: 0 0 2px rgba(0, 255, 213,0.9), 0 0 4px rgba(0, 245, 207,0.8), 0 0 6px rgba(0, 240, 200,0.7);
+  --cpb-text-shadow: 0 0 1px rgba(110, 0, 255, 0.4);
   --cpb-font-size: 22px;
   --glitch-red: #ff4757;
   --glitch-cyan: #00d9ff;
-  --font-h1: 'Courier Prime', 'Share Tech Mono', 'Consolas', 'Menlo', monospace !important;
-  --font-h2: 'Courier Prime', 'Share Tech Mono', 'Consolas', 'Menlo', monospace !important;
-  --font-h3: 'Courier Prime', 'Share Tech Mono', 'Consolas', 'Menlo', monospace !important;
-  --font-h4: 'Courier Prime', 'Share Tech Mono', 'Consolas', 'Menlo', monospace !important;
-  --font-h5: 'Courier Prime', 'Share Tech Mono', 'Consolas', 'Menlo', monospace !important;
+  --font-h1: 'Rubik Glitch', system-ui !important;
+  --font-h2: 'Share Tech Mono', monospace !important;
+  --font-h3: 'Share Tech Mono', monospace !important;
+  --font-h4: 'Share Tech Mono', monospace !important;
+  --font-h5: 'Share Tech Mono', monospace !important;
   --color-border:var(--cpb-border);
   --color-tabs-border:var(--cpb-border);
   --color-text-primary:var(--cpb-text);
   --color-text-selection-bg: var(--cpb-accent);
   --color-text-selection: var(--cpb-text);
   --input-background-color:var(--cpb-bg);
-  --hr-gradient: linear-gradient(90deg, transparent 0%, #008800 50%, transparent 100%);
+  --hr-gradient: linear-gradient(90deg, transparent 0%, #27B0FF 50%, transparent 100%);
   --sidebar-background:var(--cpb-sidebar-bg)
   --color-text-emphatic: #00c500;
   --color-data-background:var(--cpb-bg);
   --input-text-color:var(--cpb-accent);
   --input-placeholder-color:var(--cpb-muted);
-  --color-scrollbar: #006600 !important;
-  scrollbar-color: #006600 !important;
+  --color-scrollbar: #6E00FF !important;
+  scrollbar-color: #6E00FF !important;
 }
 
 *, div, section {
-  scrollbar-color: #006600 !important;
+  scrollbar-color: #6E00FF !important;
 }
 
 h1,h2,h3,h4,h5,h6 {
   color: var(--cpb-accent-strong);
+  font-weight: 300;
 }
 
 .application {
@@ -81,8 +69,8 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 .window-app {
-  font-family: 'Courier Prime', 'Share Tech Mono', 'Consolas', 'Menlo', 'Monaco', monospace;
-  scrollbar-color: #006600 !important;
+  font-family: 'Share Tech', monospace;
+  scrollbar-color: #6E00FF !important;
 }
 
 .application .window-header {
@@ -91,13 +79,17 @@ h1,h2,h3,h4,h5,h6 {
 
 .cyberpunk-blue {
   color: var(--cpb-text);
-  scrollbar-color: #006600;
-  scrollbar-color: #006600 !important;
+  scrollbar-color: #6E00FF;
+  scrollbar-color: #6E00FF !important;
 }
 
 section.tab.sidebar-tab, section.chat-sidebar:not(.sidebar-popout), #chat.chat-sidebar, .sidebar-tab, #chat {
   background-color: transparent;
   background: var(--cpb-sidebar-bg);
+}
+
+.sidebar-tab h2.divider, .sidebar-tab h3.divider, .sidebar-tab h4.divider, .sidebar-tab h5.divider, .sidebar-tab h6.divider {
+  white-space: unset;
 }
 
 .directory li.directory-item {
@@ -130,7 +122,7 @@ section.tab.sidebar-tab, section.chat-sidebar:not(.sidebar-popout), #chat.chat-s
   --color-whisper-border: none;
   --chat-blind-background: none;
   --chat-blind-border:var(--cpb-panel-border);
-  --chat-emote-background: linear-gradient(180deg,rgba(0, 170, 0, 0.5) 0%, rgba(0,0,0,0.9) 5%, rgba(0,0,0,0.9) 95%,rgba(0, 170, 0, 0.5) 100%);
+  --chat-emote-background: linear-gradient(180deg,rgba(110, 0, 255, 0.5) 0%, rgba(0,0,0,0.9) 5%, rgba(0,0,0,0.9) 95%,rgba(110, 0, 255, 0.5) 100%);
   --chat-emote-border:none;
   --chat-message-background: var(--cpb-panel);
   --chat-message-border:var(--cpb-panel-border);
@@ -159,7 +151,7 @@ section.tab.sidebar-tab, section.chat-sidebar:not(.sidebar-popout), #chat.chat-s
   color:var(--cpb-accent);
 }
 
-button, .cyberpunk-blue button {
+button, .cyberpunk-blue .button, a.button {
   --button-background-color:black;
   --button-border-color: var(--cpb-border);
   --button-text-color: var(--cpb-accent);
@@ -259,7 +251,7 @@ button, .cyberpunk-blue button {
 
 .cyberpunk-blue .charname input {
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0.04em;
   min-height: 54px;
 }
@@ -527,9 +519,9 @@ button, .cyberpunk-blue button {
 }
 
 .cyberpunk-blue .manufacturer-logo {
-  height: 1.6rem;
-  object-fit: contain;
-  width: 1.6rem;
+  max-height: 1.6rem;
+  object-fit:contain;
+  width: unset;
 }
 
 .cyberpunk-blue .embedded-entry {
@@ -798,15 +790,11 @@ button, .cyberpunk-blue button {
   font-size: 0.9rem;
 }
 
-.cyberpunk-blue .luck-card .resource-fields {
-  flex: 1;
-}
-
 .cyberpunk-blue table.embedded-table {
   border-collapse: separate;
   border-spacing: 0 2px;
   display: table;
-  table-layout: fixed;
+  table-layout:auto;
   width: 100%;
 }
 
@@ -912,7 +900,7 @@ button, .cyberpunk-blue button {
 .cyberpunk-blue .checkbox-label,
 .cyberpunk-blue .compact-field,
 .cyberpunk-blue .platform-select {
-  min-width: 0;
+  min-width: 3rem;
 }
 
 .cyberpunk-blue .cyberware-group + .cyberware-group {
