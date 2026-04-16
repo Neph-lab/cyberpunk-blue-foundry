@@ -57,6 +57,21 @@ h1,h2,h3,h4,h5,h6 {
   font-weight: 300;
 }
 
+.journal-entry-pages h1 {
+  font-family: 'Rubik Iso', 'Rubik Glitch' monospace;
+}
+.journal-entry-pages h2, .journal-entry-pages h3 {
+  font-family: 'Rubik Glitch', monospace;
+}
+.journal-entry-pages h4, .journal-entry-pages h5, .journal-entry-pages h6 {
+  font-family: 'Pixelify Sans', monospace;
+}
+
+.sheet.journal-entry.application .journal-sidebar .toc li.category strong
+{
+  font-weight: 300;
+}
+
 .application {
   color: var(--cpb-text);
   background: var(--cpb-bg);
