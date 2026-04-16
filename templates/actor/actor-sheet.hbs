@@ -53,7 +53,7 @@
             <div class="health-effects-list">
               {{#if health.effects.length}}
                 {{#each health.effects as |effect|}}
-                  <button type="button" class="health-effect {{#if effect.isHealthTagged}}is-tagged{{/if}}" data-action="open-health-effect" data-effect-id="{{effect.id}}" title="{{#if effect.canEdit}}Open and edit effect{{else}}Open effect{{/if}}">
+                  <button type="button" class="health-effect" data-action="open-health-effect" data-effect-id="{{effect.id}}" title="{{#if effect.canEdit}}Open and edit effect{{else}}Open effect{{/if}}">
                     <img src="{{effect.icon}}" alt="{{effect.name}}" />
                     <span>{{effect.name}}</span>
                     {{#if effect.duration}}
@@ -170,6 +170,78 @@
         </section>
       {{/if}}
 
+      {{#if enrichedRoleOverviewFeatures.length}}
+        <section class="sheet-panel role-overview-panel">
+          {{#each enrichedRoleOverviewFeatures as |feature|}}
+            <section class="role-overview-feature" data-item-id="{{feature.roleId}}">
+              <h4 class="roleCategory">{{feature.roleName}}</h4>
+              {{#if (eq feature.kind "networker")}}
+                <div class="role-overview-html">{{{feature.content}}}</div>
+              {{/if}}
+              {{#if (eq feature.kind "protean")}}
+                <div class="role-focus-summary">
+                  <span>{{localize "CYBER_BLUE.Role.Pool"}}: {{feature.totalPoints}}</span>
+                  <span>{{localize "CYBER_BLUE.Role.Remaining"}}: {{feature.remainingPoints}}</span>
+                </div>
+                <table class="embedded-table role-focus-table">
+                  <colgroup>
+                    <col />
+                    <col class="column-compact" />
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th>{{localize "CYBER_BLUE.Role.Focus"}}</th>
+                      <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Rank"}}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {{#each feature.foci as |focus|}}
+                      <tr data-item-id="{{../roleId}}">
+                        <td title="{{focus.description}}">{{focus.name}}</td>
+                        <td class="numeric-column">
+                          <input type="number" value="{{focus.points}}" min="{{focus.minPoints}}" max="{{focus.maxPoints}}" step="{{focus.step}}" data-action="update-item-field" data-field-path="system.proteanFoci.{{focus.focusIndex}}.points" data-dtype="Number" />
+                        </td>
+                      </tr>
+                    {{/each}}
+                  </tbody>
+                </table>
+              {{/if}}
+              {{#if (eq feature.kind "leader")}}
+                {{#each feature.leaderFeatures as |leaderFeature|}}
+                  <div class="role-leader-feature">
+                    <h5>{{leaderFeature.name}}</h5>
+                    {{#if leaderFeature.description}}
+                      <p class="hint">{{leaderFeature.description}}</p>
+                    {{/if}}
+                    <div class="team-member-list">
+                      {{#each leaderFeature.members as |member|}}
+                        <button type="button" class="item-name-link embedded-name team-member-link" data-action="open-team-member" data-actor-id="{{member.id}}">
+                          <img src="{{member.img}}" alt="{{member.name}}" />
+                          <span>{{member.name}}</span>
+                        </button>
+                      {{/each}}
+                    </div>
+                  </div>
+                {{/each}}
+              {{/if}}
+              {{#if (eq feature.kind "specialist")}}
+                <div class="specialty-summary-list">
+                  {{#each feature.specialties as |specialty|}}
+                    <div class="specialty-summary">
+                      <strong>{{specialty.name}}</strong>
+                      <span>{{localize "CYBER_BLUE.Sheet.Labels.Rank"}} {{specialty.rank}}</span>
+                      {{#each specialty.unlockedSections as |section|}}
+                        <div class="role-overview-html">{{{section.enrichedContent}}}</div>
+                      {{/each}}
+                    </div>
+                  {{/each}}
+                </div>
+              {{/if}}
+            </section>
+          {{/each}}
+        </section>
+      {{/if}}
+
       {{#if otherResources.length}}
         <section class="resources-grid overview-resources">
           {{#each otherResources as |resource|}}
@@ -186,7 +258,7 @@
       {{/if}}
 
       <section class="traits-grid">
-        <div class="sheet-panel">
+        <div class="sheet-panel traits-role-panel">
           <table class="embedded-table">
             <colgroup>
               <col />
@@ -237,7 +309,7 @@
           </table>
         </div>
 
-        <div class="sheet-panel">
+        <div class="sheet-panel traits-ability-panel">
           <table class="embedded-table">
             <colgroup>
               <col />

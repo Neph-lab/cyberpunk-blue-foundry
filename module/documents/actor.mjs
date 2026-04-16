@@ -1,5 +1,6 @@
 import { getEligiblePlatforms, promptForCyberwarePlatform } from '../helpers/cyberware.mjs';
 import { normalizeGearState } from '../helpers/gear.mjs';
+import { applyFirstRoleSetup } from '../helpers/roles.mjs';
 
 export class CyberBlueActor extends Actor {
   static SERIOUS_WOUND_FLAG = 'autoSeriousWound';
@@ -16,6 +17,8 @@ export class CyberBlueActor extends Actor {
   }
 
   async createEmbeddedDocuments(embeddedName, data = [], options = {}) {
+    const hadNoRoles = embeddedName === 'Item'
+      && this.items.contents.every((item) => item.type !== 'role');
     if (embeddedName === 'Item') {
       const existingRoleNames = new Set(
         this.items.contents
@@ -50,7 +53,16 @@ export class CyberBlueActor extends Actor {
       return [];
     }
 
-    return super.createEmbeddedDocuments(embeddedName, data, options);
+    const created = await super.createEmbeddedDocuments(embeddedName, data, options);
+
+    if (embeddedName === 'Item' && hadNoRoles && !options?.cyberBlueSkipRoleGrant) {
+      const createdRoles = created.filter((item) => item.type === 'role');
+      for (const roleItem of createdRoles) {
+        await applyFirstRoleSetup(this, roleItem);
+      }
+    }
+
+    return created;
   }
 
   async _prepareIncomingItemData(entry) {
@@ -291,10 +303,6 @@ export class CyberBlueActor extends Actor {
         },
       },
     };
-
-    if (game.modules.get('tagger')?.active) {
-      effectData.flags.tagger = { tags: ['Health'] };
-    }
 
     return effectData;
   }

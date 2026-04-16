@@ -13,6 +13,7 @@ import {
   syncActorCyberwareDisableEffects,
 } from './helpers/cyberware-disable.mjs';
 import { syncItemModificationEffects } from './helpers/mods.mjs';
+import { syncActorLeaderRoles } from './helpers/roles.mjs';
 import * as models from './data/_module.mjs';
 
 Hooks.once('init', function () {
@@ -31,6 +32,9 @@ Hooks.once('init', function () {
       resolve: resolveCyberwareDisableSelections,
       syncItemEffects: syncDisabledCyberwareItemEffects,
       sync: syncActorCyberwareDisableEffects,
+    },
+    roles: {
+      syncLeaderTeams: syncActorLeaderRoles,
     },
   };
 
@@ -332,6 +336,26 @@ Hooks.on('createActiveEffect', syncCyberwareOperationalEffects);
 Hooks.on('updateActiveEffect', syncCyberwareOperationalEffects);
 Hooks.on('deleteActiveEffect', syncCyberwareOperationalEffects);
 
+const syncLeaderTeams = (document, options = {}) => {
+  if (document instanceof Item && document.type !== 'role') {
+    return;
+  }
+  const actor = document instanceof Actor
+    ? document
+    : document instanceof Item && document.parent instanceof Actor
+      ? document.parent
+      : null;
+  if (!(actor instanceof CyberBlueActor)) {
+    return;
+  }
+  return syncActorLeaderRoles(actor);
+};
+
+Hooks.on('createItem', syncLeaderTeams);
+Hooks.on('updateItem', syncLeaderTeams);
+Hooks.on('deleteItem', syncLeaderTeams);
+Hooks.on('updateActor', syncLeaderTeams);
+
 Hooks.once('ready', async () => {
   if (!game.user.isGM) {
     return;
@@ -372,6 +396,7 @@ Hooks.once('ready', async () => {
 
   for (const actor of game.actors.contents) {
     await syncActorCyberwareDisableEffects(actor, { cyberBlueSyncCyberwareDisable: true });
+    await syncActorLeaderRoles(actor);
   }
 });
 
@@ -385,4 +410,8 @@ Handlebars.registerHelper('concat', function (...parts) {
 
 Handlebars.registerHelper('eq', function (left, right) {
   return left === right;
+});
+
+Handlebars.registerHelper('includes', function (collection, value) {
+  return Array.isArray(collection) && collection.includes(value);
 });

@@ -39,22 +39,36 @@
           <div class="item-meta-row cyberware-header">
             <label class="manufacturer-field">
               <span>{{localize "CYBER_BLUE.Sheet.Labels.Manufacturer"}}</span>
-              <div class="manufacturer-input-row">
-                {{#if manufacturerLogo}}
-                  <img class="manufacturer-logo" src="{{manufacturerLogo}}" alt="{{system.manufacturer}}" />
-                {{/if}}
-                <input type="text" name="system.manufacturer" value="{{system.manufacturer}}" list="cyber-blue-manufacturers" />
-              </div>
+              {{#if canManageRestricted}}
+                <div class="manufacturer-input-row">
+                  {{#if manufacturerLogo}}
+                    <img class="manufacturer-logo" src="{{manufacturerLogo}}" alt="{{system.manufacturer}}" />
+                  {{/if}}
+                  <input class="cost-field" type="text" name="system.manufacturer" value="{{system.manufacturer}}" list="cyber-blue-manufacturers" />
+                </div>
+              {{else}}
+                <div class="manufacturer-display" title="{{system.manufacturer}}">
+                  {{#if manufacturerLogo}}
+                    <img class="manufacturer-logo" src="{{manufacturerLogo}}" alt="{{system.manufacturer}}" />
+                  {{else}}
+                    <span class="readonly-value">{{system.manufacturer}}</span>
+                  {{/if}}
+                </div>
+              {{/if}}
             </label>
             <label>
               <span>Type</span>
-              <select name="system.cyberwareType">
-                {{#each cyberwareConfig.types as |option|}}
-                  <option value="{{option.value}}" {{#if (eq option.value ../system.cyberwareType)}}selected{{/if}}>{{option.label}}</option>
-                {{/each}}
-              </select>
+              {{#if canManageRestricted}}
+                <select name="system.cyberwareType">
+                  {{#each cyberwareConfig.types as |option|}}
+                    <option value="{{option.value}}" {{#if (eq option.value ../system.cyberwareType)}}selected{{/if}}>{{option.label}}</option>
+                  {{/each}}
+                </select>
+              {{else}}
+                <div class="readonly-value">{{cyberwareTypeLabel}}</div>
+              {{/if}}
             </label>
-            <label>
+            <label class="cost-field">
               <span>{{localize "CYBER_BLUE.Sheet.Labels.Cost"}}</span>
               <input type="text" name="system.cost" value="{{system.cost}}" list="cyber-blue-cost-ladder" />
             </label>
@@ -62,36 +76,38 @@
               <span>{{localize "CYBER_BLUE.Sheet.Labels.MultipleInstalls"}}</span>
               <input type="checkbox" name="system.multipleInstalls" {{checked system.multipleInstalls}} />
             </label>
-            {{#if canManageRestricted}}
-              <label class="checkbox-label checkbox-bottom">
-                <span>{{localize "CYBER_BLUE.Sheet.Labels.Armor"}}</span>
-                <input type="checkbox" name="system.isArmor" {{checked system.isArmor}} />
-              </label>
-              <label class="checkbox-label checkbox-bottom">
-                <span>{{localize "CYBER_BLUE.Sheet.Labels.Weapon"}}</span>
-                <input type="checkbox" name="system.isWeapon" {{checked system.isWeapon}} />
-              </label>
-              <label class="checkbox-label checkbox-bottom">
-                <span>{{localize "CYBER_BLUE.Sheet.Labels.Computer"}}</span>
-                <input type="checkbox" name="system.isComputer" {{checked system.isComputer}} />
-              </label>
-            {{/if}}
             <label>
               <span>{{localize "CYBER_BLUE.Sheet.Labels.Integration"}}</span>
-              <select name="system.integration">
-                {{#each cyberwareConfig.integrations as |option|}}
-                  <option value="{{option.value}}" {{#if (eq option.value ../system.integration)}}selected{{/if}}>{{option.label}}</option>
-                {{/each}}
-              </select>
+              {{#if canManageRestricted}}
+                <select name="system.integration" data-cyberware-integration>
+                  {{#each cyberwareConfig.integrations as |option|}}
+                    <option value="{{option.value}}" {{#if (eq option.value ../system.integration)}}selected{{/if}}>{{option.label}}</option>
+                  {{/each}}
+                </select>
+              {{else}}
+                <div class="readonly-value">{{cyberwareIntegrationLabel}}</div>
+              {{/if}}
             </label>
-            <label class="compact-field">
-              <span>{{localize "CYBER_BLUE.Sheet.Labels.SlotsUsed"}}</span>
-              <input type="number" name="system.slotsUsed" value="{{system.slotsUsed}}" data-dtype="Number" />
-            </label>
-            <label class="compact-field">
-              <span>{{localize "CYBER_BLUE.Sheet.Labels.SlotsProvided"}}</span>
-              <input type="number" name="system.slotsProvided" value="{{system.slotsProvided}}" data-dtype="Number" />
-            </label>
+            {{#if showSlotsUsed}}
+              <label class="compact-field">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.SlotsUsed"}}</span>
+                {{#if canManageRestricted}}
+                  <input type="number" name="system.slotsUsed" value="{{system.slotsUsed}}" data-dtype="Number" />
+                {{else}}
+                  <div class="readonly-value">{{system.slotsUsed}}</div>
+                {{/if}}
+              </label>
+            {{/if}}
+            {{#if showSlotsProvided}}
+              <label class="compact-field">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.SlotsProvided"}}</span>
+                {{#if canManageRestricted}}
+                  <input type="number" name="system.slotsProvided" value="{{system.slotsProvided}}" data-dtype="Number" />
+                {{else}}
+                  <div class="readonly-value">{{system.slotsProvided}}</div>
+                {{/if}}
+              </label>
+            {{/if}}
             {{#if ownerActor}}
               {{#if (eq system.integration "extension")}}
                 <label class="platform-select">
@@ -107,6 +123,20 @@
                 </label>
               {{/if}}
             {{/if}}
+            {{#if canManageRestricted}}
+              <label class="checkbox-label checkbox-bottom">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Armor"}}</span>
+                <input type="checkbox" name="system.isArmor" {{checked system.isArmor}} />
+              </label>
+              <label class="checkbox-label checkbox-bottom">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Weapon"}}</span>
+                <input type="checkbox" name="system.isWeapon" {{checked system.isWeapon}} />
+              </label>
+              <label class="checkbox-label checkbox-bottom">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Computer"}}</span>
+                <input type="checkbox" name="system.isComputer" {{checked system.isComputer}} />
+              </label>
+            {{/if}}
           </div>
         {{else}}
           <div class="item-meta-row">
@@ -119,14 +149,24 @@
             {{#if isGear}}
               <label class="manufacturer-field">
                 <span>{{localize "CYBER_BLUE.Sheet.Labels.Manufacturer"}}</span>
-                <div class="manufacturer-input-row">
-                  {{#if manufacturerLogo}}
-                    <img class="manufacturer-logo" src="{{manufacturerLogo}}" alt="{{system.manufacturer}}" />
-                  {{/if}}
-                  <input type="text" name="system.manufacturer" value="{{system.manufacturer}}" list="cyber-blue-manufacturers" />
-                </div>
+                {{#if canManageRestricted}}
+                  <div class="manufacturer-input-row">
+                    {{#if manufacturerLogo}}
+                      <img class="manufacturer-logo" src="{{manufacturerLogo}}" alt="{{system.manufacturer}}" />
+                    {{/if}}
+                    <input class="cost-field" type="text" name="system.manufacturer" value="{{system.manufacturer}}" list="cyber-blue-manufacturers" />
+                  </div>
+                {{else}}
+                  <div class="manufacturer-display" title="{{system.manufacturer}}">
+                    {{#if manufacturerLogo}}
+                      <img class="manufacturer-logo" src="{{manufacturerLogo}}" alt="{{system.manufacturer}}" />
+                    {{else}}
+                      <span class="readonly-value">{{system.manufacturer}}</span>
+                    {{/if}}
+                  </div>
+                {{/if}}
               </label>
-              <label>
+              <label class="cost-field">
                 <span>{{localize "CYBER_BLUE.Sheet.Labels.Cost"}}</span>
                 <input type="text" name="system.cost" value="{{system.cost}}" list="cyber-blue-cost-ladder" />
               </label>
@@ -181,29 +221,51 @@
     </section>
   {{else}}
     {{#if isCyberware}}
-      {{#if showCombatTab}}
-        <nav class="sheet-tabs tabs" data-group="primary">
-          <a class="item" data-tab="description">{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</a>
+      <nav class="sheet-tabs tabs" data-group="primary">
+        <a class="item" data-tab="description">{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</a>
+        <a class="item" data-tab="details">{{localize "CYBER_BLUE.Sheet.Tabs.Details"}}</a>
+        {{#if showCombatTab}}
           <a class="item" data-tab="combat">{{localize "CYBER_BLUE.Sheet.Tabs.Combat"}}</a>
-        </nav>
-      {{/if}}
+        {{/if}}
+        {{#if showCyberwareNotesTab}}
+          <a class="item" data-tab="notes">{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
+        {{/if}}
+      </nav>
 
       <section class="sheet-body cyberware-sheet {{#if cyberwareDisable}}is-disabled{{/if}}">
-        {{#if showCombatTab}}
           <div class="tab active" data-group="primary" data-tab="description">
-        {{/if}}
             {{#if cyberwareDisable}}
               <section class="sheet-panel sheet-status status-disabled" title="{{cyberwareDisable.tooltip}}">
                 <i class="fas fa-ban"></i>
                 <span>{{cyberwareDisableText}}</span>
               </section>
             {{/if}}
-            <details class="sheet-panel foldout-panel" open>
-              <summary>{{localize "CYBER_BLUE.Cyberware.Details"}}</summary>
+
+            <section class="sheet-panel">
+              {{#if canEditAsOwner}}
+                <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
+                  {{{enrichedDescription}}}
+                </prose-mirror>
+              {{else}}
+                <div class="editor">
+                  <div class="editor-content">{{{enrichedDescription}}}</div>
+                </div>
+              {{/if}}
+            </section>
+
+            {{> "systems/cyberpunk-blue/templates/item/parts/item-mods.hbs"}}
+          </div>
+
+          <div class="tab" data-group="primary" data-tab="details">
+            <section class="sheet-panel">
               <div class="cyberware-detail-grid">
-                <label>
+                <label class="cost-field">
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.PsycheLoss"}}</span>
-                  <input type="text" name="system.psycheLossFormula" value="{{system.psycheLossFormula}}" placeholder="1d6" />
+                  {{#if canManageRestricted}}
+                    <input type="text" name="system.psycheLossFormula" value="{{system.psycheLossFormula}}" placeholder="1d6" />
+                  {{else}}
+                    <div class="readonly-value">{{system.psycheLossFormula}}</div>
+                  {{/if}}
                 </label>
                 <div class="derived-field">
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.SuggestedLoss"}}</span>
@@ -215,23 +277,39 @@
                 </div>
                 <label>
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.Facilities"}}</span>
-                  <select name="system.facilities">
-                    {{#each cyberwareConfig.facilities as |option|}}
-                      <option value="{{option.value}}" {{#if (eq option.value ../system.facilities)}}selected{{/if}}>{{option.label}}</option>
-                    {{/each}}
-                  </select>
+                  {{#if canManageRestricted}}
+                    <select name="system.facilities">
+                      {{#each cyberwareConfig.facilities as |option|}}
+                        <option value="{{option.value}}" {{#if (eq option.value ../system.facilities)}}selected{{/if}}>{{option.label}}</option>
+                      {{/each}}
+                    </select>
+                  {{else}}
+                    <div class="readonly-value">{{cyberwareFacilityLabel}}</div>
+                  {{/if}}
                 </label>
-                <label>
+                <label class="cost-field">
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.InstallationCost"}}</span>
-                  <input type="text" name="system.installationCost" value="{{system.installationCost}}" list="cyber-blue-cost-ladder" />
+                  {{#if canManageRestricted}}
+                    <input type="text" name="system.installationCost" value="{{system.installationCost}}" list="cyber-blue-cost-ladder" />
+                  {{else}}
+                    <div class="readonly-value">{{system.installationCost}}</div>
+                  {{/if}}
                 </label>
                 <label class="compact-field">
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.InstallationDv"}}</span>
-                  <input type="number" name="system.installationDv" value="{{system.installationDv}}" data-dtype="Number" />
+                  {{#if canManageRestricted}}
+                    <input type="number" name="system.installationDv" value="{{system.installationDv}}" data-dtype="Number" />
+                  {{else}}
+                    <div class="readonly-value">{{system.installationDv}}</div>
+                  {{/if}}
                 </label>
                 <label class="checkbox-label">
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.UseCyberneticsComponent"}}</span>
-                  <input type="checkbox" name="system.useCyberneticsComponent" {{checked system.useCyberneticsComponent}} />
+                  {{#if canManageRestricted}}
+                    <input type="checkbox" name="system.useCyberneticsComponent" {{checked system.useCyberneticsComponent}} />
+                  {{else}}
+                    <span class="readonly-icon"><i class="fas {{#if system.useCyberneticsComponent}}fa-check{{else}}fa-xmark{{/if}}"></i></span>
+                  {{/if}}
                 </label>
               </div>
               {{#if ownerActor}}
@@ -244,46 +322,32 @@
                   {{/if}}
                 {{/if}}
               {{/if}}
-            </details>
-
-            <section class="sheet-panel">
-              {{#if editable}}
-                <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
-                  {{{enrichedDescription}}}
-                </prose-mirror>
-              {{else}}
-                <div class="editor">
-                  <div class="editor-content">{{{enrichedDescription}}}</div>
-                </div>
-              {{/if}}
             </section>
-
-            {{> "systems/cyberpunk-blue/templates/item/parts/item-mods.hbs"}}
-
-            {{#if showCyberwareNotes}}
-              <section class="sheet-panel">
-                {{#if editable}}
-                  <prose-mirror name="system.notes" value="{{system.notes}}" document-uuid="{{item.uuid}}" compact>
-                    {{{enrichedNotes}}}
-                  </prose-mirror>
-                {{else}}
-                  <div class="editor">
-                    <div class="editor-content">{{{enrichedNotes}}}</div>
-                  </div>
-                {{/if}}
-              </section>
-            {{/if}}
-
             {{#if canManageRestricted}}
               <section class="sheet-panel">
                 {{> "systems/cyberpunk-blue/templates/item/parts/item-effects.hbs"}}
               </section>
             {{/if}}
-        {{#if showCombatTab}}
           </div>
 
+        {{#if showCombatTab}}
           <div class="tab" data-group="primary" data-tab="combat">
             {{> "systems/cyberpunk-blue/templates/item/parts/item-combat.hbs"}}
+          </div>
+        {{/if}}
+        {{#if showCyberwareNotesTab}}
+          <div class="tab" data-group="primary" data-tab="notes">
+            <section class="sheet-panel">
+              {{#if canEditAsOwner}}
+                <prose-mirror name="system.notes" value="{{system.notes}}" document-uuid="{{item.uuid}}" compact>
+                  {{{enrichedNotes}}}
+                </prose-mirror>
+              {{else}}
+                <div class="editor">
+                  <div class="editor-content">{{{enrichedNotes}}}</div>
+                </div>
+              {{/if}}
+            </section>
           </div>
         {{/if}}
       </section>
@@ -312,14 +376,20 @@
       <section class="sheet-body">
         <div class="tab active" data-group="primary" data-tab="description">
           <section class="sheet-panel">
-            {{#if editable}}
+            {{#if isRole}}
+              {{#if roleShowRestrictedEditing}}
+                <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
+                  {{{enrichedDescription}}}
+                </prose-mirror>
+              {{else}}
+                <div class="editor">
+                  <div class="editor-content">{{{enrichedDescription}}}</div>
+                </div>
+              {{/if}}
+            {{else}}
               <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
                 {{{enrichedDescription}}}
               </prose-mirror>
-            {{else}}
-              <div class="editor">
-                <div class="editor-content">{{{enrichedDescription}}}</div>
-              </div>
             {{/if}}
           </section>
           {{#if isGear}}
@@ -344,7 +414,7 @@
           <div class="tab" data-group="primary" data-tab="lifepath">
             <div class="lifepath-layout">
               <section class="sheet-panel">
-                {{#if editable}}
+                {{#if roleShowRestrictedEditing}}
                   <prose-mirror name="system.lifepathLinks" value="{{system.lifepathLinks}}" document-uuid="{{item.uuid}}" compact>
                     {{{enrichedLifepathLinks}}}
                   </prose-mirror>
@@ -356,8 +426,7 @@
               </section>
 
               <section class="sheet-panel">
-                <h2>{{localize "CYBER_BLUE.Sheet.Labels.ConnectingQuestions"}}</h2>
-                {{#if editable}}
+                {{#if roleShowRestrictedEditing}}
                   <prose-mirror name="system.lifepathQuestions" value="{{system.lifepathQuestions}}" document-uuid="{{item.uuid}}" compact>
                     {{{enrichedLifepathQuestions}}}
                   </prose-mirror>
@@ -368,16 +437,101 @@
                 {{/if}}
               </section>
             </div>
+            <section class="sheet-panel">
+              {{#if roleShowRestrictedEditing}}
+                <div class="panel-header panel-actions">
+                  <span>{{localize "CYBER_BLUE.Role.FirstRoleItems"}}</span>
+                  <button type="button" data-action="add-role-grant-group" title="{{localize "CYBER_BLUE.Role.AddGrantGroup"}}">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
+                {{#if system.grantedItemGroups.length}}
+                  <div class="role-grant-groups">
+                    {{#each system.grantedItemGroups as |group|}}
+                      <section class="role-grant-group">
+                        <div class="panel-header panel-actions">
+                          <span>{{localize "CYBER_BLUE.Role.GrantGroup"}}</span>
+                          <button type="button" data-action="remove-role-grant-group" data-group-index="{{@index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                        <div class="item-meta-row">
+                          <label>
+                            <span>{{localize "CYBER_BLUE.Sheet.Labels.Note"}}</span>
+                            <input type="text" name="system.grantedItemGroups.{{@index}}.label" value="{{group.label}}" />
+                          </label>
+                          <label>
+                            <span>{{localize "CYBER_BLUE.Role.GrantMode"}}</span>
+                            <select name="system.grantedItemGroups.{{@index}}.mode">
+                              <option value="all" {{#if (eq group.mode "all")}}selected{{/if}}>{{localize "CYBER_BLUE.Role.GrantAll"}}</option>
+                              <option value="choice" {{#if (eq group.mode "choice")}}selected{{/if}}>{{localize "CYBER_BLUE.Role.GrantChoice"}}</option>
+                            </select>
+                          </label>
+                          <label class="compact-field">
+                            <span>{{localize "CYBER_BLUE.Role.ChoiceCount"}}</span>
+                            <input type="number" name="system.grantedItemGroups.{{@index}}.count" value="{{group.count}}" data-dtype="Number" />
+                          </label>
+                        </div>
+                        <div class="role-reference-list">
+                          {{#each group.items as |grantItem|}}
+                            <div class="role-reference-row">
+                              <input type="text" name="system.grantedItemGroups.{{@../index}}.items.{{@index}}.uuid" value="{{grantItem.uuid}}" placeholder="UUID" />
+                              <input type="text" name="system.grantedItemGroups.{{@../index}}.items.{{@index}}.name" value="{{grantItem.name}}" placeholder="Display name" />
+                              <button type="button" data-action="populate-role-reference" data-reference-path="system.grantedItemGroups.{{@../index}}.items.{{@index}}" title="{{localize "CYBER_BLUE.Role.PopulateReference"}}">
+                                <i class="fas fa-link"></i>
+                              </button>
+                              <button type="button" data-action="remove-role-grant-item" data-group-index="{{@../index}}" data-item-index="{{@index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+                                <i class="fas fa-trash"></i>
+                              </button>
+                            </div>
+                          {{/each}}
+                        </div>
+                        <button type="button" data-action="add-role-grant-item" data-group-index="{{@index}}" title="{{localize "CYBER_BLUE.Role.AddGrantItem"}}">
+                          <i class="fas fa-plus"></i>
+                        </button>
+                      </section>
+                    {{/each}}
+                  </div>
+                {{else}}
+                  <p class="hint">{{localize "CYBER_BLUE.Role.NoGrantGroups"}}</p>
+                {{/if}}
+              {{else}}
+                {{#if system.grantedItemGroups.length}}
+                  <div class="role-grant-summary-list">
+                    {{#each system.grantedItemGroups as |group|}}
+                      <div class="role-grant-summary">
+                        <strong>{{#if group.label}}{{group.label}}{{else}}{{localize "CYBER_BLUE.Role.GrantGroup"}}{{/if}}</strong>
+                        <span>
+                          {{#if (eq group.mode "choice")}}
+                            {{localize "CYBER_BLUE.Role.ChooseSummary" count=group.count}}
+                          {{else}}
+                            {{localize "CYBER_BLUE.Role.ReceiveAll"}}
+                          {{/if}}
+                        </span>
+                        <span>{{#each group.items as |grantItem|}}{{grantItem.name}}{{#unless @last}}, {{/unless}}{{/each}}</span>
+                      </div>
+                    {{/each}}
+                  </div>
+                {{/if}}
+              {{/if}}
+            </section>
           </div>
 
           <div class="tab" data-group="primary" data-tab="abilities">
             <section class="sheet-panel">
-              <div class="panel-header panel-actions">
-                <button type="button" data-action="add-role-section" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddSection"}}">
-                  <i class="fas fa-plus"></i>
-                </button>
-              </div>
-              {{#if editable}}
+              {{#if roleShowRestrictedEditing}}
+                <label>
+                  <span>{{localize "CYBER_BLUE.Role.Category"}}</span>
+                  <select name="system.category">
+                    {{#each roleCategories as |category|}}
+                      <option value="{{category.value}}" {{#if (eq category.value ../roleCategoryData.category)}}selected{{/if}}>{{category.label}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+              {{else}}
+                <h4 class="roleCategory">{{roleCategoryData.categoryLabel}}</h4>
+              {{/if}}
+              {{#if roleShowRestrictedEditing}}
                 <prose-mirror name="system.abilityOverview" value="{{system.abilityOverview}}" document-uuid="{{item.uuid}}" compact>
                   {{{enrichedAbilityOverview}}}
                 </prose-mirror>
@@ -388,39 +542,327 @@
               {{/if}}
             </section>
 
+            {{#if (eq roleCategoryData.category "leader")}}
+              <section class="sheet-panel">
+                {{#if roleShowRestrictedEditing}}
+                  <div class="panel-header panel-actions">
+                    <span>{{localize "CYBER_BLUE.Role.LeaderFeatures"}}</span>
+                    <button type="button" data-action="add-leader-feature" title="{{localize "CYBER_BLUE.Role.AddLeaderFeature"}}">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </div>
+                  {{#each system.leaderFeatures as |feature|}}
+                    <section class="role-config-block">
+                      <div class="panel-header panel-actions">
+                        <span>{{localize "CYBER_BLUE.Role.LeaderFeature"}}</span>
+                        <button type="button" data-action="remove-leader-feature" data-feature-index="{{@index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                      <div class="item-meta-row">
+                        <label>
+                          <span>Name</span>
+                          <input type="text" name="system.leaderFeatures.{{@index}}.name" value="{{feature.name}}" />
+                        </label>
+                        <label class="compact-field">
+                          <span>{{localize "CYBER_BLUE.Sheet.Labels.UnlockRank"}}</span>
+                          <input type="number" name="system.leaderFeatures.{{@index}}.unlockRank" value="{{feature.unlockRank}}" data-dtype="Number" />
+                        </label>
+                        <label class="compact-field">
+                          <span>{{localize "CYBER_BLUE.Role.SelectionCount"}}</span>
+                          <input type="number" name="system.leaderFeatures.{{@index}}.selectionCount" value="{{feature.selectionCount}}" data-dtype="Number" />
+                        </label>
+                        <label>
+                          <span>Permission</span>
+                          <select name="system.leaderFeatures.{{@index}}.permission">
+                            {{#each @root.roleLeaderPermissions as |permission|}}
+                              <option value="{{permission.value}}" {{#if (eq permission.value feature.permission)}}selected{{/if}}>{{permission.label}}</option>
+                            {{/each}}
+                          </select>
+                        </label>
+                      </div>
+                      <label>
+                        <span>Description</span>
+                        <input type="text" name="system.leaderFeatures.{{@index}}.description" value="{{feature.description}}" />
+                      </label>
+                      <div class="role-reference-list">
+                        {{#each feature.options as |option|}}
+                          <div class="role-reference-row">
+                            <input type="text" name="system.leaderFeatures.{{@../index}}.options.{{@index}}.uuid" value="{{option.uuid}}" placeholder="Actor UUID" />
+                            <input type="text" name="system.leaderFeatures.{{@../index}}.options.{{@index}}.name" value="{{option.name}}" placeholder="NPC name" />
+                            <button type="button" data-action="populate-role-reference" data-reference-path="system.leaderFeatures.{{@../index}}.options.{{@index}}" title="{{localize "CYBER_BLUE.Role.PopulateReference"}}">
+                              <i class="fas fa-link"></i>
+                            </button>
+                            <button type="button" data-action="remove-leader-option" data-feature-index="{{@../index}}" data-option-index="{{@index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          </div>
+                        {{/each}}
+                      </div>
+                      <button type="button" data-action="add-leader-option" data-feature-index="{{@index}}" title="{{localize "CYBER_BLUE.Role.AddLeaderOption"}}">
+                        <i class="fas fa-plus"></i>
+                      </button>
+                    </section>
+                  {{/each}}
+                {{else}}
+                  {{#each roleLeaderFeatures as |feature|}}
+                    <section class="role-config-block">
+                      <h5>{{feature.name}}</h5>
+                      {{#if feature.description}}
+                        <p class="hint">{{feature.description}}</p>
+                      {{/if}}
+                      {{#if @root.roleCanEditChoices}}
+                        <div class="checkbox-group">
+                          {{#each feature.options as |option|}}
+                            <label class="checkbox">
+                              <input type="checkbox" data-action="toggle-leader-selection" data-feature-index="{{../featureIndex}}" data-source-uuid="{{option.uuid}}" {{checked option.selected}} />
+                              <span>{{option.name}}</span>
+                            </label>
+                          {{/each}}
+                        </div>
+                      {{else}}
+                        <div class="role-grant-summary-list">
+                          {{#each feature.options as |option|}}
+                            {{#if option.selected}}
+                              <div class="role-grant-summary">{{option.name}}</div>
+                            {{/if}}
+                          {{/each}}
+                        </div>
+                      {{/if}}
+                    </section>
+                  {{/each}}
+                {{/if}}
+              </section>
+            {{/if}}
+
+            {{#if (eq roleCategoryData.category "protean")}}
+              <section class="sheet-panel">
+                {{#if roleShowRestrictedEditing}}
+                  <div class="panel-header panel-actions">
+                    <span>{{localize "CYBER_BLUE.Role.ProteanFoci"}}</span>
+                    <button type="button" data-action="add-protean-focus" title="{{localize "CYBER_BLUE.Role.AddProteanFocus"}}">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </div>
+                  {{#each system.proteanFoci as |focus|}}
+                      <div class="item-meta-row">
+                        <label>
+                          <span>Name</span>
+                          <input type="text" name="system.proteanFoci.{{@index}}.name" value="{{focus.name}}" />
+                        </label>
+                      <label class="compact-field">
+                        <span>{{localize "CYBER_BLUE.Sheet.Labels.UnlockRank"}}</span>
+                        <input type="number" name="system.proteanFoci.{{@index}}.unlockRank" value="{{focus.unlockRank}}" data-dtype="Number" />
+                      </label>
+                      <label class="compact-field">
+                        <span>{{localize "CYBER_BLUE.Role.Min"}}</span>
+                        <input type="number" name="system.proteanFoci.{{@index}}.minPoints" value="{{focus.minPoints}}" data-dtype="Number" />
+                      </label>
+                      <label class="compact-field">
+                        <span>{{localize "CYBER_BLUE.Role.Max"}}</span>
+                        <input type="number" name="system.proteanFoci.{{@index}}.maxPoints" value="{{focus.maxPoints}}" data-dtype="Number" />
+                      </label>
+                      <label class="compact-field">
+                        <span>{{localize "CYBER_BLUE.Role.Step"}}</span>
+                        <input type="number" name="system.proteanFoci.{{@index}}.step" value="{{focus.step}}" data-dtype="Number" />
+                      </label>
+                      <button type="button" data-action="remove-protean-focus" data-focus-index="{{@index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                    <label>
+                      <span>Description</span>
+                      <input type="text" name="system.proteanFoci.{{@index}}.description" value="{{focus.description}}" />
+                    </label>
+                  {{/each}}
+                {{else}}
+                  <div class="role-focus-summary">
+                    <span>{{localize "CYBER_BLUE.Role.Pool"}}: {{roleRank}}</span>
+                  </div>
+                  {{#each roleProteanFoci as |focus|}}
+                    <div class="item-meta-row">
+                      <label title="{{focus.description}}">
+                        <span>{{focus.name}}</span>
+                        {{#if @root.roleCanEditChoices}}
+                          <input type="number" name="system.proteanFoci.{{focus.focusIndex}}.points" value="{{focus.points}}" min="{{focus.minPoints}}" max="{{focus.maxPoints}}" step="{{focus.step}}" data-dtype="Number" />
+                        {{else}}
+                          <div class="readonly-value">{{focus.points}}</div>
+                        {{/if}}
+                      </label>
+                    </div>
+                  {{/each}}
+                {{/if}}
+              </section>
+            {{/if}}
+
+            {{#if (eq roleCategoryData.category "specialist")}}
+              <section class="sheet-panel">
+                {{#if roleShowRestrictedEditing}}
+                  <div class="panel-header panel-actions">
+                    <span>{{localize "CYBER_BLUE.Role.Specialties"}}</span>
+                    <button type="button" data-action="add-specialty" title="{{localize "CYBER_BLUE.Role.AddSpecialty"}}">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </div>
+                  {{#each system.specialties as |specialty|}}
+                    <section class="role-config-block">
+                      <div class="panel-header panel-actions">
+                        <span>{{localize "CYBER_BLUE.Role.Specialty"}}</span>
+                        <button type="button" data-action="remove-specialty" data-specialty-index="{{@index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                      <div class="item-meta-row">
+                        <label>
+                          <span>Name</span>
+                          <input type="text" name="system.specialties.{{@index}}.name" value="{{specialty.name}}" />
+                        </label>
+                        <label class="compact-field">
+                          <span>{{localize "CYBER_BLUE.Sheet.Labels.Rank"}}</span>
+                          <input type="number" name="system.specialties.{{@index}}.rank" value="{{specialty.rank}}" data-dtype="Number" />
+                        </label>
+                      </div>
+                      <label>
+                        <span>Description</span>
+                        <input type="text" name="system.specialties.{{@index}}.description" value="{{specialty.description}}" />
+                      </label>
+                      <div class="panel-header panel-actions">
+                        <span>{{localize "CYBER_BLUE.Role.SpecialtyUnlocks"}}</span>
+                        <button type="button" data-action="add-specialty-section" data-specialty-index="{{@index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddSection"}}">
+                          <i class="fas fa-plus"></i>
+                        </button>
+                      </div>
+                      {{#each specialty.unlockSections as |section|}}
+                        <section class="role-config-block">
+                          <div class="panel-header panel-actions">
+                            <span>{{localize "CYBER_BLUE.Sheet.Labels.UnlockedAt" rank=section.unlockRank}}</span>
+                            <button type="button" data-action="remove-specialty-section" data-specialty-index="{{@../index}}" data-section-index="{{@index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          </div>
+                          <label class="compact-field">
+                            <span>{{localize "CYBER_BLUE.Sheet.Labels.UnlockRank"}}</span>
+                            <input type="number" name="system.specialties.{{@../index}}.unlockSections.{{@index}}.unlockRank" value="{{section.unlockRank}}" data-dtype="Number" />
+                          </label>
+                          <prose-mirror name="system.specialties.{{@../index}}.unlockSections.{{@index}}.content" value="{{section.content}}" document-uuid="{{@root.item.uuid}}" compact>
+                            {{section.content}}
+                          </prose-mirror>
+                        </section>
+                      {{/each}}
+                      <div class="panel-header panel-actions">
+                        <span>{{localize "CYBER_BLUE.Role.SpecialtyOptions"}}</span>
+                        <button type="button" data-action="add-specialty-option-group" data-specialty-index="{{@index}}" title="{{localize "CYBER_BLUE.Role.AddOptionGroup"}}">
+                          <i class="fas fa-plus"></i>
+                        </button>
+                      </div>
+                      {{#each specialty.optionGroups as |group|}}
+                        <section class="role-config-block">
+                          <div class="panel-header panel-actions">
+                            <span>{{localize "CYBER_BLUE.Role.OptionGroup"}}</span>
+                            <button type="button" data-action="remove-specialty-option-group" data-specialty-index="{{@../index}}" data-group-index="{{@index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          </div>
+                          <div class="item-meta-row">
+                            <label class="compact-field">
+                              <span>{{localize "CYBER_BLUE.Sheet.Labels.UnlockRank"}}</span>
+                              <input type="number" name="system.specialties.{{@../index}}.optionGroups.{{@index}}.unlockRank" value="{{group.unlockRank}}" data-dtype="Number" />
+                            </label>
+                            <label class="compact-field">
+                              <span>{{localize "CYBER_BLUE.Role.ChoiceCount"}}</span>
+                              <input type="number" name="system.specialties.{{@../index}}.optionGroups.{{@index}}.choices" value="{{group.choices}}" data-dtype="Number" />
+                            </label>
+                          </div>
+                          {{#each group.options as |option|}}
+                            <div class="role-reference-row">
+                              <input type="text" name="system.specialties.{{@../../index}}.optionGroups.{{@../index}}.options.{{@index}}.name" value="{{option.name}}" placeholder="Option name" />
+                              <input type="text" name="system.specialties.{{@../../index}}.optionGroups.{{@../index}}.options.{{@index}}.description" value="{{option.description}}" placeholder="Description" />
+                              <button type="button" data-action="remove-specialty-option" data-specialty-index="{{@../../index}}" data-group-index="{{@../index}}" data-option-index="{{@index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+                                <i class="fas fa-trash"></i>
+                              </button>
+                            </div>
+                          {{/each}}
+                          <button type="button" data-action="add-specialty-option" data-specialty-index="{{@../index}}" data-group-index="{{@index}}" title="{{localize "CYBER_BLUE.Role.AddSpecialtyOption"}}">
+                            <i class="fas fa-plus"></i>
+                          </button>
+                        </section>
+                      {{/each}}
+                    </section>
+                  {{/each}}
+                {{else}}
+                  {{#each roleSpecialties as |specialty|}}
+                    <section class="role-config-block">
+                      <div class="item-meta-row">
+                        <label>
+                          <span>{{specialty.name}}</span>
+                          {{#if @root.roleCanEditChoices}}
+                            <input type="number" name="system.specialties.{{specialty.specialtyIndex}}.rank" value="{{specialty.rank}}" data-dtype="Number" />
+                          {{else}}
+                            <div class="readonly-value">{{specialty.rank}}</div>
+                          {{/if}}
+                        </label>
+                      </div>
+                      {{#each specialty.enrichedSections as |section|}}
+                        <div class="editor">
+                          <div class="editor-content">{{{section.enrichedContent}}}</div>
+                        </div>
+                      {{/each}}
+                      {{#each specialty.optionGroups as |group|}}
+                        <div class="checkbox-group">
+                          {{#each group.options as |option|}}
+                            <label class="checkbox" title="{{option.description}}">
+                              {{#if @root.roleCanEditChoices}}
+                                <input type="checkbox" data-action="toggle-specialty-option" data-specialty-index="{{../../specialtyIndex}}" data-group-index="{{../groupIndex}}" data-option-id="{{option.id}}" {{checked (includes ../selectedOptionIds option.id)}} />
+                              {{/if}}
+                              <span>{{option.name}}</span>
+                            </label>
+                          {{/each}}
+                        </div>
+                      {{/each}}
+                    </section>
+                  {{/each}}
+                {{/if}}
+              </section>
+            {{/if}}
+
             {{#each roleSections as |section|}}
-              {{#if section.isVisible}}
-                <section class="sheet-panel">
-                  <div class="panel-header">
-                    <h2>{{localize "CYBER_BLUE.Sheet.Labels.UnlockedAt" rank=section.unlockRank}}</h2>
+              <section class="sheet-panel">
+                {{#if @root.roleShowRestrictedEditing}}
+                  <div class="panel-header panel-actions">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.UnlockedAt" rank=section.unlockRank}}</span>
                     <button type="button" data-action="remove-role-section" data-section-index="{{section.index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
                       <i class="fas fa-trash"></i>
                     </button>
                   </div>
                   <div class="item-meta-row">
-                    <label>
+                    <label class="compact-field">
                       <span>{{localize "CYBER_BLUE.Sheet.Labels.UnlockRank"}}</span>
                       <input type="number" name="system.abilitySections.{{section.index}}.unlockRank" value="{{section.unlockRank}}" data-dtype="Number" />
                     </label>
                   </div>
-                  {{#if @root.editable}}
-                    <prose-mirror name="system.abilitySections.{{section.index}}.content" value="{{section.content}}" document-uuid="{{@root.item.uuid}}" compact>
-                      {{{section.enrichedContent}}}
-                    </prose-mirror>
-                  {{else}}
-                    <div class="editor">
-                      <div class="editor-content">{{{section.enrichedContent}}}</div>
-                    </div>
-                  {{/if}}
-                </section>
-              {{/if}}
+                  <prose-mirror name="system.abilitySections.{{section.index}}.content" value="{{section.content}}" document-uuid="{{@root.item.uuid}}" compact>
+                    {{{section.enrichedContent}}}
+                  </prose-mirror>
+                {{else}}
+                  <div class="editor">
+                    <div class="editor-content">{{{section.enrichedContent}}}</div>
+                  </div>
+                {{/if}}
+              </section>
             {{/each}}
+            {{#if roleShowRestrictedEditing}}
+              <section class="sheet-panel">
+                <button type="button" data-action="add-role-section" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddSection"}}">
+                  <i class="fas fa-plus"></i>
+                </button>
+              </section>
+            {{/if}}
           </div>
 
           {{#if showRoleNotesTab}}
             <div class="tab" data-group="primary" data-tab="notes">
               <section class="sheet-panel">
-                {{#if editable}}
+                {{#if canEditAsOwner}}
                   <prose-mirror name="system.notes" value="{{system.notes}}" document-uuid="{{item.uuid}}" compact>
                     {{{enrichedNotes}}}
                   </prose-mirror>

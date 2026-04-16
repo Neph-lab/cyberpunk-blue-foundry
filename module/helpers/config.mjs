@@ -1,6 +1,7 @@
 import { COMBAT_CONFIG } from "./combat.mjs";
 import { GEAR_STATES } from "./gear.mjs";
 import { MOD_TYPES, WEAPON_MOD_FIELDS, WEAPON_MOD_MODES } from "./mods.mjs";
+import { LEADER_PERMISSIONS, ROLE_CATEGORIES } from "./roles.mjs";
 
 const STATS = {
   body: { label: 'Body', shortLabel: 'BODY' },
@@ -407,6 +408,10 @@ export const CYBER_BLUE = {
     types: CYBERWARE_TYPES,
     integrations: CYBERWARE_INTEGRATIONS,
     facilities: CYBERWARE_FACILITIES,
+  },
+  roles: {
+    categories: ROLE_CATEGORIES,
+    leaderPermissions: LEADER_PERMISSIONS,
   },
   combat: COMBAT_CONFIG,
   gearStates: GEAR_STATES,

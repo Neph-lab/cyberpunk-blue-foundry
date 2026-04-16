@@ -189,8 +189,13 @@ button, .cyberpunk-blue .button, a.button {
   color: var(--cpb-text);
   font-size: 1.2rem;
   text-align: center;
+  min-width: 30px;
   min-height: 34px;
   padding: 0.35rem 0.55rem;
+}
+
+.cyberpunk-blue input[type=text] {
+  text-align: left;
 }
 
 .cyberpunk-blue button, .cyberpunk-blue .button {
@@ -265,10 +270,14 @@ button, .cyberpunk-blue .button, a.button {
 }
 
 .cyberpunk-blue .charname input {
+  font-family: 'Share Tech Mono', monospace;
   font-size: 2rem;
   font-weight: 400;
   letter-spacing: 0.04em;
   min-height: 54px;
+  border: none;
+  border-bottom: 1px solid var(--cpb-accent);
+  background: none;
 }
 
 .cyberpunk-blue .sheet-subtitle,
@@ -534,7 +543,7 @@ button, .cyberpunk-blue .button, a.button {
 }
 
 .cyberpunk-blue .manufacturer-logo {
-  max-height: 1.6rem;
+  height: 35px;
   object-fit:contain;
   width: unset;
 }
@@ -658,8 +667,11 @@ button, .cyberpunk-blue .button, a.button {
 }
 
 .cyberpunk-blue .manufacturer-summary .manufacturer-logo {
-  height: 1rem;
-  width: 1rem;
+  height: unset;
+  width: unset;
+  max-width: 50px;
+  max-height: 12px;
+  object-fit: contain;
 }
 
 .cyberpunk-blue .embedded-name img {
@@ -724,6 +736,20 @@ button, .cyberpunk-blue .button, a.button {
   color: var(--cpb-text);
 }
 
+.cyberpunk-blue prose-mirror,
+.cyberpunk-blue .editor {
+  display: block;
+  min-height: 12rem;
+  overflow: auto;
+  resize: vertical;
+  width: 100%;
+}
+
+.cyberpunk-blue .sheet-panel > prose-mirror:last-child,
+.cyberpunk-blue .sheet-panel > .editor:last-child {
+  flex: 1 1 auto;
+}
+
 .cyberpunk-blue .effects-list .items-header,
 .cyberpunk-blue .effects-list .item {
   background: rgba(5, 10, 16, 0.5);
@@ -739,8 +765,9 @@ button, .cyberpunk-blue .button, a.button {
 }
 .cyberpunk-blue .traits-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: max-content minmax(0, 1fr);
   gap: 1rem;
+  align-items: start;
 }
 
 .cyberpunk-blue .quick-stats-row {
@@ -850,7 +877,7 @@ button, .cyberpunk-blue .button, a.button {
 .cyberpunk-blue .embedded-table th.numeric-column,
 .cyberpunk-blue .embedded-table td.numeric-column {
   white-space: nowrap;
-  width: 1%;
+  width: 3rem;
 }
 
 .cyberpunk-blue .panel-header.panel-actions {
@@ -1027,12 +1054,24 @@ button, .cyberpunk-blue .button, a.button {
   margin-top: 0;
 }
 
+.cyberpunk-blue .traits-role-panel {
+  width: max-content;
+}
+
+.cyberpunk-blue .traits-role-panel .embedded-table {
+  width: auto;
+}
+
+.cyberpunk-blue .traits-ability-panel {
+  min-width: 0;
+}
+
 .cyberpunk-blue .roles-controls-column {
   width: 9.5rem;
 }
 
 .cyberpunk-blue .abilities-note-column {
-  width: 42%;
+  width: auto;
 }
 
 .cyberpunk-blue table.embedded-table td {
@@ -1049,11 +1088,14 @@ button, .cyberpunk-blue .button, a.button {
   justify-content: space-between;
 }
 
+.cyberpunk-blue .quick-stats-row .stat-card > input,
+.cyberpunk-blue .quick-stats-row .stat-card > select,
 .cyberpunk-blue .quick-stats-row .resource-fields,
 .cyberpunk-blue .armor-inline-field .resource-fields,
 .cyberpunk-blue .compact-resource {
   align-items: center;
   min-height: 38px;
+  margin-top: auto;
 }
 
 .cyberpunk-blue .compact-resource input {
@@ -1095,6 +1137,10 @@ button, .cyberpunk-blue .button, a.button {
   max-width: 8rem;
 }
 
+.cyberpunk-blue .cost-field {
+  min-width: min(100%, 16rem);
+}
+
 .cyberpunk-blue .item-meta-row .checkbox-label + .checkbox-label {
   margin-left: 0.35rem;
 }
@@ -1114,6 +1160,7 @@ button, .cyberpunk-blue .button, a.button {
 
 .cyberpunk-blue .weapon-range-table {
   border-collapse: collapse;
+  display: table;
   min-width: 32rem;
   table-layout: fixed;
   width: 100%;
@@ -1130,11 +1177,35 @@ button, .cyberpunk-blue .button, a.button {
 .cyberpunk-blue .weapon-range-table td.is-blocked,
 .cyberpunk-blue .weapon-range-table td.is-blocked input {
   background: #000;
+  color: #000;
 }
 
 .cyberpunk-blue .weapon-range-table input {
   min-height: 30px;
   width: 100%;
+}
+
+.cyberpunk-blue .readonly-value,
+.cyberpunk-blue .readonly-icon,
+.cyberpunk-blue .manufacturer-display {
+  align-items: center;
+  color: var(--cpb-text);
+  display: inline-flex;
+  min-height: 34px;
+}
+
+.cyberpunk-blue .readonly-value {
+  padding: 0.35rem 0.1rem;
+}
+
+.cyberpunk-blue .numeric-value {
+  justify-content: center;
+  min-width: 30px;
+  text-align: center;
+}
+
+.cyberpunk-blue .manufacturer-display {
+  gap: 0.45rem;
 }
 
 .cyberpunk-blue .mod-list {
@@ -1195,6 +1266,97 @@ button, .cyberpunk-blue .button, a.button {
   width: 20px;
 }
 
+.cyberpunk-blue .roleCategory {
+  color: var(--cpb-accent);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.6rem;
+  text-transform: uppercase;
+}
+
+.cyberpunk-blue .role-overview-panel,
+.cyberpunk-blue .role-config-block,
+.cyberpunk-blue .role-grant-groups,
+.cyberpunk-blue .role-reference-list,
+.cyberpunk-blue .role-grant-summary-list,
+.cyberpunk-blue .team-member-list,
+.cyberpunk-blue .specialty-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.cyberpunk-blue .role-overview-feature {
+  border-top: 1px solid var(--cpb-panel-border);
+  padding-top: 0.8rem;
+}
+
+.cyberpunk-blue .role-overview-feature:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.cyberpunk-blue .role-focus-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.cyberpunk-blue .role-reference-row {
+  align-items: end;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(180px, 1.5fr) minmax(120px, 1fr) 42px 42px;
+}
+
+.cyberpunk-blue .role-grant-group,
+.cyberpunk-blue .role-config-block,
+.cyberpunk-blue .role-overview-feature {
+  background: var(--cpb-table-alt-bg);
+  border: 1px solid var(--cpb-panel-border);
+  padding: 0.8rem;
+}
+
+.cyberpunk-blue .role-grant-summary,
+.cyberpunk-blue .specialty-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.cyberpunk-blue .checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.cyberpunk-blue .checkbox-group .checkbox {
+  align-items: center;
+  display: flex;
+  gap: 0.45rem;
+}
+
+.cyberpunk-blue .team-member-list {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.cyberpunk-blue .team-member-link {
+  min-width: 180px;
+}
+
+.cyberpunk-blue .role-focus-table input[type="number"] {
+  width: 4rem;
+}
+
+.cyberpunk-blue .role-overview-html > :first-child {
+  margin-top: 0;
+}
+
+.cyberpunk-blue .role-overview-html > :last-child {
+  margin-bottom: 0;
+}
+
 @media (max-width: 900px) {
   .cyberpunk-blue .notes-grid,
   .cyberpunk-blue .overview-grid,
@@ -1224,6 +1386,19 @@ button, .cyberpunk-blue .button, a.button {
   .cyberpunk-blue .inventory-row,
   .cyberpunk-blue .weapon-change-row,
   .cyberpunk-blue .mod-effect-row {
+    grid-template-columns: 1fr;
+  }
+
+  .cyberpunk-blue .traits-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cyberpunk-blue .traits-role-panel,
+  .cyberpunk-blue .traits-role-panel .embedded-table {
+    width: 100%;
+  }
+
+  .cyberpunk-blue .role-reference-row {
     grid-template-columns: 1fr;
   }
 }

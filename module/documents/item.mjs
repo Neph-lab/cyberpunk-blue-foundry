@@ -7,6 +7,7 @@ import {
 import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs';
 import { getGearStateUpdateData, normalizeGearState } from '../helpers/gear.mjs';
 import { getEffectiveItemWeapons, getModificationEffects, syncItemModificationEffects } from '../helpers/mods.mjs';
+import { normalizeRoleSystemData } from '../helpers/roles.mjs';
 
 export class CyberBlueItem extends Item {
   static PSYCHE_LOSS_FLAG = 'autoPsycheLoss';
@@ -17,6 +18,13 @@ export class CyberBlueItem extends Item {
     const allowed = await super._preCreate(data, options, user);
     if (allowed === false) {
       return false;
+    }
+
+    if (this.type === 'role') {
+      const nextSystem = normalizeRoleSystemData(data.system ?? this.system);
+      data.system = nextSystem;
+      this.updateSource({ system: nextSystem });
+      return allowed;
     }
 
     if (this.type !== 'cyberware' || !(this.parent instanceof Actor)) {
@@ -68,6 +76,15 @@ export class CyberBlueItem extends Item {
         );
         nextSystem.state = normalizeGearState(mergedSystem);
       }
+    }
+
+    if (this.type === 'role') {
+      changed.system = normalizeRoleSystemData(foundry.utils.mergeObject(
+        foundry.utils.deepClone(this.system),
+        foundry.utils.deepClone(changed.system ?? {}),
+        { inplace: false }
+      ));
+      return allowed;
     }
 
     if (this.type !== 'cyberware' || !(this.parent instanceof Actor)) {
