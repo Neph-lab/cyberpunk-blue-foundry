@@ -18,13 +18,15 @@
     </section>
   {{/if}}
 
-  {{#if system.isWeapon}}
+  {{#if showWeaponSection}}
     <section class="sheet-panel">
       <div class="panel-header">
         <h2>{{localize "CYBER_BLUE.Sheet.Labels.Weapons"}}</h2>
-        <button type="button" data-action="add-weapon" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddWeapon"}}">
-          <i class="fas fa-plus"></i>
-        </button>
+        {{#if canManageRestricted}}
+          <button type="button" data-action="add-weapon" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddWeapon"}}">
+            <i class="fas fa-plus"></i>
+          </button>
+        {{/if}}
       </div>
 
       {{#if weapons.length}}
@@ -33,9 +35,11 @@
             <section class="weapon-block">
               <div class="panel-header">
                 <h3>{{weapon.definition.label}}</h3>
-                <button type="button" data-action="remove-weapon" data-weapon-index="{{weapon.index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.RemoveWeapon"}}">
-                  <i class="fas fa-trash"></i>
-                </button>
+                {{#if @root.canManageRestricted}}
+                  <button type="button" data-action="remove-weapon" data-weapon-index="{{weapon.index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.RemoveWeapon"}}">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                {{/if}}
               </div>
 
               <div class="weapon-grid">

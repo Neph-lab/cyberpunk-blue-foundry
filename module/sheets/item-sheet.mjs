@@ -90,7 +90,8 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       itemData.system.state = normalizeGearState(itemData.system);
     }
     context.showCombatTab = (context.isCyberware || context.isGear)
-      && (itemData.system.isArmor || itemData.system.isWeapon);
+      && (itemData.system.isArmor || itemData.system.isWeapon || canManageRestricted);
+    context.showWeaponSection = itemData.system.isWeapon || canManageRestricted;
     context.showCyberwareDetailsTab = context.isCyberware;
     context.enrichedDescription = await TextEditor.enrichHTML(itemData.system.description, {
       secrets: this.document.isOwner,
@@ -162,9 +163,9 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       }
       : null;
     context.roleLeaderFeatures = context.isRole
-      ? roleCategoryData.unlockedLeaderFeatures.map((feature, featureIndex) => ({
+      ? roleCategoryData.unlockedLeaderFeatures.map((feature) => ({
         ...feature,
-        featureIndex,
+        featureIndex: (itemData.system.leaderFeatures ?? []).findIndex((f) => f.id === feature.id),
         options: (feature.options ?? []).map((option, optionIndex) => ({
           ...option,
           optionIndex,
@@ -174,9 +175,9 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       }))
       : [];
     context.roleProteanFoci = context.isRole
-      ? roleCategoryData.unlockedProteanFoci.map((focus, focusIndex) => ({
+      ? roleCategoryData.unlockedProteanFoci.map((focus) => ({
         ...focus,
-        focusIndex,
+        focusIndex: (itemData.system.proteanFoci ?? []).findIndex((f) => f.id === focus.id),
       }))
       : [];
     context.roleSpecialties = context.isRole
@@ -193,9 +194,9 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
             relativeTo: this.document,
           }),
         }))),
-        optionGroups: (specialty.unlockedOptionGroups ?? []).map((group, groupIndex) => ({
+        optionGroups: (specialty.unlockedOptionGroups ?? []).map((group) => ({
           ...group,
-          groupIndex,
+          groupIndex: (specialty.optionGroups ?? []).findIndex((g) => g.id === group.id),
         })),
       })))
       : [];
@@ -414,9 +415,9 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
 
   async _onAddRoleSection(event) {
     event.preventDefault();
-    const sections = foundry.utils.deepClone(this.document.system.abilitySections ?? []);
-    sections.push(createRoleAbilitySectionData());
-    await this.document.update({ 'system.abilitySections': sections });
+    const system = this._cloneRoleSystem();
+    system.abilitySections.push(createRoleAbilitySectionData());
+    await this.document.update({ system });
   }
 
   async _onRemoveRoleSection(event) {
@@ -426,9 +427,9 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       return;
     }
 
-    const sections = foundry.utils.deepClone(this.document.system.abilitySections ?? []);
-    sections.splice(index, 1);
-    await this.document.update({ 'system.abilitySections': sections });
+    const system = this._cloneRoleSystem();
+    system.abilitySections.splice(index, 1);
+    await this.document.update({ system });
   }
 
   _cloneRoleSystem() {
@@ -692,7 +693,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
 
   async _onAddWeapon(event) {
     event.preventDefault();
-    const weapons = foundry.utils.deepClone(this.document.system.weapons ?? []);
+    const weapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
     weapons.push(createWeaponData());
     await this.document.update({ 'system.weapons': weapons, 'system.isWeapon': true });
   }
@@ -704,7 +705,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       return;
     }
 
-    const weapons = foundry.utils.deepClone(this.document.system.weapons ?? []);
+    const weapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
     weapons.splice(index, 1);
     await this.document.update({ 'system.weapons': weapons });
   }
@@ -719,7 +720,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       return;
     }
 
-    const weapons = foundry.utils.deepClone(this.document.system.weapons ?? []);
+    const weapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
     weapons[index] = applyWeaponTypeDefaults(weapons[index], event.currentTarget.value);
     await this.document.update({ 'system.weapons': weapons });
   }
@@ -732,7 +733,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       return;
     }
 
-    const weapons = foundry.utils.deepClone(this.document.system.weapons ?? []);
+    const weapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
     const rawValue = `${event.currentTarget.value ?? ''}`.trim();
     const nextValue = rawValue === '-' ? 0 : Math.max(Number(rawValue) || 0, 0);
     weapons[weaponIndex].rangeTable[bandIndex] = nextValue;
@@ -766,7 +767,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     event.preventDefault();
     const select = this.element.querySelector('[data-mod-type-select]');
     const type = select?.value || (this.document.type === 'cyberware' ? 'cyberwareMod' : 'gearMod');
-    const mods = foundry.utils.deepClone(this.document.system.mods ?? []);
+    const mods = (this.document.system.toObject?.() ?? this.document.system).mods ?? [];
     mods.push(createItemModificationData(type));
     await this.document.update({ 'system.mods': mods });
   }
@@ -778,7 +779,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       return;
     }
 
-    const mods = foundry.utils.deepClone(this.document.system.mods ?? []);
+    const mods = (this.document.system.toObject?.() ?? this.document.system).mods ?? [];
     const [removed] = mods.splice(index, 1);
     if (removed?.id) {
       const effectIds = this.document.getModificationEffects(removed.id).map((effect) => effect.id);
@@ -796,7 +797,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       return;
     }
 
-    const mods = foundry.utils.deepClone(this.document.system.mods ?? []);
+    const mods = (this.document.system.toObject?.() ?? this.document.system).mods ?? [];
     mods[index].weaponChanges ??= [];
     mods[index].weaponChanges.push(createWeaponChangeData());
     await this.document.update({ 'system.mods': mods });
@@ -810,7 +811,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       return;
     }
 
-    const mods = foundry.utils.deepClone(this.document.system.mods ?? []);
+    const mods = (this.document.system.toObject?.() ?? this.document.system).mods ?? [];
     mods[modIndex]?.weaponChanges?.splice(changeIndex, 1);
     await this.document.update({ 'system.mods': mods });
   }

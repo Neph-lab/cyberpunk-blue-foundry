@@ -7,12 +7,20 @@ import {
 import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs';
 import { getGearStateUpdateData, normalizeGearState } from '../helpers/gear.mjs';
 import { getEffectiveItemWeapons, getModificationEffects, syncItemModificationEffects } from '../helpers/mods.mjs';
-import { normalizeRoleSystemData } from '../helpers/roles.mjs';
+import { applyFirstRoleSetup, normalizeRoleSystemData } from '../helpers/roles.mjs';
 
 export class CyberBlueItem extends Item {
   static PSYCHE_LOSS_FLAG = 'autoPsycheLoss';
   static PSYCHE_PROMPT_FLAG = 'psycheLossPrompted';
   static OPERATIONAL_EFFECT_FLAG = 'autoOperationalEffectState';
+
+  async _onCreate(data, options, userId) {
+    await super._onCreate(data, options, userId);
+    if (this.type === 'role' && this.parent instanceof Actor
+        && userId === game.user.id && !options?.cyberBlueSkipRoleGrant) {
+      await applyFirstRoleSetup(this.parent, this);
+    }
+  }
 
   async _preCreate(data, options, user) {
     const allowed = await super._preCreate(data, options, user);
@@ -70,7 +78,7 @@ export class CyberBlueItem extends Item {
         Object.assign(nextSystem, foundry.utils.expandObject(getGearStateUpdateData(nextSystem.state)).system);
       } else if ('equipped' in nextSystem || 'carried' in nextSystem) {
         const mergedSystem = foundry.utils.mergeObject(
-          foundry.utils.deepClone(this.system),
+          this.system.toObject(),
           foundry.utils.deepClone(nextSystem),
           { inplace: false }
         );
@@ -80,7 +88,7 @@ export class CyberBlueItem extends Item {
 
     if (this.type === 'role') {
       changed.system = normalizeRoleSystemData(foundry.utils.mergeObject(
-        foundry.utils.deepClone(this.system),
+        this.system.toObject(),
         foundry.utils.deepClone(changed.system ?? {}),
         { inplace: false }
       ));
@@ -92,7 +100,7 @@ export class CyberBlueItem extends Item {
     }
 
     const nextSystem = foundry.utils.mergeObject(
-      foundry.utils.deepClone(this.system),
+      this.system.toObject(),
       foundry.utils.deepClone(changed.system ?? {}),
       { inplace: false }
     );

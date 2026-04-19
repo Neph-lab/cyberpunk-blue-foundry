@@ -118,6 +118,7 @@
             <colgroup>
               <col />
               <col class="column-compact" />
+              <col />
               <col class="column-compact" />
               <col class="column-compact" />
               <col class="column-controls" />
@@ -126,6 +127,7 @@
               <tr>
                 <th>Weapon</th>
                 <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Attack"}}</th>
+                <th>{{localize "CYBER_BLUE.Sheet.Labels.WeaponSkill"}}</th>
                 <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.RateOfFire"}}</th>
                 <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Mag"}}</th>
                 <th class="numeric-column">Controls</th>
@@ -143,6 +145,17 @@
                     <button type="button" data-action="weapon-attack" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.attackTooltip}}">
                       {{weapon.attackLabel}}
                     </button>
+                  </td>
+                  <td>
+                    {{#if weapon.skillOptions.length}}
+                      <select data-action="update-item-field" data-field-path="system.weapons.{{weapon.weaponIndex}}.skill">
+                        {{#each weapon.skillOptions as |option|}}
+                          <option value="{{option.value}}" {{#if (eq option.value ../skillSlug)}}selected{{/if}}>{{option.label}}</option>
+                        {{/each}}
+                      </select>
+                    {{else}}
+                      <span>{{weapon.skillSlug}}</span>
+                    {{/if}}
                   </td>
                   <td class="numeric-column">{{weapon.rateOfFire}}</td>
                   <td class="numeric-column">

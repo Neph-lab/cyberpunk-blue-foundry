@@ -289,6 +289,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         );
         const total = rollContext.statValue + rollContext.usedRank + (rollContext.statRollMod ?? 0);
         const ammo = clampWeaponAmmo(weapon);
+        const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill : baseSkill;
         combatWeaponEntries.push({
           itemId: itemDoc.id,
           weaponIndex,
@@ -300,6 +301,11 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           showsAmmo: definition.usesMagazine,
           ammoCurrent: ammo.current,
           magazine: ammo.magazine,
+          skillSlug,
+          skillOptions: definition.skillOptions.map((slug) => ({
+            value: slug,
+            label: CONFIG.CYBER_BLUE.skills[slug]?.label ?? slug,
+          })),
         });
       }
     }
@@ -317,6 +323,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         );
         const total = rollContext.statValue + rollContext.usedRank + (rollContext.statRollMod ?? 0);
         const ammo = clampWeaponAmmo(weapon);
+        const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill : baseSkill;
         combatWeaponEntries.push({
           itemId: itemDoc.id,
           weaponIndex,
@@ -328,6 +335,11 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           showsAmmo: definition.usesMagazine,
           ammoCurrent: ammo.current,
           magazine: ammo.magazine,
+          skillSlug,
+          skillOptions: definition.skillOptions.map((slug) => ({
+            value: slug,
+            label: CONFIG.CYBER_BLUE.skills[slug]?.label ?? slug,
+          })),
         });
       }
     }
@@ -361,18 +373,18 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
             totalPoints: roleRank,
             spentPoints: foci.reduce((sum, focus) => sum + (Number(focus.points) || 0), 0),
             remainingPoints: roleRank - foci.reduce((sum, focus) => sum + (Number(focus.points) || 0), 0),
-            foci: foci.map((focus, focusIndex) => ({
+            foci: foci.map((focus) => ({
               ...focus,
-              focusIndex,
+              focusIndex: (roleSystem.proteanFoci ?? []).findIndex((f) => f.id === focus.id),
             })),
           });
         }
       }
 
       if (roleSystem.category === 'leader') {
-        const leaderFeatures = getUnlockedLeaderFeatures(roleSystem, roleRank).map((feature, featureIndex) => ({
+        const leaderFeatures = getUnlockedLeaderFeatures(roleSystem, roleRank).map((feature) => ({
           ...feature,
-          featureIndex,
+          featureIndex: (roleSystem.leaderFeatures ?? []).findIndex((f) => f.id === feature.id),
           members: getRoleTeamMembers(this.document, this.document.items.get(role.id), feature).map((member) => ({
             id: member.id,
             name: member.name,
