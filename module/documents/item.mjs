@@ -9,6 +9,28 @@ import { getGearStateUpdateData, normalizeGearState } from '../helpers/gear.mjs'
 import { getEffectiveItemWeapons, getModificationEffects, syncItemModificationEffects } from '../helpers/mods.mjs';
 import { applyFirstRoleSetup, normalizeRoleSystemData } from '../helpers/roles.mjs';
 
+function preserveRoleArrayIds(next, current) {
+  if (!next || !current || typeof next !== 'object' || typeof current !== 'object') {
+    return;
+  }
+  for (const key of Object.keys(next)) {
+    const nextValue = next[key];
+    const currentValue = current[key];
+    if (Array.isArray(nextValue) && Array.isArray(currentValue)) {
+      for (let i = 0; i < nextValue.length; i++) {
+        const nextItem = nextValue[i];
+        const currentItem = currentValue[i];
+        if (nextItem && typeof nextItem === 'object' && !Array.isArray(nextItem)) {
+          if ((!nextItem.id || nextItem.id === '') && currentItem?.id) {
+            nextItem.id = currentItem.id;
+          }
+          preserveRoleArrayIds(nextItem, currentItem ?? {});
+        }
+      }
+    }
+  }
+}
+
 export class CyberBlueItem extends Item {
   static PSYCHE_LOSS_FLAG = 'autoPsycheLoss';
   static PSYCHE_PROMPT_FLAG = 'psycheLossPrompted';
@@ -87,11 +109,14 @@ export class CyberBlueItem extends Item {
     }
 
     if (this.type === 'role') {
-      changed.system = normalizeRoleSystemData(foundry.utils.mergeObject(
-        this.system.toObject(),
+      const currentSystem = this.system.toObject();
+      const mergedSystem = foundry.utils.mergeObject(
+        currentSystem,
         foundry.utils.deepClone(changed.system ?? {}),
         { inplace: false }
-      ));
+      );
+      preserveRoleArrayIds(mergedSystem, currentSystem);
+      changed.system = normalizeRoleSystemData(mergedSystem);
       return allowed;
     }
 

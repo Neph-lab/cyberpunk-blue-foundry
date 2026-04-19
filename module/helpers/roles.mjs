@@ -123,56 +123,46 @@ function isRoleOwnerEditor(item) {
   return item?.parent instanceof Actor && (item.isOwner || game.user.role >= CONST.USER_ROLES.ASSISTANT);
 }
 
+function mergeWithDefaults(defaults, value) {
+  const merged = { ...defaults, ...value };
+  if (!merged.id) {
+    merged.id = defaults.id;
+  }
+  return merged;
+}
+
 export function normalizeRoleSystemData(system = {}) {
   const next = foundry.utils.deepClone(system);
   next.category ??= 'sundry';
-  next.abilitySections = (next.abilitySections ?? []).map((section) => ({
-    ...createRoleAbilitySectionData(),
-    ...section,
-  }));
+  next.abilitySections = (next.abilitySections ?? []).map((section) => mergeWithDefaults(createRoleAbilitySectionData(), section));
   next.grantedItemGroups = (next.grantedItemGroups ?? []).map((group) => ({
-    ...createRoleGrantGroupData(),
-    ...group,
-    items: (group.items ?? []).map((item) => ({
-      ...createRoleGrantItemReferenceData(),
-      ...item,
-    })),
+    ...mergeWithDefaults(createRoleGrantGroupData(), group),
+    items: (group.items ?? []).map((item) => mergeWithDefaults(createRoleGrantItemReferenceData(), item)),
   }));
   next.leaderFeatures = (next.leaderFeatures ?? []).map((feature) => ({
-    ...createLeaderFeatureData(),
-    ...feature,
-    options: (feature.options ?? []).map((option) => ({
-      ...createLeaderOptionData(),
-      ...option,
-    })),
+    ...mergeWithDefaults(createLeaderFeatureData(), feature),
+    options: (feature.options ?? []).map((option) => mergeWithDefaults(createLeaderOptionData(), option)),
     selectedUuids: Array.isArray(feature.selectedUuids) ? feature.selectedUuids.filter(Boolean) : [],
   }));
-  next.proteanFoci = (next.proteanFoci ?? []).map((focus) => ({
-    ...createProteanFocusData(),
-    ...focus,
-    points: Math.max(Number(focus.points) || 0, 0),
-    minPoints: Math.max(Number(focus.minPoints) || 0, 0),
-    maxPoints: Math.max(Number(focus.maxPoints) || 0, 0),
-    step: Math.max(Number(focus.step) || 1, 1),
-  }));
-  next.specialties = (next.specialties ?? []).map((specialty) => ({
-    ...createSpecialtyData(),
-    ...specialty,
-    rank: Math.max(Number(specialty.rank) || 0, 0),
-    unlockSections: (specialty.unlockSections ?? []).map((section) => ({
-      ...createSpecialtySectionData(),
-      ...section,
-    })),
-    optionGroups: (specialty.optionGroups ?? []).map((group) => ({
-      ...createSpecialistOptionGroupData(),
-      ...group,
-      options: (group.options ?? []).map((option) => ({
-        ...createSpecialistOptionData(),
-        ...option,
-      })),
+  next.proteanFoci = (next.proteanFoci ?? []).map((focus) => {
+    const merged = mergeWithDefaults(createProteanFocusData(), focus);
+    merged.points = Math.max(Number(merged.points) || 0, 0);
+    merged.minPoints = Math.max(Number(merged.minPoints) || 0, 0);
+    merged.maxPoints = Math.max(Number(merged.maxPoints) || 0, 0);
+    merged.step = Math.max(Number(merged.step) || 1, 1);
+    return merged;
+  });
+  next.specialties = (next.specialties ?? []).map((specialty) => {
+    const merged = mergeWithDefaults(createSpecialtyData(), specialty);
+    merged.rank = Math.max(Number(merged.rank) || 0, 0);
+    merged.unlockSections = (specialty.unlockSections ?? []).map((section) => mergeWithDefaults(createSpecialtySectionData(), section));
+    merged.optionGroups = (specialty.optionGroups ?? []).map((group) => ({
+      ...mergeWithDefaults(createSpecialistOptionGroupData(), group),
+      options: (group.options ?? []).map((option) => mergeWithDefaults(createSpecialistOptionData(), option)),
       selectedOptionIds: Array.isArray(group.selectedOptionIds) ? group.selectedOptionIds.filter(Boolean) : [],
-    })),
-  }));
+    }));
+    return merged;
+  });
 
   if (next.category === 'protean') {
     const roleRank = Math.max(Number(next.rank) || 0, 0);

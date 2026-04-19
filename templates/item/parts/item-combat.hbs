@@ -7,11 +7,7 @@
           <div class="resource-fields">
             <input type="number" name="system.armor.currentSp" value="{{system.armor.currentSp}}" data-dtype="Number" />
             <span>/</span>
-            {{#if canManageRestricted}}
-              <input type="number" name="system.armor.maxSp" value="{{system.armor.maxSp}}" data-dtype="Number" />
-            {{else}}
-              <div class="readonly-value numeric-value">{{system.armor.maxSp}}</div>
-            {{/if}}
+            <input type="number" name="system.armor.maxSp" value="{{system.armor.maxSp}}" data-dtype="Number" />
           </div>
         </label>
       </div>
@@ -45,19 +41,15 @@
               <div class="weapon-grid">
                 <label>
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.WeaponType"}}</span>
-                  {{#if canManageRestricted}}
-                    <select name="system.weapons.{{weapon.index}}.type" data-weapon-index="{{weapon.index}}" data-weapon-type-select>
-                      {{#each @root.combatConfig.weaponTypeGroups as |group|}}
-                        <optgroup label="{{group.label}}">
-                          {{#each group.options as |option|}}
-                            <option value="{{option.value}}" {{#if (eq option.value weapon.type)}}selected{{/if}}>{{option.label}}</option>
-                          {{/each}}
-                        </optgroup>
-                      {{/each}}
-                    </select>
-                  {{else}}
-                    <div class="readonly-value">{{weapon.definition.label}}</div>
-                  {{/if}}
+                  <select name="system.weapons.{{weapon.index}}.type" data-weapon-index="{{weapon.index}}" data-weapon-type-select>
+                    {{#each @root.combatConfig.weaponTypeGroups as |group|}}
+                      <optgroup label="{{group.label}}">
+                        {{#each group.options as |option|}}
+                          <option value="{{option.value}}" {{#if (eq option.value weapon.type)}}selected{{/if}}>{{option.label}}</option>
+                        {{/each}}
+                      </optgroup>
+                    {{/each}}
+                  </select>
                 </label>
 
                 <label>
@@ -71,21 +63,13 @@
 
                 <label>
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.Damage"}}</span>
-                  {{#if canManageRestricted}}
-                    <input type="text" name="system.weapons.{{weapon.index}}.damage" value="{{weapon.damage}}" />
-                  {{else}}
-                    <div class="readonly-value">{{weapon.damage}}</div>
-                  {{/if}}
+                  <input type="text" name="system.weapons.{{weapon.index}}.damage" value="{{weapon.damage}}" />
                 </label>
 
                 {{#if weapon.definition.showRateOfFire}}
                   <label class="compact-field">
                     <span>{{localize "CYBER_BLUE.Sheet.Labels.RateOfFire"}}</span>
-                    {{#if canManageRestricted}}
-                      <input type="number" name="system.weapons.{{weapon.index}}.rateOfFire" value="{{weapon.rateOfFire}}" data-dtype="Number" />
-                    {{else}}
-                      <div class="readonly-value numeric-value">{{weapon.rateOfFire}}</div>
-                    {{/if}}
+                    <input type="number" name="system.weapons.{{weapon.index}}.rateOfFire" value="{{weapon.rateOfFire}}" data-dtype="Number" />
                   </label>
                 {{/if}}
 
@@ -95,11 +79,7 @@
                     <div class="resource-fields">
                       <input type="number" name="system.weapons.{{weapon.index}}.ammoCurrent" value="{{weapon.ammoCurrent}}" data-dtype="Number" />
                       <span>/</span>
-                      {{#if canManageRestricted}}
-                        <input type="number" name="system.weapons.{{weapon.index}}.magazine" value="{{weapon.magazine}}" data-dtype="Number" />
-                      {{else}}
-                        <div class="readonly-value numeric-value">{{weapon.magazine}}</div>
-                      {{/if}}
+                      <input type="number" name="system.weapons.{{weapon.index}}.magazine" value="{{weapon.magazine}}" data-dtype="Number" />
                     </div>
                   </label>
                 {{/if}}
@@ -107,30 +87,18 @@
                 {{#if weapon.definition.showShots}}
                   <label class="compact-field">
                     <span>{{localize "CYBER_BLUE.Sheet.Labels.Shots"}}</span>
-                    {{#if canManageRestricted}}
-                      <input type="number" name="system.weapons.{{weapon.index}}.shots" value="{{weapon.shots}}" data-dtype="Number" />
-                    {{else}}
-                      <div class="readonly-value numeric-value">{{weapon.shots}}</div>
-                    {{/if}}
+                    <input type="number" name="system.weapons.{{weapon.index}}.shots" value="{{weapon.shots}}" data-dtype="Number" />
                   </label>
                 {{/if}}
 
                 <label class="compact-field">
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.Hands"}}</span>
-                  {{#if canManageRestricted}}
-                    <input type="number" name="system.weapons.{{weapon.index}}.hands" value="{{weapon.hands}}" data-dtype="Number" />
-                  {{else}}
-                    <div class="readonly-value numeric-value">{{weapon.hands}}</div>
-                  {{/if}}
+                  <input type="number" name="system.weapons.{{weapon.index}}.hands" value="{{weapon.hands}}" data-dtype="Number" />
                 </label>
 
                 <label class="checkbox-label">
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.Concealable"}}</span>
-                  {{#if canManageRestricted}}
-                    <input type="checkbox" name="system.weapons.{{weapon.index}}.concealable" {{checked weapon.concealable}} />
-                  {{else}}
-                    <span class="readonly-icon"><i class="fas {{#if weapon.concealable}}fa-check{{else}}fa-xmark{{/if}}"></i></span>
-                  {{/if}}
+                  <input type="checkbox" name="system.weapons.{{weapon.index}}.concealable" {{checked weapon.concealable}} />
                 </label>
               </div>
 
@@ -148,11 +116,7 @@
                       <tr>
                         {{#each weapon.rangeBands as |band|}}
                           <td class="{{#if band.isBlocked}}is-blocked{{/if}}">
-                            {{#if @root.canManageRestricted}}
-                              <input type="text" value="{{band.displayValue}}" data-range-input data-weapon-index="{{weapon.index}}" data-band-index="{{band.index}}" />
-                            {{else}}
-                              <div class="readonly-value numeric-value">{{band.displayValue}}</div>
-                            {{/if}}
+                            <input type="text" value="{{band.displayValue}}" data-range-input data-weapon-index="{{weapon.index}}" data-band-index="{{band.index}}" />
                           </td>
                         {{/each}}
                       </tr>
