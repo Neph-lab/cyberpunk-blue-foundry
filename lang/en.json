@@ -113,20 +113,7 @@
         "NoItemsInState": "No {state} items.",
         "Cancel": "Cancel"
       },
-      "Combat": {
-        "Attack": "Attack",
-        "DV": "Difficulty Value (DV)",
-        "RollAttack": "Roll Attack",
-        "RollTargetEvasion": "Roll target evasion instead of DV",
-        "EvasionRoll": "Evasion",
-        "EvasionSkill": "Evasion/Athletics",
-        "Target": "Target",
-        "SP": "SP",
-        "NetDamage": "Net Damage",
-        "ApplyDamage": "Apply Damage",
-        "ApplyDamagePrompt": "Apply {damage} damage to {target}?"
-      },
-      "Buttons": {
+        "Buttons": {
         "AddRole": "Add Role",
         "AddAbility": "Add Ability",
         "AddCyberware": "Add Cyberware",
@@ -260,6 +247,31 @@
       "Ongoing": "Ongoing",
       "SeriouslyWounded": "Seriously Wounded",
       "PsycheLoss": "PSYCHE Loss"
+    },
+    "Settings": {
+      "ImportItems": {
+        "Name": "Import Items from JSON",
+        "Label": "Import Items",
+        "Hint": "Bulk-import item documents from a JSON file."
+      },
+      "CreateMacros": {
+        "Name": "Create GM Macros",
+        "Label": "Create Macros",
+        "Hint": "Creates useful GM utility macros in your Macro Directory."
+      }
+    },
+    "Combat": {
+      "Attack": "Attack",
+      "DV": "Difficulty Value (DV)",
+      "RollAttack": "Roll Attack",
+      "RollTargetEvasion": "Roll target evasion instead of DV",
+      "EvasionRoll": "Evasion",
+      "EvasionSkill": "Evasion/Athletics",
+      "Target": "Target",
+      "SP": "SP",
+      "NetDamage": "Net Damage",
+      "ApplyDamage": "Apply Damage",
+      "ApplyDamagePrompt": "Apply {damage} damage to {target}?"
     }
   },
   "TYPES": {
@@ -278,18 +290,6 @@
       "ammo": "Ammo",
       "programExecutable": "Executable",
       "mod": "Mod"
-    },
-    "Settings": {
-      "ImportItems": {
-        "Name": "Import Items from JSON",
-        "Label": "Import Items",
-        "Hint": "Bulk-import item documents from a JSON file."
-      },
-      "CreateMacros": {
-        "Name": "Create GM Macros",
-        "Label": "Create Macros",
-        "Hint": "Creates useful GM utility macros in your Macro Directory."
-      }
     }
   }
 }

@@ -92,7 +92,7 @@ for (const token of tokens) {
     content: \`
       <div class="cyberpunk-blue chat-card">
         <h3>Damage Applied: \${token.name}</h3>
-        <p>Raw: \${result.damage}${blocked ? \` — SP blocked: \${blocked}\` : ''} — HP lost: <strong>\${net}</strong></p>
+        <p>Raw: \${result.damage}\${blocked ? ' — SP blocked: ' + blocked : ''} — HP lost: <strong>\${net}</strong></p>
       </div>
     \`,
   });
