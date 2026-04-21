@@ -7,6 +7,8 @@ export default class CyberBlueProgramExecutable extends CyberBlueItemBase {
     const schema = super.defineSchema();
 
     schema.programType = new fields.StringField({ required: true, blank: false, initial: 'antipersonnel' });
+    schema.cost = new fields.StringField({ required: true, blank: true });
+    schema.note = new fields.StringField({ required: true, blank: true });
     schema.act = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
     schema.atk = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
     schema.def = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });

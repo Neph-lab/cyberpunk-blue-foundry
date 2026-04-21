@@ -3,13 +3,14 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 
 const PROGRAM_TYPES = [
   { value: 'antipersonnel', label: 'Anti-Personnel' },
-  { value: 'antivirus', label: 'Anti-Virus' },
-  { value: 'armor', label: 'Armor' },
-  { value: 'booster', label: 'Booster' },
-  { value: 'controller', label: 'Controller' },
+  { value: 'antiprogram', label: 'Anti-Program' },
   { value: 'defender', label: 'Defender' },
-  { value: 'decryptor', label: 'Decryptor' },
-  { value: 'skunk', label: 'Skunk' },
+  { value: 'booster', label: 'Booster' },
+  { value: 'quickhack', label: 'Quickhack' },
+  { value: 'ice', label: 'ICE' },
+  { value: 'blackice', label: 'Black ICE' },
+  { value: 'daemon', label: 'Daemon' },
+  { value: 'malware', label: 'Malware' },
 ];
 
 export class CyberBlueProgramSheet extends HandlebarsApplicationMixin(ActorSheetV2) {

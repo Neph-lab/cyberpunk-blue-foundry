@@ -1,45 +1,5 @@
-<div class="ammo-sheet-body">
+<section class="sheet-body ammo-sheet-body">
   <section class="sheet-panel">
-    <div class="item-meta-row">
-      <label>
-        <span>{{localize "CYBER_BLUE.Sheet.Labels.Quantity"}}</span>
-        <input type="number" name="system.quantity" value="{{system.quantity}}" data-dtype="Number" min="0" />
-      </label>
-      <label>
-        <span>{{localize "CYBER_BLUE.Sheet.Labels.Cost"}}</span>
-        <input type="text" name="system.cost" value="{{system.cost}}" list="cyber-blue-cost-ladder" />
-      </label>
-      <label>
-        <span>{{localize "CYBER_BLUE.Sheet.Labels.Note"}}</span>
-        <input type="text" name="system.note" value="{{system.note}}" />
-      </label>
-    </div>
-  </section>
-
-  <section class="sheet-panel">
-    <h2>Compatible Weapon Types</h2>
-    {{#if canManageRestricted}}
-      <div class="ammo-type-grid">
-        {{#each ammoTypeOptions as |option|}}
-          <label class="checkbox-label">
-            <input type="checkbox" name="system.ammoTypes.{{option.value}}" {{checked (lookup ../system.ammoTypes option.value)}} />
-            <span>{{option.label}}</span>
-          </label>
-        {{/each}}
-      </div>
-    {{else}}
-      <div class="ammo-type-list">
-        {{#each ammoTypeOptions as |option|}}
-          {{#if (lookup ../system.ammoTypes option.value)}}
-            <span class="state-chip">{{option.label}}</span>
-          {{/if}}
-        {{/each}}
-      </div>
-    {{/if}}
-  </section>
-
-  <section class="sheet-panel">
-    <h2>{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</h2>
     {{#if canEditAsOwner}}
       <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
         {{{enrichedDescription}}}
@@ -48,4 +8,4 @@
       <div class="editor"><div class="editor-content">{{{enrichedDescription}}}</div></div>
     {{/if}}
   </section>
-</div>
+</section>

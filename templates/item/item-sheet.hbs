@@ -34,6 +34,65 @@
             <input type="text" name="system.note" value="{{system.note}}" />
           </label>
         </div>
+      {{else if isProgramExecutable}}
+        <div class="item-meta-row program-exec-header">
+          <label>
+            <span>Type</span>
+            {{#if canManageRestricted}}
+              <select name="system.programType">
+                {{#each programTypes as |pt|}}
+                  <option value="{{pt.value}}" {{#if (eq pt.value ../system.programType)}}selected{{/if}}>{{pt.label}}</option>
+                {{/each}}
+              </select>
+            {{else}}
+              <div class="readonly-value">{{#each programTypes as |pt|}}{{#if (eq pt.value ../system.programType)}}{{pt.label}}{{/if}}{{/each}}</div>
+            {{/if}}
+          </label>
+          <label class="ability-note-field">
+            <span>{{localize "CYBER_BLUE.Sheet.Labels.Note"}}</span>
+            <input type="text" name="system.note" value="{{system.note}}" />
+          </label>
+          <label class="cost-field">
+            <span>{{localize "CYBER_BLUE.Sheet.Labels.Cost"}}</span>
+            <input type="text" name="system.cost" value="{{system.cost}}" list="cyber-blue-cost-ladder" />
+          </label>
+        </div>
+        <div class="item-meta-row program-stats-row">
+          <label class="compact-field">
+            <span>ACT</span>
+            <input type="number" name="system.act" value="{{system.act}}" data-dtype="Number" {{#unless canManageRestricted}}disabled{{/unless}} />
+          </label>
+          <label class="compact-field">
+            <span>ATK</span>
+            <div class="stat-with-roll">
+              <input type="number" name="system.atk" value="{{system.atk}}" data-dtype="Number" {{#unless canManageRestricted}}disabled{{/unless}} />
+              <button type="button" data-action="roll-executable-atk" title="Roll 1d10+ATK"><i class="fas fa-dice-d10"></i></button>
+            </div>
+          </label>
+          <label class="compact-field">
+            <span>DEF</span>
+            <input type="number" name="system.def" value="{{system.def}}" data-dtype="Number" {{#unless canManageRestricted}}disabled{{/unless}} />
+          </label>
+          <label class="compact-field">
+            <span>NET</span>
+            <input type="number" name="system.net" value="{{system.net}}" data-dtype="Number" {{#unless canManageRestricted}}disabled{{/unless}} />
+          </label>
+          <label class="compact-field">
+            <span>PER</span>
+            <div class="stat-with-roll">
+              <input type="number" name="system.per" value="{{system.per}}" data-dtype="Number" {{#unless canManageRestricted}}disabled{{/unless}} />
+              <button type="button" data-action="roll-executable-per" title="Roll 1d10+PER"><i class="fas fa-dice-d10"></i></button>
+            </div>
+          </label>
+          <label class="compact-field">
+            <span>REZ</span>
+            <div class="resource-fields">
+              <input type="number" name="system.rez.value" value="{{system.rez.value}}" data-dtype="Number" />
+              <span>/</span>
+              <input type="number" name="system.rez.max" value="{{system.rez.max}}" data-dtype="Number" {{#unless canManageRestricted}}disabled{{/unless}} />
+            </div>
+          </label>
+        </div>
       {{else}}
         {{#if isCyberware}}
           <div class="item-meta-row cyberware-header">
@@ -146,6 +205,38 @@
                 <input type="number" name="system.rank" value="{{system.rank}}" data-dtype="Number" />
               </label>
             {{/if}}
+            {{#if isAmmo}}
+              <label class="compact-field">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Quantity"}}</span>
+                <input type="number" name="system.quantity" value="{{system.quantity}}" data-dtype="Number" min="0" />
+              </label>
+              <label class="cost-field">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Cost"}}</span>
+                <input type="text" name="system.cost" value="{{system.cost}}" list="cyber-blue-cost-ladder" />
+              </label>
+              <label class="ability-note-field">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Note"}}</span>
+                <input type="text" name="system.note" value="{{system.note}}" />
+              </label>
+              {{#if canManageRestricted}}
+                <div class="ammo-type-grid">
+                  {{#each ammoTypeOptions as |option|}}
+                    <label class="checkbox-label">
+                      <input type="checkbox" name="system.ammoTypes.{{option.value}}" {{checked (lookup ../system.ammoTypes option.value)}} />
+                      <span>{{option.label}}</span>
+                    </label>
+                  {{/each}}
+                </div>
+              {{else}}
+                <div class="ammo-type-list">
+                  {{#each ammoTypeOptions as |option|}}
+                    {{#if (lookup ../system.ammoTypes option.value)}}
+                      <span class="state-chip">{{option.label}}</span>
+                    {{/if}}
+                  {{/each}}
+                </div>
+              {{/if}}
+            {{/if}}
             {{#if isGear}}
               <label class="manufacturer-field">
                 <span>{{localize "CYBER_BLUE.Sheet.Labels.Manufacturer"}}</span>
@@ -219,13 +310,17 @@
         </section>
       {{/if}}
     </section>
+  {{else if isAmmo}}
+    {{> "systems/cyberpunk-blue/templates/item/parts/item-ammo.hbs"}}
+  {{else if isProgramExecutable}}
+    {{> "systems/cyberpunk-blue/templates/item/parts/item-program-executable.hbs"}}
   {{else}}
     {{#if isCyberware}}
       <nav class="sheet-tabs tabs" data-group="primary">
         <a class="item" data-tab="description">{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</a>
         <a class="item" data-tab="details">{{localize "CYBER_BLUE.Sheet.Tabs.Details"}}</a>
-        {{#if showCombatTab}}
-          <a class="item" data-tab="combat">{{localize "CYBER_BLUE.Sheet.Tabs.Combat"}}</a>
+        {{#if showAdvancedTab}}
+          <a class="item" data-tab="advanced">{{localize "CYBER_BLUE.Sheet.Tabs.Advanced"}}</a>
         {{/if}}
         {{#if showCyberwareNotesTab}}
           <a class="item" data-tab="notes">{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
@@ -330,8 +425,8 @@
             {{/if}}
           </div>
 
-        {{#if showCombatTab}}
-          <div class="tab" data-group="primary" data-tab="combat">
+        {{#if showAdvancedTab}}
+          <div class="tab" data-group="primary" data-tab="advanced">
             {{> "systems/cyberpunk-blue/templates/item/parts/item-combat.hbs"}}
           </div>
         {{/if}}
@@ -364,8 +459,8 @@
           {{#unless isGear}}
             <a class="item" data-tab="details">{{localize "CYBER_BLUE.Sheet.Tabs.Details"}}</a>
           {{/unless}}
-          {{#if showCombatTab}}
-            <a class="item" data-tab="combat">{{localize "CYBER_BLUE.Sheet.Tabs.Combat"}}</a>
+          {{#if showAdvancedTab}}
+            <a class="item" data-tab="advanced">{{localize "CYBER_BLUE.Sheet.Tabs.Advanced"}}</a>
           {{/if}}
           {{#if showEffectsTab}}
             <a class="item" data-tab="effects">{{localize "CYBER_BLUE.Sheet.Tabs.Effects"}}</a>
@@ -896,8 +991,8 @@
             </div>
           {{/unless}}
 
-          {{#if showCombatTab}}
-            <div class="tab" data-group="primary" data-tab="combat">
+          {{#if showAdvancedTab}}
+            <div class="tab" data-group="primary" data-tab="advanced">
               {{> "systems/cyberpunk-blue/templates/item/parts/item-combat.hbs"}}
             </div>
           {{/if}}
@@ -914,11 +1009,4 @@
     {{/if}}
   {{/if}}
 
-  {{#if isAmmo}}
-    {{> "systems/cyberpunk-blue/templates/item/parts/item-ammo.hbs"}}
-  {{/if}}
-
-  {{#if isProgramExecutable}}
-    {{> "systems/cyberpunk-blue/templates/item/parts/item-program-executable.hbs"}}
-  {{/if}}
 </form>

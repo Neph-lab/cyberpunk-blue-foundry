@@ -91,8 +91,8 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     if (context.isGear) {
       itemData.system.state = normalizeGearState(itemData.system);
     }
-    context.showCombatTab = (context.isCyberware || context.isGear)
-      && (itemData.system.isArmor || itemData.system.isWeapon || canManageRestricted);
+    context.showAdvancedTab = (context.isCyberware || context.isGear)
+      && (itemData.system.isArmor || itemData.system.isWeapon || itemData.system.isComputer);
     context.showWeaponSection = itemData.system.isWeapon || canManageRestricted;
     context.showCyberwareDetailsTab = context.isCyberware;
     context.enrichedDescription = await TextEditor.enrichHTML(itemData.system.description, {
@@ -220,13 +220,14 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     ];
     context.programTypes = [
       { value: 'antipersonnel', label: 'Anti-Personnel' },
-      { value: 'antivirus', label: 'Anti-Virus' },
-      { value: 'armor', label: 'Armor' },
-      { value: 'booster', label: 'Booster' },
-      { value: 'controller', label: 'Controller' },
+      { value: 'antiprogram', label: 'Anti-Program' },
       { value: 'defender', label: 'Defender' },
-      { value: 'decryptor', label: 'Decryptor' },
-      { value: 'skunk', label: 'Skunk' },
+      { value: 'booster', label: 'Booster' },
+      { value: 'quickhack', label: 'Quickhack' },
+      { value: 'ice', label: 'ICE' },
+      { value: 'blackice', label: 'Black ICE' },
+      { value: 'daemon', label: 'Daemon' },
+      { value: 'malware', label: 'Malware' },
     ];
     context.showRoleNotesTab = context.isRole && (this.document.isOwner || game.user.isGM);
     context.showCyberwareNotesTab = context.isCyberware && (this.document.isOwner || game.user.isGM);

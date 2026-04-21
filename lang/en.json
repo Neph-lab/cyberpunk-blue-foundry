@@ -2,7 +2,10 @@
   "CYBER_BLUE": {
     "SheetLabels": {
       "Actor": "Cyberpunk Blue Actor Sheet",
-      "Item": "Cyberpunk Blue Item Sheet"
+      "Item": "Cyberpunk Blue Item Sheet",
+      "Mook": "Cyberpunk Blue Mook Sheet",
+      "Program": "Cyberpunk Blue Program Sheet",
+      "Vehicle": "Cyberpunk Blue Vehicle Sheet"
     },
     "Sheet": {
       "Tabs": {
@@ -14,6 +17,7 @@
         "Cyberware": "Cyberware",
         "Inventory": "Inventory",
         "Combat": "Combat",
+        "Advanced": "Advanced",
         "Notes": "Notes",
         "Description": "Description",
         "Details": "Details",
@@ -243,13 +247,18 @@
   "TYPES": {
     "Actor": {
       "character": "Character",
-      "npc": "NPC"
+      "npc": "NPC",
+      "mook": "Mook",
+      "program": "Program",
+      "vehicle": "Vehicle"
     },
     "Item": {
       "role": "Role",
       "ability": "Ability",
       "cyberware": "Cyberware",
-      "gear": "Gear"
+      "gear": "Gear",
+      "ammo": "Ammo",
+      "programExecutable": "Executable"
     }
   }
 }
