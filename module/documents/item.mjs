@@ -6,7 +6,7 @@ import {
 } from '../helpers/cyberware.mjs';
 import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs';
 import { getGearStateUpdateData, normalizeGearState } from '../helpers/gear.mjs';
-import { getEffectiveItemWeapons, getModificationEffects, syncItemModificationEffects } from '../helpers/mods.mjs';
+import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
 import { applyFirstRoleSetup, normalizeRoleSystemData } from '../helpers/roles.mjs';
 
 function preserveRoleArrayIds(next, current) {
@@ -197,14 +197,6 @@ export class CyberBlueItem extends Item {
 
   getEffectiveWeapons() {
     return getEffectiveItemWeapons(this);
-  }
-
-  getModificationEffects(modId) {
-    return getModificationEffects(this, modId);
-  }
-
-  async syncModificationEffects(options = {}) {
-    return syncItemModificationEffects(this, options);
   }
 
   getPsycheLossEffect() {

@@ -7,10 +7,7 @@ import { applyWeaponTypeDefaults, createWeaponData, getWeaponTypeDefinition } fr
 import { parsePsycheLossFormula } from '../helpers/cyberware.mjs';
 import { GEAR_STATES, getGearStateUpdateData, normalizeGearState } from '../helpers/gear.mjs';
 import {
-  createItemModificationData,
   createWeaponChangeData,
-  getModificationEffects,
-  getModificationValidation,
   MOD_TYPES,
   WEAPON_MOD_FIELDS,
   WEAPON_MOD_MODES,
@@ -99,14 +96,14 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       && (itemData.system.isArmor || itemData.system.isWeapon || itemData.system.isComputer);
     context.showWeaponSection = itemData.system.isWeapon || canManageRestricted;
     context.showCyberwareDetailsTab = context.isCyberware;
-    context.enrichedDescription = await TextEditor.enrichHTML(itemData.system.description, {
+    context.enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(itemData.system.description, {
       secrets: this.document.isOwner,
       async: true,
       rollData: this.document.parent?.getRollData?.() ?? {},
       relativeTo: this.document,
     });
     context.enrichedNotes = (context.isRole || context.isCyberware || context.isProgramExecutable)
-      ? await TextEditor.enrichHTML(itemData.system.notes, {
+      ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(itemData.system.notes, {
         secrets: this.document.isOwner,
         async: true,
         rollData: this.document.parent?.getRollData?.() ?? {},
@@ -114,7 +111,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       })
       : '';
     context.enrichedLifepathLinks = context.isRole
-      ? await TextEditor.enrichHTML(itemData.system.lifepathLinks, {
+      ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(itemData.system.lifepathLinks, {
         secrets: this.document.isOwner,
         async: true,
         rollData: this.document.parent?.getRollData?.() ?? {},
@@ -122,7 +119,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       })
       : '';
     context.enrichedLifepathQuestions = context.isRole
-      ? await TextEditor.enrichHTML(itemData.system.lifepathQuestions, {
+      ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(itemData.system.lifepathQuestions, {
         secrets: this.document.isOwner,
         async: true,
         rollData: this.document.parent?.getRollData?.() ?? {},
@@ -130,7 +127,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       })
       : '';
     context.enrichedAbilityOverview = context.isRole
-      ? await TextEditor.enrichHTML(itemData.system.abilityOverview, {
+      ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(itemData.system.abilityOverview, {
         secrets: this.document.isOwner,
         async: true,
         rollData: this.document.parent?.getRollData?.() ?? {},
@@ -149,7 +146,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       ? await Promise.all((roleCategoryData.abilitySections ?? []).map(async (section, index) => ({
         ...section,
         index,
-        enrichedContent: await TextEditor.enrichHTML(section.content, {
+        enrichedContent: await foundry.applications.ux.TextEditor.implementation.enrichHTML(section.content, {
           secrets: this.document.isOwner,
           async: true,
           rollData: this.document.parent?.getRollData?.() ?? {},
@@ -160,7 +157,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     context.roleHighestUnlockedSection = context.isRole && roleCategoryData?.highestUnlockedSection
       ? {
         ...roleCategoryData.highestUnlockedSection,
-        enrichedContent: await TextEditor.enrichHTML(roleCategoryData.highestUnlockedSection.content ?? '', {
+        enrichedContent: await foundry.applications.ux.TextEditor.implementation.enrichHTML(roleCategoryData.highestUnlockedSection.content ?? '', {
           secrets: this.document.isOwner,
           async: true,
           rollData: this.document.parent?.getRollData?.() ?? {},
@@ -193,7 +190,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
         enrichedSections: await Promise.all((specialty.unlockedSections ?? []).map(async (section, sectionIndex) => ({
           ...section,
           sectionIndex,
-          enrichedContent: await TextEditor.enrichHTML(section.content ?? '', {
+          enrichedContent: await foundry.applications.ux.TextEditor.implementation.enrichHTML(section.content ?? '', {
             secrets: this.document.isOwner,
             async: true,
             rollData: this.document.parent?.getRollData?.() ?? {},
@@ -245,7 +242,6 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     context.cyberwareConfig = CONFIG.CYBER_BLUE.cyberware ?? {};
     context.combatConfig = CONFIG.CYBER_BLUE.combat ?? {};
     context.gearStates = GEAR_STATES;
-    context.modificationConfig = CONFIG.CYBER_BLUE.modifications ?? {};
     context.showSlotsUsed = context.isCyberware && itemData.system.integration === 'extension';
     context.showSlotsProvided = context.isCyberware && itemData.system.integration === 'platform';
     context.cyberwareTypeLabel = context.cyberwareConfig.types?.find((entry) => entry.value === itemData.system.cyberwareType)?.label ?? itemData.system.cyberwareType;
@@ -273,34 +269,17 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     context.cyberwarePsyche = context.isCyberware
       ? parsePsycheLossFormula(itemData.system.psycheLossFormula)
       : null;
-    context.mods = await Promise.all((itemData.system.mods ?? []).map(async (mod, index) => {
-      const validation = getModificationValidation(itemData, mod);
-      const modEffects = getModificationEffects(this.document, mod.id);
-      return {
-        ...mod,
-        index,
-        validation,
-        isValid: validation.valid,
-        typeLabel: (CONFIG.CYBER_BLUE.modifications?.types ?? []).find((entry) => entry.value === mod.type)?.label ?? mod.type,
-        weaponOptions: (itemData.system.weapons ?? []).map((weapon, weaponIndex) => ({
-          index: weaponIndex,
-          label: `${weaponIndex + 1}. ${getWeaponTypeDefinition(weapon.type).label}`,
-          selected: weaponIndex === Number(mod.targetWeaponIndex),
-        })),
-        enrichedDescription: await TextEditor.enrichHTML(mod.description ?? '', {
-          secrets: this.document.isOwner,
-          async: true,
-          rollData: this.document.parent?.getRollData?.() ?? {},
-          relativeTo: this.document,
-        }),
-        effects: modEffects.map((effect) => ({
-          id: effect.id,
-          name: effect.name,
-          icon: effect.img || effect.icon,
-          disabled: effect.disabled,
-        })),
-      };
-    }));
+    context.installedMods = (context.isGear || context.isCyberware) && ownerActor
+      ? ownerActor.items.filter((i) => i.type === 'mod' && i.system.installedOnId === this.document.id)
+          .map((i) => ({ id: i.id, name: i.name, modType: i.system.modType, typeLabel: MOD_TYPES.find((t) => t.value === i.system.modType)?.label ?? i.system.modType }))
+      : [];
+    context.installedOnOptions = context.isMod && ownerActor
+      ? ownerActor.items.filter((i) => ['gear', 'cyberware'].includes(i.type))
+          .map((i) => ({ value: i.id, label: i.name }))
+      : [];
+    context.installedOnName = context.isMod && ownerActor
+      ? (ownerActor.items.get(itemData.system.installedOnId)?.name ?? '')
+      : '';
     context.eligiblePlatforms = context.isCyberware ? this.document.getCyberwareEligiblePlatforms() : [];
     context.currentPlatform = context.eligiblePlatforms.find((platform) => platform.isSelected) ?? null;
     context.cyberwareDisable = context.isCyberware ? this.document.getCyberwareDisableState() : null;
@@ -415,30 +394,6 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     });
     this.element.querySelectorAll('[data-cyberware-integration]').forEach((select) => {
       select.addEventListener('change', this._onCyberwareIntegrationChange.bind(this));
-    });
-    this.element.querySelectorAll('[data-action="add-mod"]').forEach((button) => {
-      button.addEventListener('click', this._onAddMod.bind(this));
-    });
-    this.element.querySelectorAll('[data-action="delete-mod"]').forEach((button) => {
-      button.addEventListener('click', this._onDeleteMod.bind(this));
-    });
-    this.element.querySelectorAll('[data-action="add-weapon-change"]').forEach((button) => {
-      button.addEventListener('click', this._onAddWeaponChange.bind(this));
-    });
-    this.element.querySelectorAll('[data-action="remove-weapon-change"]').forEach((button) => {
-      button.addEventListener('click', this._onRemoveWeaponChange.bind(this));
-    });
-    this.element.querySelectorAll('[data-action="create-mod-effect"]').forEach((button) => {
-      button.addEventListener('click', this._onCreateModEffect.bind(this));
-    });
-    this.element.querySelectorAll('[data-action="edit-mod-effect"]').forEach((button) => {
-      button.addEventListener('click', this._onEditModEffect.bind(this));
-    });
-    this.element.querySelectorAll('[data-action="delete-mod-effect"]').forEach((button) => {
-      button.addEventListener('click', this._onDeleteModEffect.bind(this));
-    });
-    this.element.querySelectorAll('[data-action="toggle-mod-effect"]').forEach((button) => {
-      button.addEventListener('click', this._onToggleModEffect.bind(this));
     });
     this.element.querySelectorAll('[data-edit="img"]').forEach((element) => {
       element.addEventListener('click', this._onEditProfileImage.bind(this));
@@ -816,106 +771,6 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     await this.document.update(update);
   }
 
-  async _onAddMod(event) {
-    event.preventDefault();
-    const select = this.element.querySelector('[data-mod-type-select]');
-    const type = select?.value || (this.document.type === 'cyberware' ? 'cyberwareMod' : 'gearMod');
-    const mods = (this.document.system.toObject?.() ?? this.document.system).mods ?? [];
-    mods.push(createItemModificationData(type));
-    await this.document.update({ 'system.mods': mods });
-  }
-
-  async _onDeleteMod(event) {
-    event.preventDefault();
-    const index = Number.parseInt(event.currentTarget.dataset.modIndex ?? '-1', 10);
-    if (Number.isNaN(index) || index < 0) {
-      return;
-    }
-
-    const mods = (this.document.system.toObject?.() ?? this.document.system).mods ?? [];
-    const [removed] = mods.splice(index, 1);
-    if (removed?.id) {
-      const effectIds = this.document.getModificationEffects(removed.id).map((effect) => effect.id);
-      if (effectIds.length) {
-        await this.document.deleteEmbeddedDocuments('ActiveEffect', effectIds);
-      }
-    }
-    await this.document.update({ 'system.mods': mods });
-  }
-
-  async _onAddWeaponChange(event) {
-    event.preventDefault();
-    const index = Number.parseInt(event.currentTarget.dataset.modIndex ?? '-1', 10);
-    if (Number.isNaN(index) || index < 0) {
-      return;
-    }
-
-    const mods = (this.document.system.toObject?.() ?? this.document.system).mods ?? [];
-    mods[index].weaponChanges ??= [];
-    mods[index].weaponChanges.push(createWeaponChangeData());
-    await this.document.update({ 'system.mods': mods });
-  }
-
-  async _onRemoveWeaponChange(event) {
-    event.preventDefault();
-    const modIndex = Number.parseInt(event.currentTarget.dataset.modIndex ?? '-1', 10);
-    const changeIndex = Number.parseInt(event.currentTarget.dataset.changeIndex ?? '-1', 10);
-    if (Number.isNaN(modIndex) || modIndex < 0 || Number.isNaN(changeIndex) || changeIndex < 0) {
-      return;
-    }
-
-    const mods = (this.document.system.toObject?.() ?? this.document.system).mods ?? [];
-    mods[modIndex]?.weaponChanges?.splice(changeIndex, 1);
-    await this.document.update({ 'system.mods': mods });
-  }
-
-  async _onCreateModEffect(event) {
-    event.preventDefault();
-    const modId = event.currentTarget.dataset.modId;
-    if (!modId) {
-      return;
-    }
-
-    await this.document.createEmbeddedDocuments('ActiveEffect', [{
-      name: game.i18n.format('DOCUMENT.New', {
-        type: game.i18n.localize('DOCUMENT.ActiveEffect'),
-      }),
-      icon: 'icons/svg/aura.svg',
-      origin: this.document.uuid,
-      transfer: true,
-      flags: {
-        'cyberpunk-blue': {
-          modId,
-        },
-      },
-    }]);
-  }
-
-  async _onEditModEffect(event) {
-    event.preventDefault();
-    const effectId = event.currentTarget.dataset.effectId;
-    const effect = effectId ? this.document.effects.get(effectId) : null;
-    return effect?.sheet.render(true);
-  }
-
-  async _onDeleteModEffect(event) {
-    event.preventDefault();
-    const effectId = event.currentTarget.dataset.effectId;
-    const effect = effectId ? this.document.effects.get(effectId) : null;
-    return effect?.delete();
-  }
-
-  async _onToggleModEffect(event) {
-    event.preventDefault();
-    const effectId = event.currentTarget.dataset.effectId;
-    const effect = effectId ? this.document.effects.get(effectId) : null;
-    if (!effect) {
-      return;
-    }
-
-    await effect.update({ disabled: !effect.disabled });
-  }
-
   async _onAddModWeaponChange(event) {
     event.preventDefault();
     const system = this.document.system.toObject?.() ?? this.document.system;
@@ -943,7 +798,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     }
 
     const current = this.document.img || '';
-    const picker = new FilePicker({
+    const picker = new foundry.applications.apps.FilePicker.implementation({
       type: 'imagevideo',
       current,
       callback: async (path) => {

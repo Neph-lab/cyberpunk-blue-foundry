@@ -18,7 +18,7 @@ async function buildBrandLogoCache() {
   const cache = new Map();
 
   try {
-    const result = await FilePicker.browse('data', BRAND_LOGO_DIRECTORY);
+    const result = await foundry.applications.apps.FilePicker.implementation.browse('data', BRAND_LOGO_DIRECTORY);
     const files = result?.files ?? [];
 
     for (const path of files) {

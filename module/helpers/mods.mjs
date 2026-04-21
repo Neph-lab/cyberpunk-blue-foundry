@@ -172,21 +172,20 @@ function applyWeaponChange(weapon, change) {
 
 export function getEffectiveItemWeapons(itemLike) {
   const weapons = foundry.utils.deepClone(itemLike?.system?.weapons ?? []);
-  const mods = itemLike?.system?.mods ?? [];
+  const actor = itemLike?.parent instanceof Actor ? itemLike.parent : null;
+  const installedMods = actor
+    ? actor.items.filter((i) => i.type === 'mod'
+        && i.system.modType === 'weaponMod'
+        && i.system.installedOnId === itemLike.id)
+    : [];
 
-  for (const mod of mods) {
-    const validation = getModificationValidation(itemLike, mod);
-    if (!validation.valid || mod.type !== 'weaponMod') {
-      continue;
-    }
-
-    const targetIndex = Number(mod.targetWeaponIndex);
+  for (const mod of installedMods) {
+    const targetIndex = Number(mod.system.targetWeaponIndex);
     const weapon = weapons[targetIndex];
     if (!weapon) {
       continue;
     }
-
-    for (const change of mod.weaponChanges ?? []) {
+    for (const change of mod.system.weaponChanges ?? []) {
       applyWeaponChange(weapon, change);
     }
   }

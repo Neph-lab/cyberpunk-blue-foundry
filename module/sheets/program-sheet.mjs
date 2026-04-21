@@ -57,14 +57,14 @@ export class CyberBlueProgramSheet extends HandlebarsApplicationMixin(ActorSheet
     context.isGM = isGM;
     context.programTypes = PROGRAM_TYPES;
     context.executable = executable;
-    context.enrichedDescription = await TextEditor.enrichHTML(system.description, {
+    context.enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(system.description, {
       secrets: this.document.isOwner,
       async: true,
       rollData: this.document.getRollData?.() ?? {},
       relativeTo: this.document,
     });
     context.enrichedNotes = isGM
-      ? await TextEditor.enrichHTML(system.notes, {
+      ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(system.notes, {
         secrets: true,
         async: true,
         rollData: this.document.getRollData?.() ?? {},

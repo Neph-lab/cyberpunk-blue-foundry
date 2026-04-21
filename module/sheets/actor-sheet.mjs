@@ -158,7 +158,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         .filter((item) => item.type === 'cyberware')
         .map(async (item) => ([
           item.id,
-          await TextEditor.enrichHTML(item.system.description ?? '', {
+          await foundry.applications.ux.TextEditor.implementation.enrichHTML(item.system.description ?? '', {
             secrets: this.document.isOwner,
             async: true,
             rollData: this.document.getRollData(),
@@ -425,7 +425,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     context.enrichedRoleOverviewFeatures = await Promise.all(context.roleOverviewFeatures.map(async (feature) => ({
       ...feature,
       content: feature.content
-        ? await TextEditor.enrichHTML(feature.content, {
+        ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(feature.content, {
           secrets: this.document.isOwner,
           async: true,
           rollData: this.document.getRollData(),
@@ -437,7 +437,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           ...specialty,
           unlockedSections: await Promise.all((specialty.unlockedSections ?? []).map(async (section) => ({
             ...section,
-            enrichedContent: await TextEditor.enrichHTML(section.content ?? '', {
+            enrichedContent: await foundry.applications.ux.TextEditor.implementation.enrichHTML(section.content ?? '', {
               secrets: this.document.isOwner,
               async: true,
               rollData: this.document.getRollData(),
@@ -472,7 +472,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
     context.enrichedDetails = {};
     for (const field of ['background', 'appearance', 'personality', 'style']) {
-      context.enrichedDetails[field] = await TextEditor.enrichHTML(system.details[field], {
+      context.enrichedDetails[field] = await foundry.applications.ux.TextEditor.implementation.enrichHTML(system.details[field], {
         secrets: this.document.isOwner,
         async: true,
         rollData: this.document.getRollData(),

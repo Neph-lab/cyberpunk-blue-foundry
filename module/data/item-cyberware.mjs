@@ -20,22 +20,6 @@ export default class CyberBlueCyberware extends CyberBlueItemBase {
         { initial: Array(8).fill(0) }
       ),
     });
-    const buildWeaponChangeField = () => new fields.SchemaField({
-      id: new fields.StringField({ required: true, blank: false, initial: '' }),
-      key: new fields.StringField({ required: true, blank: false, initial: 'damage' }),
-      mode: new fields.StringField({ required: true, blank: false, initial: 'override' }),
-      value: new fields.StringField({ required: true, blank: true }),
-    });
-    const buildModField = () => new fields.SchemaField({
-      id: new fields.StringField({ required: true, blank: false, initial: '' }),
-      type: new fields.StringField({ required: true, blank: false, initial: 'cyberwareMod' }),
-      name: new fields.StringField({ required: true, blank: false, initial: 'New Mod' }),
-      cost: new fields.StringField({ required: true, blank: true }),
-      description: new fields.HTMLField({ initial: '' }),
-      targetWeaponIndex: new fields.NumberField({ required: true, nullable: false, integer: true, initial: -1 }),
-      weaponChanges: new fields.ArrayField(buildWeaponChangeField(), { initial: [] }),
-    });
-
     schema.cyberwareType = new fields.StringField({ required: true, blank: false, initial: 'internal' });
     schema.cost = new fields.StringField({ required: true, blank: true });
     schema.isArmor = new fields.BooleanField({ initial: false });
@@ -46,7 +30,6 @@ export default class CyberBlueCyberware extends CyberBlueItemBase {
       currentSp: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
     });
     schema.weapons = new fields.ArrayField(buildWeaponField(), { initial: [] });
-    schema.mods = new fields.ArrayField(buildModField(), { initial: [] });
     schema.multipleInstalls = new fields.BooleanField({ initial: false });
     schema.integration = new fields.StringField({ required: true, blank: false, initial: 'standalone' });
     schema.slotsUsed = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });

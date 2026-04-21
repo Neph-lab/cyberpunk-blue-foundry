@@ -15,7 +15,6 @@ import {
   syncDisabledCyberwareItemEffects,
   syncActorCyberwareDisableEffects,
 } from './helpers/cyberware-disable.mjs';
-import { syncItemModificationEffects } from './helpers/mods.mjs';
 import { syncActorLeaderRoles } from './helpers/roles.mjs';
 import * as models from './data/_module.mjs';
 
@@ -308,24 +307,6 @@ const syncCyberwareOperationalEffects = (document, options = {}) => {
   return item.syncCyberwareOperationalEffects(options);
 };
 
-const syncModificationEffects = (document, options = {}) => {
-  if (options?.cyberBlueSyncModEffects) {
-    return;
-  }
-
-  const item = document instanceof Item
-    ? document
-    : document?.parent instanceof Item
-      ? document.parent
-      : null;
-
-  if (!(item instanceof CyberBlueItem) || !['gear', 'cyberware'].includes(item.type)) {
-    return;
-  }
-
-  return syncItemModificationEffects(item, options);
-};
-
 const syncCyberwareDisableEffects = (document, options = {}) => {
   if (options?.cyberBlueSyncCyberwareDisable) {
     return;
@@ -361,11 +342,6 @@ Hooks.on('deleteItem', syncCyberwareDisableEffects);
 Hooks.on('createActiveEffect', syncCyberwareDisableEffects);
 Hooks.on('updateActiveEffect', syncCyberwareDisableEffects);
 Hooks.on('deleteActiveEffect', syncCyberwareDisableEffects);
-Hooks.on('createItem', syncModificationEffects);
-Hooks.on('updateItem', syncModificationEffects);
-Hooks.on('createActiveEffect', syncModificationEffects);
-Hooks.on('updateActiveEffect', syncModificationEffects);
-Hooks.on('deleteActiveEffect', syncModificationEffects);
 Hooks.on('createItem', syncCyberwareOperationalEffects);
 Hooks.on('updateItem', syncCyberwareOperationalEffects);
 Hooks.on('createActiveEffect', syncCyberwareOperationalEffects);
@@ -413,21 +389,6 @@ Hooks.once('ready', async () => {
   for (const item of cyberwareItems) {
     await item.syncCyberwarePsycheLossEffect({ cyberBlueSyncPsycheLoss: true });
     await item.syncCyberwareOperationalEffects({ cyberBlueSyncOperationalEffects: true });
-  }
-
-  const modItems = [
-    ...game.items.contents,
-    ...game.actors.contents.flatMap((actor) => actor.items.contents),
-  ].filter((item) => item instanceof CyberBlueItem && ['gear', 'cyberware'].includes(item.type))
-    .filter((item) => {
-      if (seen.has(`${item.uuid}-mods`)) {
-        return false;
-      }
-      seen.add(`${item.uuid}-mods`);
-      return true;
-    });
-  for (const item of modItems) {
-    await syncItemModificationEffects(item, { cyberBlueSyncModEffects: true });
   }
 
   for (const actor of game.actors.contents) {

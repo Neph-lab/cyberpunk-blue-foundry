@@ -46,14 +46,14 @@ export class CyberBlueVehicleSheet extends HandlebarsApplicationMixin(ActorSheet
     context.system = system;
     context.isGM = isGM;
     context.vehicleTypes = VEHICLE_TYPES;
-    context.enrichedDescription = await TextEditor.enrichHTML(system.description, {
+    context.enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(system.description, {
       secrets: this.document.isOwner,
       async: true,
       rollData: this.document.getRollData?.() ?? {},
       relativeTo: this.document,
     });
     context.enrichedNotes = isGM
-      ? await TextEditor.enrichHTML(system.notes, {
+      ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(system.notes, {
         secrets: true,
         async: true,
         rollData: this.document.getRollData?.() ?? {},
