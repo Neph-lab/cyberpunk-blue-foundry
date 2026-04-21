@@ -532,7 +532,7 @@ button, .cyberpunk-blue .button, a.button {
   gap: 0.45rem;
 }
 
-.cyberpunk-blue .item-meta-row < label {
+.cyberpunk-blue .item-meta-row label {
   display:flex;
   flex-flow: column;
 }

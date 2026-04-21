@@ -8,6 +8,8 @@ export class CyberBlueActor extends Actor {
   prepareDerivedData() {
     super.prepareDerivedData();
 
+    if (!this.system.resources?.armor) return;
+
     const activeArmor = this.getActiveArmorItem();
     const currentSp = activeArmor ? Math.max(Math.min(activeArmor.system.armor?.currentSp ?? 0, activeArmor.system.armor?.maxSp ?? 0), 0) : 0;
     const maxSp = activeArmor ? Math.max(activeArmor.system.armor?.maxSp ?? 0, 0) : 0;
