@@ -86,6 +86,8 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     context.isAbility = this.document.type === 'ability';
     context.isCyberware = this.document.type === 'cyberware';
     context.isGear = this.document.type === 'gear';
+    context.isAmmo = this.document.type === 'ammo';
+    context.isProgramExecutable = this.document.type === 'programExecutable';
     if (context.isGear) {
       itemData.system.state = normalizeGearState(itemData.system);
     }
@@ -99,7 +101,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       rollData: this.document.parent?.getRollData?.() ?? {},
       relativeTo: this.document,
     });
-    context.enrichedNotes = (context.isRole || context.isCyberware)
+    context.enrichedNotes = (context.isRole || context.isCyberware || context.isProgramExecutable)
       ? await TextEditor.enrichHTML(itemData.system.notes, {
         secrets: this.document.isOwner,
         async: true,
@@ -203,7 +205,29 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     context.effects = prepareActiveEffectCategories(
       this.document.effects.filter((effect) => !effect.getFlag('cyberpunk-blue', 'modId'))
     );
-    context.showEffectsTab = !context.isCyberware && (!(context.isAbility || context.isGear) || canManageRestricted);
+    context.showEffectsTab = !context.isCyberware && !context.isAmmo && !context.isProgramExecutable
+      && (!(context.isAbility || context.isGear) || canManageRestricted);
+    context.showProgramExecutableNotesTab = context.isProgramExecutable && (this.document.isOwner || game.user.isGM);
+    context.ammoTypeOptions = [
+      { value: 'pistol', label: 'Pistol' },
+      { value: 'smg', label: 'SMG' },
+      { value: 'shotgun', label: 'Shotgun' },
+      { value: 'assault', label: 'Assault Rifle' },
+      { value: 'sniper', label: 'Sniper Rifle' },
+      { value: 'bow', label: 'Bow' },
+      { value: 'grenade', label: 'Grenade Launcher' },
+      { value: 'rocket', label: 'Rocket Launcher' },
+    ];
+    context.programTypes = [
+      { value: 'antipersonnel', label: 'Anti-Personnel' },
+      { value: 'antivirus', label: 'Anti-Virus' },
+      { value: 'armor', label: 'Armor' },
+      { value: 'booster', label: 'Booster' },
+      { value: 'controller', label: 'Controller' },
+      { value: 'defender', label: 'Defender' },
+      { value: 'decryptor', label: 'Decryptor' },
+      { value: 'skunk', label: 'Skunk' },
+    ];
     context.showRoleNotesTab = context.isRole && (this.document.isOwner || game.user.isGM);
     context.showCyberwareNotesTab = context.isCyberware && (this.document.isOwner || game.user.isGM);
     context.costLadder = CONFIG.CYBER_BLUE.costLadder ?? [];
@@ -410,6 +434,21 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     });
     this.element.querySelectorAll('[data-edit="img"]').forEach((element) => {
       element.addEventListener('click', this._onEditProfileImage.bind(this));
+    });
+    this.element.querySelector('[data-action="roll-executable-atk"]')
+      ?.addEventListener('click', () => this._onRollExecutableStat('atk'));
+    this.element.querySelector('[data-action="roll-executable-per"]')
+      ?.addEventListener('click', () => this._onRollExecutableStat('per'));
+  }
+
+  async _onRollExecutableStat(stat) {
+    const value = Number(this.document.system[stat]) || 0;
+    const roll = await new Roll(`1d10 + ${value}`).evaluate();
+    const label = stat === 'atk' ? 'ATK' : 'PER';
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: this.document.parent }),
+      flavor: `<div class="cyberpunk-blue chat-card"><h3>${this.document.name}: ${label}</h3></div>`,
+      rollMode: game.settings.get('core', 'rollMode'),
     });
   }
 

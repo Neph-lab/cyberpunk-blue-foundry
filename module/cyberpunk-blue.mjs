@@ -2,6 +2,9 @@ import { CyberBlueActor } from './documents/actor.mjs';
 import { CyberBlueItem } from './documents/item.mjs';
 import { CyberBlueActorSheet } from './sheets/actor-sheet.mjs';
 import { CyberBlueItemSheet } from './sheets/item-sheet.mjs';
+import { CyberBlueMookSheet } from './sheets/mook-sheet.mjs';
+import { CyberBlueProgramSheet } from './sheets/program-sheet.mjs';
+import { CyberBlueVehicleSheet } from './sheets/vehicle-sheet.mjs';
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
 import { CYBER_BLUE } from './helpers/config.mjs';
 import { applyWeaponTypeDefaults, createWeaponData } from './helpers/combat.mjs';
@@ -48,6 +51,9 @@ Hooks.once('init', function () {
   CONFIG.Actor.dataModels = {
     character: models.CyberBlueCharacter,
     npc: models.CyberBlueNPC,
+    mook: models.CyberBlueMook,
+    program: models.CyberBlueProgram,
+    vehicle: models.CyberBlueVehicle,
   };
   CONFIG.Actor.trackableAttributes = {
     character: {
@@ -58,6 +64,18 @@ Hooks.once('init', function () {
       bar: ['resources.hp', 'resources.armor', 'resources.psyche', 'resources.luck'],
       value: ['resources.deathSave.value', 'resources.seriousWoundThreshold.value'],
     },
+    mook: {
+      bar: ['resources.hp', 'resources.armor'],
+      value: [],
+    },
+    program: {
+      bar: ['resources.rez'],
+      value: [],
+    },
+    vehicle: {
+      bar: ['resources.hp', 'resources.armor'],
+      value: [],
+    },
   };
 
   CONFIG.Item.documentClass = CyberBlueItem;
@@ -66,6 +84,8 @@ Hooks.once('init', function () {
     ability: models.CyberBlueAbility,
     cyberware: models.CyberBlueCyberware,
     gear: models.CyberBlueGear,
+    ammo: models.CyberBlueAmmo,
+    programExecutable: models.CyberBlueProgramExecutable,
   };
 
   CONFIG.ActiveEffect.legacyTransferral = false;
@@ -75,11 +95,26 @@ Hooks.once('init', function () {
     label: 'CYBER_BLUE.SheetLabels.Actor',
     types: ['character', 'npc'],
   });
+  Actors.registerSheet('cyberpunk-blue', CyberBlueMookSheet, {
+    makeDefault: true,
+    label: 'CYBER_BLUE.SheetLabels.Mook',
+    types: ['mook'],
+  });
+  Actors.registerSheet('cyberpunk-blue', CyberBlueProgramSheet, {
+    makeDefault: true,
+    label: 'CYBER_BLUE.SheetLabels.Program',
+    types: ['program'],
+  });
+  Actors.registerSheet('cyberpunk-blue', CyberBlueVehicleSheet, {
+    makeDefault: true,
+    label: 'CYBER_BLUE.SheetLabels.Vehicle',
+    types: ['vehicle'],
+  });
 
   Items.registerSheet('cyberpunk-blue', CyberBlueItemSheet, {
     makeDefault: true,
     label: 'CYBER_BLUE.SheetLabels.Item',
-    types: ['role', 'ability', 'cyberware', 'gear'],
+    types: ['role', 'ability', 'cyberware', 'gear', 'ammo', 'programExecutable'],
   });
 
   return preloadHandlebarsTemplates();

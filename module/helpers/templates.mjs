@@ -9,5 +9,7 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/cyberpunk-blue/templates/item/parts/item-effects.hbs',
     'systems/cyberpunk-blue/templates/item/parts/item-combat.hbs',
     'systems/cyberpunk-blue/templates/item/parts/item-mods.hbs',
+    'systems/cyberpunk-blue/templates/item/parts/item-ammo.hbs',
+    'systems/cyberpunk-blue/templates/item/parts/item-program-executable.hbs',
   ]);
 };

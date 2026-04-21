@@ -55,6 +55,15 @@
           "details.personality",
           "details.style"
         ]
+      },
+      "mook": {
+        "htmlFields": ["description", "notes"]
+      },
+      "program": {
+        "htmlFields": ["description", "notes"]
+      },
+      "vehicle": {
+        "htmlFields": ["description", "notes"]
       }
     },
     "Item": {
@@ -86,6 +95,12 @@
           "description",
           "mods.description"
         ]
+      },
+      "ammo": {
+        "htmlFields": ["description"]
+      },
+      "programExecutable": {
+        "htmlFields": ["description", "notes"]
       }
     }
   },
