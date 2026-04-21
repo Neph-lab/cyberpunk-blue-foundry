@@ -9,11 +9,11 @@ body {
   scrollbar-color: #6E00FF;
   --cpb-bg: linear-gradient(180deg, rgba(0, 0, 0, 0.94), rgba(2, 2, 2, 0.87));
   --cpb-sidebar-bg: linear-gradient(180deg, rgba(0,0,0,0.8),rgba(2,2,2,0.7));
-  --cpb-table-alt-bg: rgba(0, 63, 0, 0.4);
+  --cpb-table-alt-bg: rgba(110, 0, 255, 0.2);
   --cpb-panel: rgba(12, 20, 30, 0.2);
   --cpb-panel-border: rgba(0, 0, 0, 0.22);
   --cpb-accent: #27B0FF;
-  --cpb-accent-strong: #FFFB00;
+  --cpb-accent-strong: rgb(255, 251, 0);
   --cpb-text: #ffffff;
   --cpb-muted: #6E00FF;
   --cpb-shadow: 0 0 7px rgba(110, 0, 255, 0.4);
@@ -22,7 +22,7 @@ body {
   --cpb-error: #cc0000;
   --cpb-border: #27B0FF;
   --cpb-font: 'Share Tech', monospace;
-  --cpb-glow: 0 0 2px rgba(0, 255, 213,0.9), 0 0 4px rgba(0, 245, 207,0.8), 0 0 6px rgba(0, 240, 200,0.7);
+  --cpb-glow: 0 0 2px rgba(255, 252, 50, 0.9), 0 0 4px rgba(255, 252, 150,0.8), 0 0 8px rgba(255, 255, 200,0.6);
   --cpb-text-shadow: 0 0 1px rgba(110, 0, 255, 0.4);
   --cpb-font-size: 22px;
   --glitch-red: #ff4757;
@@ -532,6 +532,11 @@ button, .cyberpunk-blue .button, a.button {
   gap: 0.45rem;
 }
 
+.cyberpunk-blue .item-meta-row < label {
+  display:flex;
+  flex-flow: column;
+}
+
 .cyberpunk-blue .manufacturer-field {
   min-width: min(100%, 18rem);
 }
@@ -557,7 +562,7 @@ button, .cyberpunk-blue .button, a.button {
 
 .cyberpunk-blue .embedded-description {
   background: var(--cpb-panel);
-  color: var(--cpb-muted);
+  color: white;
   font-size: 0.9rem;
   padding: 0.55rem 0.7rem 0.7rem;
 }
@@ -569,6 +574,10 @@ button, .cyberpunk-blue .button, a.button {
 .cyberpunk-blue .embedded-controls {
   display: flex;
   flex-wrap: nowrap;
+}
+
+.cyberpunk-blue .embedded-controls button[title="Edit"] {
+  display: none;
 }
 
 .cyberpunk-blue .panel-header {
@@ -610,7 +619,7 @@ button, .cyberpunk-blue .button, a.button {
 
 .cyberpunk-blue .component-links,
 .cyberpunk-blue .embedded-summary {
-  color: var(--cpb-muted);
+  color: white;
   font-size: 0.85rem;
 }
 
@@ -656,7 +665,7 @@ button, .cyberpunk-blue .button, a.button {
 
 .cyberpunk-blue .manufacturer-summary,
 .cyberpunk-blue .embedded-note {
-  color: var(--cpb-muted);
+  color: white;
   font-size: 0.8rem;
 }
 
@@ -669,9 +678,13 @@ button, .cyberpunk-blue .button, a.button {
 .cyberpunk-blue .manufacturer-summary .manufacturer-logo {
   height: unset;
   width: unset;
-  max-width: 50px;
-  max-height: 12px;
+  max-width: 70px;
+  max-height: 15px;
   object-fit: contain;
+}
+
+.manufacturer-summary img + span {
+  display: none;
 }
 
 .cyberpunk-blue .embedded-name img {
@@ -748,6 +761,10 @@ button, .cyberpunk-blue .button, a.button {
 .cyberpunk-blue .sheet-panel > prose-mirror:last-child,
 .cyberpunk-blue .sheet-panel > .editor:last-child {
   flex: 1 1 auto;
+}
+
+.prosemirror .editor-content, prose-mirror .editor-content, .prosemirror menu, prose-mirror menu {
+  position: unset;
 }
 
 .cyberpunk-blue .effects-list .items-header,
@@ -906,6 +923,34 @@ button, .cyberpunk-blue .button, a.button {
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
 
+.cyberpunk-blue .cyberware-group h2:not(:first-child) {
+  margin-top: 1.5rem;
+}
+
+.cyberpunk-blue .cyberware-group h2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cyberpunk-blue .cyberware-group h2::before {
+  content: '';
+  flex: 1;
+  padding: 3px;
+  margin: 0 10px;
+  background: linear-gradient(90deg, #27B0FF 0%, transparent 100%);
+}
+.cyberpunk-blue .cyberware-group h2::after {
+  content: '';
+  flex: 1;
+  padding: 3px;
+  margin: 0 10px;
+  background: linear-gradient(90deg, transparent 0%, #27B0FF 100%);
+}
+
+.cyberpunk-blue .cyberware-group .embedded-entry:not(:first-child) .cyberware-row {
+  margin-top: 0.9rem;
+}
+
 .cyberpunk-blue .cyberware-sheet {
   display: flex;
   flex-direction: column;
@@ -1018,7 +1063,8 @@ button, .cyberpunk-blue .button, a.button {
 
 .cyberpunk-blue .lifepath-layout > .sheet-panel {
   flex: 1 1 auto;
-  min-width: min(100%, 20rem);
+  width: 20rem;
+  min-width: min(100%, 30rem);
 }
 
 .cyberpunk-blue .skill-table-container {
@@ -1041,8 +1087,7 @@ button, .cyberpunk-blue .button, a.button {
 .cyberpunk-blue .skill-table-container > .skill-row:not(.skill-header):nth-child(odd),
 .cyberpunk-blue .component-entries > .component-row:nth-child(even),
 .cyberpunk-blue .embedded-entries > .embedded-row:nth-child(even),
-.cyberpunk-blue .embedded-entries > .embedded-entry:nth-child(even) .embedded-row,
-.cyberpunk-blue .embedded-entries > .embedded-entry:nth-child(even) .embedded-description {
+.cyberpunk-blue .embedded-entries > .embedded-entry:nth-child(even) {
   background: var(--cpb-table-alt-bg);
 }
 
