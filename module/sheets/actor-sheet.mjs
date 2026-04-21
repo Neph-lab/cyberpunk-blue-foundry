@@ -280,6 +280,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         continue;
       }
 
+      const modCount = this.document.items.filter((i) => i.type === 'mod' && i.system.installedOnId === itemDoc.id).length;
+      const modDots = Array.from({ length: modCount }, (_, i) => i);
       const effectiveWeapons = itemDoc.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(itemDoc);
       for (const [weaponIndex, weapon] of effectiveWeapons.entries()) {
         const definition = getWeaponTypeDefinition(weapon.type);
@@ -297,6 +299,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           name: effectiveWeapons.length > 1 ? `${itemDoc.name} - ${definition.label}` : itemDoc.name,
           attackLabel: `${total >= 0 ? '+' : ''}${total}`,
           attackTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + ${rollContext.skillLabel} ${rollContext.usedRank}${rollContext.statRollMod ? ` + bonus ${rollContext.statRollMod}` : ''}`,
+          damage: weapon.damage ?? definition.damage,
+          concealable: weapon.concealable ?? definition.concealable,
+          modDots,
           rateOfFire: weapon.rateOfFire,
           showsAmmo: definition.usesMagazine,
           ammoCurrent: ammo.current,
@@ -314,6 +319,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         continue;
       }
 
+      const modCount = this.document.items.filter((i) => i.type === 'mod' && i.system.installedOnId === itemDoc.id).length;
+      const modDots = Array.from({ length: modCount }, (_, i) => i);
       const effectiveWeapons = itemDoc.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(itemDoc);
       for (const [weaponIndex, weapon] of effectiveWeapons.entries()) {
         const definition = getWeaponTypeDefinition(weapon.type);
@@ -331,6 +338,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           name: effectiveWeapons.length > 1 ? `${itemDoc.name} - ${definition.label}` : itemDoc.name,
           attackLabel: `${total >= 0 ? '+' : ''}${total}`,
           attackTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + ${rollContext.skillLabel} ${rollContext.usedRank}${rollContext.statRollMod ? ` + bonus ${rollContext.statRollMod}` : ''}`,
+          damage: weapon.damage ?? definition.damage,
+          concealable: weapon.concealable ?? definition.concealable,
+          modDots,
           rateOfFire: weapon.rateOfFire,
           showsAmmo: definition.usesMagazine,
           ammoCurrent: ammo.current,
@@ -480,6 +490,33 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       });
     }
 
+    const networkerRole = context.roles.find((role) => {
+      const rs = normalizeRoleSystemData(role.system);
+      return rs.category === 'networker' && (Number(rs.rank) || 0) >= 1;
+    });
+    const networkerRoleSystem = networkerRole ? normalizeRoleSystemData(networkerRole.system) : null;
+    context.showNetrunningTab = Boolean(networkerRole);
+    context.netrunningRole = networkerRole
+      ? {
+        id: networkerRole.id,
+        name: networkerRole.name,
+        rank: Number(networkerRoleSystem.rank) || 0,
+        enrichedSections: await Promise.all(
+          (networkerRoleSystem.abilitySections ?? [])
+            .filter((section) => (Number(section.unlockRank) || 0) <= (Number(networkerRoleSystem.rank) || 0))
+            .map(async (section) => ({
+              ...section,
+              enrichedContent: await foundry.applications.ux.TextEditor.implementation.enrichHTML(section.content ?? '', {
+                secrets: this.document.isOwner,
+                async: true,
+                rollData: this.document.getRollData(),
+                relativeTo: this.document,
+              }),
+            }))
+        ),
+      }
+      : null;
+
     return context;
   }
 
@@ -537,6 +574,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     });
     this.element.querySelectorAll('[data-action="weapon-attack"]').forEach((button) => {
       button.addEventListener('click', this._onWeaponAttack.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="weapon-damage"]').forEach((button) => {
+      button.addEventListener('click', this._onWeaponDamage.bind(this));
     });
     this.element.querySelectorAll('[data-action="weapon-reload"]').forEach((button) => {
       button.addEventListener('click', this._onWeaponReload.bind(this));
@@ -769,6 +809,32 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     const baseSkill = item.system.weapons?.[weaponIndex]?.skill ?? weapon.skill;
     const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill : baseSkill;
     await this.document.rollSkill({ skillSlug });
+  }
+
+  async _onWeaponDamage(event) {
+    event.preventDefault();
+    const item = this._getItemFromEvent(event);
+    const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
+    if (!item || Number.isNaN(weaponIndex) || weaponIndex < 0) {
+      return;
+    }
+
+    const weapon = (item.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(item))[weaponIndex];
+    if (!weapon) {
+      return;
+    }
+
+    const formula = weapon.damage ?? '1d6';
+    const roll = await new Roll(formula).evaluate();
+    const definition = getWeaponTypeDefinition(weapon.type);
+    const weaponLabel = item.system.weapons?.length > 1
+      ? `${item.name} - ${definition.label}`
+      : item.name;
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: this.document }),
+      flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Sheet.Labels.Damage')}: ${weaponLabel}</h3></div>`,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
   }
 
   async _onWeaponReload(event) {

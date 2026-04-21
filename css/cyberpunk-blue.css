@@ -1174,6 +1174,18 @@ button, .cyberpunk-blue .button, a.button {
   width: 100%;
 }
 
+.cyberpunk-blue .weapon-mod-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  margin-top: 0.1rem;
+}
+
+.cyberpunk-blue .weapon-mod-dot {
+  font-size: 0.45rem;
+  color: var(--color-text-light-6);
+}
+
 .cyberpunk-blue .checkbox-bottom {
   align-self: end;
 }

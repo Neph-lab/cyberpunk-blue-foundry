@@ -22,7 +22,8 @@
         "Description": "Description",
         "Details": "Details",
         "Effects": "Effects",
-        "Lifepath": "Lifepath"
+        "Lifepath": "Lifepath",
+        "Netrunning": "Netrunning"
       },
       "Labels": {
         "Stats": "Stats",
@@ -127,6 +128,7 @@
         "Bring": "Bring",
         "Leave": "Leave",
         "Reload": "Reload",
+        "RollDamage": "Roll Damage",
         "Edit": "Edit",
         "Delete": "Delete",
         "MoveUp": "Move Up",

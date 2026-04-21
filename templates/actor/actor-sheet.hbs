@@ -21,6 +21,9 @@
     <a class="item" data-tab="skills">{{localize "CYBER_BLUE.Sheet.Tabs.Skills"}}</a>
     <a class="item" data-tab="cyberware">{{localize "CYBER_BLUE.Sheet.Tabs.Cyberware"}}</a>
     <a class="item" data-tab="inventory">{{localize "CYBER_BLUE.Sheet.Tabs.Inventory"}}</a>
+    {{#if showNetrunningTab}}
+      <a class="item" data-tab="netrunning">{{localize "CYBER_BLUE.Sheet.Tabs.Netrunning"}}</a>
+    {{/if}}
     <a class="item" data-tab="notes">{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
   </nav>
 
@@ -121,6 +124,8 @@
               <col />
               <col class="column-compact" />
               <col class="column-compact" />
+              <col class="column-compact" />
+              <col class="column-compact" />
               <col class="column-controls" />
             </colgroup>
             <thead>
@@ -128,8 +133,10 @@
                 <th>Weapon</th>
                 <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Attack"}}</th>
                 <th>{{localize "CYBER_BLUE.Sheet.Labels.WeaponSkill"}}</th>
+                <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Damage"}}</th>
                 <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.RateOfFire"}}</th>
                 <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Mag"}}</th>
+                <th class="numeric-column" title="{{localize "CYBER_BLUE.Sheet.Labels.Concealable"}}"><i class="fas fa-eye-slash"></i></th>
                 <th class="numeric-column">Controls</th>
               </tr>
             </thead>
@@ -140,6 +147,13 @@
                     <button type="button" class="item-name-link embedded-name">
                       <span>{{weapon.name}}</span>
                     </button>
+                    {{#if weapon.modDots.length}}
+                      <span class="weapon-mod-dots">
+                        {{#each weapon.modDots}}
+                          <i class="fas fa-circle weapon-mod-dot"></i>
+                        {{/each}}
+                      </span>
+                    {{/if}}
                   </td>
                   <td class="numeric-column">
                     <button type="button" data-action="weapon-attack" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.attackTooltip}}">
@@ -157,6 +171,11 @@
                       <span>{{weapon.skillSlug}}</span>
                     {{/if}}
                   </td>
+                  <td class="numeric-column">
+                    <button type="button" data-action="weapon-damage" data-weapon-index="{{weapon.weaponIndex}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.RollDamage"}}">
+                      {{weapon.damage}}
+                    </button>
+                  </td>
                   <td class="numeric-column">{{weapon.rateOfFire}}</td>
                   <td class="numeric-column">
                     {{#if weapon.showsAmmo}}
@@ -167,6 +186,11 @@
                       </div>
                     {{else}}
                       <span>&mdash;</span>
+                    {{/if}}
+                  </td>
+                  <td class="numeric-column">
+                    {{#if weapon.concealable}}
+                      <i class="fas fa-eye-slash" title="{{localize "CYBER_BLUE.Sheet.Labels.Concealable"}}"></i>
                     {{/if}}
                   </td>
                   <td class="numeric-column">
@@ -643,6 +667,24 @@
         {{/each}}
       </section>
     </div>
+
+    {{#if showNetrunningTab}}
+      <div class="tab" data-group="primary" data-tab="netrunning">
+        {{#if netrunningRole}}
+          <section class="sheet-panel netrunning-panel">
+            <h2>{{netrunningRole.name}} <span class="resource-value">{{localize "CYBER_BLUE.Sheet.Labels.Rank"}}: {{netrunningRole.rank}}</span></h2>
+            {{#each netrunningRole.enrichedSections as |section|}}
+              <div class="netrunning-section">
+                <h3>{{localize "CYBER_BLUE.Sheet.Labels.Rank"}} {{section.unlockRank}}</h3>
+                <div class="editor">
+                  <div class="editor-content">{{{section.enrichedContent}}}</div>
+                </div>
+              </div>
+            {{/each}}
+          </section>
+        {{/if}}
+      </div>
+    {{/if}}
 
     <div class="tab" data-group="primary" data-tab="notes">
       <section class="notes-grid">
