@@ -16,6 +16,7 @@ import {
   syncActorCyberwareDisableEffects,
 } from './helpers/cyberware-disable.mjs';
 import { syncActorLeaderRoles } from './helpers/roles.mjs';
+import { CyberBlueJsonImportDialog, CyberBlueMacroCreator } from './helpers/gm-tools.mjs';
 import * as models from './data/_module.mjs';
 
 Hooks.once('init', function () {
@@ -115,6 +116,24 @@ Hooks.once('init', function () {
     makeDefault: true,
     label: 'CYBER_BLUE.SheetLabels.Item',
     types: ['role', 'ability', 'cyberware', 'gear', 'ammo', 'programExecutable', 'mod'],
+  });
+
+  game.settings.registerMenu('cyberpunk-blue', 'importItemsMenu', {
+    name: 'CYBER_BLUE.Settings.ImportItems.Name',
+    label: 'CYBER_BLUE.Settings.ImportItems.Label',
+    hint: 'CYBER_BLUE.Settings.ImportItems.Hint',
+    icon: 'fas fa-file-import',
+    type: CyberBlueJsonImportDialog,
+    restricted: true,
+  });
+
+  game.settings.registerMenu('cyberpunk-blue', 'createMacrosMenu', {
+    name: 'CYBER_BLUE.Settings.CreateMacros.Name',
+    label: 'CYBER_BLUE.Settings.CreateMacros.Label',
+    hint: 'CYBER_BLUE.Settings.CreateMacros.Hint',
+    icon: 'fas fa-code',
+    type: CyberBlueMacroCreator,
+    restricted: true,
   });
 
   return preloadHandlebarsTemplates();

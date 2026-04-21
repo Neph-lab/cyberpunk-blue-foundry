@@ -102,8 +102,8 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       rollData: this.document.parent?.getRollData?.() ?? {},
       relativeTo: this.document,
     });
-    context.enrichedNotes = (context.isRole || context.isCyberware || context.isProgramExecutable)
-      ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(itemData.system.notes, {
+    context.enrichedNotes = (context.isRole || context.isCyberware || context.isProgramExecutable || context.isGear)
+      ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(itemData.system.notes ?? '', {
         secrets: this.document.isOwner,
         async: true,
         rollData: this.document.parent?.getRollData?.() ?? {},
@@ -153,6 +153,22 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
           relativeTo: this.document,
         }),
       })))
+      : [];
+    const allRoleSections = context.isRole
+      ? (normalizeRoleSystemData(itemData.system ?? {}).abilitySections ?? [])
+      : [];
+    context.roleSectionsLocked = (context.isRole && !canManageRestricted && ownerActor)
+      ? await Promise.all(allRoleSections
+          .filter((section) => Number(section.unlockRank) > roleRank)
+          .map(async (section) => ({
+            ...section,
+            enrichedContent: await foundry.applications.ux.TextEditor.implementation.enrichHTML(section.content ?? '', {
+              secrets: this.document.isOwner,
+              async: true,
+              rollData: this.document.parent?.getRollData?.() ?? {},
+              relativeTo: this.document,
+            }),
+          })))
       : [];
     context.roleHighestUnlockedSection = context.isRole && roleCategoryData?.highestUnlockedSection
       ? {
@@ -235,6 +251,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     context.weaponModModes = WEAPON_MOD_MODES;
     context.showRoleNotesTab = context.isRole && (this.document.isOwner || game.user.isGM);
     context.showCyberwareNotesTab = context.isCyberware && (this.document.isOwner || game.user.isGM);
+    context.showGearNotesTab = context.isGear && (this.document.isOwner || game.user.isGM);
     context.costLadder = CONFIG.CYBER_BLUE.costLadder ?? [];
     context.manufacturers = CONFIG.CYBER_BLUE.manufacturers ?? [];
     context.manufacturerLogo = await getBrandLogoPath(itemData.system.manufacturer);

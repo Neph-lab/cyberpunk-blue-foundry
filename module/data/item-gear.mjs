@@ -22,6 +22,7 @@ export default class CyberBlueGear extends CyberBlueItemBase {
     });
     schema.cost = new fields.StringField({ required: true, blank: true });
     schema.note = new fields.StringField({ required: true, blank: true });
+    schema.notes = new fields.HTMLField({ initial: '' });
     schema.isArmor = new fields.BooleanField({ initial: false });
     schema.isWeapon = new fields.BooleanField({ initial: false });
     schema.isComputer = new fields.BooleanField({ initial: false });

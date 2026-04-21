@@ -7,6 +7,7 @@ import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs'
 import { normalizeGearState, getGearStateUpdateData } from '../helpers/gear.mjs';
 import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
 import { getWeaponTypeDefinition } from '../helpers/combat.mjs';
+import { resolveWeaponAttack } from '../helpers/combat-resolution.mjs';
 import {
   getHighestUnlockedRoleAbilitySection,
   getRoleCategoryLabel,
@@ -84,7 +85,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     context.system = system;
     context.config = CONFIG.CYBER_BLUE;
     context.canManageRestricted = canManageRestricted;
+    context.isNPC = actorData.type === 'npc';
     context.itemTypes = CONFIG.CYBER_BLUE.itemTypes;
+    const moveEntry = { slug: 'move', ...CONFIG.CYBER_BLUE.stats.move, value: system.stats.move.value };
     context.stats = Object.entries(CONFIG.CYBER_BLUE.stats)
       .filter(([slug]) => slug !== 'move')
       .map(([slug, data]) => ({
@@ -92,6 +95,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         ...data,
         value: system.stats[slug].value,
       }));
+    if (context.isNPC) {
+      context.stats = [...context.stats, moveEntry];
+    }
     context.move = {
       slug: 'move',
       ...CONFIG.CYBER_BLUE.stats.move,
@@ -800,15 +806,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     if (!item || Number.isNaN(weaponIndex) || weaponIndex < 0) {
       return;
     }
-
-    const weapon = (item.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(item))[weaponIndex];
-    if (!weapon) {
-      return;
-    }
-
-    const baseSkill = item.system.weapons?.[weaponIndex]?.skill ?? weapon.skill;
-    const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill : baseSkill;
-    await this.document.rollSkill({ skillSlug });
+    await resolveWeaponAttack(this.document, item, weaponIndex);
   }
 
   async _onWeaponDamage(event) {

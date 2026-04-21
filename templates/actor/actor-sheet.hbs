@@ -51,6 +51,17 @@
             <div class="health-value">{{health.deathSave}}</div>
           </div>
 
+          {{#if isNPC}}
+            <div class="health-block">
+              <h3>{{psyche.label}}</h3>
+              <div class="resource-fields">
+                <input type="number" name="system.resources.psyche.value" value="{{psyche.value}}" data-dtype="Number" />
+                <span>/</span>
+                <input type="number" value="{{psyche.max}}" disabled />
+              </div>
+            </div>
+          {{/if}}
+
           <div class="health-block health-effects">
             <h3>{{localize "CYBER_BLUE.Sheet.Labels.HealthEffects"}}</h3>
             <div class="health-effects-list">
@@ -91,28 +102,41 @@
           </div>
         </div>
 
-        <label class="sheet-panel stat-card move-card">
-          <span class="stat-short">{{move.shortLabel}}</span>
-          <input type="number" name="system.stats.move.value" value="{{move.value}}" data-dtype="Number" />
-        </label>
+        {{#unless isNPC}}
+          <label class="sheet-panel stat-card move-card">
+            <span class="stat-short">{{move.shortLabel}}</span>
+            <input type="number" name="system.stats.move.value" value="{{move.value}}" data-dtype="Number" />
+          </label>
+        {{/unless}}
 
-        <div class="sheet-panel stat-card move-card">
-          <span class="stat-short">{{psyche.label}}</span>
-          <div class="resource-fields">
-            <input type="number" name="system.resources.psyche.value" value="{{psyche.value}}" data-dtype="Number" />
-            <span>/</span>
-            <input type="number" value="{{psyche.max}}" disabled />
+        {{#if isNPC}}
+          <div class="sheet-panel stat-card move-card">
+            <span class="stat-short">{{psyche.label}}</span>
+            <div class="resource-fields">
+              <input type="number" name="system.resources.psyche.value" value="{{psyche.value}}" data-dtype="Number" />
+              <span>/</span>
+              <input type="number" value="{{psyche.max}}" disabled />
+            </div>
           </div>
-        </div>
+        {{else}}
+          <div class="sheet-panel stat-card move-card">
+            <span class="stat-short">{{psyche.label}}</span>
+            <div class="resource-fields">
+              <input type="number" name="system.resources.psyche.value" value="{{psyche.value}}" data-dtype="Number" />
+              <span>/</span>
+              <input type="number" value="{{psyche.max}}" disabled />
+            </div>
+          </div>
 
-        <div class="sheet-panel stat-card move-card luck-card">
-          <span class="stat-short">{{luck.label}}</span>
-          <div class="resource-fields">
-            <input type="number" name="system.resources.luck.value" value="{{luck.value}}" data-dtype="Number" />
-            <span>/</span>
-            <input type="number" value="{{luck.max}}" disabled />
+          <div class="sheet-panel stat-card move-card luck-card">
+            <span class="stat-short">{{luck.label}}</span>
+            <div class="resource-fields">
+              <input type="number" name="system.resources.luck.value" value="{{luck.value}}" data-dtype="Number" />
+              <span>/</span>
+              <input type="number" value="{{luck.max}}" disabled />
+            </div>
           </div>
-        </div>
+        {{/if}}
       </section>
 
       {{#if combatWeapons.length}}

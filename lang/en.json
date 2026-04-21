@@ -103,12 +103,28 @@
         "Links": "Links",
         "GeneralAbility": "General Ability",
         "UnlockedAt": "Unlocked at Rank {rank}",
+        "FuturePossibilities": "Future Possibilities",
+        "ActiveEffects": "Active Effects",
         "Modifications": "Modifications",
         "NoModifications": "No modifications attached.",
         "WeaponAdjustments": "Weapon Adjustments",
         "NoWeaponAdjustments": "No weapon adjustments yet.",
         "NoEffects": "No effects.",
-        "NoItemsInState": "No {state} items."
+        "NoItemsInState": "No {state} items.",
+        "Cancel": "Cancel"
+      },
+      "Combat": {
+        "Attack": "Attack",
+        "DV": "Difficulty Value (DV)",
+        "RollAttack": "Roll Attack",
+        "RollTargetEvasion": "Roll target evasion instead of DV",
+        "EvasionRoll": "Evasion",
+        "EvasionSkill": "Evasion/Athletics",
+        "Target": "Target",
+        "SP": "SP",
+        "NetDamage": "Net Damage",
+        "ApplyDamage": "Apply Damage",
+        "ApplyDamagePrompt": "Apply {damage} damage to {target}?"
       },
       "Buttons": {
         "AddRole": "Add Role",
@@ -262,6 +278,18 @@
       "ammo": "Ammo",
       "programExecutable": "Executable",
       "mod": "Mod"
+    },
+    "Settings": {
+      "ImportItems": {
+        "Name": "Import Items from JSON",
+        "Label": "Import Items",
+        "Hint": "Bulk-import item documents from a JSON file."
+      },
+      "CreateMacros": {
+        "Name": "Create GM Macros",
+        "Label": "Create Macros",
+        "Hint": "Creates useful GM utility macros in your Macro Directory."
+      }
     }
   }
 }

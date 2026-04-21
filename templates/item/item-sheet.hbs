@@ -513,6 +513,9 @@
           {{#if showAdvancedTab}}
             <a class="item" data-tab="advanced">{{localize "CYBER_BLUE.Sheet.Tabs.Advanced"}}</a>
           {{/if}}
+          {{#if showGearNotesTab}}
+            <a class="item" data-tab="notes">{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
+          {{/if}}
           {{#if showEffectsTab}}
             <a class="item" data-tab="effects">{{localize "CYBER_BLUE.Sheet.Tabs.Effects"}}</a>
           {{/if}}
@@ -1014,6 +1017,24 @@
                   <i class="fas fa-plus"></i>
                 </button>
               </section>
+              <section class="sheet-panel">
+                <div class="panel-header"><h2>{{localize "CYBER_BLUE.Sheet.Labels.ActiveEffects"}}</h2></div>
+                {{> "systems/cyberpunk-blue/templates/item/parts/item-effects.hbs"}}
+              </section>
+            {{/if}}
+
+            {{#if roleSectionsLocked.length}}
+              <details class="sheet-panel future-possibilities">
+                <summary><h3>{{localize "CYBER_BLUE.Sheet.Labels.FuturePossibilities"}}</h3></summary>
+                {{#each roleSectionsLocked as |section|}}
+                  <div class="future-section">
+                    <h4>{{localize "CYBER_BLUE.Sheet.Labels.UnlockedAt" rank=section.unlockRank}}</h4>
+                    <div class="editor">
+                      <div class="editor-content">{{{section.enrichedContent}}}</div>
+                    </div>
+                  </div>
+                {{/each}}
+              </details>
             {{/if}}
           </div>
 
@@ -1057,6 +1078,22 @@
           {{#if showAdvancedTab}}
             <div class="tab" data-group="primary" data-tab="advanced">
               {{> "systems/cyberpunk-blue/templates/item/parts/item-combat.hbs"}}
+            </div>
+          {{/if}}
+
+          {{#if showGearNotesTab}}
+            <div class="tab" data-group="primary" data-tab="notes">
+              <section class="sheet-panel">
+                {{#if canEditAsOwner}}
+                  <prose-mirror name="system.notes" value="{{system.notes}}" document-uuid="{{item.uuid}}" compact>
+                    {{{enrichedNotes}}}
+                  </prose-mirror>
+                {{else}}
+                  <div class="editor">
+                    <div class="editor-content">{{{enrichedNotes}}}</div>
+                  </div>
+                {{/if}}
+              </section>
             </div>
           {{/if}}
 

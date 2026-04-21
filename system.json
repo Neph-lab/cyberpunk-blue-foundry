@@ -29,8 +29,12 @@
     "minimum": 14,
     "verified": "14.359"
   },
-  "esmodules": ["module/cyberpunk-blue.mjs"],
-  "styles": ["css/cyberpunk-blue.css"],
+  "esmodules": [
+    "module/cyberpunk-blue.mjs"
+  ],
+  "styles": [
+    "css/cyberpunk-blue.css"
+  ],
   "languages": [
     {
       "lang": "en",
@@ -57,13 +61,22 @@
         ]
       },
       "mook": {
-        "htmlFields": ["description", "notes"]
+        "htmlFields": [
+          "description",
+          "notes"
+        ]
       },
       "program": {
-        "htmlFields": ["description", "notes"]
+        "htmlFields": [
+          "description",
+          "notes"
+        ]
       },
       "vehicle": {
-        "htmlFields": ["description", "notes"]
+        "htmlFields": [
+          "description",
+          "notes"
+        ]
       }
     },
     "Item": {
@@ -93,17 +106,24 @@
       "gear": {
         "htmlFields": [
           "description",
-          "mods.description"
+          "notes"
         ]
       },
       "ammo": {
-        "htmlFields": ["description"]
+        "htmlFields": [
+          "description"
+        ]
       },
       "programExecutable": {
-        "htmlFields": ["description", "notes"]
+        "htmlFields": [
+          "description",
+          "notes"
+        ]
       },
       "mod": {
-        "htmlFields": ["description"]
+        "htmlFields": [
+          "description"
+        ]
       }
     }
   },
