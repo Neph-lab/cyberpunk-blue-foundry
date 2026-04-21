@@ -913,4 +913,12 @@
       </section>
     {{/if}}
   {{/if}}
+
+  {{#if isAmmo}}
+    {{> "systems/cyberpunk-blue/templates/item/parts/item-ammo.hbs"}}
+  {{/if}}
+
+  {{#if isProgramExecutable}}
+    {{> "systems/cyberpunk-blue/templates/item/parts/item-program-executable.hbs"}}
+  {{/if}}
 </form>

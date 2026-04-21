@@ -1,0 +1,94 @@
+<form class="cyberpunk-blue sheet actor program flexcol" autocomplete="off">
+  <header class="sheet-header">
+    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" />
+    <div class="header-fields">
+      <h1 class="charname">
+        <input name="name" type="text" value="{{actor.name}}" placeholder="Name" />
+      </h1>
+      <div class="header-stats">
+        <label class="header-stat" title="Actions">
+          <span class="stat-short">ACT</span>
+          <input type="number" name="system.stats.act.value" value="{{system.stats.act.value}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+        </label>
+        <label class="header-stat" title="Attack">
+          <span class="stat-short">ATK</span>
+          <div class="stat-with-roll">
+            <input type="number" name="system.stats.atk.value" value="{{system.stats.atk.value}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+            <button type="button" data-action="roll-atk" title="Roll ATK"><i class="fas fa-dice-d10"></i></button>
+          </div>
+        </label>
+        <label class="header-stat" title="Defense">
+          <span class="stat-short">DEF</span>
+          <input type="number" name="system.stats.def.value" value="{{system.stats.def.value}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+        </label>
+        <label class="header-stat" title="Net">
+          <span class="stat-short">NET</span>
+          <input type="number" name="system.stats.net.value" value="{{system.stats.net.value}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+        </label>
+        <label class="header-stat" title="Perception">
+          <span class="stat-short">PER</span>
+          <div class="stat-with-roll">
+            <input type="number" name="system.stats.per.value" value="{{system.stats.per.value}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+            <button type="button" data-action="roll-per" title="Roll PER"><i class="fas fa-dice-d10"></i></button>
+          </div>
+        </label>
+        <div class="header-stat" title="Rez (digital HP)">
+          <span class="stat-short">REZ</span>
+          <div class="resource-fields">
+            <input type="number" name="system.resources.rez.value" value="{{system.resources.rez.value}}" data-dtype="Number" />
+            <span>/</span>
+            <input type="number" name="system.resources.rez.max" value="{{system.resources.rez.max}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="program-type-row">
+    {{#if isGM}}
+      <label>
+        <span>Type</span>
+        <select name="system.programType">
+          {{#each programTypes as |pt|}}
+            <option value="{{pt.value}}" {{#if (eq pt.value ../system.programType)}}selected{{/if}}>{{pt.label}}</option>
+          {{/each}}
+        </select>
+      </label>
+    {{else}}
+      <h2>{{#each programTypes as |pt|}}{{#if (eq pt.value ../system.programType)}}{{pt.label}}{{/if}}{{/each}}</h2>
+    {{/if}}
+  </div>
+
+  <section class="sheet-body program-body">
+    <div class="sheet-panel">
+      <h2>Description</h2>
+      {{#if isGM}}
+        <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{actor.uuid}}" compact>
+          {{{enrichedDescription}}}
+        </prose-mirror>
+      {{else}}
+        <div class="editor"><div class="editor-content">{{{enrichedDescription}}}</div></div>
+      {{/if}}
+    </div>
+
+    {{#if executable}}
+      <div class="sheet-panel program-executable-slot">
+        <div class="panel-header">
+          <h2>Attached Executable: {{executable.name}}</h2>
+          {{#if isGM}}
+            <button type="button" data-action="delete-executable" title="Remove"><i class="fas fa-trash"></i></button>
+          {{/if}}
+        </div>
+      </div>
+    {{/if}}
+
+    {{#if isGM}}
+      <div class="sheet-panel program-notes-panel">
+        <h2>Notes (GM only)</h2>
+        <prose-mirror name="system.notes" value="{{system.notes}}" document-uuid="{{actor.uuid}}" compact>
+          {{{enrichedNotes}}}
+        </prose-mirror>
+      </div>
+    {{/if}}
+  </section>
+</form>

@@ -1,0 +1,154 @@
+<form class="cyberpunk-blue sheet actor mook flexcol" autocomplete="off">
+  <header class="sheet-header">
+    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" />
+    <div class="header-fields">
+      <h1 class="charname">
+        <input name="name" type="text" value="{{actor.name}}" placeholder="Mook Name" />
+      </h1>
+      <div class="header-stats">
+        <label class="header-stat" title="Body">
+          <span class="stat-short">BODY</span>
+          <input type="number" name="system.stats.body.value" value="{{system.stats.body.value}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+        </label>
+        <label class="header-stat" title="Combat Number">
+          <span class="stat-short">CN</span>
+          <input type="number" name="system.combatNumber" value="{{system.combatNumber}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+        </label>
+        <div class="header-stat" title="Hit Points">
+          <span class="stat-short">HP</span>
+          <div class="resource-fields">
+            <input type="number" name="system.resources.hp.value" value="{{system.resources.hp.value}}" data-dtype="Number" />
+            <span>/</span>
+            <input type="number" name="system.resources.hp.max" value="{{system.resources.hp.max}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+          </div>
+        </div>
+        <div class="header-stat" title="Stopping Power">
+          <span class="stat-short">SP</span>
+          <div class="resource-fields">
+            <input type="number" name="system.resources.armor.value" value="{{system.resources.armor.value}}" data-dtype="Number" />
+            <span>/</span>
+            <input type="number" name="system.resources.armor.max" value="{{system.resources.armor.max}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="sheet-tabs tabs" data-group="primary">
+    <a class="item active" data-tab="basics">Basics</a>
+    <a class="item" data-tab="items">Items</a>
+    {{#if isGM}}
+      <a class="item" data-tab="notes">Notes</a>
+    {{/if}}
+  </nav>
+
+  <section class="sheet-body">
+    <div class="tab active" data-group="primary" data-tab="basics">
+      <section class="sheet-panel">
+        {{#if isGM}}
+          <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{actor.uuid}}" compact>
+            {{{enrichedDescription}}}
+          </prose-mirror>
+        {{else}}
+          <div class="editor"><div class="editor-content">{{{enrichedDescription}}}</div></div>
+        {{/if}}
+      </section>
+
+      <section class="sheet-panel">
+        <div class="panel-header">
+          <h2>Skills</h2>
+          {{#if isGM}}
+            <div class="add-row">
+              <select data-skill-select>
+                <option value="">— add skill —</option>
+                {{#each allSkills as |sk|}}
+                  <option value="{{sk.slug}}">{{sk.label}}</option>
+                {{/each}}
+              </select>
+              <button type="button" data-action="add-skill" title="Add Skill">
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+          {{/if}}
+        </div>
+        <div class="skill-list">
+          {{#each system.skills as |skill i|}}
+            <div class="skill-row">
+              <span class="skill-label">{{skill.label}}</span>
+              <input type="number" name="system.skills.{{i}}.rank" value="{{skill.rank}}" data-dtype="Number" min="0" />
+              {{#if ../isGM}}
+                <button type="button" data-action="remove-skill" data-skill-index="{{i}}" title="Remove">
+                  <i class="fas fa-times"></i>
+                </button>
+              {{/if}}
+            </div>
+          {{/each}}
+        </div>
+      </section>
+
+      <section class="sheet-panel">
+        <div class="panel-header">
+          <h2>Components</h2>
+          {{#if isGM}}
+            <div class="add-row">
+              <select data-component-select>
+                <option value="">— add component —</option>
+                {{#each allComponents as |comp|}}
+                  <option value="{{comp.slug}}">{{comp.label}}</option>
+                {{/each}}
+              </select>
+              <button type="button" data-action="add-component" title="Add Component">
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+          {{/if}}
+        </div>
+        <div class="skill-list">
+          {{#each system.components as |comp i|}}
+            <div class="skill-row">
+              <span class="skill-label">{{comp.label}}</span>
+              <input type="number" name="system.components.{{i}}.rank" value="{{comp.rank}}" data-dtype="Number" min="0" />
+              {{#if ../isGM}}
+                <button type="button" data-action="remove-component" data-component-index="{{i}}" title="Remove">
+                  <i class="fas fa-times"></i>
+                </button>
+              {{/if}}
+            </div>
+          {{/each}}
+        </div>
+      </section>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="items">
+      <section class="sheet-panel">
+        <div class="items-list">
+          {{#each embeddedItems as |item|}}
+            <div class="item-row">
+              <img src="{{item.img}}" title="{{item.name}}" class="item-img" />
+              <span class="item-name">{{item.name}}</span>
+              <span class="item-type">{{item.type}}</span>
+              <button type="button" data-action="edit-item" data-item-id="{{item.id}}" title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+              {{#if ../isGM}}
+                <button type="button" data-action="delete-item" data-item-id="{{item.id}}" title="Delete">
+                  <i class="fas fa-trash"></i>
+                </button>
+              {{/if}}
+            </div>
+          {{/each}}
+        </div>
+      </section>
+    </div>
+
+    {{#if isGM}}
+      <div class="tab" data-group="primary" data-tab="notes">
+        <section class="sheet-panel">
+          <prose-mirror name="system.notes" value="{{system.notes}}" document-uuid="{{actor.uuid}}" compact>
+            {{{enrichedNotes}}}
+          </prose-mirror>
+        </section>
+      </div>
+    {{/if}}
+  </section>
+</form>
