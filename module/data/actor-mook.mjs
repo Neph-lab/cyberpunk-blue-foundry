@@ -45,9 +45,12 @@ export default class CyberBlueMook extends CyberBlueDataModel {
 
   prepareDerivedData() {
     super.prepareDerivedData();
+    if (!this.resources?.hp || !this.stats?.body) return;
     this.resources.hp.max = (5 * this.stats.body.value) + 10;
     this.resources.hp.value = Math.min(Math.max(this.resources.hp.value, 0), this.resources.hp.max);
-    this.resources.armor.value = Math.min(Math.max(this.resources.armor.value, 0), this.resources.armor.max);
+    if (this.resources.armor) {
+      this.resources.armor.value = Math.min(Math.max(this.resources.armor.value, 0), this.resources.armor.max);
+    }
   }
 
   getRollData() {

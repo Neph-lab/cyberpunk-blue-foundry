@@ -32,8 +32,11 @@ export default class CyberBlueVehicle extends CyberBlueDataModel {
 
   prepareDerivedData() {
     super.prepareDerivedData();
+    if (!this.resources?.hp) return;
     this.resources.hp.value = Math.min(Math.max(this.resources.hp.value, 0), this.resources.hp.max);
-    this.resources.armor.value = Math.min(Math.max(this.resources.armor.value, 0), this.resources.armor.max);
+    if (this.resources.armor) {
+      this.resources.armor.value = Math.min(Math.max(this.resources.armor.value, 0), this.resources.armor.max);
+    }
   }
 
   getRollData() {

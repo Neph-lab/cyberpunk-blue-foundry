@@ -38,10 +38,8 @@ export default class CyberBlueProgram extends CyberBlueDataModel {
 
   prepareDerivedData() {
     super.prepareDerivedData();
-    this.resources.rez.value = Math.min(
-      Math.max(this.resources.rez.value, 0),
-      this.resources.rez.max
-    );
+    if (!this.resources?.rez) return;
+    this.resources.rez.value = Math.min(Math.max(this.resources.rez.value, 0), this.resources.rez.max);
   }
 
   getRollData() {

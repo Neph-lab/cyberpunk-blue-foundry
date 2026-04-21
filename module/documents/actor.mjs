@@ -281,6 +281,7 @@ export class CyberBlueActor extends Actor {
   }
 
   shouldBeSeriouslyWounded() {
+    if (!this.system.resources?.seriousWoundThreshold) return false;
     return (this.system.resources.hp.value ?? 0) <= (this.system.resources.seriousWoundThreshold.value ?? 0);
   }
 
