@@ -11,6 +11,9 @@ import {
   createWeaponChangeData,
   getModificationEffects,
   getModificationValidation,
+  MOD_TYPES,
+  WEAPON_MOD_FIELDS,
+  WEAPON_MOD_MODES,
 } from '../helpers/mods.mjs';
 import {
   canEditRoleChoices,
@@ -88,6 +91,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     context.isGear = this.document.type === 'gear';
     context.isAmmo = this.document.type === 'ammo';
     context.isProgramExecutable = this.document.type === 'programExecutable';
+    context.isMod = this.document.type === 'mod';
     if (context.isGear) {
       itemData.system.state = normalizeGearState(itemData.system);
     }
@@ -229,6 +233,9 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       { value: 'daemon', label: 'Daemon' },
       { value: 'malware', label: 'Malware' },
     ];
+    context.modTypes = MOD_TYPES;
+    context.weaponModFields = WEAPON_MOD_FIELDS;
+    context.weaponModModes = WEAPON_MOD_MODES;
     context.showRoleNotesTab = context.isRole && (this.document.isOwner || game.user.isGM);
     context.showCyberwareNotesTab = context.isCyberware && (this.document.isOwner || game.user.isGM);
     context.costLadder = CONFIG.CYBER_BLUE.costLadder ?? [];
@@ -435,6 +442,12 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     });
     this.element.querySelectorAll('[data-edit="img"]').forEach((element) => {
       element.addEventListener('click', this._onEditProfileImage.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="add-mod-weapon-change"]').forEach((button) => {
+      button.addEventListener('click', this._onAddModWeaponChange.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="remove-mod-weapon-change"]').forEach((button) => {
+      button.addEventListener('click', this._onRemoveModWeaponChange.bind(this));
     });
     this.element.querySelector('[data-action="roll-executable-atk"]')
       ?.addEventListener('click', () => this._onRollExecutableStat('atk'));
@@ -901,6 +914,26 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     }
 
     await effect.update({ disabled: !effect.disabled });
+  }
+
+  async _onAddModWeaponChange(event) {
+    event.preventDefault();
+    const system = this.document.system.toObject?.() ?? this.document.system;
+    const weaponChanges = [...(system.weaponChanges ?? [])];
+    weaponChanges.push(createWeaponChangeData());
+    await this.document.update({ 'system.weaponChanges': weaponChanges });
+  }
+
+  async _onRemoveModWeaponChange(event) {
+    event.preventDefault();
+    const changeIndex = Number.parseInt(event.currentTarget.dataset.changeIndex ?? '-1', 10);
+    if (Number.isNaN(changeIndex) || changeIndex < 0) {
+      return;
+    }
+    const system = this.document.system.toObject?.() ?? this.document.system;
+    const weaponChanges = [...(system.weaponChanges ?? [])];
+    weaponChanges.splice(changeIndex, 1);
+    await this.document.update({ 'system.weaponChanges': weaponChanges });
   }
 
   async _onEditProfileImage(event) {

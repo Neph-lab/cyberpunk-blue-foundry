@@ -86,6 +86,7 @@ Hooks.once('init', function () {
     gear: models.CyberBlueGear,
     ammo: models.CyberBlueAmmo,
     programExecutable: models.CyberBlueProgramExecutable,
+    mod: models.CyberBlueMod,
   };
 
   CONFIG.ActiveEffect.legacyTransferral = false;
@@ -114,7 +115,7 @@ Hooks.once('init', function () {
   Items.registerSheet('cyberpunk-blue', CyberBlueItemSheet, {
     makeDefault: true,
     label: 'CYBER_BLUE.SheetLabels.Item',
-    types: ['role', 'ability', 'cyberware', 'gear', 'ammo', 'programExecutable'],
+    types: ['role', 'ability', 'cyberware', 'gear', 'ammo', 'programExecutable', 'mod'],
   });
 
   return preloadHandlebarsTemplates();

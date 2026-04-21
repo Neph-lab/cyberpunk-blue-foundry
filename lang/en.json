@@ -258,7 +258,8 @@
       "cyberware": "Cyberware",
       "gear": "Gear",
       "ammo": "Ammo",
-      "programExecutable": "Executable"
+      "programExecutable": "Executable",
+      "mod": "Mod"
     }
   }
 }

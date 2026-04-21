@@ -237,6 +237,28 @@
                 </div>
               {{/if}}
             {{/if}}
+            {{#if isMod}}
+              <label>
+                <span>Type</span>
+                {{#if canManageRestricted}}
+                  <select name="system.modType">
+                    {{#each modTypes as |mt|}}
+                      <option value="{{mt.value}}" {{#if (eq mt.value ../system.modType)}}selected{{/if}}>{{mt.label}}</option>
+                    {{/each}}
+                  </select>
+                {{else}}
+                  <div class="readonly-value">{{#each modTypes as |mt|}}{{#if (eq mt.value ../system.modType)}}{{mt.label}}{{/if}}{{/each}}</div>
+                {{/if}}
+              </label>
+              <label class="cost-field">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Cost"}}</span>
+                <input type="text" name="system.cost" value="{{system.cost}}" list="cyber-blue-cost-ladder" />
+              </label>
+              <label class="ability-note-field">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Note"}}</span>
+                <input type="text" name="system.note" value="{{system.note}}" />
+              </label>
+            {{/if}}
             {{#if isGear}}
               <label class="manufacturer-field">
                 <span>{{localize "CYBER_BLUE.Sheet.Labels.Manufacturer"}}</span>
@@ -314,6 +336,8 @@
     {{> "systems/cyberpunk-blue/templates/item/parts/item-ammo.hbs"}}
   {{else if isProgramExecutable}}
     {{> "systems/cyberpunk-blue/templates/item/parts/item-program-executable.hbs"}}
+  {{else if isMod}}
+    {{> "systems/cyberpunk-blue/templates/item/parts/item-mod.hbs"}}
   {{else}}
     {{#if isCyberware}}
       <nav class="sheet-tabs tabs" data-group="primary">

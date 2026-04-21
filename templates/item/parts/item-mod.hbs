@@ -1,0 +1,96 @@
+<section class="sheet-body mod-sheet-body">
+  <section class="sheet-panel">
+    {{#if canEditAsOwner}}
+      <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
+        {{{enrichedDescription}}}
+      </prose-mirror>
+    {{else}}
+      <div class="editor"><div class="editor-content">{{{enrichedDescription}}}</div></div>
+    {{/if}}
+  </section>
+
+  {{#if (eq system.modType "weaponMod")}}
+    <section class="sheet-panel">
+      <div class="panel-header panel-actions">
+        <h2>Weapon Changes</h2>
+        {{#if canManageRestricted}}
+          <button type="button" data-action="add-mod-weapon-change" title="Add change">
+            <i class="fas fa-plus"></i>
+          </button>
+        {{/if}}
+      </div>
+
+      {{#if canManageRestricted}}
+        <div class="item-meta-row">
+          <label class="compact-field">
+            <span>Target Weapon #</span>
+            <input type="number" name="system.targetWeaponIndex" value="{{system.targetWeaponIndex}}" data-dtype="Number" min="-1" />
+          </label>
+        </div>
+      {{/if}}
+
+      {{#if system.weaponChanges.length}}
+        <table class="weapon-changes-table">
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Mode</th>
+              <th>Value</th>
+              {{#if canManageRestricted}}<th></th>{{/if}}
+            </tr>
+          </thead>
+          <tbody>
+            {{#each system.weaponChanges as |change|}}
+              <tr>
+                <td>
+                  {{#if @root.canManageRestricted}}
+                    <select name="system.weaponChanges.{{@index}}.key">
+                      {{#each @root.weaponModFields as |field|}}
+                        <option value="{{field.value}}" {{#if (eq field.value change.key)}}selected{{/if}}>{{field.label}}</option>
+                      {{/each}}
+                    </select>
+                  {{else}}
+                    {{#each @root.weaponModFields as |field|}}{{#if (eq field.value change.key)}}{{field.label}}{{/if}}{{/each}}
+                  {{/if}}
+                </td>
+                <td>
+                  {{#if @root.canManageRestricted}}
+                    <select name="system.weaponChanges.{{@index}}.mode">
+                      {{#each @root.weaponModModes as |mode|}}
+                        <option value="{{mode.value}}" {{#if (eq mode.value change.mode)}}selected{{/if}}>{{mode.label}}</option>
+                      {{/each}}
+                    </select>
+                  {{else}}
+                    {{#each @root.weaponModModes as |mode|}}{{#if (eq mode.value change.mode)}}{{mode.label}}{{/if}}{{/each}}
+                  {{/if}}
+                </td>
+                <td>
+                  {{#if @root.canManageRestricted}}
+                    <input type="text" name="system.weaponChanges.{{@index}}.value" value="{{change.value}}" />
+                  {{else}}
+                    <span>{{change.value}}</span>
+                  {{/if}}
+                </td>
+                {{#if @root.canManageRestricted}}
+                  <td>
+                    <button type="button" data-action="remove-mod-weapon-change" data-change-index="{{@index}}" title="Remove">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </td>
+                {{/if}}
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      {{else}}
+        <p class="hint">No weapon changes defined.</p>
+      {{/if}}
+    </section>
+  {{/if}}
+
+  {{#if showEffectsTab}}
+    <section class="sheet-panel">
+      {{> "systems/cyberpunk-blue/templates/item/parts/item-effects.hbs"}}
+    </section>
+  {{/if}}
+</section>

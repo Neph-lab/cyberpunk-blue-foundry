@@ -14,3 +14,4 @@ export {default as CyberBlueCyberware} from "./item-cyberware.mjs";
 export {default as CyberBlueGear} from "./item-gear.mjs";
 export {default as CyberBlueAmmo} from "./item-ammo.mjs";
 export {default as CyberBlueProgramExecutable} from "./item-program-executable.mjs";
+export {default as CyberBlueMod} from "./item-mod.mjs";

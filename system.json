@@ -101,6 +101,9 @@
       },
       "programExecutable": {
         "htmlFields": ["description", "notes"]
+      },
+      "mod": {
+        "htmlFields": ["description"]
       }
     }
   },
