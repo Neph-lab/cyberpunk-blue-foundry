@@ -59,6 +59,15 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
   };
 
   async _prepareContext(options) {
+    if (this.element) {
+      this._savedScrolls = [];
+      for (const el of this.element.querySelectorAll('.tab, .sheet-body')) {
+        if (el.scrollTop > 0) {
+          const key = el.dataset.tab ? `[data-tab="${el.dataset.tab}"]` : el.className.split(' ')[0];
+          this._savedScrolls.push({ key, scrollTop: el.scrollTop });
+        }
+      }
+    }
     const context = await super._prepareContext(options);
     const actorData = this.document.toPlainObject();
     const { system } = actorData;
@@ -634,6 +643,15 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
     this.element.querySelector('[data-action="begin-character-creation"]')?.addEventListener('click', this._onBeginCharacterCreation.bind(this));
     this.element.querySelector('[data-action="open-character-creation-wizard"]')?.addEventListener('click', this._onOpenCharacterCreationWizard.bind(this));
+
+    // Restore scroll positions after re-render
+    if (this._savedScrolls?.length) {
+      for (const { key, scrollTop } of this._savedScrolls) {
+        const el = this.element.querySelector(key.startsWith('[') ? key : `.${key}`);
+        if (el) el.scrollTop = scrollTop;
+      }
+      this._savedScrolls = null;
+    }
   }
 
   async _onItemCreate(event) {

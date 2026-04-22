@@ -61,6 +61,16 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
   };
 
   async _prepareContext(options) {
+    // Save scroll positions before re-render
+    if (this.element) {
+      this._savedScrolls = [];
+      for (const el of this.element.querySelectorAll('.tab, .sheet-body')) {
+        if (el.scrollTop > 0) {
+          const key = el.dataset.tab ? `[data-tab="${el.dataset.tab}"]` : el.className.split(' ')[0];
+          this._savedScrolls.push({ key, scrollTop: el.scrollTop });
+        }
+      }
+    }
     const context = await super._prepareContext(options);
     const itemData = this.document.toPlainObject();
     const canManageRestricted = game.user.role >= CONST.USER_ROLES.ASSISTANT;
@@ -321,6 +331,32 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     return context;
   }
 
+  async _prepareSubmitData(event, form, formData) {
+    const data = await super._prepareSubmitData(event, form, formData);
+    // Merge incoming weapon form data with existing weapon state to preserve fields
+    // that are managed by custom handlers (no `name` attr): damageType, rangeTable, autofireRangeTable
+    const incomingWeapons = data?.system?.weapons;
+    if (incomingWeapons != null) {
+      const existingWeapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
+      const entries = Array.isArray(incomingWeapons)
+        ? incomingWeapons.map((w, i) => [i, w])
+        : Object.entries(incomingWeapons).map(([k, v]) => [Number(k), v]);
+      const merged = existingWeapons.map((w) => ({ ...w }));
+      for (const [i, incoming] of entries) {
+        const existing = existingWeapons[i] ?? {};
+        merged[i] = {
+          ...existing,
+          ...incoming,
+          damageType: existing.damageType ?? '',
+          autofireRangeTable: existing.autofireRangeTable ?? Array(8).fill(0),
+          rangeTable: existing.rangeTable ?? Array(8).fill(0),
+        };
+      }
+      data.system.weapons = merged;
+    }
+    return data;
+  }
+
   async _onRender(context, options) {
     await super._onRender(context, options);
 
@@ -450,6 +486,14 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     this.element.querySelectorAll('[data-action="remove-embedded-mod"]').forEach((btn) => {
       btn.addEventListener('click', this._onRemoveEmbeddedMod.bind(this));
     });
+    // Restore scroll positions after re-render
+    if (this._savedScrolls?.length) {
+      for (const { key, scrollTop } of this._savedScrolls) {
+        const el = this.element.querySelector(key.startsWith('[') ? key : `.${key}`);
+        if (el) el.scrollTop = scrollTop;
+      }
+      this._savedScrolls = null;
+    }
   }
 
   async _onRollExecutableStat(stat) {
