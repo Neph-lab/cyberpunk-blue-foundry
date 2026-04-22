@@ -8,6 +8,7 @@ import { normalizeGearState, getGearStateUpdateData } from '../helpers/gear.mjs'
 import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
 import { getWeaponTypeDefinition } from '../helpers/combat.mjs';
 import { resolveWeaponAttack } from '../helpers/combat-resolution.mjs';
+import { CharacterCreationWizard, CC_STEPS_LIST } from '../helpers/character-creation.mjs';
 import {
   getRoleCategoryLabel,
   getRoleTeamMembers,
@@ -517,6 +518,23 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       }
       : null;
 
+    // Character creation state
+    const isCC = actorData.type === 'character' && (system.characterCreation?.active ?? false);
+    const stepIdx = isCC ? CC_STEPS_LIST.indexOf(system.characterCreation?.step ?? 'welcome') : -1;
+    const canEdit = context.editable ?? false;
+    context.charCreation = {
+      active: isCC,
+      canBegin: actorData.type === 'character' && !isCC && canManageRestricted,
+      step: isCC ? (system.characterCreation?.step ?? null) : null,
+      notesWritable: !isCC || (stepIdx > 0 && canEdit),
+      statsWritable: !isCC || (stepIdx > 2 && canEdit),
+      skillsWritable: !isCC || (stepIdx >= 6 && canEdit),
+      highlightStats: isCC && stepIdx === 2,
+      highlightSecondary: isCC && stepIdx === 3,
+      highlightAbilities: isCC && stepIdx === 5,
+      highlightSkills: isCC && stepIdx === 6,
+    };
+
     return context;
   }
 
@@ -590,6 +608,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     this.element.querySelectorAll('[data-action="update-protean-points"]').forEach((input) => {
       input.addEventListener('change', this._onUpdateProteanPoints.bind(this));
     });
+
+    this.element.querySelector('[data-action="begin-character-creation"]')?.addEventListener('click', this._onBeginCharacterCreation.bind(this));
+    this.element.querySelector('[data-action="open-character-creation-wizard"]')?.addEventListener('click', this._onOpenCharacterCreationWizard.bind(this));
   }
 
   async _onItemCreate(event) {
@@ -871,6 +892,29 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     }
     foci[focusIndex] = { ...foci[focusIndex], points: value };
     await item.update({ 'system.proteanFoci': foci });
+  }
+
+  async _onBeginCharacterCreation(event) {
+    event.preventDefault();
+    await this.document.update({
+      'system.characterCreation.active': true,
+      'system.characterCreation.step': 'welcome',
+      'system.characterCreation.extraLanguage': '',
+    });
+    new CharacterCreationWizard(this.document).render(true);
+  }
+
+  async _onOpenCharacterCreationWizard(event) {
+    event.preventDefault();
+    // Reuse existing wizard instance if open, otherwise create new
+    const existing = Object.values(ui.windows ?? {}).find(
+      w => w instanceof CharacterCreationWizard && w.actor?.id === this.document.id
+    );
+    if (existing) {
+      existing.bringToFront?.();
+    } else {
+      new CharacterCreationWizard(this.document).render(true);
+    }
   }
 
   async _onEditProfileImage(event) {

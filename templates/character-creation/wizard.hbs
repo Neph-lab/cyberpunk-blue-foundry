@@ -1,0 +1,224 @@
+<div class="cc-wizard cyberpunk-blue">
+  <div class="cc-progress">
+    {{#each steps as |s|}}
+      <div class="cc-step-dot {{#if s.done}}done{{/if}} {{#if s.active}}active{{/if}}" title="{{s.label}}">
+        <span>{{s.label}}</span>
+      </div>
+    {{/each}}
+  </div>
+
+  <div class="cc-content">
+
+    {{!-- WELCOME --}}
+    {{#if (eq step "welcome")}}
+      <div class="cc-step-panel cc-welcome">
+        <h2>{{actorName}}</h2>
+        <p class="cc-intro">{{welcome.intro}}</p>
+        <div class="cc-footer">
+          <button type="button" class="cc-btn-primary" data-action="cc-next">
+            {{localize "CYBER_BLUE.CC.Button.Next"}} <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    {{/if}}
+
+    {{!-- LIFEPATH --}}
+    {{#if (eq step "lifepath")}}
+      <div class="cc-step-panel cc-lifepath">
+        <p>{{localize "CYBER_BLUE.CC.Lifepath.Prompt"}}</p>
+        {{#if lifepath.rollAllId}}
+          <button type="button" class="cc-roll-btn cc-roll-all" data-action="roll-table" data-table-id="{{lifepath.rollAllId}}">
+            <i class="fas fa-dice"></i> {{localize "CYBER_BLUE.CC.Lifepath.RollAll"}}
+          </button>
+        {{/if}}
+        {{#if lifepath.tables.length}}
+          <div class="cc-table-list">
+            {{#each lifepath.tables as |t|}}
+              <button type="button" class="cc-roll-btn" data-action="roll-table" data-table-id="{{t.id}}">
+                <i class="fas fa-dice-d6"></i> {{t.name}}
+              </button>
+            {{/each}}
+          </div>
+        {{else}}
+          <p class="hint">{{localize "CYBER_BLUE.CC.Lifepath.NoTables"}}</p>
+        {{/if}}
+        <div class="cc-footer">
+          <button type="button" class="cc-btn-secondary" data-action="cc-back">
+            <i class="fas fa-arrow-left"></i> {{localize "CYBER_BLUE.CC.Button.Back"}}
+          </button>
+          {{#if lifepath.hasRolled}}
+            <button type="button" class="cc-btn-primary" data-action="cc-next">
+              {{localize "CYBER_BLUE.CC.Button.Next"}} <i class="fas fa-arrow-right"></i>
+            </button>
+          {{else}}
+            <button type="button" class="cc-btn-secondary" data-action="cc-skip">
+              {{localize "CYBER_BLUE.CC.Button.Skip"}} <i class="fas fa-forward"></i>
+            </button>
+          {{/if}}
+        </div>
+      </div>
+    {{/if}}
+
+    {{!-- PRIMARY STATS --}}
+    {{#if (eq step "stats")}}
+      <div class="cc-step-panel cc-stats">
+        <p>{{localize "CYBER_BLUE.CC.Stats.Prompt"}}</p>
+        <div class="cc-points-counter {{#if stats.allSpent}}all-spent{{/if}}">
+          {{#if stats.allSpent}}
+            {{localize "CYBER_BLUE.CC.Stats.AllSpent"}}
+          {{else}}
+            {{localize "CYBER_BLUE.CC.Stats.Remaining" remaining=stats.remaining}}
+          {{/if}}
+        </div>
+        <div class="cc-stat-list">
+          {{#each stats.list as |stat|}}
+            <div class="cc-stat-row">
+              <span class="cc-stat-label" title="{{stat.label}}">{{stat.shortLabel}}</span>
+              <button type="button" class="cc-stat-btn" data-action="stat-decrease" data-stat-slug="{{stat.slug}}" {{#if stat.atMin}}disabled{{/if}}>
+                <i class="fas fa-minus"></i>
+              </button>
+              <span class="cc-stat-value">{{stat.value}}</span>
+              <button type="button" class="cc-stat-btn" data-action="stat-increase" data-stat-slug="{{stat.slug}}" {{#if stat.atMax}}disabled{{/if}}>
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+          {{/each}}
+        </div>
+        <div class="cc-footer">
+          <button type="button" class="cc-btn-secondary" data-action="cc-back">
+            <i class="fas fa-arrow-left"></i> {{localize "CYBER_BLUE.CC.Button.Back"}}
+          </button>
+          <button type="button" class="cc-btn-primary" data-action="cc-next" {{#unless stats.canAdvance}}disabled{{/unless}}>
+            {{localize "CYBER_BLUE.CC.Button.Next"}} <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    {{/if}}
+
+    {{!-- SECONDARY STATS --}}
+    {{#if (eq step "secondary")}}
+      <div class="cc-step-panel cc-secondary">
+        <div class="cc-text-blocks">
+          <p><strong>MOVE:</strong> {{secondary.moveText}}</p>
+          <p><strong>HP:</strong> {{secondary.hpText}}</p>
+          <p><strong>PSYCHE:</strong> {{secondary.psycheText}}</p>
+          <p><strong>LUCK:</strong> {{secondary.luckText}}</p>
+        </div>
+        <p class="cc-sheet-note"><i class="fas fa-arrow-pointer"></i> {{secondary.sheetNote}}</p>
+        <div class="cc-footer">
+          <button type="button" class="cc-btn-secondary" data-action="cc-back">
+            <i class="fas fa-arrow-left"></i> {{localize "CYBER_BLUE.CC.Button.Back"}}
+          </button>
+          <button type="button" class="cc-btn-primary" data-action="cc-next">
+            {{localize "CYBER_BLUE.CC.Button.Next"}} <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    {{/if}}
+
+    {{!-- LANGUAGES --}}
+    {{#if (eq step "languages")}}
+      <div class="cc-step-panel cc-languages">
+        <p>{{localize "CYBER_BLUE.CC.Languages.Prompt"}}</p>
+        <div class="cc-language-input">
+          <input type="text" id="cc-language-input" value="{{languages.extraLanguage}}"
+            placeholder="{{localize "CYBER_BLUE.CC.Languages.Placeholder"}}" autocomplete="off" />
+        </div>
+        <div class="cc-footer">
+          <button type="button" class="cc-btn-secondary" data-action="cc-back">
+            <i class="fas fa-arrow-left"></i> {{localize "CYBER_BLUE.CC.Button.Back"}}
+          </button>
+          <button type="button" class="cc-btn-primary" data-action="cc-next" {{#unless languages.canAdvance}}disabled{{/unless}}>
+            {{localize "CYBER_BLUE.CC.Button.Next"}} <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    {{/if}}
+
+    {{!-- ABILITY --}}
+    {{#if (eq step "ability")}}
+      <div class="cc-step-panel cc-ability">
+        <p>{{localize "CYBER_BLUE.CC.Ability.Prompt"}}</p>
+        {{#if ability.extraLanguage}}
+          <button type="button" class="cc-ability-upgrade" data-action="upgrade-language">
+            <i class="fas fa-language"></i> {{ability.upgradeLabel}}
+          </button>
+        {{/if}}
+        {{#if ability.noAbilities}}
+          <p class="hint">{{localize "CYBER_BLUE.CC.Ability.NoAbilities"}}</p>
+        {{else}}
+          <div class="cc-ability-list">
+            {{#each ability.abilities as |ab|}}
+              <div class="cc-ability-row">
+                <div class="cc-ability-info">
+                  <span class="cc-ability-name">{{ab.name}}</span>
+                  <span class="cc-ability-maxrank">max {{ab.maxRank}}</span>
+                  {{#if ab.note}}<span class="cc-ability-note">{{ab.note}}</span>{{/if}}
+                </div>
+                <button type="button" class="cc-btn-small" data-action="choose-ability" data-ability-id="{{ab.id}}">
+                  {{localize "CYBER_BLUE.CC.Ability.Choose"}}
+                </button>
+              </div>
+            {{/each}}
+          </div>
+        {{/if}}
+        <div class="cc-footer">
+          <button type="button" class="cc-btn-secondary" data-action="cc-back">
+            <i class="fas fa-arrow-left"></i> {{localize "CYBER_BLUE.CC.Button.Back"}}
+          </button>
+        </div>
+      </div>
+    {{/if}}
+
+    {{!-- SKILLS --}}
+    {{#if (eq step "skills")}}
+      <div class="cc-step-panel cc-skills">
+        <p>{{localize "CYBER_BLUE.CC.Skills.Prompt"}}</p>
+        <div class="cc-points-counter {{#if skills.over}}over-budget{{/if}}">
+          {{#if skills.over}}
+            <i class="fas fa-exclamation-triangle"></i>
+            {{localize "CYBER_BLUE.CC.Skills.Over" over=skills.remainingAbs}}
+          {{else}}
+            {{localize "CYBER_BLUE.CC.Skills.Remaining" remaining=skills.remaining}}
+          {{/if}}
+        </div>
+        <p class="cc-sheet-note"><i class="fas fa-arrow-pointer"></i> Use the Skills tab on your character sheet to distribute points.</p>
+        <div class="cc-footer">
+          <button type="button" class="cc-btn-secondary" data-action="cc-back">
+            <i class="fas fa-arrow-left"></i> {{localize "CYBER_BLUE.CC.Button.Back"}}
+          </button>
+          <button type="button" class="cc-btn-primary" data-action="cc-next" {{#if skills.over}}disabled{{/if}}>
+            {{localize "CYBER_BLUE.CC.Button.Next"}} <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    {{/if}}
+
+    {{!-- ROLE --}}
+    {{#if (eq step "role")}}
+      <div class="cc-step-panel cc-role">
+        <p>{{localize "CYBER_BLUE.CC.Role.Prompt"}}</p>
+        {{#if roles.noRoles}}
+          <p class="hint">{{localize "CYBER_BLUE.CC.Role.NoRoles"}}</p>
+        {{else}}
+          <div class="cc-role-list">
+            {{#each roles.list as |r|}}
+              <div class="cc-role-row">
+                <span class="cc-role-name">{{r.name}}</span>
+                <button type="button" class="cc-btn-small cc-btn-primary" data-action="choose-role" data-role-id="{{r.id}}">
+                  {{localize "CYBER_BLUE.CC.Role.Choose"}}
+                </button>
+              </div>
+            {{/each}}
+          </div>
+        {{/if}}
+        <div class="cc-footer">
+          <button type="button" class="cc-btn-secondary" data-action="cc-back">
+            <i class="fas fa-arrow-left"></i> {{localize "CYBER_BLUE.CC.Button.Back"}}
+          </button>
+        </div>
+      </div>
+    {{/if}}
+
+  </div>
+</div>

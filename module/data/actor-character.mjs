@@ -34,6 +34,12 @@ export default class CyberBlueCharacter extends CyberBlueActorBase {
       }),
     });
 
+    schema.characterCreation = new fields.SchemaField({
+      active: new fields.BooleanField({ initial: false }),
+      step: new fields.StringField({ initial: 'welcome', blank: false }),
+      extraLanguage: new fields.StringField({ initial: '', blank: true }),
+    });
+
     return schema;
   }
 

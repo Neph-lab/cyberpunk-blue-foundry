@@ -260,6 +260,69 @@
         "Hint": "Creates useful GM utility macros in your Macro Directory."
       }
     },
+    "CC": {
+      "Title": "Character Creation",
+      "Active": "Character Creation in Progress",
+      "Button": {
+        "Begin": "Begin Character Creation",
+        "Open": "Continue Character Creation",
+        "Next": "Next",
+        "Back": "Back",
+        "Skip": "Skip"
+      },
+      "Progress": {
+        "welcome": "Welcome",
+        "lifepath": "Lifepath",
+        "stats": "Stats",
+        "secondary": "Secondary",
+        "languages": "Languages",
+        "ability": "Ability",
+        "skills": "Skills",
+        "role": "Role"
+      },
+      "Welcome": {
+        "Intro": "Welcome, choom! Let's see who you are in the world of Cyberpunk."
+      },
+      "Lifepath": {
+        "Prompt": "Would you like to randomly create a background?",
+        "RollAll": "Roll ALL Lifepath",
+        "NoTables": "No lifepath tables found in the Lifepath folder."
+      },
+      "Stats": {
+        "Prompt": "These are the five Primary Stats that will affect almost all aspects of your character. You have 30 points to distribute between them, but none can be lower than 3 or higher than 8.",
+        "Remaining": "{remaining} points remaining",
+        "AllSpent": "All 30 points allocated!",
+        "MustSpendAll": "You must allocate all 30 stat points before continuing."
+      },
+      "Secondary": {
+        "MoveText": "Your MOVE is how many 2-meter spaces you can run in a turn of combat. It starts at 5.",
+        "HpText": "Hit Points (HP) represents your body's ability to handle injury. If your current HP goes down to 0, you're dying, and your Death Save represents your chances to make it. Under your Serious Wound Threshold, you're reeling from your injuries and suffer penalties. Your Death Save equals your BODY, your HP is BODY×5+10, and your Serious Wound Threshold is half that (rounded up).",
+        "PsycheText": "PSYCHE is your mental health and starts at 60. Trauma and most cyberware will bring this down, and cyberware will even reduce the maximum you could reach with therapy. You first need to worry below 30. You suffer cyberpsychosis if your current PSYCHE reaches 0.",
+        "LuckText": "LUCK can help push a failure into a success. After making a skill check, before the GM tells you what happens, you may spend your LUCK points to increase your result by 1 per point. Your GM will tell you when they reset to max, which starts at 5.",
+        "SheetNote": "Your secondary stats have been set on your character sheet. Review them, then click Next."
+      },
+      "Languages": {
+        "Prompt": "You speak English and have a partial understanding of a second language — which one?",
+        "Placeholder": "Language name..."
+      },
+      "Ability": {
+        "Prompt": "You may increase your understanding of your extra language to be fully fluent, or you may choose 1 rank in any of these Abilities (including getting another language).",
+        "UpgradeLanguage": "Make {language} fully fluent",
+        "NoAbilities": "No abilities found in the Abilities folder.",
+        "Choose": "Choose"
+      },
+      "Skills": {
+        "Prompt": "You have 35 points to distribute among your skills. When you put a rank in a skill that has Components, you get one free rank in one of those Components. You can increase Components by two ranks without raising a Skill by spending 1 skill point. Or, instead of the free Component rank, increase the same skill 2 ranks for 1 point — as long as you don't end up higher than at least one of its Components. Play around, we'll keep track for you.",
+        "Remaining": "{remaining} of 35 points remaining",
+        "Over": "You've spent {over} points more than your budget — reduce some skills.",
+        "ConfirmUnderSpent": "You still have {remaining} unspent skill points. Continue anyway?"
+      },
+      "Role": {
+        "Prompt": "Choose a Role that defines your place in the world. Choosing a Role completes character creation.",
+        "NoRoles": "No roles found in the Roles folder.",
+        "Choose": "Choose this Role"
+      }
+    },
     "Combat": {
       "Attack": "Attack",
       "DV": "Difficulty Value (DV)",
@@ -271,7 +334,7 @@
       "Distance": "Distance",
       "OutOfRange": "Out of range — this weapon cannot reach the target at this distance.",
       "SP": "SP",
-      "NetDamage": "Net Damage",
+      "NetDamage": "Damage",
       "ApplyDamage": "Apply Damage",
       "ApplyDamagePrompt": "Apply {damage} damage to {target}?",
       "ApplyDamageWithSP": "Apply {damage} damage to {target}? (HP: -{hp}, SP: -1)"

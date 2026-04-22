@@ -1504,3 +1504,286 @@ button, .cyberpunk-blue .button, a.button {
   color: var(--color-text-light-6);
   margin-bottom: 0.25rem;
 }
+
+/* ============================================================
+   CHARACTER CREATION WIZARD
+   ============================================================ */
+
+/* Sheet highlight border */
+.cyberpunk-blue .char-creation-highlight {
+  outline: 3px solid var(--cpb-accent);
+  outline-offset: 2px;
+}
+
+/* Sheet banner */
+.cyberpunk-blue .cc-sheet-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(39, 176, 255, 0.12);
+  border-bottom: 1px solid var(--cpb-accent);
+  font-size: var(--font-size-12);
+  color: var(--cpb-accent);
+}
+
+.cyberpunk-blue .cc-sheet-banner span {
+  flex: 1;
+}
+
+.cyberpunk-blue .cc-sheet-banner button {
+  padding: 0.2rem 0.6rem;
+  font-size: var(--font-size-11);
+}
+
+.cyberpunk-blue .cc-begin-banner {
+  justify-content: flex-end;
+  background: transparent;
+  border-bottom: none;
+}
+
+/* Wizard window */
+.character-creation-wizard .cc-wizard {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Progress dots */
+.character-creation-wizard .cc-progress {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.character-creation-wizard .cc-step-dot {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--cpb-border);
+  border-radius: 2rem;
+  font-size: var(--font-size-10);
+  color: var(--color-text-light-6);
+  opacity: 0.5;
+}
+
+.character-creation-wizard .cc-step-dot.done {
+  color: var(--cpb-accent);
+  opacity: 0.7;
+  border-color: var(--cpb-accent);
+}
+
+.character-creation-wizard .cc-step-dot.active {
+  color: var(--cpb-accent-strong);
+  opacity: 1;
+  border-color: var(--cpb-accent-strong);
+  font-weight: bold;
+}
+
+/* Content area */
+.character-creation-wizard .cc-content {
+  flex: 1;
+}
+
+.character-creation-wizard .cc-step-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.character-creation-wizard .cc-intro {
+  font-size: var(--font-size-16);
+  text-align: center;
+  color: var(--cpb-accent-strong);
+  padding: 1rem 0;
+}
+
+/* Lifepath */
+.character-creation-wizard .cc-table-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.character-creation-wizard .cc-roll-btn {
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+}
+
+.character-creation-wizard .cc-roll-all {
+  color: var(--cpb-accent-strong);
+  border-color: var(--cpb-accent-strong);
+}
+
+/* Stats */
+.character-creation-wizard .cc-points-counter {
+  text-align: center;
+  font-size: var(--font-size-14);
+  padding: 0.4rem;
+  border: 1px solid var(--cpb-border);
+  border-radius: 3px;
+  color: var(--cpb-accent);
+}
+
+.character-creation-wizard .cc-points-counter.all-spent {
+  color: var(--cpb-accent-strong);
+  border-color: var(--cpb-accent-strong);
+}
+
+.character-creation-wizard .cc-points-counter.over-budget {
+  color: var(--cpb-error, #ff4444);
+  border-color: var(--cpb-error, #ff4444);
+}
+
+.character-creation-wizard .cc-stat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.character-creation-wizard .cc-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.character-creation-wizard .cc-stat-label {
+  width: 4rem;
+  font-size: var(--font-size-12);
+  color: var(--cpb-accent);
+  font-weight: bold;
+}
+
+.character-creation-wizard .cc-stat-btn {
+  width: 1.8rem;
+  height: 1.8rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.character-creation-wizard .cc-stat-value {
+  width: 2rem;
+  text-align: center;
+  font-size: var(--font-size-16);
+  font-weight: bold;
+  color: var(--cpb-accent-strong);
+}
+
+/* Secondary text blocks */
+.character-creation-wizard .cc-text-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: var(--font-size-12);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+/* Languages */
+.character-creation-wizard .cc-language-input input {
+  width: 100%;
+}
+
+/* Ability list */
+.character-creation-wizard .cc-ability-upgrade {
+  color: var(--cpb-accent-strong);
+  border-color: var(--cpb-accent-strong);
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+}
+
+.character-creation-wizard .cc-ability-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.character-creation-wizard .cc-ability-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--cpb-border);
+}
+
+.character-creation-wizard .cc-ability-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.character-creation-wizard .cc-ability-name {
+  font-size: var(--font-size-12);
+  color: var(--color-text-light-1);
+}
+
+.character-creation-wizard .cc-ability-maxrank,
+.character-creation-wizard .cc-ability-note {
+  font-size: var(--font-size-10);
+  color: var(--color-text-light-6);
+}
+
+/* Role list */
+.character-creation-wizard .cc-role-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.character-creation-wizard .cc-role-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--cpb-border);
+  border-radius: 3px;
+}
+
+.character-creation-wizard .cc-role-name {
+  flex: 1;
+  font-size: var(--font-size-13);
+  color: var(--cpb-accent);
+}
+
+/* Note text */
+.character-creation-wizard .cc-sheet-note {
+  font-size: var(--font-size-12);
+  color: var(--cpb-accent);
+  font-style: italic;
+}
+
+/* Footer navigation */
+.character-creation-wizard .cc-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--cpb-border);
+  margin-top: 0.25rem;
+}
+
+.character-creation-wizard .cc-btn-primary {
+  color: var(--cpb-accent-strong);
+  border-color: var(--cpb-accent-strong);
+}
+
+.character-creation-wizard .cc-btn-secondary {
+  opacity: 0.75;
+}
+
+.character-creation-wizard .cc-btn-small {
+  padding: 0.2rem 0.5rem;
+  font-size: var(--font-size-11);
+  white-space: nowrap;
+}

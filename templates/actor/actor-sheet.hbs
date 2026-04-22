@@ -5,16 +5,32 @@
       <h1 class="charname">
         <input name="name" type="text" value="{{actor.name}}" placeholder="Name" />
       </h1>
-      <div class="header-stats">
+      <div class="header-stats {{#if charCreation.highlightStats}}char-creation-highlight{{/if}}">
         {{#each stats as |stat|}}
           <label class="header-stat" title="{{stat.label}}">
             <span class="stat-short">{{stat.shortLabel}}</span>
-            <input type="number" name="system.stats.{{stat.slug}}.value" value="{{stat.value}}" data-dtype="Number" />
+            <input type="number" name="system.stats.{{stat.slug}}.value" value="{{stat.value}}" data-dtype="Number" {{#unless ../charCreation.statsWritable}}disabled{{/unless}} />
           </label>
         {{/each}}
       </div>
     </div>
   </header>
+
+  {{#if charCreation.active}}
+    <div class="cc-sheet-banner">
+      <i class="fas fa-user-plus"></i>
+      <span>{{localize "CYBER_BLUE.CC.Active"}}</span>
+      <button type="button" data-action="open-character-creation-wizard">
+        {{localize "CYBER_BLUE.CC.Button.Open"}}
+      </button>
+    </div>
+  {{else if charCreation.canBegin}}
+    <div class="cc-sheet-banner cc-begin-banner">
+      <button type="button" data-action="begin-character-creation">
+        <i class="fas fa-user-plus"></i> {{localize "CYBER_BLUE.CC.Button.Begin"}}
+      </button>
+    </div>
+  {{/if}}
 
   <nav class="sheet-tabs tabs" data-group="primary">
     <a class="item" data-tab="overview">{{localize "CYBER_BLUE.Sheet.Tabs.Overview"}}</a>
@@ -29,7 +45,7 @@
 
   <section class="sheet-body">
     <div class="tab active" data-group="primary" data-tab="overview">
-      <section class="sheet-panel health-panel">
+      <section class="sheet-panel health-panel {{#if charCreation.highlightSecondary}}char-creation-highlight{{/if}}">
         <h2>{{localize "CYBER_BLUE.Sheet.Labels.Health"}}</h2>
         <div class="health-grid">
           <div class="health-block health-hp">
@@ -83,7 +99,7 @@
         </div>
       </section>
 
-      <section class="quick-stats-row">
+      <section class="quick-stats-row {{#if charCreation.highlightSecondary}}char-creation-highlight{{/if}}">
         <div class="sheet-panel stat-card armor-card">
           <span class="stat-short">{{localize "CYBER_BLUE.Sheet.Labels.StoppingPower"}}</span>
           <select name="system.combat.activeArmorItemId">
@@ -386,7 +402,7 @@
           </table>
         </div>
 
-        <div class="sheet-panel traits-ability-panel">
+        <div class="sheet-panel traits-ability-panel {{#if charCreation.highlightAbilities}}char-creation-highlight{{/if}}">
           <table class="embedded-table">
             <colgroup>
               <col />
@@ -442,7 +458,7 @@
       </section>
     </div>
 
-    <div class="tab" data-group="primary" data-tab="skills">
+    <div class="tab {{#if charCreation.highlightSkills}}char-creation-highlight{{/if}}" data-group="primary" data-tab="skills">
       <section class="sheet-panel">
         <div class="skill-table-container">
           <div class="skill-header skill-row">
@@ -457,7 +473,7 @@
             <div class="skill-row" data-skill-row data-skill-slug="{{skill.slug}}">
               <span class="skill-name">{{skill.label}}</span>
               <span class="skill-stat numeric-column">{{skill.statLabel}}</span>
-              <input class="numeric-column" type="number" name="system.skills.{{skill.slug}}.rank" value="{{skill.rank}}" data-dtype="Number" />
+              <input class="numeric-column" type="number" name="system.skills.{{skill.slug}}.rank" value="{{skill.rank}}" data-dtype="Number" {{#unless ../charCreation.skillsWritable}}disabled{{/unless}} />
               <div class="component-pill-list">
                 {{#each skill.components as |component|}}
                   <button type="button" class="component-pill" data-action="roll-skill" data-skill-slug="{{../slug}}" data-component-slug="{{component.slug}}">
@@ -728,7 +744,7 @@
       <section class="notes-grid">
         <div class="sheet-panel note-panel">
           <h2>{{localize "CYBER_BLUE.Sheet.Labels.Background"}}</h2>
-          {{#if editable}}
+          {{#if charCreation.notesWritable}}
             <prose-mirror name="system.details.background" value="{{system.details.background}}" document-uuid="{{actor.uuid}}" compact>
               {{{enrichedDetails.background}}}
             </prose-mirror>
@@ -738,7 +754,7 @@
         </div>
         <div class="sheet-panel note-panel">
           <h2>{{localize "CYBER_BLUE.Sheet.Labels.Appearance"}}</h2>
-          {{#if editable}}
+          {{#if charCreation.notesWritable}}
             <prose-mirror name="system.details.appearance" value="{{system.details.appearance}}" document-uuid="{{actor.uuid}}" compact>
               {{{enrichedDetails.appearance}}}
             </prose-mirror>
@@ -748,7 +764,7 @@
         </div>
         <div class="sheet-panel note-panel">
           <h2>{{localize "CYBER_BLUE.Sheet.Labels.Personality"}}</h2>
-          {{#if editable}}
+          {{#if charCreation.notesWritable}}
             <prose-mirror name="system.details.personality" value="{{system.details.personality}}" document-uuid="{{actor.uuid}}" compact>
               {{{enrichedDetails.personality}}}
             </prose-mirror>
@@ -758,7 +774,7 @@
         </div>
         <div class="sheet-panel note-panel">
           <h2>{{localize "CYBER_BLUE.Sheet.Labels.Style"}}</h2>
-          {{#if editable}}
+          {{#if charCreation.notesWritable}}
             <prose-mirror name="system.details.style" value="{{system.details.style}}" document-uuid="{{actor.uuid}}" compact>
               {{{enrichedDetails.style}}}
             </prose-mirror>

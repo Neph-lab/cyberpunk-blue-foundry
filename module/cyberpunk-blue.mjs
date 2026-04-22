@@ -17,6 +17,7 @@ import {
 } from './helpers/cyberware-disable.mjs';
 import { syncActorLeaderRoles } from './helpers/roles.mjs';
 import { CyberBlueJsonImportDialog, CyberBlueMacroCreator } from './helpers/gm-tools.mjs';
+import { CharacterCreationWizard } from './helpers/character-creation.mjs';
 import * as models from './data/_module.mjs';
 
 Hooks.once('init', function () {
@@ -430,4 +431,29 @@ Handlebars.registerHelper('eq', function (left, right) {
 
 Handlebars.registerHelper('includes', function (collection, value) {
   return Array.isArray(collection) && collection.includes(value);
+});
+
+Handlebars.registerHelper('not', function (value) {
+  return !value;
+});
+
+Handlebars.registerHelper('gt', function (left, right) {
+  return left > right;
+});
+
+Handlebars.registerHelper('and', function (...args) {
+  return args.slice(0, -1).every(Boolean);
+});
+
+Hooks.once('ready', () => {
+  if (game.user.isGM) return;
+
+  const ownedCharacter = game.actors.find(
+    a => a.type === 'character'
+      && a.isOwner
+      && (a.system.characterCreation?.active ?? false)
+  );
+  if (!ownedCharacter) return;
+
+  new CharacterCreationWizard(ownedCharacter).render(true);
 });
