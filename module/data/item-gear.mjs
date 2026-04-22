@@ -15,6 +15,15 @@ export default class CyberBlueGear extends CyberBlueItemBase {
       shots: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
       hands: new fields.NumberField({ ...requiredInteger, initial: 1, min: 1 }),
       concealable: new fields.BooleanField({ initial: false }),
+      damageType: new fields.StringField({ required: true, blank: true, initial: '' }),
+      autofireMultiplier: new fields.NumberField({ required: true, nullable: false, initial: 1 }),
+      autofireRangeTable: new fields.ArrayField(
+        new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+        { initial: Array(8).fill(0) }
+      ),
+      coneSpread: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+      coneAngle: new fields.NumberField({ ...requiredInteger, initial: 45, min: 0 }),
+      coneHalfDamageDistance: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
       rangeTable: new fields.ArrayField(
         new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
         { initial: Array(8).fill(0) }

@@ -197,7 +197,7 @@
                   </td>
                   <td class="numeric-column">
                     <button type="button" data-action="weapon-attack" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.attackTooltip}}">
-                      {{weapon.attackLabel}}
+                      {{localize "CYBER_BLUE.Combat.Attack"}} ({{weapon.attackLabel}})
                     </button>
                   </td>
                   <td>
@@ -237,6 +237,11 @@
                     {{#if weapon.showsAmmo}}
                       <button type="button" data-action="weapon-reload" data-weapon-index="{{weapon.weaponIndex}}" data-magazine="{{weapon.magazine}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Reload"}}">
                         <i class="fas fa-rotate-right"></i>
+                      </button>
+                    {{/if}}
+                    {{#if weapon.hasAutofire}}
+                      <button type="button" data-action="weapon-autofire" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.autofireTooltip}}" {{#unless weapon.autofireAmmoOk}}disabled{{/unless}}>
+                        {{localize "CYBER_BLUE.Combat.Autofire"}} ({{weapon.autofireLabel}})
                       </button>
                     {{/if}}
                   </td>

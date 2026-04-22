@@ -100,7 +100,74 @@
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.Concealable"}}</span>
                   <input type="checkbox" name="system.weapons.{{weapon.index}}.concealable" {{checked weapon.concealable}} />
                 </label>
+
+                <fieldset class="weapon-damage-type-group">
+                  <legend>{{localize "CYBER_BLUE.Sheet.Labels.DamageType"}}</legend>
+                  <label class="checkbox-label">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.DamageTypeNone"}}</span>
+                    <input type="radio" data-weapon-damage-type data-weapon-index="{{weapon.index}}" value="" {{#if (eq weapon.damageType "")}}checked{{/if}} />
+                  </label>
+                  <label class="checkbox-label">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.Autofire"}}</span>
+                    <input type="radio" data-weapon-damage-type data-weapon-index="{{weapon.index}}" value="autofire" {{#if (eq weapon.damageType "autofire")}}checked{{/if}} />
+                  </label>
+                  <label class="checkbox-label">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.Cone"}}</span>
+                    <input type="radio" data-weapon-damage-type data-weapon-index="{{weapon.index}}" value="cone" {{#if (eq weapon.damageType "cone")}}checked{{/if}} />
+                  </label>
+                  <label class="checkbox-label">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.Explosion"}}</span>
+                    <input type="radio" data-weapon-damage-type data-weapon-index="{{weapon.index}}" value="explosion" {{#if (eq weapon.damageType "explosion")}}checked{{/if}} />
+                  </label>
+                </fieldset>
               </div>
+
+              {{#if (eq weapon.damageType "autofire")}}
+                <div class="weapon-subfields">
+                  <label class="compact-field">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.AutofireMultiplier"}}</span>
+                    <input type="number" name="system.weapons.{{weapon.index}}.autofireMultiplier" value="{{weapon.autofireMultiplier}}" step="0.5" min="0.5" />
+                  </label>
+                  <div class="weapon-range-table-wrap">
+                    <p class="hint">{{localize "CYBER_BLUE.Sheet.Labels.AutofireRangeTable"}}</p>
+                    <table class="weapon-range-table">
+                      <thead>
+                        <tr>
+                          {{#each weapon.autofireRangeBands as |band|}}
+                            <th>{{band.label}}</th>
+                          {{/each}}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          {{#each weapon.autofireRangeBands as |band|}}
+                            <td class="{{#if band.isBlocked}}is-blocked{{/if}}">
+                              <input type="text" value="{{band.displayValue}}" data-autofire-range-input data-weapon-index="{{weapon.index}}" data-band-index="{{band.index}}" />
+                            </td>
+                          {{/each}}
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              {{/if}}
+
+              {{#if (eq weapon.damageType "cone")}}
+                <div class="weapon-subfields cone-fields">
+                  <label class="compact-field">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.ConeSpread"}}</span>
+                    <input type="number" name="system.weapons.{{weapon.index}}.coneSpread" value="{{weapon.coneSpread}}" data-dtype="Number" min="0" />
+                  </label>
+                  <label class="compact-field">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.ConeAngle"}}</span>
+                    <input type="number" name="system.weapons.{{weapon.index}}.coneAngle" value="{{weapon.coneAngle}}" data-dtype="Number" min="0" max="360" />
+                  </label>
+                  <label class="compact-field">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.ConeHalfDamageDistance"}}</span>
+                    <input type="number" name="system.weapons.{{weapon.index}}.coneHalfDamageDistance" value="{{weapon.coneHalfDamageDistance}}" data-dtype="Number" min="0" />
+                  </label>
+                </div>
+              {{/if}}
 
               {{#if weapon.definition.usesRangeTable}}
                 <div class="weapon-range-table-wrap">

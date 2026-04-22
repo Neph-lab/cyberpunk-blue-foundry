@@ -1210,6 +1210,42 @@ button, .cyberpunk-blue .button, a.button {
   align-self: end;
 }
 
+.cyberpunk-blue .weapon-damage-type-group {
+  border: 1px solid var(--cpb-panel-border);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  grid-column: 1 / -1;
+}
+
+.cyberpunk-blue .weapon-damage-type-group legend {
+  font-size: 0.75em;
+  font-weight: 600;
+  opacity: 0.7;
+  padding: 0 0.25rem;
+  text-transform: uppercase;
+}
+
+.cyberpunk-blue .weapon-subfields {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  background: var(--cpb-panel);
+  border: 1px solid var(--cpb-panel-border);
+  border-radius: 4px;
+}
+
+.cyberpunk-blue .weapon-subfields .weapon-range-table-wrap {
+  flex: 1 1 100%;
+  margin-top: 0;
+}
+
 .cyberpunk-blue .weapon-range-table-wrap {
   margin-top: 0.9rem;
   overflow-x: auto;

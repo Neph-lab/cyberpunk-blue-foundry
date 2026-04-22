@@ -281,6 +281,12 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
           isBlocked: (Number(weapon.rangeTable?.[band.index] ?? 0) || 0) === 0,
           displayValue: (Number(weapon.rangeTable?.[band.index] ?? 0) || 0) === 0 ? '-' : `${Number(weapon.rangeTable?.[band.index] ?? 0) || 0}`,
         })),
+        autofireRangeBands: (CONFIG.CYBER_BLUE.combat?.rangeBands ?? []).map((band) => ({
+          ...band,
+          value: Number(weapon.autofireRangeTable?.[band.index] ?? 0) || 0,
+          isBlocked: (Number(weapon.autofireRangeTable?.[band.index] ?? 0) || 0) === 0,
+          displayValue: (Number(weapon.autofireRangeTable?.[band.index] ?? 0) || 0) === 0 ? '-' : `${Number(weapon.autofireRangeTable?.[band.index] ?? 0) || 0}`,
+        })),
       };
     });
     context.cyberwarePsyche = context.isCyberware
@@ -408,6 +414,12 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     });
     this.element.querySelectorAll('[data-range-input]').forEach((input) => {
       input.addEventListener('change', this._onRangeTableChange.bind(this));
+    });
+    this.element.querySelectorAll('[data-autofire-range-input]').forEach((input) => {
+      input.addEventListener('change', this._onAutofireRangeTableChange.bind(this));
+    });
+    this.element.querySelectorAll('[data-weapon-damage-type]').forEach((input) => {
+      input.addEventListener('change', this._onWeaponDamageTypeChange.bind(this));
     });
     this.element.querySelectorAll('[data-cyberware-integration]').forEach((select) => {
       select.addEventListener('change', this._onCyberwareIntegrationChange.bind(this));
@@ -766,6 +778,28 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     const rawValue = `${event.currentTarget.value ?? ''}`.trim();
     const nextValue = rawValue === '-' ? 0 : Math.max(Number(rawValue) || 0, 0);
     weapons[weaponIndex].rangeTable[bandIndex] = nextValue;
+    await this.document.update({ 'system.weapons': weapons });
+  }
+
+  async _onAutofireRangeTableChange(event) {
+    event.preventDefault();
+    const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
+    const bandIndex = Number.parseInt(event.currentTarget.dataset.bandIndex ?? '-1', 10);
+    if (Number.isNaN(weaponIndex) || weaponIndex < 0 || Number.isNaN(bandIndex) || bandIndex < 0) return;
+    const weapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
+    const rawValue = `${event.currentTarget.value ?? ''}`.trim();
+    const nextValue = rawValue === '-' ? 0 : Math.max(Number(rawValue) || 0, 0);
+    if (!weapons[weaponIndex].autofireRangeTable) weapons[weaponIndex].autofireRangeTable = Array(8).fill(0);
+    weapons[weaponIndex].autofireRangeTable[bandIndex] = nextValue;
+    await this.document.update({ 'system.weapons': weapons });
+  }
+
+  async _onWeaponDamageTypeChange(event) {
+    event.preventDefault();
+    const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
+    if (Number.isNaN(weaponIndex) || weaponIndex < 0) return;
+    const weapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
+    weapons[weaponIndex].damageType = event.currentTarget.value ?? '';
     await this.document.update({ 'system.weapons': weapons });
   }
 

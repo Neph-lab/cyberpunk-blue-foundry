@@ -7,7 +7,7 @@ import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs'
 import { normalizeGearState, getGearStateUpdateData } from '../helpers/gear.mjs';
 import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
 import { getWeaponTypeDefinition } from '../helpers/combat.mjs';
-import { resolveWeaponAttack } from '../helpers/combat-resolution.mjs';
+import { resolveWeaponAttack, resolveAutofireAttack } from '../helpers/combat-resolution.mjs';
 import { CharacterCreationWizard, CC_STEPS_LIST } from '../helpers/character-creation.mjs';
 import {
   getRoleCategoryLabel,
@@ -299,6 +299,10 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         const total = rollContext.statValue + rollContext.usedRank + (rollContext.statRollMod ?? 0);
         const ammo = clampWeaponAmmo(weapon);
         const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill : baseSkill;
+        const damageType = weapon.damageType ?? '';
+        const autofireRank = this.document.system.skills?.autofire?.rank ?? 0;
+        const autofireUsedRank = Math.min(rollContext.usedRank, autofireRank);
+        const autofireTotal = rollContext.statValue + autofireUsedRank + (rollContext.statRollMod ?? 0);
         combatWeaponEntries.push({
           itemId: itemDoc.id,
           weaponIndex,
@@ -313,6 +317,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           showsAmmo: definition.usesMagazine,
           ammoCurrent: ammo.current,
           magazine: ammo.magazine,
+          shots: weapon.shots ?? 0,
+          damageType,
+          hasAutofire: damageType === 'autofire',
+          autofireAmmoOk: damageType === 'autofire' && ammo.current >= 10,
+          autofireLabel: `${autofireTotal >= 0 ? '+' : ''}${autofireTotal}`,
+          autofireTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + min(${rollContext.skillLabel} ${rollContext.usedRank}, Autofire ${autofireRank})`,
           skillSlug,
           skillOptions: definition.skillOptions.map((slug) => ({
             value: slug,
@@ -338,6 +348,10 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         const total = rollContext.statValue + rollContext.usedRank + (rollContext.statRollMod ?? 0);
         const ammo = clampWeaponAmmo(weapon);
         const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill : baseSkill;
+        const damageType = weapon.damageType ?? '';
+        const autofireRank = this.document.system.skills?.autofire?.rank ?? 0;
+        const autofireUsedRank = Math.min(rollContext.usedRank, autofireRank);
+        const autofireTotal = rollContext.statValue + autofireUsedRank + (rollContext.statRollMod ?? 0);
         combatWeaponEntries.push({
           itemId: itemDoc.id,
           weaponIndex,
@@ -352,6 +366,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           showsAmmo: definition.usesMagazine,
           ammoCurrent: ammo.current,
           magazine: ammo.magazine,
+          shots: weapon.shots ?? 0,
+          damageType,
+          hasAutofire: damageType === 'autofire',
+          autofireAmmoOk: damageType === 'autofire' && ammo.current >= 10,
+          autofireLabel: `${autofireTotal >= 0 ? '+' : ''}${autofireTotal}`,
+          autofireTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + min(${rollContext.skillLabel} ${rollContext.usedRank}, Autofire ${autofireRank})`,
           skillSlug,
           skillOptions: definition.skillOptions.map((slug) => ({
             value: slug,
@@ -593,6 +613,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     this.element.querySelectorAll('[data-action="weapon-attack"]').forEach((button) => {
       button.addEventListener('click', this._onWeaponAttack.bind(this));
     });
+    this.element.querySelectorAll('[data-action="weapon-autofire"]').forEach((button) => {
+      button.addEventListener('click', this._onWeaponAutofire.bind(this));
+    });
     this.element.querySelectorAll('[data-action="weapon-damage"]').forEach((button) => {
       button.addEventListener('click', this._onWeaponDamage.bind(this));
     });
@@ -825,6 +848,16 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       return;
     }
     await resolveWeaponAttack(this.document, item, weaponIndex);
+  }
+
+  async _onWeaponAutofire(event) {
+    event.preventDefault();
+    const item = this._getItemFromEvent(event);
+    const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
+    if (!item || Number.isNaN(weaponIndex) || weaponIndex < 0) {
+      return;
+    }
+    await resolveAutofireAttack(this.document, item, weaponIndex);
   }
 
   async _onWeaponDamage(event) {
