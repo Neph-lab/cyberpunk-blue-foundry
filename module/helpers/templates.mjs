@@ -14,5 +14,6 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/cyberpunk-blue/templates/item/parts/item-ammo.hbs',
     'systems/cyberpunk-blue/templates/item/parts/item-program-executable.hbs',
     'systems/cyberpunk-blue/templates/item/parts/item-mod.hbs',
+    'systems/cyberpunk-blue/templates/item/parts/item-mods-tab.hbs',
   ]);
 };

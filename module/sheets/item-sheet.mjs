@@ -306,12 +306,19 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       : null;
     context.installedMods = [];
     context.embeddedMods = (context.isGear || context.isCyberware)
-      ? (itemData.system.embeddedMods ?? []).map((mod) => ({
+      ? await Promise.all((itemData.system.embeddedMods ?? []).map(async (mod) => ({
           ...mod,
           typeLabel: MOD_TYPES.find((t) => t.value === mod.modType)?.label ?? mod.modType,
-        }))
+          enrichedDescription: mod.description ? await TextEditor.enrichHTML(mod.description, { async: true }) : '',
+          weaponLabel: mod.targetWeaponIndex >= 0
+            ? (itemData.system.weapons?.[mod.targetWeaponIndex]
+                ? `Weapon ${mod.targetWeaponIndex + 1}`
+                : `Weapon ${mod.targetWeaponIndex + 1} (missing)`)
+            : '',
+        })))
       : [];
     context.showEmbeddedModsPanel = (context.isGear || context.isCyberware) && canManageRestricted;
+    context.showModsTab = context.showEmbeddedModsPanel;
     context.installedOnOptions = context.isMod && ownerActor
       ? ownerActor.items.filter((i) => ['gear', 'cyberware'].includes(i.type))
           .map((i) => ({ value: i.id, label: i.name }))
@@ -959,6 +966,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       name: sourceItem.name,
       cost: sourceItem.system.cost ?? '',
       note: sourceItem.system.note ?? '',
+      description: sourceItem.system.description ?? '',
       targetWeaponIndex: sourceItem.system.targetWeaponIndex ?? -1,
       weaponChanges: foundry.utils.deepClone(sourceItem.system.weaponChanges ?? []),
     });
@@ -980,6 +988,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       mod.name = source.name;
       mod.cost = source.system.cost ?? '';
       mod.note = source.system.note ?? '';
+      mod.description = source.system.description ?? '';
       mod.targetWeaponIndex = source.system.targetWeaponIndex ?? -1;
       mod.weaponChanges = foundry.utils.deepClone(source.system.weaponChanges ?? []);
       changed = true;

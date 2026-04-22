@@ -65,6 +65,7 @@ export default class CyberBlueCyberware extends CyberBlueItemBase {
         name: new fields.StringField({ required: true, blank: true }),
         cost: new fields.StringField({ required: true, blank: true }),
         note: new fields.StringField({ required: true, blank: true }),
+        description: new fields.HTMLField({ initial: '' }),
         targetWeaponIndex: new fields.NumberField({ required: true, nullable: false, integer: true, initial: -1 }),
         weaponChanges: new fields.ArrayField(
           new fields.SchemaField({
