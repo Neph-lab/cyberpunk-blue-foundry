@@ -228,12 +228,14 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     context.ammoTypeOptions = [
       { value: 'pistol', label: 'Pistol' },
       { value: 'smg', label: 'SMG' },
-      { value: 'shotgun', label: 'Shotgun' },
+      { value: 'shotgunSlug', label: 'Shotgun Slug' },
+      { value: 'shotgunShell', label: 'Shotgun Shell' },
       { value: 'assault', label: 'Assault Rifle' },
       { value: 'sniper', label: 'Sniper Rifle' },
       { value: 'bow', label: 'Bow' },
       { value: 'grenade', label: 'Grenade Launcher' },
       { value: 'rocket', label: 'Rocket Launcher' },
+      { value: 'flamethrower', label: 'Flamethrower' },
     ];
     context.programTypes = [
       { value: 'antipersonnel', label: 'Anti-Personnel' },
@@ -292,10 +294,14 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     context.cyberwarePsyche = context.isCyberware
       ? parsePsycheLossFormula(itemData.system.psycheLossFormula)
       : null;
-    context.installedMods = (context.isGear || context.isCyberware) && ownerActor
-      ? ownerActor.items.filter((i) => i.type === 'mod' && i.system.installedOnId === this.document.id)
-          .map((i) => ({ id: i.id, name: i.name, modType: i.system.modType, typeLabel: MOD_TYPES.find((t) => t.value === i.system.modType)?.label ?? i.system.modType }))
+    context.installedMods = [];
+    context.embeddedMods = (context.isGear || context.isCyberware)
+      ? (itemData.system.embeddedMods ?? []).map((mod) => ({
+          ...mod,
+          typeLabel: MOD_TYPES.find((t) => t.value === mod.modType)?.label ?? mod.modType,
+        }))
       : [];
+    context.showEmbeddedModsPanel = (context.isGear || context.isCyberware) && canManageRestricted;
     context.installedOnOptions = context.isMod && ownerActor
       ? ownerActor.items.filter((i) => ['gear', 'cyberware'].includes(i.type))
           .map((i) => ({ value: i.id, label: i.name }))
@@ -437,6 +443,13 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       ?.addEventListener('click', () => this._onRollExecutableStat('atk'));
     this.element.querySelector('[data-action="roll-executable-per"]')
       ?.addEventListener('click', () => this._onRollExecutableStat('per'));
+    this.element.querySelector('[data-action="import-mod-by-uuid"]')
+      ?.addEventListener('click', this._onImportModByUuid.bind(this));
+    this.element.querySelector('[data-action="sync-embedded-mods"]')
+      ?.addEventListener('click', this._onSyncEmbeddedMods.bind(this));
+    this.element.querySelectorAll('[data-action="remove-embedded-mod"]').forEach((btn) => {
+      btn.addEventListener('click', this._onRemoveEmbeddedMod.bind(this));
+    });
   }
 
   async _onRollExecutableStat(stat) {
@@ -799,7 +812,17 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
     if (Number.isNaN(weaponIndex) || weaponIndex < 0) return;
     const weapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
-    weapons[weaponIndex].damageType = event.currentTarget.value ?? '';
+    const newType = event.currentTarget.value ?? '';
+    weapons[weaponIndex].damageType = newType;
+    if (newType === 'autofire') {
+      const allZeros = (weapons[weaponIndex].autofireRangeTable ?? []).every((v) => v === 0);
+      if (allZeros) {
+        const definition = getWeaponTypeDefinition(weapons[weaponIndex].type);
+        if (definition.defaultAutofireRangeTable) {
+          weapons[weaponIndex].autofireRangeTable = definition.defaultAutofireRangeTable.slice();
+        }
+      }
+    }
     await this.document.update({ 'system.weapons': weapons });
   }
 
@@ -862,5 +885,70 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     });
 
     return picker.browse();
+  }
+
+  async _onImportModByUuid(event) {
+    event.preventDefault();
+    const input = this.element.querySelector('[data-mod-import-uuid]');
+    const uuid = (input?.value ?? '').trim();
+    if (!uuid) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Sheet.Labels.ModImportNoUuid'));
+      return;
+    }
+    let sourceItem;
+    try {
+      sourceItem = await fromUuid(uuid);
+    } catch {
+      ui.notifications.error(game.i18n.localize('CYBER_BLUE.Sheet.Labels.ModImportInvalidUuid'));
+      return;
+    }
+    if (!sourceItem || sourceItem.type !== 'mod') {
+      ui.notifications.error(game.i18n.localize('CYBER_BLUE.Sheet.Labels.ModImportNotMod'));
+      return;
+    }
+    const system = this.document.system.toObject?.() ?? this.document.system;
+    const embeddedMods = [...(system.embeddedMods ?? [])];
+    embeddedMods.push({
+      id: foundry.utils.randomID(),
+      sourceUuid: uuid,
+      modType: sourceItem.system.modType,
+      name: sourceItem.name,
+      cost: sourceItem.system.cost ?? '',
+      note: sourceItem.system.note ?? '',
+      targetWeaponIndex: sourceItem.system.targetWeaponIndex ?? -1,
+      weaponChanges: foundry.utils.deepClone(sourceItem.system.weaponChanges ?? []),
+    });
+    await this.document.update({ 'system.embeddedMods': embeddedMods });
+    if (input) input.value = '';
+  }
+
+  async _onSyncEmbeddedMods(event) {
+    event.preventDefault();
+    const system = this.document.system.toObject?.() ?? this.document.system;
+    const embeddedMods = foundry.utils.deepClone(system.embeddedMods ?? []);
+    let changed = false;
+    for (const mod of embeddedMods) {
+      if (!mod.sourceUuid) continue;
+      let source;
+      try { source = await fromUuid(mod.sourceUuid); } catch { continue; }
+      if (!source || source.type !== 'mod') continue;
+      mod.modType = source.system.modType;
+      mod.name = source.name;
+      mod.cost = source.system.cost ?? '';
+      mod.note = source.system.note ?? '';
+      mod.targetWeaponIndex = source.system.targetWeaponIndex ?? -1;
+      mod.weaponChanges = foundry.utils.deepClone(source.system.weaponChanges ?? []);
+      changed = true;
+    }
+    if (changed) await this.document.update({ 'system.embeddedMods': embeddedMods });
+    ui.notifications.info(game.i18n.localize('CYBER_BLUE.Sheet.Labels.ModSyncDone'));
+  }
+
+  async _onRemoveEmbeddedMod(event) {
+    event.preventDefault();
+    const modId = event.currentTarget.dataset.modId;
+    const system = this.document.system.toObject?.() ?? this.document.system;
+    const embeddedMods = (system.embeddedMods ?? []).filter((m) => m.id !== modId);
+    await this.document.update({ 'system.embeddedMods': embeddedMods });
   }
 }

@@ -121,7 +121,14 @@
         "NoWeaponAdjustments": "No weapon adjustments yet.",
         "NoEffects": "No effects.",
         "NoItemsInState": "No {state} items.",
-        "Cancel": "Cancel"
+        "Cancel": "Cancel",
+        "ModImport": "Import Mod",
+        "ModImportUuidPlaceholder": "Paste mod UUID here...",
+        "ModImportNoUuid": "Please enter a mod UUID before importing.",
+        "ModImportInvalidUuid": "Could not find an item with that UUID.",
+        "ModImportNotMod": "The item at that UUID is not a Mod.",
+        "ModSyncAll": "Sync all mods from source",
+        "ModSyncDone": "Embedded mods synced."
       },
         "Buttons": {
         "AddRole": "Add Role",
@@ -360,7 +367,14 @@
       "ConeTargetCount": "{count} target(s) in cone",
       "ConeFullDamage": "Full damage",
       "ConeHalfDamage": "Half damage",
-      "Evaded": "Evaded"
+      "Evaded": "Evaded",
+      "ExplosionAimPrompt": "Left-click to place explosion. Right-click to cancel.",
+      "ExplosionNoLOS": "No line of sight to target point — blocked by walls.",
+      "ExplosionNoSpread": "Explosion weapon has no blast radius (Spread) defined.",
+      "ExplosionNoTargets": "No targets found in blast radius.",
+      "ExplosionScatter": "Miss! Explosion scatters {distance} m.",
+      "ExplosionDamage": "Explosion Damage",
+      "ExplosionTargetCount": "{count} target(s) in blast"
     }
   },
   "TYPES": {

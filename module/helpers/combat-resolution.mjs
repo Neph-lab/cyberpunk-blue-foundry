@@ -1,6 +1,6 @@
 import { getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
 import { getEffectiveItemWeapons } from './mods.mjs';
-import { resolveConeAttack } from './cone-attack.mjs';
+import { resolveConeAttack, resolveExplosionAttack } from './cone-attack.mjs';
 
 function getTarget() {
   const token = game.user.targets.first() ?? null;
@@ -74,9 +74,12 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const weapon = effectiveWeapons[weaponIndex];
   if (!weapon) return;
 
-  // Route cone attacks to their own resolver
+  // Route special attack types to their own resolvers
   if ((weapon.damageType ?? '') === 'cone') {
     return resolveConeAttack(attacker, item, weaponIndex);
+  }
+  if ((weapon.damageType ?? '') === 'explosion') {
+    return resolveExplosionAttack(attacker, item, weaponIndex);
   }
 
   const definition = getWeaponTypeDefinition(weapon.type);
@@ -386,7 +389,10 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
 
   const damageFormula = weapon.damage ?? definition.damage ?? '1d6';
   const damageRoll = await new Roll(damageFormula).evaluate();
-  const rawDamage = Math.round(damageRoll.total * multiplier);
+  const effectiveMultiplier = (resolvedDV !== null && Number.isFinite(resolvedDV))
+    ? Math.min(multiplier, Math.max(1, attackRoll.total - resolvedDV))
+    : multiplier;
+  const rawDamage = Math.round(damageRoll.total * effectiveMultiplier);
 
   const sp = targetSP !== null ? targetSP : null;
   const netDamage = sp !== null ? Math.max(rawDamage - sp, 0) : rawDamage;
@@ -396,7 +402,7 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
     : '';
 
   const weaponLabel = (item.system.weapons?.length ?? 0) > 1 ? `${item.name} - ${definition.label}` : item.name;
-  const multNote = multiplier !== 1 ? ` ×${multiplier} = ${rawDamage}` : '';
+  const multNote = effectiveMultiplier !== 1 ? ` ×${effectiveMultiplier}${effectiveMultiplier !== multiplier ? ` (capped from ×${multiplier})` : ''} = ${rawDamage}` : '';
 
   await damageRoll.toMessage({
     speaker: ChatMessage.getSpeaker({ actor: attacker }),

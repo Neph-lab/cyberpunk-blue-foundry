@@ -108,6 +108,7 @@ const RAW_WEAPON_TYPES = [
     hands: 1,
     concealable: false,
     rangeTable: [15, 13, 15, 20, 25, 25, 30, 0],
+    defaultAutofireRangeTable: [22, 19, 22, 27, 32, 0, 0, 0],
   },
   {
     value: 'heavySmg',
@@ -122,6 +123,7 @@ const RAW_WEAPON_TYPES = [
     hands: 1,
     concealable: false,
     rangeTable: [15, 13, 15, 20, 25, 25, 30, 0],
+    defaultAutofireRangeTable: [22, 19, 22, 27, 32, 0, 0, 0],
   },
   {
     value: 'shotgun',
@@ -150,6 +152,7 @@ const RAW_WEAPON_TYPES = [
     hands: 2,
     concealable: false,
     rangeTable: [17, 16, 15, 13, 15, 20, 25, 30],
+    defaultAutofireRangeTable: [24, 22, 19, 22, 27, 0, 0, 0],
   },
   {
     value: 'precisionRifle',
@@ -192,6 +195,7 @@ const RAW_WEAPON_TYPES = [
     hands: 2,
     concealable: false,
     rangeTable: [25, 20, 17, 15, 17, 20, 20, 25],
+    defaultAutofireRangeTable: [22, 19, 22, 30, 35, 0, 0, 0],
   },
   {
     value: 'flamethrower',
@@ -342,8 +346,10 @@ export function createWeaponData(type = 'lightMelee') {
 }
 
 export function applyWeaponTypeDefaults(existingWeapon = {}, type = 'lightMelee') {
-  return {
-    ...existingWeapon,
-    ...createWeaponData(type),
-  };
+  const defaults = createWeaponData(type);
+  // Preserve range table and damage type if the weapon already had them configured
+  if (existingWeapon.damageType && existingWeapon.damageType !== '') {
+    delete defaults.rangeTable;
+  }
+  return { ...existingWeapon, ...defaults };
 }

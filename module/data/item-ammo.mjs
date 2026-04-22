@@ -12,12 +12,14 @@ export default class CyberBlueAmmo extends CyberBlueItemBase {
     schema.ammoTypes = new fields.SchemaField({
       pistol: new fields.BooleanField({ initial: false }),
       smg: new fields.BooleanField({ initial: false }),
-      shotgun: new fields.BooleanField({ initial: false }),
+      shotgunSlug: new fields.BooleanField({ initial: false }),
+      shotgunShell: new fields.BooleanField({ initial: false }),
       assault: new fields.BooleanField({ initial: false }),
       sniper: new fields.BooleanField({ initial: false }),
       bow: new fields.BooleanField({ initial: false }),
       grenade: new fields.BooleanField({ initial: false }),
       rocket: new fields.BooleanField({ initial: false }),
+      flamethrower: new fields.BooleanField({ initial: false }),
     });
 
     return schema;

@@ -44,6 +44,27 @@ export default class CyberBlueGear extends CyberBlueItemBase {
     schema.state = new fields.StringField({ required: true, blank: false, initial: 'carried' });
     schema.carried = new fields.BooleanField({ initial: true });
     schema.equipped = new fields.BooleanField({ initial: false });
+    schema.embeddedMods = new fields.ArrayField(
+      new fields.SchemaField({
+        id: new fields.StringField({ required: true, blank: true }),
+        sourceUuid: new fields.StringField({ required: true, blank: true }),
+        modType: new fields.StringField({ required: true, blank: false, initial: 'weaponMod' }),
+        name: new fields.StringField({ required: true, blank: true }),
+        cost: new fields.StringField({ required: true, blank: true }),
+        note: new fields.StringField({ required: true, blank: true }),
+        targetWeaponIndex: new fields.NumberField({ required: true, nullable: false, integer: true, initial: -1 }),
+        weaponChanges: new fields.ArrayField(
+          new fields.SchemaField({
+            id: new fields.StringField({ required: true, blank: true }),
+            key: new fields.StringField({ required: true, blank: false, initial: 'damage' }),
+            mode: new fields.StringField({ required: true, blank: false, initial: 'override' }),
+            value: new fields.StringField({ required: true, blank: true }),
+          }),
+          { initial: [] }
+        ),
+      }),
+      { initial: [] }
+    );
 
     return schema;
   }

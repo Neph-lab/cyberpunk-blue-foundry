@@ -383,17 +383,33 @@
               {{/if}}
             </section>
 
-            {{#if installedMods.length}}
-              <section class="sheet-panel">
-                <div class="panel-header"><h2>{{localize "CYBER_BLUE.Sheet.Labels.Modifications"}}</h2></div>
-                <div class="installed-mod-list">
-                  {{#each installedMods as |mod|}}
-                    <div class="installed-mod-row">
-                      <span class="mod-name">{{mod.name}}</span>
-                      <span class="state-chip">{{mod.typeLabel}}</span>
-                    </div>
-                  {{/each}}
+            {{#if showEmbeddedModsPanel}}
+              <section class="sheet-panel embedded-mods-panel">
+                <div class="panel-header">
+                  <h2>{{localize "CYBER_BLUE.Sheet.Labels.Modifications"}}</h2>
+                  <button type="button" data-action="sync-embedded-mods" class="panel-header-btn" title="{{localize "CYBER_BLUE.Sheet.Labels.ModSyncAll"}}">
+                    <i class="fas fa-rotate"></i>
+                  </button>
                 </div>
+                <div class="embedded-mod-import-row">
+                  <input type="text" data-mod-import-uuid placeholder="{{localize "CYBER_BLUE.Sheet.Labels.ModImportUuidPlaceholder"}}" />
+                  <button type="button" data-action="import-mod-by-uuid">{{localize "CYBER_BLUE.Sheet.Labels.ModImport"}}</button>
+                </div>
+                {{#if embeddedMods.length}}
+                  <div class="installed-mod-list">
+                    {{#each embeddedMods as |mod|}}
+                      <div class="installed-mod-row">
+                        <span class="mod-name">{{mod.name}}</span>
+                        <span class="state-chip">{{mod.typeLabel}}</span>
+                        <button type="button" data-action="remove-embedded-mod" data-mod-id="{{mod.id}}" class="icon-btn danger" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    {{/each}}
+                  </div>
+                {{else}}
+                  <p class="no-content-hint">{{localize "CYBER_BLUE.Sheet.Labels.NoModifications"}}</p>
+                {{/if}}
               </section>
             {{/if}}
           </div>
@@ -534,17 +550,33 @@
             {{/if}}
           </section>
           {{#if isGear}}
-            {{#if installedMods.length}}
-              <section class="sheet-panel">
-                <div class="panel-header"><h2>{{localize "CYBER_BLUE.Sheet.Labels.Modifications"}}</h2></div>
-                <div class="installed-mod-list">
-                  {{#each installedMods as |mod|}}
-                    <div class="installed-mod-row">
-                      <span class="mod-name">{{mod.name}}</span>
-                      <span class="state-chip">{{mod.typeLabel}}</span>
-                    </div>
-                  {{/each}}
+            {{#if showEmbeddedModsPanel}}
+              <section class="sheet-panel embedded-mods-panel">
+                <div class="panel-header">
+                  <h2>{{localize "CYBER_BLUE.Sheet.Labels.Modifications"}}</h2>
+                  <button type="button" data-action="sync-embedded-mods" class="panel-header-btn" title="{{localize "CYBER_BLUE.Sheet.Labels.ModSyncAll"}}">
+                    <i class="fas fa-rotate"></i>
+                  </button>
                 </div>
+                <div class="embedded-mod-import-row">
+                  <input type="text" data-mod-import-uuid placeholder="{{localize "CYBER_BLUE.Sheet.Labels.ModImportUuidPlaceholder"}}" />
+                  <button type="button" data-action="import-mod-by-uuid">{{localize "CYBER_BLUE.Sheet.Labels.ModImport"}}</button>
+                </div>
+                {{#if embeddedMods.length}}
+                  <div class="installed-mod-list">
+                    {{#each embeddedMods as |mod|}}
+                      <div class="installed-mod-row">
+                        <span class="mod-name">{{mod.name}}</span>
+                        <span class="state-chip">{{mod.typeLabel}}</span>
+                        <button type="button" data-action="remove-embedded-mod" data-mod-id="{{mod.id}}" class="icon-btn danger" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    {{/each}}
+                  </div>
+                {{else}}
+                  <p class="no-content-hint">{{localize "CYBER_BLUE.Sheet.Labels.NoModifications"}}</p>
+                {{/if}}
               </section>
             {{/if}}
 

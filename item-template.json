@@ -1,11 +1,117 @@
 [
   {
-    "_comment": "ROLE — paste into world item list or use JSON importer",
+    "_comment": "ROLE — sundry (no special category fields)",
+    "_categories": "sundry | leader | protean | specialist",
     "name": "My Role",
     "type": "role",
     "system": {
       "rank": 0,
-      "category": "sundry"
+      "category": "sundry",
+      "description": "<p>Role description here.</p>",
+      "abilityOverview": "<p>Ability overview text here.</p>",
+      "abilitySections": [
+        {
+          "id": "section1",
+          "unlockRank": 1,
+          "content": "<p>Ability text unlocked at rank 1.</p>"
+        }
+      ],
+      "grantedItemGroups": [
+        {
+          "id": "group1",
+          "label": "Starting Gear",
+          "mode": "all",
+          "count": 1,
+          "items": [
+            { "id": "item1", "uuid": "", "name": "Item Name", "type": "gear", "img": "" }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "_comment": "ROLE — leader (adds leaderFeatures)",
+    "name": "My Leader Role",
+    "type": "role",
+    "system": {
+      "rank": 0,
+      "category": "leader",
+      "description": "<p>Role description.</p>",
+      "abilityOverview": "<p>Overview.</p>",
+      "abilitySections": [],
+      "grantedItemGroups": [],
+      "leaderFeatures": [
+        {
+          "id": "feature1",
+          "unlockRank": 1,
+          "name": "Feature Name",
+          "description": "Feature description.",
+          "selectionCount": 1,
+          "permission": "observer",
+          "options": [],
+          "selectedUuids": []
+        }
+      ]
+    }
+  },
+  {
+    "_comment": "ROLE — protean (adds proteanFoci / Tactics)",
+    "name": "My Protean Role",
+    "type": "role",
+    "system": {
+      "rank": 0,
+      "category": "protean",
+      "description": "<p>Role description.</p>",
+      "abilityOverview": "<p>Overview.</p>",
+      "abilitySections": [],
+      "grantedItemGroups": [],
+      "proteanFoci": [
+        {
+          "id": "tactic1",
+          "name": "Tactic Name",
+          "description": "Tactic description.",
+          "unlockRank": 1,
+          "minPoints": 0,
+          "maxPoints": 3,
+          "step": 1,
+          "points": 0
+        }
+      ]
+    }
+  },
+  {
+    "_comment": "ROLE — specialist (adds specialties)",
+    "name": "My Specialist Role",
+    "type": "role",
+    "system": {
+      "rank": 0,
+      "category": "specialist",
+      "description": "<p>Role description.</p>",
+      "abilityOverview": "<p>Overview.</p>",
+      "abilitySections": [],
+      "grantedItemGroups": [],
+      "specialties": [
+        {
+          "id": "spec1",
+          "name": "Specialty Name",
+          "description": "Specialty description.",
+          "rank": 0,
+          "unlockSections": [
+            { "id": "sec1", "unlockRank": 1, "content": "<p>Unlocked text.</p>" }
+          ],
+          "optionGroups": [
+            {
+              "id": "og1",
+              "unlockRank": 1,
+              "choices": 1,
+              "options": [
+                { "id": "opt1", "name": "Option A", "description": "Description A." }
+              ],
+              "selectedOptionIds": []
+            }
+          ]
+        }
+      ]
     }
   },
   {
@@ -15,23 +121,103 @@
     "system": {
       "rank": 0,
       "maxRank": 10,
-      "note": ""
+      "note": "",
+      "description": "<p>Ability description here.</p>"
     }
   },
   {
-    "_comment": "GEAR — weapon. Set system.weapons[0].type and the system auto-fills damage/RoF/etc.",
-    "_weaponTypes": "lightMelee | heavyMelee | veryHeavyMelee | thrownMelee | lightPistol | heavyPistol | veryHeavyPistol | smg | heavySmg | shotgun | assaultRifle | sniperRifle | bowArrow | grenadeLauncher | rocketLauncher | assault",
+    "_comment": "GEAR — weapon. damageType: '' | 'autofire' | 'cone' | 'explosion'",
+    "_weaponTypes": "lightMelee | mediumMelee | heavyMelee | veryHeavyMelee | mediumPistol | heavyPistol | veryHeavyPistol | smg | heavySmg | shotgun | assaultRifle | precisionRifle | sniperRifle | machineGun | flamethrower | grenadeLauncher | rocketLauncher | bowCrossbow | thrown",
     "name": "My Weapon",
     "type": "gear",
     "system": {
       "cost": "Standard",
       "note": "",
+      "description": "<p>Gear description here.</p>",
       "quantity": 1,
       "isWeapon": true,
       "isArmor": false,
       "weapons": [
         {
-          "type": "lightPistol"
+          "type": "mediumPistol",
+          "damageType": "",
+          "autofireMultiplier": 1,
+          "autofireRangeTable": [0, 0, 0, 0, 0, 0, 0, 0],
+          "coneSpread": 0,
+          "coneAngle": 45,
+          "coneHalfDamageDistance": 0
+        }
+      ]
+    }
+  },
+  {
+    "_comment": "GEAR — weapon with autofire (example: SMG)",
+    "name": "My Autofire Weapon",
+    "type": "gear",
+    "system": {
+      "cost": "Standard",
+      "note": "",
+      "description": "<p>Gear description here.</p>",
+      "quantity": 1,
+      "isWeapon": true,
+      "isArmor": false,
+      "weapons": [
+        {
+          "type": "smg",
+          "damageType": "autofire",
+          "autofireMultiplier": 3,
+          "autofireRangeTable": [22, 19, 22, 27, 32, 0, 0, 0],
+          "coneSpread": 0,
+          "coneAngle": 45,
+          "coneHalfDamageDistance": 0
+        }
+      ]
+    }
+  },
+  {
+    "_comment": "GEAR — weapon with cone (example: flamethrower / shotgun shell)",
+    "name": "My Cone Weapon",
+    "type": "gear",
+    "system": {
+      "cost": "Standard",
+      "note": "",
+      "description": "<p>Gear description here.</p>",
+      "quantity": 1,
+      "isWeapon": true,
+      "isArmor": false,
+      "weapons": [
+        {
+          "type": "flamethrower",
+          "damageType": "cone",
+          "autofireMultiplier": 1,
+          "autofireRangeTable": [0, 0, 0, 0, 0, 0, 0, 0],
+          "coneSpread": 6,
+          "coneAngle": 45,
+          "coneHalfDamageDistance": 3
+        }
+      ]
+    }
+  },
+  {
+    "_comment": "GEAR — weapon with explosion (example: grenade launcher / rocket)",
+    "name": "My Explosion Weapon",
+    "type": "gear",
+    "system": {
+      "cost": "Standard",
+      "note": "",
+      "description": "<p>Gear description here.</p>",
+      "quantity": 1,
+      "isWeapon": true,
+      "isArmor": false,
+      "weapons": [
+        {
+          "type": "grenadeLauncher",
+          "damageType": "explosion",
+          "autofireMultiplier": 1,
+          "autofireRangeTable": [0, 0, 0, 0, 0, 0, 0, 0],
+          "coneSpread": 6,
+          "coneAngle": 360,
+          "coneHalfDamageDistance": 3
         }
       ]
     }
@@ -43,6 +229,7 @@
     "system": {
       "cost": "Standard",
       "note": "",
+      "description": "<p>Gear description here.</p>",
       "quantity": 1,
       "isArmor": true,
       "isWeapon": false,
@@ -59,6 +246,7 @@
     "system": {
       "cost": "Cheap",
       "note": "",
+      "description": "<p>Gear description here.</p>",
       "quantity": 1
     }
   },
@@ -72,34 +260,36 @@
       "cyberwareType": "internal",
       "integration": "standalone",
       "cost": "Standard",
+      "description": "<p>Cyberware description here.</p>",
       "psycheLossFormula": "1d6",
       "installationCost": "Standard",
       "installationDv": 15
     }
   },
   {
-    "_comment": "AMMO",
-    "_ammoTypes": "pistol | smg | shotgun | assault | sniper | bow | grenade | rocket",
+    "_comment": "AMMO — ammoTypes: pistol | smg | shotgunSlug | shotgunShell | assault | sniper | bow | grenade | rocket | flamethrower",
     "name": "My Ammo",
     "type": "ammo",
     "system": {
       "quantity": 10,
       "cost": "Cheap",
       "note": "",
+      "description": "<p>Ammo description here.</p>",
       "ammoTypes": {
         "pistol": true
       }
     }
   },
   {
-    "_comment": "MOD — weapon mod. Set installedOnId to the embedded item's id after creation.",
+    "_comment": "MOD — embedded mod on gear/cyberware. Add to system.embeddedMods array on the target item.",
+    "_modTypes": "gearMod | cyberwareMod | weaponMod | hardwareMod",
     "name": "My Mod",
     "type": "mod",
     "system": {
       "modType": "weaponMod",
       "cost": "Standard",
       "note": "",
-      "installedOnId": "",
+      "description": "<p>Mod description here.</p>",
       "targetWeaponIndex": 0,
       "weaponChanges": [
         {
@@ -124,7 +314,8 @@
       "per": 4,
       "rez": { "value": 10, "max": 10 },
       "cost": "Standard",
-      "note": ""
+      "note": "",
+      "description": "<p>Program description here.</p>"
     }
   }
 ]

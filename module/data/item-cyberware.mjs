@@ -57,6 +57,27 @@ export default class CyberBlueCyberware extends CyberBlueItemBase {
     schema.installationDv = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
     schema.useCyberneticsComponent = new fields.BooleanField({ initial: false });
     schema.notes = new fields.HTMLField({ initial: '' });
+    schema.embeddedMods = new fields.ArrayField(
+      new fields.SchemaField({
+        id: new fields.StringField({ required: true, blank: true }),
+        sourceUuid: new fields.StringField({ required: true, blank: true }),
+        modType: new fields.StringField({ required: true, blank: false, initial: 'weaponMod' }),
+        name: new fields.StringField({ required: true, blank: true }),
+        cost: new fields.StringField({ required: true, blank: true }),
+        note: new fields.StringField({ required: true, blank: true }),
+        targetWeaponIndex: new fields.NumberField({ required: true, nullable: false, integer: true, initial: -1 }),
+        weaponChanges: new fields.ArrayField(
+          new fields.SchemaField({
+            id: new fields.StringField({ required: true, blank: true }),
+            key: new fields.StringField({ required: true, blank: false, initial: 'damage' }),
+            mode: new fields.StringField({ required: true, blank: false, initial: 'override' }),
+            value: new fields.StringField({ required: true, blank: true }),
+          }),
+          { initial: [] }
+        ),
+      }),
+      { initial: [] }
+    );
 
     return schema;
   }

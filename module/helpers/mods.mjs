@@ -172,20 +172,14 @@ function applyWeaponChange(weapon, change) {
 
 export function getEffectiveItemWeapons(itemLike) {
   const weapons = foundry.utils.deepClone(itemLike?.system?.weapons ?? []);
-  const actor = itemLike?.parent instanceof Actor ? itemLike.parent : null;
-  const installedMods = actor
-    ? actor.items.filter((i) => i.type === 'mod'
-        && i.system.modType === 'weaponMod'
-        && i.system.installedOnId === itemLike.id)
-    : [];
 
-  for (const mod of installedMods) {
-    const targetIndex = Number(mod.system.targetWeaponIndex);
+  // Apply embedded mods (stored directly on the item — works even without an actor)
+  for (const mod of itemLike?.system?.embeddedMods ?? []) {
+    if (mod.modType !== 'weaponMod') continue;
+    const targetIndex = Number(mod.targetWeaponIndex);
     const weapon = weapons[targetIndex];
-    if (!weapon) {
-      continue;
-    }
-    for (const change of mod.system.weaponChanges ?? []) {
+    if (!weapon) continue;
+    for (const change of mod.weaponChanges ?? []) {
       applyWeaponChange(weapon, change);
     }
   }
