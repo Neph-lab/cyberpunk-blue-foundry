@@ -1,5 +1,7 @@
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
+const _openWizards = new Map(); // actorId → wizard instance
+
 const CC_STEPS = ['welcome', 'lifepath', 'stats', 'secondary', 'languages', 'ability', 'skills', 'role'];
 const PRIMARY_STATS = ['body', 'rflx', 'int', 'tech', 'cool'];
 const STAT_MIN = 3;
@@ -48,10 +50,15 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
     },
   };
 
+  static getForActor(actorId) {
+    return _openWizards.get(actorId) ?? null;
+  }
+
   constructor(actor, options = {}) {
     super(options);
     this.actor = actor;
     this._hasRolledLifepath = false;
+    _openWizards.set(actor.id, this);
     this._actorUpdateHookId = Hooks.on('updateActor', (doc) => {
       if (doc.id === this.actor.id) {
         this.actor = doc;
@@ -61,6 +68,7 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
   }
 
   async close(options = {}) {
+    _openWizards.delete(this.actor.id);
     Hooks.off('updateActor', this._actorUpdateHookId);
     return super.close(options);
   }

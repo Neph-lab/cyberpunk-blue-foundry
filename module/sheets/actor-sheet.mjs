@@ -906,10 +906,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
   async _onOpenCharacterCreationWizard(event) {
     event.preventDefault();
-    // Reuse existing wizard instance if open, otherwise create new
-    const existing = Object.values(ui.windows ?? {}).find(
-      w => w instanceof CharacterCreationWizard && w.actor?.id === this.document.id
-    );
+    const existing = CharacterCreationWizard.getForActor(this.document.id);
     if (existing) {
       existing.bringToFront?.();
     } else {

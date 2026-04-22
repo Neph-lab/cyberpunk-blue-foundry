@@ -448,12 +448,13 @@ Handlebars.registerHelper('and', function (...args) {
 Hooks.once('ready', () => {
   if (game.user.isGM) return;
 
-  const ownedCharacter = game.actors.find(
+  const ownedCharacter = game.actors?.find(
     a => a.type === 'character'
       && a.isOwner
       && (a.system.characterCreation?.active ?? false)
   );
   if (!ownedCharacter) return;
 
-  new CharacterCreationWizard(ownedCharacter).render(true);
+  // Small delay so the actor sheet can open first
+  setTimeout(() => new CharacterCreationWizard(ownedCharacter).render(true), 500);
 });
