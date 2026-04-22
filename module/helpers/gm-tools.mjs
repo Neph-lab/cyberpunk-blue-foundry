@@ -160,11 +160,15 @@ export class CyberBlueMacroCreator extends ApplicationV2 {
         <i class="fas fa-code"></i> Create Macros
       </button>
     `;
-    div.querySelector('#create-macros-btn').addEventListener('click', async () => {
-      await this._createMacros();
-      this.close();
-    });
     return div;
+  }
+
+  async _onRender(_context, _options) {
+    this.element.querySelector('#create-macros-btn')
+      ?.addEventListener('click', async () => {
+        await this._createMacros();
+        this.close();
+      });
   }
 
   async _createMacros() {
@@ -191,6 +195,8 @@ export class CyberBlueJsonImportDialog extends ApplicationV2 {
     position: { width: 500 },
   };
 
+  _parsedItems = [];
+
   async _renderHTML() {
     const div = document.createElement('div');
     div.style.cssText = 'padding:1rem; display:flex; flex-direction:column; gap:0.75rem;';
@@ -212,20 +218,22 @@ export class CyberBlueJsonImportDialog extends ApplicationV2 {
       </button>
       <div id="import-status"></div>
     `;
+    return div;
+  }
 
-    let parsedItems = [];
-    const preview = div.querySelector('#import-preview');
-    const importBtn = div.querySelector('#import-btn');
+  async _onRender(_context, _options) {
+    const preview = this.element.querySelector('#import-preview');
+    const importBtn = this.element.querySelector('#import-btn');
 
-    div.querySelector('#import-file').addEventListener('change', (event) => {
+    this.element.querySelector('#import-file')?.addEventListener('change', (event) => {
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
           const data = JSON.parse(e.target.result);
-          parsedItems = Array.isArray(data) ? data : [data];
-          preview.innerHTML = `<strong>${parsedItems.length} item(s) found:</strong><br>${parsedItems.slice(0, 10).map((i) => `• ${i.name ?? '(unnamed)'} (${i.type ?? '?'})`).join('<br>')}${parsedItems.length > 10 ? `<br>…and ${parsedItems.length - 10} more` : ''}`;
+          this._parsedItems = Array.isArray(data) ? data : [data];
+          preview.innerHTML = `<strong>${this._parsedItems.length} item(s) found:</strong><br>${this._parsedItems.slice(0, 10).map((i) => `• ${i.name ?? '(unnamed)'} (${i.type ?? '?'})`).join('<br>')}${this._parsedItems.length > 10 ? `<br>…and ${this._parsedItems.length - 10} more` : ''}`;
           importBtn.disabled = false;
         } catch (err) {
           preview.innerHTML = `<span style="color:var(--color-level-error);">Invalid JSON: ${err.message}</span>`;
@@ -235,26 +243,24 @@ export class CyberBlueJsonImportDialog extends ApplicationV2 {
       reader.readAsText(file);
     });
 
-    importBtn.addEventListener('click', async () => {
-      const folderId = div.querySelector('#import-folder-select').value || undefined;
-      const status = div.querySelector('#import-status');
+    importBtn?.addEventListener('click', async () => {
+      const folderId = this.element.querySelector('#import-folder-select').value || undefined;
+      const status = this.element.querySelector('#import-status');
       importBtn.disabled = true;
       status.textContent = 'Importing…';
       try {
-        const toCreate = parsedItems
+        const toCreate = this._parsedItems
           .filter((item) => item.type && CONFIG.Item.dataModels[item.type])
           .map((item) => ({ ...item, folder: folderId ?? item.folder }));
         if (!toCreate.length) throw new Error('No valid item types found in data.');
         const created = await Item.createDocuments(toCreate);
         status.innerHTML = `<span style="color:var(--color-level-success);">Imported ${created.length} item(s) successfully.</span>`;
         ui.notifications.info(`Cyberpunk Blue: Imported ${created.length} items.`);
-        parsedItems = [];
+        this._parsedItems = [];
       } catch (err) {
         status.innerHTML = `<span style="color:var(--color-level-error);">Error: ${err.message}</span>`;
         importBtn.disabled = false;
       }
     });
-
-    return div;
   }
 }

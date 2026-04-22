@@ -335,9 +335,7 @@
             {{{enrichedDescription}}}
           </prose-mirror>
         {{else}}
-          <div class="editor">
-            <div class="editor-content">{{{enrichedDescription}}}</div>
-          </div>
+          <div class="enriched-html">{{{enrichedDescription}}}</div>
         {{/if}}
       </section>
 
@@ -381,9 +379,7 @@
                   {{{enrichedDescription}}}
                 </prose-mirror>
               {{else}}
-                <div class="editor">
-                  <div class="editor-content">{{{enrichedDescription}}}</div>
-                </div>
+                <div class="enriched-html">{{{enrichedDescription}}}</div>
               {{/if}}
             </section>
 
@@ -489,9 +485,7 @@
                   {{{enrichedNotes}}}
                 </prose-mirror>
               {{else}}
-                <div class="editor">
-                  <div class="editor-content">{{{enrichedNotes}}}</div>
-                </div>
+                <div class="enriched-html">{{{enrichedNotes}}}</div>
               {{/if}}
             </section>
           </div>
@@ -531,9 +525,7 @@
                   {{{enrichedDescription}}}
                 </prose-mirror>
               {{else}}
-                <div class="editor">
-                  <div class="editor-content">{{{enrichedDescription}}}</div>
-                </div>
+                <div class="enriched-html">{{{enrichedDescription}}}</div>
               {{/if}}
             {{else}}
               <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
@@ -580,9 +572,7 @@
                     {{{enrichedLifepathLinks}}}
                   </prose-mirror>
                 {{else}}
-                  <div class="editor">
-                    <div class="editor-content">{{{enrichedLifepathLinks}}}</div>
-                  </div>
+                  <div class="enriched-html">{{{enrichedLifepathLinks}}}</div>
                 {{/if}}
               </section>
 
@@ -592,9 +582,7 @@
                     {{{enrichedLifepathQuestions}}}
                   </prose-mirror>
                 {{else}}
-                  <div class="editor">
-                    <div class="editor-content">{{{enrichedLifepathQuestions}}}</div>
-                  </div>
+                  <div class="enriched-html">{{{enrichedLifepathQuestions}}}</div>
                 {{/if}}
               </section>
             </div>
@@ -697,9 +685,7 @@
                   {{{enrichedAbilityOverview}}}
                 </prose-mirror>
               {{else}}
-                <div class="editor">
-                  <div class="editor-content">{{{enrichedAbilityOverview}}}</div>
-                </div>
+                <div class="enriched-html">{{{enrichedAbilityOverview}}}</div>
               {{/if}}
             </section>
 
@@ -800,8 +786,8 @@
               <section class="sheet-panel">
                 {{#if roleShowRestrictedEditing}}
                   <div class="panel-header panel-actions">
-                    <span>{{localize "CYBER_BLUE.Role.ProteanFoci"}}</span>
-                    <button type="button" data-action="add-protean-focus" title="{{localize "CYBER_BLUE.Role.AddProteanFocus"}}">
+                    <span>{{localize "CYBER_BLUE.Role.ProteanTactics"}}</span>
+                    <button type="button" data-action="add-protean-focus" title="{{localize "CYBER_BLUE.Role.AddProteanTactic"}}">
                       <i class="fas fa-plus"></i>
                     </button>
                   </div>
@@ -964,9 +950,7 @@
                         </label>
                       </div>
                       {{#each specialty.enrichedSections as |section|}}
-                        <div class="editor">
-                          <div class="editor-content">{{{section.enrichedContent}}}</div>
-                        </div>
+                        <div class="enriched-html">{{{section.enrichedContent}}}</div>
                       {{/each}}
                       {{#each specialty.optionGroups as |group|}}
                         <div class="checkbox-group">
@@ -1005,9 +989,7 @@
                     {{{section.enrichedContent}}}
                   </prose-mirror>
                 {{else}}
-                  <div class="editor">
-                    <div class="editor-content">{{{section.enrichedContent}}}</div>
-                  </div>
+                  <div class="enriched-html">{{{section.enrichedContent}}}</div>
                 {{/if}}
               </section>
             {{/each}}
@@ -1029,9 +1011,7 @@
                 {{#each roleSectionsLocked as |section|}}
                   <div class="future-section">
                     <h4>{{localize "CYBER_BLUE.Sheet.Labels.UnlockedAt" rank=section.unlockRank}}</h4>
-                    <div class="editor">
-                      <div class="editor-content">{{{section.enrichedContent}}}</div>
-                    </div>
+                    <div class="enriched-html">{{{section.enrichedContent}}}</div>
                   </div>
                 {{/each}}
               </details>
@@ -1046,9 +1026,7 @@
                     {{{enrichedNotes}}}
                   </prose-mirror>
                 {{else}}
-                  <div class="editor">
-                    <div class="editor-content">{{{enrichedNotes}}}</div>
-                  </div>
+                  <div class="enriched-html">{{{enrichedNotes}}}</div>
                 {{/if}}
               </section>
             </div>
@@ -1089,9 +1067,7 @@
                     {{{enrichedNotes}}}
                   </prose-mirror>
                 {{else}}
-                  <div class="editor">
-                    <div class="editor-content">{{{enrichedNotes}}}</div>
-                  </div>
+                  <div class="enriched-html">{{{enrichedNotes}}}</div>
                 {{/if}}
               </section>
             </div>

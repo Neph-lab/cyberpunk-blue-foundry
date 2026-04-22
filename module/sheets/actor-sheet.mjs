@@ -9,13 +9,13 @@ import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
 import { getWeaponTypeDefinition } from '../helpers/combat.mjs';
 import { resolveWeaponAttack } from '../helpers/combat-resolution.mjs';
 import {
-  getHighestUnlockedRoleAbilitySection,
   getRoleCategoryLabel,
   getRoleTeamMembers,
   getUnlockedLeaderFeatures,
   getUnlockedProteanFoci,
   getUnlockedSpecialtyOptionGroups,
   getUnlockedSpecialtySections,
+  getVisibleRoleAbilitySections,
   normalizeRoleSystemData,
 } from '../helpers/roles.mjs';
 
@@ -360,41 +360,44 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       }
     }
     context.combatWeapons = combatWeaponEntries;
-    context.roleOverviewFeatures = context.roles.flatMap((role) => {
+    context.roleOverviewFeatures = context.roles.map((role) => {
       const roleSystem = normalizeRoleSystemData(role.system);
       const roleRank = Number(roleSystem.rank) || 0;
-      const features = [];
+      const sections = getVisibleRoleAbilitySections(roleSystem, roleRank)
+        .filter((section) => section.content);
 
-      if (roleSystem.category === 'networker') {
-        const highest = getHighestUnlockedRoleAbilitySection(roleSystem, roleRank);
-        if (highest?.content) {
-          features.push({
-            roleId: role.id,
-            roleName: role.name,
-            kind: 'networker',
-            categoryLabel: getRoleCategoryLabel(roleSystem.category),
-            content: highest.content,
-          });
-        }
-      }
+      const base = {
+        roleId: role.id,
+        roleName: role.name,
+        kind: roleSystem.category,
+        categoryLabel: getRoleCategoryLabel(roleSystem.category),
+        sections,
+      };
 
       if (roleSystem.category === 'protean') {
         const foci = getUnlockedProteanFoci(roleSystem, roleRank);
-        if (foci.length) {
-          features.push({
-            roleId: role.id,
-            roleName: role.name,
-            kind: 'protean',
-            categoryLabel: getRoleCategoryLabel(roleSystem.category),
-            totalPoints: roleRank,
-            spentPoints: foci.reduce((sum, focus) => sum + (Number(focus.points) || 0), 0),
-            remainingPoints: roleRank - foci.reduce((sum, focus) => sum + (Number(focus.points) || 0), 0),
-            foci: foci.map((focus) => ({
+        const spentPoints = foci.reduce((sum, focus) => sum + (Number(focus.points) || 0), 0);
+        const remainingPoints = roleRank - spentPoints;
+        return {
+          ...base,
+          totalPoints: roleRank,
+          spentPoints,
+          remainingPoints,
+          foci: foci.map((focus) => {
+            const step = Math.max(Number(focus.step) || 1, 1);
+            const max = Math.max(Number(focus.maxPoints) || 0, 0);
+            const available = (Number(focus.points) || 0) + remainingPoints;
+            const pointOptions = [];
+            for (let v = 0; v <= max; v += step) {
+              pointOptions.push({ value: v, disabled: v > Math.min(max, available) });
+            }
+            return {
               ...focus,
               focusIndex: (roleSystem.proteanFoci ?? []).findIndex((f) => f.id === focus.id),
-            })),
-          });
-        }
+              pointOptions,
+            };
+          }),
+        };
       }
 
       if (roleSystem.category === 'leader') {
@@ -407,15 +410,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
             img: member.img || member.prototypeToken?.texture?.src || Actor.DEFAULT_ICON,
           })),
         })).filter((feature) => feature.members.length || feature.selectedUuids?.length);
-        if (leaderFeatures.length) {
-          features.push({
-            roleId: role.id,
-            roleName: role.name,
-            kind: 'leader',
-            categoryLabel: getRoleCategoryLabel(roleSystem.category),
-            leaderFeatures,
-          });
-        }
+        return { ...base, leaderFeatures };
       }
 
       if (roleSystem.category === 'specialist') {
@@ -425,29 +420,28 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           unlockedSections: getUnlockedSpecialtySections(specialty),
           unlockedOptionGroups: getUnlockedSpecialtyOptionGroups(specialty),
         }));
-        if (specialties.length) {
-          features.push({
-            roleId: role.id,
-            roleName: role.name,
-            kind: 'specialist',
-            categoryLabel: getRoleCategoryLabel(roleSystem.category),
-            specialties,
-          });
-        }
+        return { ...base, specialties };
       }
 
-      return features;
+      return base;
+    }).filter((feature) => {
+      if (feature.sections?.length) return true;
+      if (feature.kind === 'protean' && feature.foci?.length) return true;
+      if (feature.kind === 'leader' && feature.leaderFeatures?.length) return true;
+      if (feature.kind === 'specialist' && feature.specialties?.length) return true;
+      return false;
     });
     context.enrichedRoleOverviewFeatures = await Promise.all(context.roleOverviewFeatures.map(async (feature) => ({
       ...feature,
-      content: feature.content
-        ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(feature.content, {
+      sections: await Promise.all((feature.sections ?? []).map(async (section) => ({
+        ...section,
+        enrichedContent: await foundry.applications.ux.TextEditor.implementation.enrichHTML(section.content ?? '', {
           secrets: this.document.isOwner,
           async: true,
           rollData: this.document.getRollData(),
           relativeTo: this.document,
-        })
-        : null,
+        }),
+      }))),
       specialties: feature.specialties
         ? await Promise.all(feature.specialties.map(async (specialty) => ({
           ...specialty,
@@ -592,6 +586,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     });
     this.element.querySelectorAll('[data-edit="img"]').forEach((element) => {
       element.addEventListener('click', this._onEditProfileImage.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="update-protean-points"]').forEach((input) => {
+      input.addEventListener('change', this._onUpdateProteanPoints.bind(this));
     });
   }
 
@@ -855,6 +852,25 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     }
     const actor = game.actors.get(actorId);
     return actor?.sheet.render(true);
+  }
+
+  async _onUpdateProteanPoints(event) {
+    const item = this._getItemFromEvent(event);
+    if (!item || item.type !== 'role') {
+      return;
+    }
+    const focusIndex = Number.parseInt(event.currentTarget.dataset.focusIndex ?? '-1', 10);
+    if (Number.isNaN(focusIndex) || focusIndex < 0) {
+      return;
+    }
+    const value = Number(event.currentTarget.value) || 0;
+    const systemData = item.system.toObject?.() ?? item.system;
+    const foci = foundry.utils.deepClone(systemData.proteanFoci ?? []);
+    if (!foci[focusIndex]) {
+      return;
+    }
+    foci[focusIndex] = { ...foci[focusIndex], points: value };
+    await item.update({ 'system.proteanFoci': foci });
   }
 
   async _onEditProfileImage(event) {

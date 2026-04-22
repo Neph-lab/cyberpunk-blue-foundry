@@ -298,28 +298,23 @@ async function promptForGrantChoices(group, availableItems) {
         icon: 'fa-solid fa-check',
         label: game.i18n.localize('CYBER_BLUE.Role.ConfirmChoices'),
         default: true,
+        callback: (_event, _button, dialog) => {
+          const form = dialog.element?.querySelector('form');
+          if (!form) return [];
+          const formData = new FormDataExtended(form).object;
+          const raw = formData['grant-choice'];
+          const chosen = Array.isArray(raw) ? raw.map(Number) : (raw !== undefined ? [Number(raw)] : []);
+          return availableItems.filter((_, i) => chosen.includes(i)).slice(0, count);
+        },
       },
       {
         action: 'cancel',
         icon: 'fa-solid fa-xmark',
         label: 'Cancel',
+        callback: () => [],
       },
     ],
-    submit: (result, button, form) => {
-      if (result !== 'confirm') {
-        resolve([]);
-        return;
-      }
-      const formData = new FormDataExtended(form).object;
-      const chosen = Array.isArray(formData['grant-choice'])
-        ? formData['grant-choice']
-        : formData['grant-choice'] ? [formData['grant-choice']] : [];
-      const selected = chosen
-        .map((entry) => availableItems[Number(entry)])
-        .filter(Boolean)
-        .slice(0, count);
-      resolve(selected);
-    },
+    submit: (result) => resolve(Array.isArray(result) ? result : []),
   });
   dialog.addEventListener('close', () => resolve([]), { once: true });
   dialog.render(true);
@@ -337,6 +332,12 @@ async function resolveGrantReference(reference) {
 
 export async function applyFirstRoleSetup(actor, roleItem) {
   if (!(actor instanceof Actor) || !(roleItem instanceof Item) || roleItem.type !== 'role') {
+    return;
+  }
+
+  const existingRoles = actor.items.contents.filter((i) => i.type === 'role' && i.id !== roleItem.id);
+  if (existingRoles.length > 0) {
+    await roleItem.update({ 'system.rank': 1 });
     return;
   }
 

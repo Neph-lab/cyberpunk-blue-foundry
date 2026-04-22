@@ -508,8 +508,8 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     if (!uuid) {
       return;
     }
-    const document = await fromUuid(uuid);
-    if (!(document instanceof Item || document instanceof Actor)) {
+    const doc = await fromUuid(uuid);
+    if (!(doc instanceof Item || doc instanceof Actor)) {
       ui.notifications.warn('The UUID must resolve to an Item or Actor.');
       return;
     }
@@ -517,12 +517,16 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     if (!path) {
       return;
     }
-    await this.document.update({
-      [`${path}.uuid`]: uuid,
-      [`${path}.name`]: document.name,
-      [`${path}.img`]: document.img || '',
-      [`${path}.type`]: document.documentName.toLowerCase(),
-    });
+    // Use full system clone to avoid issues with Foundry dot-path updates on ArrayFields
+    const system = this._cloneRoleSystem();
+    const pathWithoutSystem = path.replace(/^system\./, '');
+    const ref = foundry.utils.getProperty(system, pathWithoutSystem) ?? {};
+    ref.uuid = uuid;
+    ref.name = doc.name ?? '';
+    ref.img = doc.img || '';
+    ref.type = doc.documentName.toLowerCase();
+    foundry.utils.setProperty(system, pathWithoutSystem, ref);
+    await this.document.update({ system });
   }
 
   async _onAddLeaderFeature(event) {

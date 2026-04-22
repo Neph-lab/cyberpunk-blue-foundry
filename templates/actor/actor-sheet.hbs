@@ -236,31 +236,47 @@
           {{#each enrichedRoleOverviewFeatures as |feature|}}
             <section class="role-overview-feature" data-item-id="{{feature.roleId}}">
               <h4 class="roleCategory">{{feature.roleName}}</h4>
-              {{#if (eq feature.kind "networker")}}
-                <div class="role-overview-html">{{{feature.content}}}</div>
-              {{/if}}
+              {{#unless (eq feature.kind "protean")}}
+                {{#if feature.sections.length}}
+                  {{#each feature.sections as |section|}}
+                    <div class="role-overview-html">{{{section.enrichedContent}}}</div>
+                  {{/each}}
+                {{/if}}
+              {{/unless}}
               {{#if (eq feature.kind "protean")}}
                 <div class="role-focus-summary">
                   <span>{{localize "CYBER_BLUE.Role.Pool"}}: {{feature.totalPoints}}</span>
                   <span>{{localize "CYBER_BLUE.Role.Remaining"}}: {{feature.remainingPoints}}</span>
                 </div>
+                {{#if feature.sections.length}}
+                  {{#each feature.sections as |section|}}
+                    <div class="role-overview-html">{{{section.enrichedContent}}}</div>
+                  {{/each}}
+                {{/if}}
                 <table class="embedded-table role-focus-table">
                   <colgroup>
                     <col />
-                    <col class="column-compact" />
+                    <col />
                   </colgroup>
                   <thead>
                     <tr>
-                      <th>{{localize "CYBER_BLUE.Role.Focus"}}</th>
-                      <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Rank"}}</th>
+                      <th>{{localize "CYBER_BLUE.Role.Tactic"}}</th>
+                      <th>Points</th>
                     </tr>
                   </thead>
                   <tbody>
                     {{#each feature.foci as |focus|}}
                       <tr data-item-id="{{../roleId}}">
                         <td title="{{focus.description}}">{{focus.name}}</td>
-                        <td class="numeric-column">
-                          <input type="number" value="{{focus.points}}" min="{{focus.minPoints}}" max="{{focus.maxPoints}}" step="{{focus.step}}" data-action="update-item-field" data-field-path="system.proteanFoci.{{focus.focusIndex}}.points" data-dtype="Number" />
+                        <td>
+                          <div class="protean-radio-group">
+                            {{#each focus.pointOptions as |option|}}
+                              <label class="protean-radio {{#if option.disabled}}is-disabled{{/if}}">
+                                <input type="radio" name="protean-tactic-{{../focusIndex}}-{{@../index}}" value="{{option.value}}" {{#if (eq option.value ../focus.points)}}checked{{/if}} {{#if option.disabled}}disabled{{/if}} data-action="update-protean-points" data-focus-index="{{../focus.focusIndex}}" />
+                                <span>{{option.value}}</span>
+                              </label>
+                            {{/each}}
+                          </div>
                         </td>
                       </tr>
                     {{/each}}
@@ -700,9 +716,7 @@
             {{#each netrunningRole.enrichedSections as |section|}}
               <div class="netrunning-section">
                 <h3>{{localize "CYBER_BLUE.Sheet.Labels.Rank"}} {{section.unlockRank}}</h3>
-                <div class="editor">
-                  <div class="editor-content">{{{section.enrichedContent}}}</div>
-                </div>
+                <div class="enriched-html">{{{section.enrichedContent}}}</div>
               </div>
             {{/each}}
           </section>
@@ -719,9 +733,7 @@
               {{{enrichedDetails.background}}}
             </prose-mirror>
           {{else}}
-            <div class="editor">
-              <div class="editor-content">{{{enrichedDetails.background}}}</div>
-            </div>
+            <div class="enriched-html">{{{enrichedDetails.background}}}</div>
           {{/if}}
         </div>
         <div class="sheet-panel note-panel">
@@ -731,9 +743,7 @@
               {{{enrichedDetails.appearance}}}
             </prose-mirror>
           {{else}}
-            <div class="editor">
-              <div class="editor-content">{{{enrichedDetails.appearance}}}</div>
-            </div>
+            <div class="enriched-html">{{{enrichedDetails.appearance}}}</div>
           {{/if}}
         </div>
         <div class="sheet-panel note-panel">
@@ -743,9 +753,7 @@
               {{{enrichedDetails.personality}}}
             </prose-mirror>
           {{else}}
-            <div class="editor">
-              <div class="editor-content">{{{enrichedDetails.personality}}}</div>
-            </div>
+            <div class="enriched-html">{{{enrichedDetails.personality}}}</div>
           {{/if}}
         </div>
         <div class="sheet-panel note-panel">
@@ -755,9 +763,7 @@
               {{{enrichedDetails.style}}}
             </prose-mirror>
           {{else}}
-            <div class="editor">
-              <div class="editor-content">{{{enrichedDetails.style}}}</div>
-            </div>
+            <div class="enriched-html">{{{enrichedDetails.style}}}</div>
           {{/if}}
         </div>
       </section>

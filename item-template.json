@@ -1,0 +1,130 @@
+[
+  {
+    "_comment": "ROLE — paste into world item list or use JSON importer",
+    "name": "My Role",
+    "type": "role",
+    "system": {
+      "rank": 0,
+      "category": "sundry"
+    }
+  },
+  {
+    "_comment": "ABILITY",
+    "name": "My Ability",
+    "type": "ability",
+    "system": {
+      "rank": 0,
+      "maxRank": 10,
+      "note": ""
+    }
+  },
+  {
+    "_comment": "GEAR — weapon. Set system.weapons[0].type and the system auto-fills damage/RoF/etc.",
+    "_weaponTypes": "lightMelee | heavyMelee | veryHeavyMelee | thrownMelee | lightPistol | heavyPistol | veryHeavyPistol | smg | heavySmg | shotgun | assaultRifle | sniperRifle | bowArrow | grenadeLauncher | rocketLauncher | assault",
+    "name": "My Weapon",
+    "type": "gear",
+    "system": {
+      "cost": "Standard",
+      "note": "",
+      "quantity": 1,
+      "isWeapon": true,
+      "isArmor": false,
+      "weapons": [
+        {
+          "type": "lightPistol"
+        }
+      ]
+    }
+  },
+  {
+    "_comment": "GEAR — armor",
+    "name": "My Armor",
+    "type": "gear",
+    "system": {
+      "cost": "Standard",
+      "note": "",
+      "quantity": 1,
+      "isArmor": true,
+      "isWeapon": false,
+      "armor": {
+        "maxSp": 11,
+        "currentSp": 11
+      }
+    }
+  },
+  {
+    "_comment": "GEAR — general item",
+    "name": "My Item",
+    "type": "gear",
+    "system": {
+      "cost": "Cheap",
+      "note": "",
+      "quantity": 1
+    }
+  },
+  {
+    "_comment": "CYBERWARE",
+    "_integrationTypes": "standalone | platform | extension",
+    "_cyberwareTypes": "neuralware | cyberoptics | cyberaudio | cyberarms | cyberlegs | internal | external | fashionware | borgware",
+    "name": "My Cyberware",
+    "type": "cyberware",
+    "system": {
+      "cyberwareType": "internal",
+      "integration": "standalone",
+      "cost": "Standard",
+      "psycheLossFormula": "1d6",
+      "installationCost": "Standard",
+      "installationDv": 15
+    }
+  },
+  {
+    "_comment": "AMMO",
+    "_ammoTypes": "pistol | smg | shotgun | assault | sniper | bow | grenade | rocket",
+    "name": "My Ammo",
+    "type": "ammo",
+    "system": {
+      "quantity": 10,
+      "cost": "Cheap",
+      "note": "",
+      "ammoTypes": {
+        "pistol": true
+      }
+    }
+  },
+  {
+    "_comment": "MOD — weapon mod. Set installedOnId to the embedded item's id after creation.",
+    "name": "My Mod",
+    "type": "mod",
+    "system": {
+      "modType": "weaponMod",
+      "cost": "Standard",
+      "note": "",
+      "installedOnId": "",
+      "targetWeaponIndex": 0,
+      "weaponChanges": [
+        {
+          "key": "damage",
+          "mode": "add",
+          "value": "1d6"
+        }
+      ]
+    }
+  },
+  {
+    "_comment": "PROGRAM EXECUTABLE",
+    "_programTypes": "antipersonnel | antiprogram | defender | booster | quickhack | ice | blackice | daemon | malware",
+    "name": "My Program",
+    "type": "programExecutable",
+    "system": {
+      "programType": "antipersonnel",
+      "act": 2,
+      "atk": 4,
+      "def": 2,
+      "net": 2,
+      "per": 4,
+      "rez": { "value": 10, "max": 10 },
+      "cost": "Standard",
+      "note": ""
+    }
+  }
+]
