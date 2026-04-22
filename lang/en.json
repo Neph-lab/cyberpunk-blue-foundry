@@ -264,14 +264,17 @@
       "Attack": "Attack",
       "DV": "Difficulty Value (DV)",
       "RollAttack": "Roll Attack",
-      "RollTargetEvasion": "Roll target evasion instead of DV",
+      "RollTargetEvasion": "Roll Evasion for Target",
       "EvasionRoll": "Evasion",
       "EvasionSkill": "Evasion/Athletics",
       "Target": "Target",
+      "Distance": "Distance",
+      "OutOfRange": "Out of range — this weapon cannot reach the target at this distance.",
       "SP": "SP",
       "NetDamage": "Net Damage",
       "ApplyDamage": "Apply Damage",
-      "ApplyDamagePrompt": "Apply {damage} damage to {target}?"
+      "ApplyDamagePrompt": "Apply {damage} damage to {target}?",
+      "ApplyDamageWithSP": "Apply {damage} damage to {target}? (HP: -{hp}, SP: -1)"
     }
   },
   "TYPES": {
