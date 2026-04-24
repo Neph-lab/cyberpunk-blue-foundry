@@ -315,6 +315,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
                 ? `Weapon ${mod.targetWeaponIndex + 1}`
                 : `Weapon ${mod.targetWeaponIndex + 1} (missing)`)
             : '',
+          importedEffects: (mod.importedEffects ?? []),
         })))
       : [];
     context.showEmbeddedModsPanel = (context.isGear || context.isCyberware) && canManageRestricted;
@@ -983,6 +984,11 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       cost: sourceItem.system.cost ?? '',
       note: sourceItem.system.note ?? '',
       description: sourceItem.system.description ?? '',
+      importedEffects: (sourceItem.effects ?? []).map((e) => ({
+        label: e.name ?? e.label ?? '',
+        icon: e.icon ?? '',
+        changes: (e.changes ?? []).map((c) => ({ key: c.key, mode: c.mode, value: c.value })),
+      })),
       targetWeaponIndex: sourceItem.system.targetWeaponIndex ?? -1,
       weaponChanges: foundry.utils.deepClone(sourceItem.system.weaponChanges ?? []),
     });
@@ -1005,6 +1011,11 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       mod.cost = source.system.cost ?? '';
       mod.note = source.system.note ?? '';
       mod.description = source.system.description ?? '';
+      mod.importedEffects = (source.effects ?? []).map((e) => ({
+        label: e.name ?? e.label ?? '',
+        icon: e.icon ?? '',
+        changes: (e.changes ?? []).map((c) => ({ key: c.key, mode: c.mode, value: c.value })),
+      }));
       mod.targetWeaponIndex = source.system.targetWeaponIndex ?? -1;
       mod.weaponChanges = foundry.utils.deepClone(source.system.weaponChanges ?? []);
       changed = true;

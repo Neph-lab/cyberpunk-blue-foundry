@@ -53,6 +53,21 @@ export default class CyberBlueGear extends CyberBlueItemBase {
         cost: new fields.StringField({ required: true, blank: true }),
         note: new fields.StringField({ required: true, blank: true }),
         description: new fields.HTMLField({ initial: '' }),
+        importedEffects: new fields.ArrayField(
+          new fields.SchemaField({
+            label: new fields.StringField({ required: true, blank: true }),
+            icon: new fields.StringField({ required: true, blank: true }),
+            changes: new fields.ArrayField(
+              new fields.SchemaField({
+                key: new fields.StringField({ required: true, blank: true }),
+                mode: new fields.NumberField({ required: true, nullable: false, integer: true, initial: 0 }),
+                value: new fields.StringField({ required: true, blank: true }),
+              }),
+              { initial: [] }
+            ),
+          }),
+          { initial: [] }
+        ),
         targetWeaponIndex: new fields.NumberField({ required: true, nullable: false, integer: true, initial: -1 }),
         weaponChanges: new fields.ArrayField(
           new fields.SchemaField({

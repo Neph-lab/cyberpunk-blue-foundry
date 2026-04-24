@@ -120,6 +120,263 @@ async function rollTargetEvasion(targetActor) {
   return roll;
 }
 
+// ─── Explosion helpers ──────────────────────────────────────────────────────
+
+function drawExplosionGraphics(graphics, ax, ay, maxRangePx, spreadPx, halfDamagePx, targetX, targetY, inRange, losBlocked) {
+  graphics.clear();
+  // Max-range ring (dark grey guide)
+  graphics.lineStyle(1, 0x888888, 0.5);
+  graphics.drawCircle(ax, ay, maxRangePx);
+
+  // Aim marker at cursor
+  const dx = targetX - ax;
+  const dy = targetY - ay;
+  const dist = Math.hypot(dx, dy);
+  if (dist > 0) {
+    const validTarget = inRange && !losBlocked;
+    const markerColor = validTarget ? 0x00ff88 : 0xff3333;
+    const alpha = validTarget ? 0.9 : 0.7;
+    // Target crosshair
+    const cs = 12;
+    graphics.lineStyle(2, markerColor, alpha);
+    graphics.moveTo(targetX - cs, targetY);
+    graphics.lineTo(targetX + cs, targetY);
+    graphics.moveTo(targetX, targetY - cs);
+    graphics.lineTo(targetX, targetY + cs);
+    graphics.drawCircle(targetX, targetY, cs / 2);
+
+    if (validTarget) {
+      // Blast radius preview
+      if (halfDamagePx > 0 && halfDamagePx < spreadPx) {
+        graphics.beginFill(0xff8c00, 0.35);
+        graphics.lineStyle(2, 0xff8c00, 0.9);
+        graphics.drawCircle(targetX, targetY, halfDamagePx);
+        graphics.endFill();
+        graphics.beginFill(0xff4500, 0.15);
+        graphics.lineStyle(1, 0xff6600, 0.6);
+        graphics.drawCircle(targetX, targetY, spreadPx);
+        graphics.endFill();
+      } else {
+        graphics.beginFill(0xff6600, 0.25);
+        graphics.lineStyle(2, 0xff8c00, 0.9);
+        graphics.drawCircle(targetX, targetY, spreadPx);
+        graphics.endFill();
+      }
+    }
+  }
+}
+
+async function placeExplosionPoint(ax, ay, maxRangePx, spreadPx, halfDamagePx) {
+  return new Promise((resolve) => {
+    const graphics = new PIXI.Graphics();
+    graphics.eventMode = 'static';
+    graphics.hitArea = new PIXI.Rectangle(-1e6, -1e6, 2e6, 2e6);
+    canvas.stage.addChild(graphics);
+
+    let targetX = ax;
+    let targetY = ay;
+
+    drawExplosionGraphics(graphics, ax, ay, maxRangePx, spreadPx, halfDamagePx, targetX, targetY, false, false);
+
+    function cleanup() {
+      graphics.off('pointermove', onMove);
+      graphics.off('pointerdown', onDown);
+      canvas.stage.removeChild(graphics);
+      graphics.destroy();
+    }
+
+    const onMove = (event) => {
+      const pos = event.getLocalPosition(canvas.stage);
+      targetX = pos.x;
+      targetY = pos.y;
+      const dist = Math.hypot(pos.x - ax, pos.y - ay);
+      const inRange = dist <= maxRangePx;
+      const losBlocked = inRange ? isBlockedByWalls({ x: ax, y: ay }, { x: pos.x, y: pos.y }) : false;
+      drawExplosionGraphics(graphics, ax, ay, maxRangePx, spreadPx, halfDamagePx, targetX, targetY, inRange, losBlocked);
+    };
+
+    const onDown = (event) => {
+      if (event.button === 0) {
+        const dist = Math.hypot(targetX - ax, targetY - ay);
+        const inRange = dist <= maxRangePx;
+        const losBlocked = inRange ? isBlockedByWalls({ x: ax, y: ay }, { x: targetX, y: targetY }) : false;
+        if (!inRange || losBlocked) {
+          const reason = !inRange ? game.i18n.localize('CYBER_BLUE.Combat.ExplosionOutOfRange')
+            : game.i18n.localize('CYBER_BLUE.Combat.ExplosionNoLOS');
+          ui.notifications.warn(reason);
+          return;
+        }
+        cleanup();
+        resolve({ x: targetX, y: targetY });
+      } else if (event.button === 2) {
+        cleanup();
+        resolve(null);
+      }
+    };
+
+    graphics.on('pointermove', onMove);
+    graphics.on('pointerdown', onDown);
+  });
+}
+
+function scatterPoint(origin, distMeters, pixelsPerMeter) {
+  const angle = Math.random() * 2 * Math.PI;
+  const maxPx = distMeters * pixelsPerMeter;
+  // Walk along scatter direction until wall or max distance
+  const step = pixelsPerMeter * 0.5; // 0.5m steps
+  let lastX = origin.x;
+  let lastY = origin.y;
+  for (let traveled = step; traveled <= maxPx; traveled += step) {
+    const nx = origin.x + traveled * Math.cos(angle);
+    const ny = origin.y + traveled * Math.sin(angle);
+    if (isBlockedByWalls({ x: lastX, y: lastY }, { x: nx, y: ny })) break;
+    lastX = nx;
+    lastY = ny;
+  }
+  return { x: lastX, y: lastY };
+}
+
+export async function resolveExplosionAttack(attacker, item, weaponIndex) {
+  const effectiveWeapons = item.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(item);
+  const weapon = effectiveWeapons[weaponIndex];
+  if (!weapon) return;
+
+  const definition = getWeaponTypeDefinition(weapon.type);
+  const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill
+    : (item.system.weapons?.[weaponIndex]?.skill ?? weapon.skill);
+
+  const attackerToken = attacker.getActiveTokens()[0];
+  if (!attackerToken) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.NeedActiveToken'));
+    return;
+  }
+
+  const spread = weapon.coneSpread ?? 0;
+  const halfDamageDistance = weapon.coneHalfDamageDistance ?? 0;
+  if (spread <= 0) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.ExplosionNoSpread'));
+    return;
+  }
+
+  // Find max weapon range from range table
+  const rangeTable = weapon.rangeTable ?? [];
+  const maxRangeIndex = rangeTable.reduce((best, dv, i) => (dv > 0 ? i : best), -1);
+  const rangeBands = COMBAT_CONFIG.rangeBands ?? [];
+  const maxRangeMeters = maxRangeIndex >= 0 ? (rangeBands[maxRangeIndex]?.max ?? 100) : 100;
+
+  const pixelsPerMeter = getPixelsPerMeter();
+  const maxRangePx = maxRangeMeters * pixelsPerMeter;
+  const spreadPx = spread * pixelsPerMeter;
+  const halfDamagePx = halfDamageDistance * pixelsPerMeter;
+
+  const attackerCenter = getTokenCenter(attackerToken.document);
+
+  ui.notifications.info(game.i18n.localize('CYBER_BLUE.Combat.ExplosionAimPrompt'));
+  const aimPoint = await placeExplosionPoint(attackerCenter.x, attackerCenter.y, maxRangePx, spreadPx, halfDamagePx);
+  if (aimPoint === null) return;
+
+  // Determine DV from range table at aimed distance
+  const aimedDistMeters = Math.hypot(aimPoint.x - attackerCenter.x, aimPoint.y - attackerCenter.y) / pixelsPerMeter;
+  let resolvedDV = null;
+  for (let i = 0; i < rangeBands.length; i++) {
+    const band = rangeBands[i];
+    if (aimedDistMeters <= (band.max ?? Infinity) && rangeTable[i] > 0) {
+      resolvedDV = rangeTable[i];
+      break;
+    }
+  }
+  if (resolvedDV === null) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.OutOfRange'));
+    return;
+  }
+
+  // Roll attack
+  const attackRoll = await attacker.rollSkill({ skillSlug });
+  const hit = attackRoll.total >= resolvedDV;
+
+  // Consume ammo
+  const shots = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
+  if (shots > 0) {
+    const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
+    await item.update({ [`system.weapons.${weaponIndex}.ammoCurrent`]: Math.max(currentAmmo - shots, 0) });
+  }
+
+  // Determine explosion centre (hit or scatter)
+  let explosionCenter = aimPoint;
+  if (!hit) {
+    const scatter = 1 + Math.max(0, resolvedDV - attackRoll.total);
+    explosionCenter = scatterPoint(aimPoint, scatter, pixelsPerMeter);
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      content: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.ExplosionScatter')}</h3>`
+        + `<p>${game.i18n.format('CYBER_BLUE.Combat.ExplosionScatterDist', { dist: scatter })}</p></div>`,
+    });
+  }
+
+  // Find tokens in blast radius
+  const targets = [];
+  for (const token of canvas.tokens.objects?.children ?? []) {
+    if (token === attackerToken || !token.actor) continue;
+    const tc = getTokenCenter(token.document);
+    const dx = tc.x - explosionCenter.x;
+    const dy = tc.y - explosionCenter.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist > spreadPx) continue;
+    if (isBlockedByWalls(explosionCenter, tc)) continue;
+    const distMeters = dist / pixelsPerMeter;
+    const isFullDamage = halfDamageDistance <= 0 || distMeters <= halfDamageDistance;
+    targets.push({ token, actor: token.actor, isFullDamage, distMeters });
+  }
+
+  if (targets.length === 0) {
+    ui.notifications.info(game.i18n.localize('CYBER_BLUE.Combat.ExplosionNoTargets'));
+    return;
+  }
+
+  const damageFormula = weapon.damage ?? definition.damage ?? '1d6';
+  const damageRoll = await new Roll(damageFormula).evaluate();
+  const baseDamage = damageRoll.total;
+  const weaponLabel = (item.system.weapons?.length ?? 0) > 1 ? `${item.name} - ${definition.label}` : item.name;
+
+  await damageRoll.toMessage({
+    speaker: ChatMessage.getSpeaker({ actor: attacker }),
+    flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.ExplosionDamage')}: ${weaponLabel}</h3>`
+      + `<p>${game.i18n.format('CYBER_BLUE.Combat.ConeTargetCount', { count: targets.length })}</p></div>`,
+    rollMode: game.settings.get('core', 'rollMode'),
+  });
+
+  for (const { actor: targetActor, isFullDamage } of targets) {
+    const evasionRoll = await rollTargetEvasion(targetActor);
+    const evaded = evasionRoll.total > attackRoll.total;
+
+    let damage = baseDamage;
+    if (!isFullDamage) damage = Math.ceil(damage / 2);
+    if (evaded) damage = Math.ceil(damage / 2);
+
+    const sp = targetActor.system?.resources?.armor?.value ?? 0;
+    const netDamage = Math.max(damage - sp, 0);
+    const ablatesArmor = damage >= sp && sp > 0;
+
+    const zone = isFullDamage
+      ? game.i18n.localize('CYBER_BLUE.Combat.ConeFullDamage')
+      : game.i18n.localize('CYBER_BLUE.Combat.ConeHalfDamage');
+    const evasionNote = evaded ? ` (${game.i18n.localize('CYBER_BLUE.Combat.Evaded')})` : '';
+
+    const confirmContent = `<p><strong>${targetActor.name}</strong> — ${zone}${evasionNote}</p>`
+      + `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}</p>`;
+
+    if (netDamage > 0 || ablatesArmor) {
+      const confirmed = await foundry.applications.api.DialogV2.confirm({
+        window: { title: game.i18n.localize('CYBER_BLUE.Combat.ApplyDamage') },
+        content: `<div class="cyberpunk-blue">${confirmContent}</div>`,
+      });
+      if (confirmed) await targetActor.applyDamage(damage);
+    }
+  }
+}
+
+// ─── Cone attack ────────────────────────────────────────────────────────────
+
 export async function resolveConeAttack(attacker, item, weaponIndex) {
   const effectiveWeapons = item.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(item);
   const weapon = effectiveWeapons[weaponIndex];

@@ -56,6 +56,32 @@
             </table>
           </div>
         {{/if}}
+
+        {{#if @root.canManageRestricted}}
+          {{#if mod.importedEffects.length}}
+            <div class="mod-changes">
+              <p class="hint">{{localize "CYBER_BLUE.Sheet.Labels.ActiveEffects"}}</p>
+              {{#each mod.importedEffects as |effect|}}
+                <div class="mod-effect-row">
+                  {{#if effect.icon}}<img src="{{effect.icon}}" class="mod-effect-icon" />{{/if}}
+                  <strong class="mod-effect-label">{{effect.label}}</strong>
+                  {{#if effect.changes.length}}
+                    <table class="mod-changes-table">
+                      <tbody>
+                        {{#each effect.changes as |ch|}}
+                          <tr>
+                            <td>{{ch.key}}</td>
+                            <td>{{ch.value}}</td>
+                          </tr>
+                        {{/each}}
+                      </tbody>
+                    </table>
+                  {{/if}}
+                </div>
+              {{/each}}
+            </div>
+          {{/if}}
+        {{/if}}
       </section>
     {{/each}}
   {{else}}
