@@ -340,27 +340,43 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
 
   async _prepareSubmitData(event, form, formData) {
     const data = await super._prepareSubmitData(event, form, formData);
-    // Merge incoming weapon form data with existing weapon state to preserve fields
-    // that are managed by custom handlers (no `name` attr): damageType, rangeTable, autofireRangeTable
+    // Merge incoming weapon form data with existing weapon state to preserve fields that
+    // are managed by custom handlers (no `name` attr): damageType, rangeTable, autofireRangeTable.
+    //
+    // Implementation notes:
+    // - Use document._source (raw JSON) to guarantee plain objects, not DataModel proxies.
+    // - Keep weapons in the { '0': {...} } object-key format that expandObject produces;
+    //   do NOT convert to a true Array — Foundry's cleanData expects the object form and
+    //   converting to Array triggered "CyberBlueItem must be constructed with a DataModel".
+    // - Seed patched with ALL existing weapons first so weapons not in the form are kept.
     const incomingWeapons = data?.system?.weapons;
-    if (incomingWeapons != null) {
-      const existingWeapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
-      const entries = Array.isArray(incomingWeapons)
-        ? incomingWeapons.map((w, i) => [i, w])
-        : Object.entries(incomingWeapons).map(([k, v]) => [Number(k), v]);
-      const merged = existingWeapons.map((w) => ({ ...w }));
-      for (const [i, incoming] of entries) {
-        const existing = existingWeapons[i] ?? {};
-        merged[i] = {
-          ...existing,
-          ...incoming,
-          damageType: existing.damageType ?? '',
-          autofireRangeTable: existing.autofireRangeTable ?? Array(8).fill(0),
-          rangeTable: existing.rangeTable ?? Array(8).fill(0),
-        };
-      }
-      data.system.weapons = merged;
+    if (incomingWeapons == null) return data;
+    const rawWeapons = this.document._source?.system?.weapons ?? [];
+    // Seed every existing weapon so nothing is dropped
+    const patched = {};
+    rawWeapons.forEach((w, i) => { patched[String(i)] = { ...w }; });
+    // Apply incoming form values, merging over each existing weapon
+    const weaponEntries = Array.isArray(incomingWeapons)
+      ? incomingWeapons.map((w, i) => [String(i), w])
+      : Object.entries(incomingWeapons);
+    for (const [key, incoming] of weaponEntries) {
+      const i = Number(key);
+      if (!Number.isFinite(i) || !incoming || typeof incoming !== 'object') continue;
+      const existing = rawWeapons[i] ?? {};
+      patched[key] = {
+        ...existing,    // Start with all existing fields
+        ...incoming,    // Apply form-submitted values
+        // Force-preserve the three fields that never appear in the standard form
+        damageType: existing.damageType ?? '',
+        autofireRangeTable: Array.isArray(existing.autofireRangeTable)
+          ? [...existing.autofireRangeTable]
+          : Array(8).fill(0),
+        rangeTable: Array.isArray(existing.rangeTable)
+          ? [...existing.rangeTable]
+          : Array(8).fill(0),
+      };
     }
+    data.system.weapons = patched;
     return data;
   }
 
