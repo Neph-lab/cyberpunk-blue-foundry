@@ -346,17 +346,21 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     //
     // Implementation notes:
     // - Use document._source (raw JSON) to guarantee plain objects, not DataModel proxies.
-    // - Keep weapons in the { '0': {...} } object-key format that expandObject produces;
-    //   do NOT convert to a true Array — Foundry's cleanData expects the object form and
-    //   converting to Array triggered "CyberBlueItem must be constructed with a DataModel".
-    // - Seed patched with ALL existing weapons first so weapons not in the form are kept.
+    // - Do NOT pass weapons as a nested object — Foundry's cleanData on the embedded-document
+    //   update path (#preUpdateDocumentArray) rejects the full weapon SchemaField object,
+    //   throwing "CyberBlueItem must be constructed with a DataModel or Object".
+    //   Both nested { '0': {...} } and true Array forms trigger this.
+    // - Instead, delete data.system.weapons and emit every weapon field as a flat dot-path
+    //   key (e.g. 'system.weapons.0.damage'). Flat paths bypass cleanData entirely but are
+    //   still applied correctly by Foundry's merge step — exactly like the existing
+    //   rangeTable/damageType custom handlers, which are proven to work.
     const incomingWeapons = data?.system?.weapons;
     if (incomingWeapons == null) return data;
     const rawWeapons = this.document._source?.system?.weapons ?? [];
-    // Seed every existing weapon so nothing is dropped
+
+    // Seed every existing weapon so nothing is dropped, then merge in form values
     const patched = {};
     rawWeapons.forEach((w, i) => { patched[String(i)] = { ...w }; });
-    // Apply incoming form values, merging over each existing weapon
     const weaponEntries = Array.isArray(incomingWeapons)
       ? incomingWeapons.map((w, i) => [String(i), w])
       : Object.entries(incomingWeapons);
@@ -365,19 +369,26 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       if (!Number.isFinite(i) || !incoming || typeof incoming !== 'object') continue;
       const existing = rawWeapons[i] ?? {};
       patched[key] = {
-        ...existing,    // Start with all existing fields
-        ...incoming,    // Apply form-submitted values
+        ...existing,
+        ...incoming,
         // Force-preserve the three fields that never appear in the standard form
         damageType: existing.damageType ?? '',
         autofireRangeTable: Array.isArray(existing.autofireRangeTable)
-          ? [...existing.autofireRangeTable]
-          : Array(8).fill(0),
+          ? [...existing.autofireRangeTable] : Array(8).fill(0),
         rangeTable: Array.isArray(existing.rangeTable)
-          ? [...existing.rangeTable]
-          : Array(8).fill(0),
+          ? [...existing.rangeTable] : Array(8).fill(0),
       };
     }
-    data.system.weapons = patched;
+
+    // Replace the nested weapons object with individual flat dot-path keys.
+    // This bypasses cleanData's ArrayField handling that was causing the error.
+    delete data.system.weapons;
+    for (const [wIdx, weapon] of Object.entries(patched)) {
+      for (const [field, value] of Object.entries(weapon)) {
+        data[`system.weapons.${wIdx}.${field}`] = value;
+      }
+    }
+
     return data;
   }
 
