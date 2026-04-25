@@ -923,7 +923,17 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     const value = event.currentTarget.dataset.dtype === 'Number'
       ? Number(rawValue) || 0
       : rawValue;
-    await item.update({ [path]: value });
+
+    // Weapon array fields must emit all 16 schema fields to avoid cleanData
+    // resetting every unmentioned field to its schema initial value.
+    const weaponMatch = path.match(/^system\.weapons\.(\d+)\.(.+)$/);
+    if (weaponMatch) {
+      const weaponIndex = Number(weaponMatch[1]);
+      const field = weaponMatch[2];
+      await item.update(buildWeaponUpdate(item, weaponIndex, { [field]: value }));
+    } else {
+      await item.update({ [path]: value });
+    }
   }
 
   async _onWeaponAttack(event) {
