@@ -3,7 +3,7 @@ import {
   prepareActiveEffectCategories,
 } from '../helpers/effects.mjs';
 import { getBrandLogoPath } from '../helpers/branding.mjs';
-import { applyWeaponTypeDefaults, createWeaponData, getWeaponTypeDefinition } from '../helpers/combat.mjs';
+import { applyWeaponTypeDefaults, buildWeaponUpdate, createWeaponData, getWeaponTypeDefinition } from '../helpers/combat.mjs';
 import { parsePsycheLossFormula } from '../helpers/cyberware.mjs';
 import { GEAR_STATES, getGearStateUpdateData, normalizeGearState } from '../helpers/gear.mjs';
 import {
@@ -341,51 +341,62 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
 
   _prepareSubmitData(event, form, formData) {
     const data = super._prepareSubmitData(event, form, formData);
-    // Merge incoming weapon form data with existing weapon state to preserve fields that
-    // are managed by custom handlers (no `name` attr): damageType, rangeTable, autofireRangeTable.
+    // CRITICAL: super._prepareSubmitData runs the form data through SchemaField cleanData.
+    // For ArrayField elements (like weapons), cleanData forces partial:false (see Foundry's
+    // ArrayField._cleanElement), which fills in any MISSING fields with their schema `initial`
+    // values. Several weapon fields are not in the form (the type <select> has no `name`,
+    // and damageType/rangeTable/autofireRangeTable/etc. are managed by custom handlers).
+    // So data.system.weapons[0] arrives here with type:'lightMelee', rangeTable:[0,...,0],
+    // and other defaults — corrupting the weapon. We must NOT trust data.system.weapons.
     //
-    // Implementation notes:
-    // - Use document._source (raw JSON) to guarantee plain objects, not DataModel proxies.
-    // - Do NOT pass weapons as a nested object — Foundry's cleanData on the embedded-document
-    //   update path (#preUpdateDocumentArray) rejects the full weapon SchemaField object,
-    //   throwing "CyberBlueItem must be constructed with a DataModel or Object".
-    //   Both nested { '0': {...} } and true Array forms trigger this.
-    // - Instead, delete data.system.weapons and emit every weapon field as a flat dot-path
-    //   key (e.g. 'system.weapons.0.damage'). Flat paths bypass cleanData entirely but are
-    //   still applied correctly by Foundry's merge step — exactly like the existing
-    //   rangeTable/damageType custom handlers, which are proven to work.
-    const incomingWeapons = data?.system?.weapons;
-    if (incomingWeapons == null) return data;
-    // Use system.toObject() (in-memory DataModel state) rather than _source, because
-    // flat dot-path updates from custom handlers update the in-memory model immediately
-    // but may not reliably update _source for embedded items before submitOnChange fires.
-    const rawWeapons = (this.document.system.toObject?.() ?? this.document.system)?.weapons ?? [];
+    // Instead, read the raw form input directly from formData.object (flat dot-path keys
+    // exactly as the user submitted them) and merge ONLY those fields with the existing
+    // weapon source data. This way fields not in the form are preserved untouched.
+    //
+    // Then emit each merged weapon field as a flat dot-path key. Per Foundry's
+    // ArrayField._cleanType, any field present in the array element's incoming data is
+    // preserved by clean(); only undefined fields fall back to the initial value. Since
+    // we emit every field of every existing weapon, nothing is left undefined and the
+    // weapon round-trips intact.
+    const formObj = formData?.object ?? {};
+    const formWeaponFields = {};
+    const weaponFieldRegex = /^system\.weapons\.(\d+)\.(.+)$/;
+    for (const [key, value] of Object.entries(formObj)) {
+      const m = key.match(weaponFieldRegex);
+      if (!m) continue;
+      const i = m[1];
+      const field = m[2];
+      if (!formWeaponFields[i]) formWeaponFields[i] = {};
+      formWeaponFields[i][field] = value;
+    }
 
-    // Seed every existing weapon so nothing is dropped, then merge in form values
+    // Always remove any nested weapons that super produced — they'd be corrupted by cleanData
+    if (data?.system && 'weapons' in data.system) {
+      delete data.system.weapons;
+    }
+
+    // If no weapon form fields were actually submitted, there's nothing more to do
+    if (Object.keys(formWeaponFields).length === 0) {
+      return data;
+    }
+
+    // Read existing weapons from _source (raw stored JSON, not cleaned/derived)
+    const rawWeapons = this.document._source?.system?.weapons ?? [];
+
+    // Seed every existing weapon so nothing is dropped, then overlay only form-submitted fields
     const patched = {};
     rawWeapons.forEach((w, i) => { patched[String(i)] = { ...w }; });
-    const weaponEntries = Array.isArray(incomingWeapons)
-      ? incomingWeapons.map((w, i) => [String(i), w])
-      : Object.entries(incomingWeapons);
-    for (const [key, incoming] of weaponEntries) {
+    for (const [key, formFields] of Object.entries(formWeaponFields)) {
       const i = Number(key);
-      if (!Number.isFinite(i) || !incoming || typeof incoming !== 'object') continue;
+      if (!Number.isFinite(i)) continue;
       const existing = rawWeapons[i] ?? {};
       patched[key] = {
-        ...existing,
-        ...incoming,
-        // Force-preserve the three fields that never appear in the standard form
-        damageType: existing.damageType ?? '',
-        autofireRangeTable: Array.isArray(existing.autofireRangeTable)
-          ? [...existing.autofireRangeTable] : Array(8).fill(0),
-        rangeTable: Array.isArray(existing.rangeTable)
-          ? [...existing.rangeTable] : Array(8).fill(0),
+        ...existing,    // start with full existing weapon (all 16 schema fields)
+        ...formFields,  // overlay ONLY the fields the user actually submitted
       };
     }
 
-    // Replace the nested weapons object with individual flat dot-path keys.
-    // This bypasses cleanData's ArrayField handling that was causing the error.
-    delete data.system.weapons;
+    // Emit every field of every weapon as a flat dot-path key
     for (const [wIdx, weapon] of Object.entries(patched)) {
       for (const [field, value] of Object.entries(weapon)) {
         data[`system.weapons.${wIdx}.${field}`] = value;
@@ -886,14 +897,14 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       return;
     }
 
-    const weapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
+    const weapons = this.document._source?.system?.weapons ?? [];
     const rawValue = `${event.currentTarget.value ?? ''}`.trim();
     const nextValue = rawValue === '-' ? 0 : Math.max(Number(rawValue) || 0, 0);
-    const newTable = Array.isArray(weapons[weaponIndex].rangeTable)
+    const newTable = Array.isArray(weapons[weaponIndex]?.rangeTable)
       ? [...weapons[weaponIndex].rangeTable]
       : Array(8).fill(0);
     newTable[bandIndex] = nextValue;
-    await this.document.update({ [`system.weapons.${weaponIndex}.rangeTable`]: newTable });
+    await this.document.update(buildWeaponUpdate(this.document, weaponIndex,{ rangeTable: newTable }));
   }
 
   async _onAutofireRangeTableChange(event) {
@@ -903,14 +914,14 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
     const bandIndex = Number.parseInt(event.currentTarget.dataset.bandIndex ?? '-1', 10);
     if (Number.isNaN(weaponIndex) || weaponIndex < 0 || Number.isNaN(bandIndex) || bandIndex < 0) return;
-    const weapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
+    const weapons = this.document._source?.system?.weapons ?? [];
     const rawValue = `${event.currentTarget.value ?? ''}`.trim();
     const nextValue = rawValue === '-' ? 0 : Math.max(Number(rawValue) || 0, 0);
-    const newTable = Array.isArray(weapons[weaponIndex].autofireRangeTable)
+    const newTable = Array.isArray(weapons[weaponIndex]?.autofireRangeTable)
       ? [...weapons[weaponIndex].autofireRangeTable]
       : Array(8).fill(0);
     newTable[bandIndex] = nextValue;
-    await this.document.update({ [`system.weapons.${weaponIndex}.autofireRangeTable`]: newTable });
+    await this.document.update(buildWeaponUpdate(this.document, weaponIndex,{ autofireRangeTable: newTable }));
   }
 
   async _onWeaponDamageTypeChange(event) {
@@ -919,20 +930,20 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     event.stopImmediatePropagation();
     const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
     if (Number.isNaN(weaponIndex) || weaponIndex < 0) return;
-    const weapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
+    const weapons = this.document._source?.system?.weapons ?? [];
     const newType = event.currentTarget.value ?? '';
-    const updates = { [`system.weapons.${weaponIndex}.damageType`]: newType };
+    const changes = { damageType: newType };
     if (newType === 'autofire') {
-      const allZeros = (weapons[weaponIndex].autofireRangeTable ?? []).every((v) => v === 0);
+      const allZeros = (weapons[weaponIndex]?.autofireRangeTable ?? []).every((v) => v === 0);
       if (allZeros) {
-        const definition = getWeaponTypeDefinition(weapons[weaponIndex].type);
+        const definition = getWeaponTypeDefinition(weapons[weaponIndex]?.type);
         if (definition.defaultAutofireRangeTable) {
-          updates[`system.weapons.${weaponIndex}.autofireRangeTable`] = definition.defaultAutofireRangeTable.slice();
+          changes.autofireRangeTable = definition.defaultAutofireRangeTable.slice();
         }
       }
     }
     // Note: rangeTable is intentionally preserved for all damage types (explosion uses it for scatter DV)
-    await this.document.update(updates);
+    await this.document.update(buildWeaponUpdate(this.document, weaponIndex,changes));
   }
 
   async _onCyberwareIntegrationChange(event) {

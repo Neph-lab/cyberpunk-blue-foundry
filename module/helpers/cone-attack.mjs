@@ -1,4 +1,4 @@
-import { getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
+import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
 import { getEffectiveItemWeapons } from './mods.mjs';
 
 function getPixelsPerMeter() {
@@ -298,7 +298,7 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
   const shots = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
   if (shots > 0) {
     const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
-    await item.update({ [`system.weapons.${weaponIndex}.ammoCurrent`]: Math.max(currentAmmo - shots, 0) });
+    await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: Math.max(currentAmmo - shots, 0) }));
   }
 
   // Determine explosion centre (hit or scatter)
@@ -420,7 +420,7 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
   const shots = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
   if (shots > 0) {
     const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
-    await item.update({ [`system.weapons.${weaponIndex}.ammoCurrent`]: Math.max(currentAmmo - shots, 0) });
+    await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: Math.max(currentAmmo - shots, 0) }));
   }
 
   // Find tokens in cone

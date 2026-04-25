@@ -345,6 +345,35 @@ export function createWeaponData(type = 'lightMelee') {
   };
 }
 
+/**
+ * Build a weapon update payload that emits ALL fields of the weapon as flat dot-paths.
+ *
+ * Why this is necessary: Foundry's ArrayField cleanData (foundry.mjs:10907) forces
+ * `partial: false` when cleaning each array element. Under partial:false, any field
+ * MISSING from the incoming element is reset to its schema `initial` value
+ * (e.g. type → 'lightMelee', rangeTable → [0,...,0]). So updating a single weapon
+ * field with `{ 'system.weapons.0.X': value }` causes every other field on that
+ * weapon to revert to its schema default. The only safe pattern is to always emit
+ * every field of the existing weapon, with the change overlaid.
+ *
+ * @param {Item|object} itemOrSource  An Item document or a raw _source object containing system.weapons
+ * @param {number} weaponIndex        Index in system.weapons
+ * @param {object} changes            Partial weapon fields to overlay on the existing weapon
+ * @param {object} [extra]            Additional flat-path keys to merge (non-weapon)
+ * @returns {object}                  Update payload suitable for document.update()
+ */
+export function buildWeaponUpdate(itemOrSource, weaponIndex, changes = {}, extra = {}) {
+  const source = itemOrSource?._source ?? itemOrSource;
+  const rawWeapons = source?.system?.weapons ?? [];
+  const existing = rawWeapons[weaponIndex] ?? {};
+  const merged = { ...existing, ...changes };
+  const updates = { ...extra };
+  for (const [field, value] of Object.entries(merged)) {
+    updates[`system.weapons.${weaponIndex}.${field}`] = value;
+  }
+  return updates;
+}
+
 export function applyWeaponTypeDefaults(existingWeapon = {}, type = 'lightMelee') {
   const defaults = createWeaponData(type);
   // Only preserve the existing range table when: (a) a damage type is already configured AND

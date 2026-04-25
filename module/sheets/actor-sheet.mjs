@@ -6,7 +6,7 @@ import { getEligiblePlatforms, getPlatformUsage, promptForCyberwarePlatform } fr
 import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs';
 import { normalizeGearState, getGearStateUpdateData } from '../helpers/gear.mjs';
 import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
-import { getWeaponTypeDefinition } from '../helpers/combat.mjs';
+import { buildWeaponUpdate, getWeaponTypeDefinition } from '../helpers/combat.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack } from '../helpers/combat-resolution.mjs';
 import { CharacterCreationWizard, CC_STEPS_LIST } from '../helpers/character-creation.mjs';
 import {
@@ -981,7 +981,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       return;
     }
 
-    await item.update({ [`system.weapons.${weaponIndex}.ammoCurrent`]: Math.max(magazine, 0) });
+    await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: Math.max(magazine, 0) }));
   }
 
   async _onOpenTeamMember(event) {

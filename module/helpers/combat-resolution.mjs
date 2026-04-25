@@ -1,4 +1,4 @@
-import { getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
+import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
 import { getEffectiveItemWeapons } from './mods.mjs';
 import { resolveConeAttack, resolveExplosionAttack } from './cone-attack.mjs';
 
@@ -66,7 +66,7 @@ async function rollTargetEvasion(targetActor) {
 async function consumeAmmo(item, weaponIndex, shots) {
   if (shots <= 0) return;
   const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
-  await item.update({ [`system.weapons.${weaponIndex}.ammoCurrent`]: Math.max(currentAmmo - shots, 0) });
+  await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: Math.max(currentAmmo - shots, 0) }));
 }
 
 export async function resolveWeaponAttack(attacker, item, weaponIndex) {
