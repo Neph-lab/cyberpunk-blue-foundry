@@ -205,10 +205,23 @@ export function normalizeRoleSystemData(system = {}) {
 
   if (next.category === 'specialist') {
     for (const specialty of next.specialties) {
-      specialty.optionGroups = specialty.optionGroups.map((group) => ({
-        ...group,
-        selectedOptionIds: (group.selectedOptionIds ?? []).filter((selectedId) => group.options.some((option) => option.id === selectedId)).slice(0, Math.max(Number(group.choices) || 0, 0)),
-      }));
+      const rank = Math.max(Number(specialty.rank) || 0, 0);
+      // First pass: filter each group's selections to valid option IDs
+      for (const group of specialty.optionGroups) {
+        const validIds = new Set((group.options ?? []).map((o) => o.id));
+        group.selectedOptionIds = (group.selectedOptionIds ?? []).filter((id) => validIds.has(id));
+      }
+      // Second pass: enforce cross-group total ≤ rank (trim from last group first)
+      let totalSelected = specialty.optionGroups.reduce((sum, g) => sum + g.selectedOptionIds.length, 0);
+      for (let gi = specialty.optionGroups.length - 1; gi >= 0 && totalSelected > rank; gi--) {
+        const group = specialty.optionGroups[gi];
+        const excess = totalSelected - rank;
+        if (group.selectedOptionIds.length > 0) {
+          const remove = Math.min(excess, group.selectedOptionIds.length);
+          group.selectedOptionIds = group.selectedOptionIds.slice(0, group.selectedOptionIds.length - remove);
+          totalSelected -= remove;
+        }
+      }
     }
   }
 

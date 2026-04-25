@@ -445,6 +445,10 @@ Handlebars.registerHelper('and', function (...args) {
   return args.slice(0, -1).every(Boolean);
 });
 
+Handlebars.registerHelper('or', function (...args) {
+  return args.slice(0, -1).some(Boolean);
+});
+
 Hooks.once('ready', () => {
   if (game.user.isGM) return;
 

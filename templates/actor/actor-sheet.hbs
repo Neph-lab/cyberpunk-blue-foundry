@@ -269,40 +269,26 @@
                   <span>{{localize "CYBER_BLUE.Role.Pool"}}: {{feature.totalPoints}}</span>
                   <span>{{localize "CYBER_BLUE.Role.Remaining"}}: {{feature.remainingPoints}}</span>
                 </div>
-                {{#if feature.sections.length}}
-                  {{#each feature.sections as |section|}}
-                    <div class="role-overview-html">{{{section.enrichedContent}}}</div>
+                <div class="protean-tactic-list">
+                  {{#each feature.foci as |focus|}}
+                    <div class="protean-tactic" data-item-id="{{../roleId}}">
+                      <div class="protean-tactic-name">{{focus.name}}</div>
+                      {{#if focus.description}}
+                        <div class="protean-tactic-description">{{focus.description}}</div>
+                      {{/if}}
+                      <div class="protean-tactic-points">
+                        <div class="protean-radio-group">
+                          {{#each focus.pointOptions as |option|}}
+                            <label class="protean-radio {{#if option.disabled}}is-disabled{{/if}}">
+                              <input type="radio" name="protean-tactic-{{../focusIndex}}" value="{{option.value}}" {{#if (eq option.value ../focus.points)}}checked{{/if}} {{#if option.disabled}}disabled{{/if}} data-action="update-protean-points" data-focus-index="{{../focus.focusIndex}}" />
+                              <span>{{option.value}}</span>
+                            </label>
+                          {{/each}}
+                        </div>
+                      </div>
+                    </div>
                   {{/each}}
-                {{/if}}
-                <table class="embedded-table role-focus-table">
-                  <colgroup>
-                    <col />
-                    <col />
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th>{{localize "CYBER_BLUE.Role.Tactic"}}</th>
-                      <th>Points</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {{#each feature.foci as |focus|}}
-                      <tr data-item-id="{{../roleId}}">
-                        <td title="{{focus.description}}">{{focus.name}}</td>
-                        <td>
-                          <div class="protean-radio-group">
-                            {{#each focus.pointOptions as |option|}}
-                              <label class="protean-radio {{#if option.disabled}}is-disabled{{/if}}">
-                                <input type="radio" name="protean-tactic-{{../focusIndex}}-{{@../index}}" value="{{option.value}}" {{#if (eq option.value ../focus.points)}}checked{{/if}} {{#if option.disabled}}disabled{{/if}} data-action="update-protean-points" data-focus-index="{{../focus.focusIndex}}" />
-                                <span>{{option.value}}</span>
-                              </label>
-                            {{/each}}
-                          </div>
-                        </td>
-                      </tr>
-                    {{/each}}
-                  </tbody>
-                </table>
+                </div>
               {{/if}}
               {{#if (eq feature.kind "leader")}}
                 {{#each feature.leaderFeatures as |leaderFeature|}}
@@ -331,6 +317,22 @@
                       {{#each specialty.unlockedSections as |section|}}
                         <div class="role-overview-html">{{{section.enrichedContent}}}</div>
                       {{/each}}
+                      {{#if specialty.allOptions.length}}
+                        <div class="specialty-options">
+                          {{#each specialty.allOptions as |opt|}}
+                            <label class="checkbox {{#if opt.disabled}}is-disabled{{/if}}" title="{{opt.description}}" data-item-id="{{../../roleId}}">
+                              <input type="checkbox"
+                                data-action="toggle-specialty-option"
+                                data-specialty-index="{{../specialtyIndex}}"
+                                data-group-index="{{opt.groupIndex}}"
+                                data-option-id="{{opt.id}}"
+                                {{checked opt.selected}}
+                                {{#if opt.disabled}}disabled{{/if}} />
+                              <span>{{opt.name}}</span>
+                            </label>
+                          {{/each}}
+                        </div>
+                      {{/if}}
                     </div>
                   {{/each}}
                 </div>

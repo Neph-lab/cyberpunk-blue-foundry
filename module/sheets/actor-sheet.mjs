@@ -444,12 +444,28 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       }
 
       if (roleSystem.category === 'specialist') {
-        const specialties = (roleSystem.specialties ?? []).filter((specialty) => specialty.rank > 0).map((specialty, specialtyIndex) => ({
-          ...specialty,
-          specialtyIndex,
-          unlockedSections: getUnlockedSpecialtySections(specialty),
-          unlockedOptionGroups: getUnlockedSpecialtyOptionGroups(specialty),
-        }));
+        const specialties = (roleSystem.specialties ?? []).filter((specialty) => specialty.rank > 0).map((specialty, specialtyIndex) => {
+          const unlockedGroups = getUnlockedSpecialtyOptionGroups(specialty);
+          const allSelectedIds = new Set(unlockedGroups.flatMap((g) => g.selectedOptionIds ?? []));
+          const totalSelected = allSelectedIds.size;
+          const atCap = totalSelected >= (Number(specialty.rank) || 0);
+          const allOptions = unlockedGroups.flatMap((group) => {
+            const realGroupIndex = (specialty.optionGroups ?? []).findIndex((g) => g.id === group.id);
+            return (group.options ?? []).map((option) => ({
+              ...option,
+              selected: (group.selectedOptionIds ?? []).includes(option.id),
+              disabled: atCap && !(group.selectedOptionIds ?? []).includes(option.id),
+              groupIndex: realGroupIndex,
+            }));
+          });
+          return {
+            ...specialty,
+            specialtyIndex,
+            unlockedSections: getUnlockedSpecialtySections(specialty),
+            unlockedOptionGroups: unlockedGroups,
+            allOptions,
+          };
+        });
         return { ...base, specialties };
       }
 
@@ -639,6 +655,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     });
     this.element.querySelectorAll('[data-action="update-protean-points"]').forEach((input) => {
       input.addEventListener('change', this._onUpdateProteanPoints.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="toggle-specialty-option"]').forEach((input) => {
+      input.addEventListener('change', this._onToggleSpecialtyOption.bind(this));
     });
 
     this.element.querySelector('[data-action="begin-character-creation"]')?.addEventListener('click', this._onBeginCharacterCreation.bind(this));
@@ -943,6 +962,41 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     }
     foci[focusIndex] = { ...foci[focusIndex], points: value };
     await item.update({ 'system.proteanFoci': foci });
+    this.render();
+  }
+
+  async _onToggleSpecialtyOption(event) {
+    const item = this._getItemFromEvent(event);
+    if (!item || item.type !== 'role') return;
+    const specialtyIndex = Number.parseInt(event.currentTarget.dataset.specialtyIndex ?? '-1', 10);
+    const groupIndex = Number.parseInt(event.currentTarget.dataset.groupIndex ?? '-1', 10);
+    const optionId = event.currentTarget.dataset.optionId;
+    if (specialtyIndex < 0 || groupIndex < 0 || !optionId) return;
+
+    const systemData = item.system.toObject?.() ?? item.system;
+    const system = foundry.utils.deepClone(systemData);
+    const specialty = system.specialties?.[specialtyIndex];
+    if (!specialty) return;
+    const group = specialty.optionGroups?.[groupIndex];
+    if (!group) return;
+
+    const next = new Set(group.selectedOptionIds ?? []);
+    if (event.currentTarget.checked) {
+      // Check cross-group total against rank cap
+      const otherGroupTotal = specialty.optionGroups.reduce((acc, g, gi) => {
+        if (gi === groupIndex) return acc;
+        return acc + (g.selectedOptionIds ?? []).length;
+      }, 0);
+      if (otherGroupTotal + next.size + 1 > (Number(specialty.rank) || 0)) {
+        event.currentTarget.checked = false;
+        return;
+      }
+      next.add(optionId);
+    } else {
+      next.delete(optionId);
+    }
+    group.selectedOptionIds = [...next];
+    await item.update({ system });
   }
 
   async _onBeginCharacterCreation(event) {

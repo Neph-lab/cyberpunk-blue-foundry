@@ -41,7 +41,7 @@
               <div class="weapon-grid">
                 <label>
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.WeaponType"}}</span>
-                  <select name="system.weapons.{{weapon.index}}.type" data-weapon-index="{{weapon.index}}" data-weapon-type-select>
+                  <select data-weapon-index="{{weapon.index}}" data-weapon-type-select>
                     {{#each @root.combatConfig.weaponTypeGroups as |group|}}
                       <optgroup label="{{group.label}}">
                         {{#each group.options as |option|}}
@@ -152,16 +152,18 @@
                 </div>
               {{/if}}
 
-              {{#if (eq weapon.damageType "cone")}}
+              {{#if (or (eq weapon.damageType "cone") (eq weapon.damageType "explosion"))}}
                 <div class="weapon-subfields cone-fields">
-                  <label class="compact-field">
-                    <span>{{localize "CYBER_BLUE.Sheet.Labels.ConeSpread"}}</span>
-                    <input type="number" name="system.weapons.{{weapon.index}}.coneSpread" value="{{weapon.coneSpread}}" data-dtype="Number" min="0" />
-                  </label>
-                  <label class="compact-field">
-                    <span>{{localize "CYBER_BLUE.Sheet.Labels.ConeAngle"}}</span>
-                    <input type="number" name="system.weapons.{{weapon.index}}.coneAngle" value="{{weapon.coneAngle}}" data-dtype="Number" min="0" max="360" />
-                  </label>
+                  {{#if (eq weapon.damageType "cone")}}
+                    <label class="compact-field">
+                      <span>{{localize "CYBER_BLUE.Sheet.Labels.ConeSpread"}}</span>
+                      <input type="number" name="system.weapons.{{weapon.index}}.coneSpread" value="{{weapon.coneSpread}}" data-dtype="Number" min="0" />
+                    </label>
+                    <label class="compact-field">
+                      <span>{{localize "CYBER_BLUE.Sheet.Labels.ConeAngle"}}</span>
+                      <input type="number" name="system.weapons.{{weapon.index}}.coneAngle" value="{{weapon.coneAngle}}" data-dtype="Number" min="0" max="360" />
+                    </label>
+                  {{/if}}
                   <label class="compact-field">
                     <span>{{localize "CYBER_BLUE.Sheet.Labels.ConeHalfDamageDistance"}}</span>
                     <input type="number" name="system.weapons.{{weapon.index}}.coneHalfDamageDistance" value="{{weapon.coneHalfDamageDistance}}" data-dtype="Number" min="0" />

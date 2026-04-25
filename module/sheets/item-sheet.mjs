@@ -810,17 +810,28 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       return;
     }
     const system = this._cloneRoleSystem();
-    const group = system.specialties[specialtyIndex]?.optionGroups[groupIndex];
+    const specialty = system.specialties[specialtyIndex];
+    const group = specialty?.optionGroups[groupIndex];
     if (!group) {
       return;
     }
     const next = new Set(group.selectedOptionIds ?? []);
     if (event.currentTarget.checked) {
+      // Enforce cross-group total ≤ specialty rank
+      const rank = Math.max(Number(specialty.rank) || 0, 0);
+      const otherTotal = specialty.optionGroups.reduce((acc, g, gi) => {
+        if (gi === groupIndex) return acc;
+        return acc + (g.selectedOptionIds ?? []).length;
+      }, 0);
+      if (otherTotal + next.size + 1 > rank) {
+        event.currentTarget.checked = false;
+        return;
+      }
       next.add(optionId);
     } else {
       next.delete(optionId);
     }
-    group.selectedOptionIds = Array.from(next).slice(0, Math.max(Number(group.choices) || 0, 0));
+    group.selectedOptionIds = [...next];
     await this.document.update({ system });
   }
 
@@ -853,9 +864,13 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       return;
     }
 
-    const weapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
-    weapons[index] = applyWeaponTypeDefaults(weapons[index], event.currentTarget.value);
-    await this.document.update({ 'system.weapons': weapons });
+    const rawWeapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
+    const newWeapon = applyWeaponTypeDefaults(rawWeapons[index], event.currentTarget.value);
+    const updates = {};
+    for (const [key, value] of Object.entries(newWeapon)) {
+      updates[`system.weapons.${index}.${key}`] = value;
+    }
+    await this.document.update(updates);
   }
 
   async _onRangeTableChange(event) {
@@ -869,8 +884,11 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     const weapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
     const rawValue = `${event.currentTarget.value ?? ''}`.trim();
     const nextValue = rawValue === '-' ? 0 : Math.max(Number(rawValue) || 0, 0);
-    weapons[weaponIndex].rangeTable[bandIndex] = nextValue;
-    await this.document.update({ 'system.weapons': weapons });
+    const newTable = Array.isArray(weapons[weaponIndex].rangeTable)
+      ? [...weapons[weaponIndex].rangeTable]
+      : Array(8).fill(0);
+    newTable[bandIndex] = nextValue;
+    await this.document.update({ [`system.weapons.${weaponIndex}.rangeTable`]: newTable });
   }
 
   async _onAutofireRangeTableChange(event) {
@@ -881,9 +899,11 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     const weapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
     const rawValue = `${event.currentTarget.value ?? ''}`.trim();
     const nextValue = rawValue === '-' ? 0 : Math.max(Number(rawValue) || 0, 0);
-    if (!weapons[weaponIndex].autofireRangeTable) weapons[weaponIndex].autofireRangeTable = Array(8).fill(0);
-    weapons[weaponIndex].autofireRangeTable[bandIndex] = nextValue;
-    await this.document.update({ 'system.weapons': weapons });
+    const newTable = Array.isArray(weapons[weaponIndex].autofireRangeTable)
+      ? [...weapons[weaponIndex].autofireRangeTable]
+      : Array(8).fill(0);
+    newTable[bandIndex] = nextValue;
+    await this.document.update({ [`system.weapons.${weaponIndex}.autofireRangeTable`]: newTable });
   }
 
   async _onWeaponDamageTypeChange(event) {
@@ -892,17 +912,18 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     if (Number.isNaN(weaponIndex) || weaponIndex < 0) return;
     const weapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];
     const newType = event.currentTarget.value ?? '';
-    weapons[weaponIndex].damageType = newType;
+    const updates = { [`system.weapons.${weaponIndex}.damageType`]: newType };
     if (newType === 'autofire') {
       const allZeros = (weapons[weaponIndex].autofireRangeTable ?? []).every((v) => v === 0);
       if (allZeros) {
         const definition = getWeaponTypeDefinition(weapons[weaponIndex].type);
         if (definition.defaultAutofireRangeTable) {
-          weapons[weaponIndex].autofireRangeTable = definition.defaultAutofireRangeTable.slice();
+          updates[`system.weapons.${weaponIndex}.autofireRangeTable`] = definition.defaultAutofireRangeTable.slice();
         }
       }
     }
-    await this.document.update({ 'system.weapons': weapons });
+    // Note: rangeTable is intentionally preserved for all damage types (explosion uses it for scatter DV)
+    await this.document.update(updates);
   }
 
   async _onCyberwareIntegrationChange(event) {
