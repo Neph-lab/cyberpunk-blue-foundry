@@ -389,12 +389,16 @@
                           <i class="fas {{#if role.isLowRankActive}}fa-toggle-on{{else}}fa-toggle-off{{/if}}"></i>
                         </button>
                       {{/unless}}
-                      <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}">
-                        <i class="fas fa-arrow-up"></i>
-                      </button>
-                      <button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}">
-                        <i class="fas fa-arrow-down"></i>
-                      </button>
+                      {{#if role.canMoveUp}}
+                        <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}">
+                          <i class="fas fa-arrow-up"></i>
+                        </button>
+                      {{/if}}
+                      {{#if role.canMoveDown}}
+                        <button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}">
+                          <i class="fas fa-arrow-down"></i>
+                        </button>
+                      {{/if}}
                       <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}">
                         <i class="fas fa-pen"></i>
                       </button>
@@ -443,12 +447,16 @@
                   <td class="embedded-summary">{{ability.system.note}}</td>
                   <td>
                     <div class="embedded-controls">
-                      <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}">
-                        <i class="fas fa-arrow-up"></i>
-                      </button>
-                      <button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}">
-                        <i class="fas fa-arrow-down"></i>
-                      </button>
+                      {{#if ability.canMoveUp}}
+                        <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}">
+                          <i class="fas fa-arrow-up"></i>
+                        </button>
+                      {{/if}}
+                      {{#if ability.canMoveDown}}
+                        <button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}">
+                          <i class="fas fa-arrow-down"></i>
+                        </button>
+                      {{/if}}
                       <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}">
                         <i class="fas fa-pen"></i>
                       </button>
@@ -580,8 +588,8 @@
                           {{#if item.canDetachPlatform}}
                             <button type="button" data-action="remove-platform" title="{{localize "CYBER_BLUE.Sheet.Buttons.RemovePlatform"}}"><i class="fas fa-link-slash"></i></button>
                           {{/if}}
-                          <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>
-                          <button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>
+                          {{#if item.canMoveUp}}<button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>{{/if}}
+                          {{#if item.canMoveDown}}<button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>{{/if}}
                           <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>
                           <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}"><i class="fas fa-trash"></i></button>
                         </div>
@@ -636,8 +644,8 @@
                       <div class="embedded-summary">{{localize "CYBER_BLUE.Cyberware.Unassigned"}}</div>
                       <div class="embedded-controls">
                         <button type="button" data-action="assign-platform" title="{{localize "CYBER_BLUE.Sheet.Buttons.AssignPlatform"}}" {{#unless item.hasEligiblePlatforms}}disabled{{/unless}}><i class="fas fa-link"></i></button>
-                        <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>
-                        <button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>
+                        {{#if item.canMoveUp}}<button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>{{/if}}
+                        {{#if item.canMoveDown}}<button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>{{/if}}
                         <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>
                         <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}"><i class="fas fa-trash"></i></button>
                       </div>
@@ -664,6 +672,36 @@
             <i class="fas fa-plus"></i>
           </button>
         </div>
+
+        {{#if ammoItems.length}}
+          <section class="inventory-group">
+            <h2>{{localize "CYBER_BLUE.Sheet.Labels.Ammo"}}</h2>
+            <div class="embedded-list inventory-list">
+              <div class="embedded-header embedded-row ammo-row">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Item"}}</span>
+                <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Quantity"}}</span>
+                <span class="numeric-column">Controls</span>
+              </div>
+              <div class="embedded-entries">
+                {{#each ammoItems as |item|}}
+                  <div class="embedded-row ammo-row" data-item-id="{{item.id}}">
+                    <button type="button" class="item-name-link embedded-name">
+                      <img src="{{item.img}}" alt="{{item.name}}" />
+                      <span>{{item.name}}</span>
+                    </button>
+                    <input class="numeric-column" type="number" value="{{item.system.quantity}}" data-action="update-item-field" data-field-path="system.quantity" data-dtype="Number" />
+                    <div class="embedded-controls">
+                      {{#if item.canMoveUp}}<button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>{{/if}}
+                      {{#if item.canMoveDown}}<button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>{{/if}}
+                      <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>
+                      <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}"><i class="fas fa-trash"></i></button>
+                    </div>
+                  </div>
+                {{/each}}
+              </div>
+            </div>
+          </section>
+        {{/if}}
 
         {{#each inventoryGroups as |group|}}
           <section class="inventory-group">
@@ -714,8 +752,8 @@
                         <button type="button" data-action="set-gear-state" data-state="equipped" title="{{localize "CYBER_BLUE.Sheet.Buttons.Equip"}}"><i class="fas fa-shield-halved"></i></button>
                         <button type="button" data-action="set-gear-state" data-state="carried" title="{{localize "CYBER_BLUE.Sheet.Buttons.Bring"}}"><i class="fas fa-briefcase"></i></button>
                         <button type="button" data-action="set-gear-state" data-state="owned" title="{{localize "CYBER_BLUE.Sheet.Buttons.Leave"}}"><i class="fas fa-house"></i></button>
-                        <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>
-                        <button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>
+                        {{#if item.canMoveUp}}<button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>{{/if}}
+                        {{#if item.canMoveDown}}<button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>{{/if}}
                         <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>
                         <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}"><i class="fas fa-trash"></i></button>
                       </div>

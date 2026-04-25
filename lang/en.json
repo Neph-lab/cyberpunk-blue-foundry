@@ -121,6 +121,8 @@
         "WeaponAdjustments": "Weapon Adjustments",
         "NoWeaponAdjustments": "No weapon adjustments yet.",
         "NoEffects": "No effects.",
+        "Ammo": "Ammo",
+        "Item": "Item",
         "NoItemsInState": "No {state} items.",
         "Cancel": "Cancel",
         "ModImport": "Import Mod",

@@ -875,6 +875,8 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
 
   async _onRangeTableChange(event) {
     event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
     const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
     const bandIndex = Number.parseInt(event.currentTarget.dataset.bandIndex ?? '-1', 10);
     if (Number.isNaN(weaponIndex) || weaponIndex < 0 || Number.isNaN(bandIndex) || bandIndex < 0) {
@@ -893,6 +895,8 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
 
   async _onAutofireRangeTableChange(event) {
     event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
     const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
     const bandIndex = Number.parseInt(event.currentTarget.dataset.bandIndex ?? '-1', 10);
     if (Number.isNaN(weaponIndex) || weaponIndex < 0 || Number.isNaN(bandIndex) || bandIndex < 0) return;
@@ -908,6 +912,8 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
 
   async _onWeaponDamageTypeChange(event) {
     event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
     const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
     if (Number.isNaN(weaponIndex) || weaponIndex < 0) return;
     const weapons = (this.document.system.toObject?.() ?? this.document.system).weapons ?? [];

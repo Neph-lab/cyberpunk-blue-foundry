@@ -185,19 +185,23 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
     context.roles = embeddedItems
       .filter((item) => item.type === 'role')
-      .map((item) => ({
+      .map((item, i, arr) => ({
         ...item,
         system: normalizeRoleSystemData(item.system),
         isAlwaysActive: item.system.rank >= 4,
         isLowRankActive: item.system.rank < 4 && item.id === activeRoleId,
+        canMoveUp: i > 0,
+        canMoveDown: i < arr.length - 1,
       }));
     context.abilities = embeddedItems
       .filter((item) => item.type === 'ability')
-      .map((item) => ({
+      .map((item, i, arr) => ({
         ...item,
         maxRankDisplay: canManageRestricted && Number.isFinite(item.system.maxRank)
           ? item.system.maxRank
           : null,
+        canMoveUp: i > 0,
+        canMoveDown: i < arr.length - 1,
       }));
     const cyberwareItems = embeddedItems.filter((item) => item.type === 'cyberware');
     const cyberwareDocs = embeddedItemDocuments.filter((item) => item.type === 'cyberware');
@@ -206,6 +210,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       name: item.name,
       system: item.system,
     })));
+    const cyberwareIntegrationOrder = { platform: 0, extension: 1, standalone: 2 };
     context.cyberwareGroups = (CONFIG.CYBER_BLUE.cyberware?.types ?? [])
       .map((typeConfig) => {
         const items = cyberwareItems
@@ -242,29 +247,58 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
             };
           });
 
+        // Sort by integration tier: platforms first, then extensions, then standalones.
+        // JS sort is stable so relative sort order within each tier is preserved.
+        items.sort((a, b) => {
+          const aO = cyberwareIntegrationOrder[a.system.integration] ?? 2;
+          const bO = cyberwareIntegrationOrder[b.system.integration] ?? 2;
+          return aO - bO;
+        });
+
+        // Add canMoveUp/canMoveDown: items can only be reordered within their integration tier.
+        const tierBuckets = {};
+        for (const item of items) {
+          const tier = item.system.integration ?? 'standalone';
+          if (!tierBuckets[tier]) tierBuckets[tier] = [];
+          tierBuckets[tier].push(item);
+        }
+        for (const tierItems of Object.values(tierBuckets)) {
+          tierItems.forEach((item, i) => {
+            item.canMoveUp = i > 0;
+            item.canMoveDown = i < tierItems.length - 1;
+          });
+        }
+
         return {
           ...typeConfig,
           items,
         };
       })
       .filter((group) => group.items.length > 0);
-    context.unconnectedCyberware = cyberwareItems
-      .filter((item) => item.system.installed && item.system.integration === 'extension' && !item.system.parentCyberwareId)
-      .map((item) => {
-        const eligiblePlatforms = getEligiblePlatforms(this.document, item.id, item.system);
-        return {
-          ...item,
-          isDisabled: cyberwareDisableState.byItemId.has(item.id),
-          disabledTooltip: cyberwareDisableState.byItemId.get(item.id)?.tooltip ?? '',
-          manufacturerLogo: manufacturerLogoMap.get(item.system.manufacturer) ?? null,
-          integrationLabel: CONFIG.CYBER_BLUE.cyberware.integrations
-            ?.find((entry) => entry.value === item.system.integration)?.label ?? item.system.integration,
-          slotText: `${item.system.slotsUsed ?? 0}`,
-          eligiblePlatforms,
-          hasEligiblePlatforms: eligiblePlatforms.length > 0,
-          description: cyberwareDescriptionMap.get(item.id) ?? '',
-        };
+    {
+      const unconnected = cyberwareItems
+        .filter((item) => item.system.installed && item.system.integration === 'extension' && !item.system.parentCyberwareId)
+        .map((item) => {
+          const eligiblePlatforms = getEligiblePlatforms(this.document, item.id, item.system);
+          return {
+            ...item,
+            isDisabled: cyberwareDisableState.byItemId.has(item.id),
+            disabledTooltip: cyberwareDisableState.byItemId.get(item.id)?.tooltip ?? '',
+            manufacturerLogo: manufacturerLogoMap.get(item.system.manufacturer) ?? null,
+            integrationLabel: CONFIG.CYBER_BLUE.cyberware.integrations
+              ?.find((entry) => entry.value === item.system.integration)?.label ?? item.system.integration,
+            slotText: `${item.system.slotsUsed ?? 0}`,
+            eligiblePlatforms,
+            hasEligiblePlatforms: eligiblePlatforms.length > 0,
+            description: cyberwareDescriptionMap.get(item.id) ?? '',
+          };
+        });
+      unconnected.forEach((item, i, arr) => {
+        item.canMoveUp = i > 0;
+        item.canMoveDown = i < arr.length - 1;
       });
+      context.unconnectedCyberware = unconnected;
+    }
     const gearDocs = embeddedItemDocuments.filter((item) => item.type === 'gear');
     const inventoryItems = gearDocs.map((itemDoc) => {
       const item = embeddedItems.find((entry) => entry.id === itemDoc.id);
@@ -285,11 +319,27 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         }),
       };
     });
-    context.inventoryGroups = ['equipped', 'carried', 'owned'].map((state) => ({
-      state,
-      label: CONFIG.CYBER_BLUE.gearStates.find((entry) => entry.value === state)?.label ?? state,
-      items: inventoryItems.filter((item) => item.state === state),
-    }));
+    context.inventoryGroups = ['equipped', 'carried', 'owned'].map((state) => {
+      const items = inventoryItems.filter((item) => item.state === state);
+      items.forEach((item, i, arr) => {
+        item.canMoveUp = i > 0;
+        item.canMoveDown = i < arr.length - 1;
+      });
+      return {
+        state,
+        label: CONFIG.CYBER_BLUE.gearStates.find((entry) => entry.value === state)?.label ?? state,
+        items,
+      };
+    });
+    const ammoDocs = embeddedItemDocuments.filter((item) => item.type === 'ammo');
+    context.ammoItems = ammoDocs.map((itemDoc, i, arr) => {
+      const item = embeddedItems.find((entry) => entry.id === itemDoc.id) ?? itemDoc.toPlainObject();
+      return {
+        ...item,
+        canMoveUp: i > 0,
+        canMoveDown: i < arr.length - 1,
+      };
+    });
     const combatWeaponEntries = [];
     for (const itemDoc of gearDocs) {
       if ((itemDoc.getGearState?.() ?? normalizeGearState(itemDoc.system)) !== 'equipped' || !itemDoc.system.isWeapon) {
