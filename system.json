@@ -5,11 +5,13 @@
   "authors": [
     {
       "name": "Asacolips",
-      "discord": "asacolips"
+      "discord": "asacolips",
+      "flags": {}
     },
     {
       "name": "Lee Talman",
-      "discord": ".pizzaWizard"
+      "discord": ".pizzaWizard",
+      "flags": {}
     }
   ],
   "url": "https://github.com/Neph-lab/cyberpunk-blue-foundry",
@@ -21,25 +23,30 @@
     {
       "type": "setup",
       "url": "systems/cyberpunk-blue/assets/anvil-impact.png",
-      "thumbnail": "systems/cyberpunk-blue/assets/anvil-impact.png"
+      "thumbnail": "systems/cyberpunk-blue/assets/anvil-impact.png",
+      "loop": false,
+      "flags": {}
     }
   ],
   "version": "3.1.0",
   "compatibility": {
-    "minimum": 14,
+    "minimum": "14",
     "verified": "14.359"
   },
   "esmodules": [
     "module/cyberpunk-blue.mjs"
   ],
   "styles": [
-    "css/cyberpunk-blue.css"
+    {
+      "src": "css/cyberpunk-blue.css"
+    }
   ],
   "languages": [
     {
       "lang": "en",
       "name": "English",
-      "path": "lang/en.json"
+      "path": "lang/en.json",
+      "flags": {}
     }
   ],
   "documentTypes": {
@@ -127,9 +134,6 @@
       }
     }
   },
-  "packs": [],
-  "packFolders": [],
-  "socket": false,
   "initiative": "1d10 + @stats.rflx.value",
   "manifest": "https://raw.githubusercontent.com/Neph-lab/cyberpunk-blue-foundry/main/system.json",
   "download": "https://github.com/Neph-lab/cyberpunk-blue-foundry/archive/refs/heads/main.zip",
@@ -139,5 +143,6 @@
     "units": "m"
   },
   "primaryTokenAttribute": "resources.hp",
-  "secondaryTokenAttribute": "resources.armor"
+  "secondaryTokenAttribute": "resources.armor",
+  "flags": {}
 }
