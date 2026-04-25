@@ -339,8 +339,8 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     return context;
   }
 
-  async _prepareSubmitData(event, form, formData) {
-    const data = await super._prepareSubmitData(event, form, formData);
+  _prepareSubmitData(event, form, formData) {
+    const data = super._prepareSubmitData(event, form, formData);
     // Merge incoming weapon form data with existing weapon state to preserve fields that
     // are managed by custom handlers (no `name` attr): damageType, rangeTable, autofireRangeTable.
     //
