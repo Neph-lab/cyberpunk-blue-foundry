@@ -1156,6 +1156,55 @@ button, .cyberpunk-blue .button, a.button {
   margin-top: 1rem;
 }
 
+/* Ammo pills row */
+.cyberpunk-blue .ammo-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.cyberpunk-blue .ammo-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--color-border-dark, #888);
+  border-radius: 6px;
+  background: var(--color-bg, rgba(0,0,0,0.15));
+  min-width: 70px;
+  max-width: 110px;
+}
+
+.cyberpunk-blue .ammo-pill-name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 0.75em;
+  text-align: center;
+  line-height: 1.2;
+  width: 100%;
+}
+
+.cyberpunk-blue .ammo-pill-name img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border: none;
+}
+
+.cyberpunk-blue .ammo-pill-qty {
+  width: 100%;
+  text-align: center;
+  font-size: 0.85em;
+}
+
 .cyberpunk-blue .inventory-row {
   grid-template-columns: minmax(180px, 1.2fr) 70px minmax(220px, 1.6fr) minmax(220px, 1fr);
 }

@@ -280,7 +280,7 @@
                         <div class="protean-radio-group">
                           {{#each focus.pointOptions as |option|}}
                             <label class="protean-radio {{#if option.disabled}}is-disabled{{/if}}">
-                              <input type="radio" name="protean-tactic-{{../focusIndex}}" value="{{option.value}}" {{#if (eq option.value ../focus.points)}}checked{{/if}} {{#if option.disabled}}disabled{{/if}} data-action="update-protean-points" data-focus-index="{{../focus.focusIndex}}" />
+                              <input type="radio" name="protean-tactic-{{../focusIndex}}" value="{{option.value}}" {{#if (eq option.value ../points)}}checked{{/if}} {{#if option.disabled}}disabled{{/if}} data-action="update-protean-points" data-focus-index="{{../focusIndex}}" />
                               <span>{{option.value}}</span>
                             </label>
                           {{/each}}
@@ -674,33 +674,17 @@
         </div>
 
         {{#if ammoItems.length}}
-          <section class="inventory-group">
-            <h2>{{localize "CYBER_BLUE.Sheet.Labels.Ammo"}}</h2>
-            <div class="embedded-list inventory-list">
-              <div class="embedded-header embedded-row ammo-row">
-                <span>{{localize "CYBER_BLUE.Sheet.Labels.Item"}}</span>
-                <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Quantity"}}</span>
-                <span class="numeric-column">Controls</span>
+          <div class="ammo-pills">
+            {{#each ammoItems as |item|}}
+              <div class="ammo-pill" data-item-id="{{item.id}}">
+                <button type="button" class="item-name-link ammo-pill-name" data-action="edit-item">
+                  <img src="{{item.img}}" alt="{{item.name}}" />
+                  <span>{{item.name}}</span>
+                </button>
+                <input type="number" class="ammo-pill-qty" min="0" value="{{item.system.quantity}}" data-action="set-ammo-quantity" />
               </div>
-              <div class="embedded-entries">
-                {{#each ammoItems as |item|}}
-                  <div class="embedded-row ammo-row" data-item-id="{{item.id}}">
-                    <button type="button" class="item-name-link embedded-name">
-                      <img src="{{item.img}}" alt="{{item.name}}" />
-                      <span>{{item.name}}</span>
-                    </button>
-                    <input class="numeric-column" type="number" value="{{item.system.quantity}}" data-action="update-item-field" data-field-path="system.quantity" data-dtype="Number" />
-                    <div class="embedded-controls">
-                      {{#if item.canMoveUp}}<button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>{{/if}}
-                      {{#if item.canMoveDown}}<button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>{{/if}}
-                      <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>
-                      <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}"><i class="fas fa-trash"></i></button>
-                    </div>
-                  </div>
-                {{/each}}
-              </div>
-            </div>
-          </section>
+            {{/each}}
+          </div>
         {{/if}}
 
         {{#each inventoryGroups as |group|}}
@@ -749,9 +733,9 @@
                         {{/each}}
                       </div>
                       <div class="embedded-controls">
-                        <button type="button" data-action="set-gear-state" data-state="equipped" title="{{localize "CYBER_BLUE.Sheet.Buttons.Equip"}}"><i class="fas fa-shield-halved"></i></button>
-                        <button type="button" data-action="set-gear-state" data-state="carried" title="{{localize "CYBER_BLUE.Sheet.Buttons.Bring"}}"><i class="fas fa-briefcase"></i></button>
-                        <button type="button" data-action="set-gear-state" data-state="owned" title="{{localize "CYBER_BLUE.Sheet.Buttons.Leave"}}"><i class="fas fa-house"></i></button>
+                        {{#unless (eq item.state "equipped")}}<button type="button" data-action="set-gear-state" data-state="equipped" title="{{localize "CYBER_BLUE.Sheet.Buttons.Equip"}}"><i class="fas fa-shield-halved"></i></button>{{/unless}}
+                        {{#unless (eq item.state "carried")}}<button type="button" data-action="set-gear-state" data-state="carried" title="{{localize "CYBER_BLUE.Sheet.Buttons.Bring"}}"><i class="fas fa-briefcase"></i></button>{{/unless}}
+                        {{#unless (eq item.state "owned")}}<button type="button" data-action="set-gear-state" data-state="owned" title="{{localize "CYBER_BLUE.Sheet.Buttons.Leave"}}"><i class="fas fa-house"></i></button>{{/unless}}
                         {{#if item.canMoveUp}}<button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>{{/if}}
                         {{#if item.canMoveDown}}<button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>{{/if}}
                         <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>

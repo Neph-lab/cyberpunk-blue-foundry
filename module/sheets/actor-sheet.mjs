@@ -332,13 +332,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       };
     });
     const ammoDocs = embeddedItemDocuments.filter((item) => item.type === 'ammo');
-    context.ammoItems = ammoDocs.map((itemDoc, i, arr) => {
+    context.ammoItems = ammoDocs.map((itemDoc) => {
       const item = embeddedItems.find((entry) => entry.id === itemDoc.id) ?? itemDoc.toPlainObject();
-      return {
-        ...item,
-        canMoveUp: i > 0,
-        canMoveDown: i < arr.length - 1,
-      };
+      return { ...item };
     });
     const combatWeaponEntries = [];
     for (const itemDoc of gearDocs) {
@@ -685,6 +681,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     this.element.querySelectorAll('[data-action="update-item-field"]').forEach((input) => {
       input.addEventListener('change', this._onUpdateItemField.bind(this));
     });
+    this.element.querySelectorAll('[data-action="set-ammo-quantity"]').forEach((input) => {
+      input.addEventListener('change', this._onSetAmmoQuantity.bind(this));
+    });
     this.element.querySelectorAll('[data-action="weapon-attack"]').forEach((button) => {
       button.addEventListener('click', this._onWeaponAttack.bind(this));
     });
@@ -995,7 +994,22 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     return actor?.sheet.render(true);
   }
 
+  async _onSetAmmoQuantity(event) {
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    const item = this._getItemFromEvent(event);
+    if (!item || item.type !== 'ammo') return;
+    const qty = Math.max(Number(event.currentTarget.value) || 0, 0);
+    if (qty === 0) {
+      await item.delete();
+    } else {
+      await item.update({ 'system.quantity': qty });
+    }
+  }
+
   async _onUpdateProteanPoints(event) {
+    event.stopPropagation();
+    event.stopImmediatePropagation();
     const item = this._getItemFromEvent(event);
     if (!item || item.type !== 'role') {
       return;

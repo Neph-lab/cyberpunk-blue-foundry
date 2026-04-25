@@ -356,7 +356,10 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     //   rangeTable/damageType custom handlers, which are proven to work.
     const incomingWeapons = data?.system?.weapons;
     if (incomingWeapons == null) return data;
-    const rawWeapons = this.document._source?.system?.weapons ?? [];
+    // Use system.toObject() (in-memory DataModel state) rather than _source, because
+    // flat dot-path updates from custom handlers update the in-memory model immediately
+    // but may not reliably update _source for embedded items before submitOnChange fires.
+    const rawWeapons = (this.document.system.toObject?.() ?? this.document.system)?.weapons ?? [];
 
     // Seed every existing weapon so nothing is dropped, then merge in form values
     const patched = {};

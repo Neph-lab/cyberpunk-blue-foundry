@@ -347,8 +347,13 @@ export function createWeaponData(type = 'lightMelee') {
 
 export function applyWeaponTypeDefaults(existingWeapon = {}, type = 'lightMelee') {
   const defaults = createWeaponData(type);
-  // Preserve range table and damage type if the weapon already had them configured
-  if (existingWeapon.damageType && existingWeapon.damageType !== '') {
+  // Only preserve the existing range table when: (a) a damage type is already configured AND
+  // (b) the range table has at least one non-zero value (i.e. the user has set it up).
+  // If the range table is all zeros (e.g. came from a melee weapon or was never configured)
+  // we always apply the new type's default range table, even when a damage type is set.
+  const existingRangeTable = existingWeapon.rangeTable ?? [];
+  const hasCustomRangeTable = existingRangeTable.some((v) => Number(v) > 0);
+  if (existingWeapon.damageType && existingWeapon.damageType !== '' && hasCustomRangeTable) {
     delete defaults.rangeTable;
   }
   return { ...existingWeapon, ...defaults };
