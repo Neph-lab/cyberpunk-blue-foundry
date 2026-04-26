@@ -102,6 +102,8 @@
         "ConeSpread": "Spread (m)",
         "ConeAngle": "Angle (°)",
         "ConeHalfDamageDistance": "Half Dmg Distance (m)",
+        "ExplosionSpread": "Outer Radius (m)",
+        "AmmoType": "Ammo Type",
         "MaxRank": "Max Rank",
         "Stored": "Stored",
         "Owned": "Owned",
@@ -383,7 +385,15 @@
       "ExplosionNoTargets": "No targets found in blast radius.",
       "ExplosionScatter": "Miss! Explosion scatters {distance} m.",
       "ExplosionDamage": "Explosion Damage",
-      "ExplosionTargetCount": "{count} target(s) in blast"
+      "ExplosionTargetCount": "{count} target(s) in blast",
+      "WeaponAlreadyFull": "Weapon magazine is already full.",
+      "NoAmmoType": "This weapon type does not use reloadable ammunition.",
+      "NoCompatibleAmmo": "No compatible ammo found in inventory.",
+      "ChooseAmmo": "Choose Ammunition",
+      "ChooseAmmoHint": "Select which ammunition to load:",
+      "AmmoNotFound": "(ammo not found)",
+      "MovementLimitReached": "Movement limit reached ({remaining}m remaining of {max}m).",
+      "RateOfFireTitle": "Rate of Fire (attacks used / max per turn)"
     }
   },
   "TYPES": {

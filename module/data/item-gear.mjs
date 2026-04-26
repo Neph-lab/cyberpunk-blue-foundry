@@ -28,6 +28,7 @@ export default class CyberBlueGear extends CyberBlueItemBase {
         new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
         { initial: Array(8).fill(0) }
       ),
+      ammoTypeUuid: new fields.StringField({ required: true, blank: true, initial: '' }),
     });
     schema.cost = new fields.StringField({ required: true, blank: true });
     schema.note = new fields.StringField({ required: true, blank: true });

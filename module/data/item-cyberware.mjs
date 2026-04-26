@@ -28,6 +28,7 @@ export default class CyberBlueCyberware extends CyberBlueItemBase {
         new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
         { initial: Array(8).fill(0) }
       ),
+      ammoTypeUuid: new fields.StringField({ required: true, blank: true, initial: '' }),
     });
     schema.cyberwareType = new fields.StringField({ required: true, blank: false, initial: 'internal' });
     schema.cost = new fields.StringField({ required: true, blank: true });

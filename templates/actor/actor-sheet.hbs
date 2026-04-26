@@ -196,11 +196,11 @@
                     {{/if}}
                   </td>
                   <td class="numeric-column">
-                    <button type="button" data-action="weapon-attack" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.attackTooltip}}">
-                      {{localize "CYBER_BLUE.Combat.Attack"}} ({{weapon.attackLabel}})
+                    <button type="button" data-action="weapon-attack" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.attackTooltip}}" {{#if weapon.attackDisabled}}disabled{{/if}}>
+                      {{localize "CYBER_BLUE.Combat.Attack"}} ({{weapon.attackLabel}}){{#if weapon.rofExhausted}} ✗{{/if}}
                     </button>
                     {{#if weapon.hasAutofire}}
-                      <button type="button" data-action="weapon-autofire" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.autofireTooltip}}" {{#unless weapon.autofireAmmoOk}}disabled{{/unless}}>
+                      <button type="button" data-action="weapon-autofire" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.autofireTooltip}}" {{#unless weapon.autofireAmmoOk}}disabled{{/unless}} {{#if weapon.attackDisabled}}disabled{{/if}}>
                         {{localize "CYBER_BLUE.Combat.Autofire"}} ({{weapon.autofireLabel}})
                       </button>
                     {{/if}}
@@ -221,7 +221,7 @@
                       {{weapon.damage}}
                     </button>
                   </td>
-                  <td class="numeric-column">{{weapon.rateOfFire}}</td>
+                  <td class="numeric-column" title="{{localize "CYBER_BLUE.Combat.RateOfFireTitle"}}">{{#if weapon.attacksUsed}}{{weapon.attacksUsed}}/{{/if}}{{weapon.rateOfFire}}</td>
                   <td class="numeric-column">
                     {{#if weapon.showsAmmo}}
                       <div class="resource-fields compact-resource">

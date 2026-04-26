@@ -91,6 +91,22 @@
                   </label>
                 {{/if}}
 
+                {{#if weapon.definition.usesMagazine}}
+                  <label class="compact-field ammo-type-field">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.AmmoType"}}</span>
+                    {{#if @root.canManageRestricted}}
+                      <input type="text" name="system.weapons.{{weapon.index}}.ammoTypeUuid" value="{{weapon.ammoTypeUuid}}" placeholder="UUID..." class="ammo-uuid-input" />
+                      {{#if weapon.ammoTypeName}}<span class="ammo-type-resolved">{{weapon.ammoTypeName}}</span>{{/if}}
+                    {{else if weapon.ammoTypeResolved}}
+                      <span class="ammo-type-resolved">{{weapon.ammoTypeName}}</span>
+                    {{else if weapon.ammoTypeName}}
+                      <span class="hint ammo-type-missing">{{weapon.ammoTypeName}}</span>
+                    {{else}}
+                      <span class="hint">—</span>
+                    {{/if}}
+                  </label>
+                {{/if}}
+
                 <label class="compact-field">
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.Hands"}}</span>
                   <input type="number" name="system.weapons.{{weapon.index}}.hands" value="{{weapon.hands}}" data-dtype="Number" />
@@ -162,6 +178,11 @@
                     <label class="compact-field">
                       <span>{{localize "CYBER_BLUE.Sheet.Labels.ConeAngle"}}</span>
                       <input type="number" name="system.weapons.{{weapon.index}}.coneAngle" value="{{weapon.coneAngle}}" data-dtype="Number" min="0" max="360" />
+                    </label>
+                  {{else}}
+                    <label class="compact-field">
+                      <span>{{localize "CYBER_BLUE.Sheet.Labels.ExplosionSpread"}}</span>
+                      <input type="number" name="system.weapons.{{weapon.index}}.coneSpread" value="{{weapon.coneSpread}}" data-dtype="Number" min="0" />
                     </label>
                   {{/if}}
                   <label class="compact-field">

@@ -328,6 +328,33 @@ export function getWeaponTypeDefinition(type) {
   return COMBAT_CONFIG.weaponTypeMap[type] ?? COMBAT_CONFIG.weaponTypeMap.lightMelee;
 }
 
+// Maps weapon type → the ammoTypes keys on an Ammo item that are compatible.
+// Shotguns accept both slug and shell so the player chooses.
+const WEAPON_AMMO_COMPATIBILITY = {
+  mediumPistol: ['pistol'],
+  heavyPistol: ['pistol'],
+  veryHeavyPistol: ['pistol'],
+  smg: ['smg'],
+  heavySmg: ['smg'],
+  shotgun: ['shotgunSlug', 'shotgunShell'],
+  assaultRifle: ['assault'],
+  precisionRifle: ['assault'],
+  machineGun: ['assault'],
+  sniperRifle: ['sniper'],
+  grenadeLauncher: ['grenade'],
+  rocketLauncher: ['rocket'],
+  flamethrower: ['flamethrower'],
+  bowCrossbow: ['bow'],
+};
+
+/**
+ * Returns the ammoTypes field keys (from the Ammo item schema) that are compatible
+ * with the given weapon type. Returns [] for melee/thrown/unrecognised types.
+ */
+export function getWeaponAmmoTypes(weaponType) {
+  return WEAPON_AMMO_COMPATIBILITY[weaponType] ?? [];
+}
+
 export function createWeaponData(type = 'lightMelee') {
   const definition = getWeaponTypeDefinition(type);
 

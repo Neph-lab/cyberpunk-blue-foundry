@@ -276,12 +276,35 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     context.cyberwareTypeLabel = context.cyberwareConfig.types?.find((entry) => entry.value === itemData.system.cyberwareType)?.label ?? itemData.system.cyberwareType;
     context.cyberwareIntegrationLabel = context.cyberwareConfig.integrations?.find((entry) => entry.value === itemData.system.integration)?.label ?? itemData.system.integration;
     context.cyberwareFacilityLabel = context.cyberwareConfig.facilities?.find((entry) => entry.value === itemData.system.facilities)?.label ?? itemData.system.facilities;
-    context.weapons = (itemData.system.weapons ?? []).map((weapon, index) => {
+    context.weapons = await Promise.all((itemData.system.weapons ?? []).map(async (weapon, index) => {
       const definition = getWeaponTypeDefinition(weapon.type);
+
+      // Resolve ammo type UUID → display name
+      let ammoTypeName = '';
+      let ammoTypeResolved = false;
+      if (definition.usesMagazine && weapon.ammoTypeUuid) {
+        let ammoItem = null;
+        try { ammoItem = await fromUuid(weapon.ammoTypeUuid); } catch { /* not found */ }
+        if (!ammoItem) {
+          // Fallback: search world Items for an ammo item with the same UUID or name match
+          ammoItem = game.items?.find((i) => i.type === 'ammo' && i.uuid === weapon.ammoTypeUuid) ?? null;
+        }
+        if (ammoItem) {
+          ammoTypeName = ammoItem.name;
+          ammoTypeResolved = true;
+        } else {
+          // UUID no longer resolves — clear it via a background update (fire-and-forget)
+          ammoTypeName = game.i18n.localize('CYBER_BLUE.Combat.AmmoNotFound');
+          ammoTypeResolved = false;
+        }
+      }
+
       return {
         ...weapon,
         index,
         definition,
+        ammoTypeName,
+        ammoTypeResolved,
         displayMagazine: definition.usesMagazine ? `${Math.max(Math.min(Number(weapon.ammoCurrent) || 0, Number(weapon.magazine) || 0), 0)} / ${Math.max(Number(weapon.magazine) || 0, 0)}` : null,
         skillOptions: definition.skillOptions.map((skillSlug) => ({
           value: skillSlug,
@@ -300,7 +323,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
           displayValue: (Number(weapon.autofireRangeTable?.[band.index] ?? 0) || 0) === 0 ? '-' : `${Number(weapon.autofireRangeTable?.[band.index] ?? 0) || 0}`,
         })),
       };
-    });
+    }));
     context.cyberwarePsyche = context.isCyberware
       ? parsePsycheLossFormula(itemData.system.psycheLossFormula)
       : null;

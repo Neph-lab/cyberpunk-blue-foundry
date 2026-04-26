@@ -1,6 +1,7 @@
 import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
 import { getEffectiveItemWeapons } from './mods.mjs';
 import { resolveConeAttack, resolveExplosionAttack } from './cone-attack.mjs';
+import { recordCombatAttack } from './combat-tracker.mjs';
 
 function getTarget() {
   const token = game.user.targets.first() ?? null;
@@ -193,6 +194,12 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   }
 
   const attackRoll = await attacker.rollSkill({ skillSlug, dv: resolvedDV });
+
+  // Record this attack for RoF tracking
+  const attackerToken = attacker.getActiveTokens()[0];
+  if (attackerToken && game.combat?.started) {
+    recordCombatAttack(attackerToken.document.id, item.id, weaponIndex);
+  }
 
   // Consume ammo on attack (regardless of hit/miss)
   const shots = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;

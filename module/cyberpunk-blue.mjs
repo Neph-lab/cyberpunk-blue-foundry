@@ -18,6 +18,16 @@ import {
 import { syncActorLeaderRoles } from './helpers/roles.mjs';
 import { CyberBlueJsonImportDialog, CyberBlueMacroCreator } from './helpers/gm-tools.mjs';
 import { CharacterCreationWizard } from './helpers/character-creation.mjs';
+import {
+  recordCombatAttack,
+  getCombatAttackState,
+  combatAttackTracker,
+  recordMovement,
+  getMovementUsed,
+  combatMovementTracker,
+  resetTurnTracking,
+  resetAllTracking,
+} from './helpers/combat-tracker.mjs';
 import * as models from './data/_module.mjs';
 
 Hooks.once('init', function () {
@@ -462,3 +472,70 @@ Hooks.once('ready', () => {
   // Small delay so the actor sheet can open first
   setTimeout(() => new CharacterCreationWizard(ownedCharacter).render(true), 500);
 });
+
+// ─── Combat: movement & RoF tracking hooks ──────────────────────────────────
+
+function getPixelsPerMeterGlobal() {
+  const gridSize = canvas?.grid?.size ?? 100;
+  const gridDistance = canvas?.scene?.grid?.distance ?? 2;
+  const gridUnits = (canvas?.scene?.grid?.units ?? '').toLowerCase().trim();
+  const metersPerUnit = ['m', 'meter', 'meters'].includes(gridUnits) ? gridDistance : 2;
+  return gridSize / metersPerUnit;
+}
+
+function getActiveCombatantTokenId() {
+  return game.combat?.combatants.get(game.combat?.current?.combatantId)?.tokenId ?? null;
+}
+
+Hooks.on('preUpdateToken', (tokenDoc, changes, options, userId) => {
+  if (!game.combat?.started) return;
+  if (game.users.get(userId)?.isGM) return;
+  if (!('x' in changes) && !('y' in changes)) return;
+  if (tokenDoc.id !== getActiveCombatantTokenId()) return;
+
+  const actor = tokenDoc.actor;
+  if (!actor) return;
+  const moveValue = Math.max(Number(actor.system?.stats?.move?.value) || 0, 0);
+  if (moveValue === 0) return;
+
+  const maxMeters = moveValue * 2;
+  const used = getMovementUsed(tokenDoc.id);
+  const ppm = getPixelsPerMeterGlobal();
+  const proposedMeters = Math.hypot(
+    (changes.x ?? tokenDoc.x) - tokenDoc.x,
+    (changes.y ?? tokenDoc.y) - tokenDoc.y
+  ) / ppm;
+
+  if (used + proposedMeters > maxMeters + 0.01) {
+    const remaining = Math.max(maxMeters - used, 0).toFixed(1);
+    ui.notifications.warn(
+      game.i18n.format('CYBER_BLUE.Combat.MovementLimitReached', { max: maxMeters, remaining })
+    );
+    return false;
+  }
+});
+
+Hooks.on('updateToken', (tokenDoc, changes, _options, _userId) => {
+  if (!game.combat?.started) return;
+  if (!('x' in changes) && !('y' in changes)) return;
+  if (tokenDoc.id !== getActiveCombatantTokenId()) return;
+
+  const ppm = getPixelsPerMeterGlobal();
+  // tokenDoc now holds the NEW values; _source holds the PRE-update values
+  const oldX = tokenDoc._source?.x ?? tokenDoc.x;
+  const oldY = tokenDoc._source?.y ?? tokenDoc.y;
+  const meters = Math.hypot((changes.x ?? oldX) - oldX, (changes.y ?? oldY) - oldY) / ppm;
+  recordMovement(tokenDoc.id, meters);
+});
+
+Hooks.on('combatTurn', (combat) => {
+  const prev = combat.combatants.get(combat.previous?.combatantId);
+  if (prev?.tokenId) resetTurnTracking(prev.tokenId);
+  const curr = combat.combatants.get(combat.current?.combatantId);
+  if (curr?.tokenId) resetTurnTracking(curr.tokenId);
+});
+
+Hooks.on('combatRound', () => resetAllTracking());
+
+// Re-export tracker helpers for external use (e.g., actor sheet context)
+export { getCombatAttackState, recordCombatAttack };

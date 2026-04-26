@@ -6,7 +6,8 @@ import { getEligiblePlatforms, getPlatformUsage, promptForCyberwarePlatform } fr
 import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs';
 import { normalizeGearState, getGearStateUpdateData } from '../helpers/gear.mjs';
 import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
-import { buildWeaponUpdate, getWeaponTypeDefinition } from '../helpers/combat.mjs';
+import { buildWeaponUpdate, getWeaponTypeDefinition, getWeaponAmmoTypes } from '../helpers/combat.mjs';
+import { getCombatAttackState } from '../helpers/combat-tracker.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack } from '../helpers/combat-resolution.mjs';
 import { CharacterCreationWizard, CC_STEPS_LIST } from '../helpers/character-creation.mjs';
 import {
@@ -337,102 +338,86 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       return { ...item };
     });
     const combatWeaponEntries = [];
+    // RoF tracking: look up what this actor's token has attacked with this turn
+    const actorToken = this.document.getActiveTokens()[0];
+    const rofState = actorToken && game.combat?.started
+      ? getCombatAttackState(actorToken.document.id)
+      : null;
+
+    const buildWeaponEntry = (itemDoc, weaponIndex, weapon, modDots) => {
+      const definition = getWeaponTypeDefinition(weapon.type);
+      const baseSkill = itemDoc.system.weapons?.[weaponIndex]?.skill ?? weapon.skill;
+      const rollContext = this.document.getSkillRollContext(
+        CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill : baseSkill
+      );
+      const total = rollContext.statValue + rollContext.usedRank + (rollContext.statRollMod ?? 0);
+      const ammo = clampWeaponAmmo(weapon);
+      const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill : baseSkill;
+      const damageType = weapon.damageType ?? '';
+      const autofireRank = this.document.system.skills?.autofire?.rank ?? 0;
+      const autofireUsedRank = Math.min(rollContext.usedRank, autofireRank);
+      const autofireTotal = rollContext.statValue + autofireUsedRank + (rollContext.statRollMod ?? 0);
+      const rateOfFire = Math.max(Number(weapon.rateOfFire) || 1, 1);
+      const effectiveWeapons = itemDoc.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(itemDoc);
+
+      // RoF locking: in combat, can only attack with ONE weapon type per turn,
+      // and only up to rateOfFire times with that weapon.
+      const sameWeapon = rofState && rofState.itemId === itemDoc.id && rofState.weaponIndex === weaponIndex;
+      const rofExhausted = sameWeapon && rofState.count >= rateOfFire;
+      const rofLocked = rofState && !sameWeapon; // different weapon was used this turn
+
+      return {
+        itemId: itemDoc.id,
+        weaponIndex,
+        itemName: itemDoc.name,
+        name: effectiveWeapons.length > 1 ? `${itemDoc.name} - ${definition.label}` : itemDoc.name,
+        attackLabel: `${total >= 0 ? '+' : ''}${total}`,
+        attackTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + ${rollContext.skillLabel} ${rollContext.usedRank}${rollContext.statRollMod ? ` + bonus ${rollContext.statRollMod}` : ''}`,
+        damage: weapon.damage ?? definition.damage,
+        concealable: weapon.concealable ?? definition.concealable,
+        modDots,
+        rateOfFire,
+        attacksUsed: sameWeapon ? rofState.count : 0,
+        rofExhausted,
+        rofLocked,
+        attackDisabled: rofExhausted || rofLocked,
+        showsAmmo: definition.usesMagazine,
+        ammoCurrent: ammo.current,
+        magazine: ammo.magazine,
+        shots: weapon.shots ?? 0,
+        damageType,
+        hasAutofire: damageType === 'autofire',
+        autofireAmmoOk: damageType === 'autofire' && ammo.current >= 10,
+        autofireLabel: `${autofireTotal >= 0 ? '+' : ''}${autofireTotal}`,
+        autofireTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + min(${rollContext.skillLabel} ${rollContext.usedRank}, Autofire ${autofireRank})`,
+        skillSlug,
+        skillOptions: definition.skillOptions.map((slug) => ({
+          value: slug,
+          label: CONFIG.CYBER_BLUE.skills[slug]?.label ?? slug,
+        })),
+      };
+    };
+
     for (const itemDoc of gearDocs) {
       if ((itemDoc.getGearState?.() ?? normalizeGearState(itemDoc.system)) !== 'equipped' || !itemDoc.system.isWeapon) {
         continue;
       }
-
       const modCount = this.document.items.filter((i) => i.type === 'mod' && i.system.installedOnId === itemDoc.id).length;
       const modDots = Array.from({ length: modCount }, (_, i) => i);
       const effectiveWeapons = itemDoc.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(itemDoc);
       for (const [weaponIndex, weapon] of effectiveWeapons.entries()) {
-        const definition = getWeaponTypeDefinition(weapon.type);
-        const baseSkill = itemDoc.system.weapons?.[weaponIndex]?.skill ?? weapon.skill;
-        const rollContext = this.document.getSkillRollContext(
-          CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill : baseSkill
-        );
-        const total = rollContext.statValue + rollContext.usedRank + (rollContext.statRollMod ?? 0);
-        const ammo = clampWeaponAmmo(weapon);
-        const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill : baseSkill;
-        const damageType = weapon.damageType ?? '';
-        const autofireRank = this.document.system.skills?.autofire?.rank ?? 0;
-        const autofireUsedRank = Math.min(rollContext.usedRank, autofireRank);
-        const autofireTotal = rollContext.statValue + autofireUsedRank + (rollContext.statRollMod ?? 0);
-        combatWeaponEntries.push({
-          itemId: itemDoc.id,
-          weaponIndex,
-          itemName: itemDoc.name,
-          name: effectiveWeapons.length > 1 ? `${itemDoc.name} - ${definition.label}` : itemDoc.name,
-          attackLabel: `${total >= 0 ? '+' : ''}${total}`,
-          attackTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + ${rollContext.skillLabel} ${rollContext.usedRank}${rollContext.statRollMod ? ` + bonus ${rollContext.statRollMod}` : ''}`,
-          damage: weapon.damage ?? definition.damage,
-          concealable: weapon.concealable ?? definition.concealable,
-          modDots,
-          rateOfFire: weapon.rateOfFire,
-          showsAmmo: definition.usesMagazine,
-          ammoCurrent: ammo.current,
-          magazine: ammo.magazine,
-          shots: weapon.shots ?? 0,
-          damageType,
-          hasAutofire: damageType === 'autofire',
-          autofireAmmoOk: damageType === 'autofire' && ammo.current >= 10,
-          autofireLabel: `${autofireTotal >= 0 ? '+' : ''}${autofireTotal}`,
-          autofireTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + min(${rollContext.skillLabel} ${rollContext.usedRank}, Autofire ${autofireRank})`,
-          skillSlug,
-          skillOptions: definition.skillOptions.map((slug) => ({
-            value: slug,
-            label: CONFIG.CYBER_BLUE.skills[slug]?.label ?? slug,
-          })),
-        });
+        combatWeaponEntries.push(buildWeaponEntry(itemDoc, weaponIndex, weapon, modDots));
       }
     }
     for (const itemDoc of cyberwareDocs) {
       if (!itemDoc.system.installed || itemDoc.isUnconnectedExtension?.() || itemDoc.isCyberwareDisabled?.() || !itemDoc.system.isWeapon) {
         continue;
       }
-
       const modCount = this.document.items.filter((i) => i.type === 'mod' && i.system.installedOnId === itemDoc.id).length;
       const modDots = Array.from({ length: modCount }, (_, i) => i);
       const effectiveWeapons = itemDoc.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(itemDoc);
       for (const [weaponIndex, weapon] of effectiveWeapons.entries()) {
-        const definition = getWeaponTypeDefinition(weapon.type);
-        const baseSkill = itemDoc.system.weapons?.[weaponIndex]?.skill ?? weapon.skill;
-        const rollContext = this.document.getSkillRollContext(
-          CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill : baseSkill
-        );
-        const total = rollContext.statValue + rollContext.usedRank + (rollContext.statRollMod ?? 0);
-        const ammo = clampWeaponAmmo(weapon);
-        const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill : baseSkill;
-        const damageType = weapon.damageType ?? '';
-        const autofireRank = this.document.system.skills?.autofire?.rank ?? 0;
-        const autofireUsedRank = Math.min(rollContext.usedRank, autofireRank);
-        const autofireTotal = rollContext.statValue + autofireUsedRank + (rollContext.statRollMod ?? 0);
-        combatWeaponEntries.push({
-          itemId: itemDoc.id,
-          weaponIndex,
-          itemName: itemDoc.name,
-          name: effectiveWeapons.length > 1 ? `${itemDoc.name} - ${definition.label}` : itemDoc.name,
-          attackLabel: `${total >= 0 ? '+' : ''}${total}`,
-          attackTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + ${rollContext.skillLabel} ${rollContext.usedRank}${rollContext.statRollMod ? ` + bonus ${rollContext.statRollMod}` : ''}`,
-          damage: weapon.damage ?? definition.damage,
-          concealable: weapon.concealable ?? definition.concealable,
-          modDots,
-          rateOfFire: weapon.rateOfFire,
-          showsAmmo: definition.usesMagazine,
-          ammoCurrent: ammo.current,
-          magazine: ammo.magazine,
-          shots: weapon.shots ?? 0,
-          damageType,
-          hasAutofire: damageType === 'autofire',
-          autofireAmmoOk: damageType === 'autofire' && ammo.current >= 10,
-          autofireLabel: `${autofireTotal >= 0 ? '+' : ''}${autofireTotal}`,
-          autofireTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + min(${rollContext.skillLabel} ${rollContext.usedRank}, Autofire ${autofireRank})`,
-          skillSlug,
-          skillOptions: definition.skillOptions.map((slug) => ({
-            value: slug,
-            label: CONFIG.CYBER_BLUE.skills[slug]?.label ?? slug,
-          })),
-        });
+        combatWeaponEntries.push(buildWeaponEntry(itemDoc, weaponIndex, weapon, modDots));
       }
     }
     context.combatWeapons = combatWeaponEntries;
@@ -986,12 +971,120 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     event.preventDefault();
     const item = this._getItemFromEvent(event);
     const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
-    const magazine = Number.parseInt(event.currentTarget.dataset.magazine ?? '0', 10);
-    if (!item || Number.isNaN(weaponIndex) || weaponIndex < 0) {
+    if (!item || Number.isNaN(weaponIndex) || weaponIndex < 0) return;
+
+    const sourceWeapon = item._source?.system?.weapons?.[weaponIndex] ?? {};
+    const magazine = Math.max(Number(sourceWeapon.magazine) || 0, 0);
+    const ammoCurrent = Math.max(Number(sourceWeapon.ammoCurrent) || 0, 0);
+    const ammoNeededFull = magazine - ammoCurrent;
+
+    if (ammoNeededFull <= 0) {
+      ui.notifications.info(game.i18n.localize('CYBER_BLUE.Combat.WeaponAlreadyFull'));
       return;
     }
 
-    await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: Math.max(magazine, 0) }));
+    // Find compatible ammo types for this weapon type
+    const compatibleAmmoKeys = getWeaponAmmoTypes(sourceWeapon.type ?? '');
+    if (compatibleAmmoKeys.length === 0) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.NoAmmoType'));
+      return;
+    }
+
+    // Filter actor's ammo items to those compatible with this weapon
+    const actorAmmoDocs = this.document.items.filter((i) => {
+      if (i.type !== 'ammo') return false;
+      return compatibleAmmoKeys.some((key) => i.system.ammoTypes?.[key]);
+    });
+
+    if (actorAmmoDocs.length === 0) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.NoCompatibleAmmo'));
+      return;
+    }
+
+    // If multiple compatible ammo available, prompt player to choose
+    let chosenAmmoDoc = actorAmmoDocs[0];
+    if (actorAmmoDocs.length > 1) {
+      const { promise, resolve } = Promise.withResolvers();
+      const buttons = actorAmmoDocs.map((ammoDoc) => ({
+        action: ammoDoc.id,
+        label: `${ammoDoc.name} (×${ammoDoc.system.quantity})`,
+        icon: 'fas fa-box-open',
+        callback: () => resolve(ammoDoc.id),
+      }));
+      buttons.push({ action: 'cancel', label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Cancel'), icon: 'fas fa-times', callback: () => resolve(null) });
+      const dialog = new foundry.applications.api.DialogV2({
+        window: { title: game.i18n.localize('CYBER_BLUE.Combat.ChooseAmmo') },
+        content: `<div class="cyberpunk-blue"><p>${game.i18n.localize('CYBER_BLUE.Combat.ChooseAmmoHint')}</p></div>`,
+        buttons,
+        submit: (result) => resolve(result),
+      });
+      dialog.addEventListener('close', () => resolve(null), { once: true });
+      dialog.render(true);
+      const chosenId = await promise;
+      if (!chosenId) return;
+      chosenAmmoDoc = actorAmmoDocs.find((a) => a.id === chosenId);
+      if (!chosenAmmoDoc) return;
+    }
+
+    // Determine how many rounds we can load
+    let ammoNeeded = ammoNeededFull;
+    let currentAfterUnload = ammoCurrent;
+
+    // If loading a different ammo type than currently loaded → unload existing rounds first
+    const prevUuid = sourceWeapon.ammoTypeUuid ?? '';
+    const sameAmmo = prevUuid && prevUuid === chosenAmmoDoc.uuid;
+    if (!sameAmmo && prevUuid && ammoCurrent > 0) {
+      // Try to resolve the previously loaded ammo
+      let prevAmmoItem = null;
+      try { prevAmmoItem = await fromUuid(prevUuid); } catch { /* not found */ }
+
+      // Search for a matching item on the actor (by uuid, then by name)
+      let prevOnActor = this.document.items.find((i) => i.type === 'ammo' && i.uuid === prevUuid);
+      if (!prevOnActor && prevAmmoItem?.name) {
+        prevOnActor = this.document.items.find((i) => i.type === 'ammo' && i.name === prevAmmoItem.name);
+      }
+      if (!prevOnActor && !prevAmmoItem) {
+        // Try searching world items by name fallback (from world Items directory)
+        const worldMatch = game.items.find((i) => i.type === 'ammo' && i.uuid === prevUuid);
+        if (worldMatch) prevAmmoItem = worldMatch;
+      }
+
+      if (prevOnActor) {
+        // Return rounds to existing stack on actor
+        await prevOnActor.update({ 'system.quantity': prevOnActor.system.quantity + ammoCurrent });
+      } else if (prevAmmoItem) {
+        // Create a new ammo entry on the actor with the returned rounds
+        const createdData = prevAmmoItem.toObject();
+        createdData.system.quantity = ammoCurrent;
+        await this.document.createEmbeddedDocuments('Item', [createdData]);
+      }
+      // Empty the mag before reloading with new ammo
+      currentAfterUnload = 0;
+      ammoNeeded = magazine;
+    }
+
+    // Load as many rounds as we have
+    const toLoad = Math.min(ammoNeeded, Math.max(Number(chosenAmmoDoc.system.quantity) || 0, 0));
+    if (toLoad <= 0) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.NoCompatibleAmmo'));
+      return;
+    }
+
+    const newAmmoCurrent = currentAfterUnload + toLoad;
+    const newAmmoQty = chosenAmmoDoc.system.quantity - toLoad;
+
+    // Update weapon: new ammo count + record which ammo was used
+    await item.update(buildWeaponUpdate(item, weaponIndex, {
+      ammoCurrent: newAmmoCurrent,
+      ammoTypeUuid: chosenAmmoDoc.uuid,
+    }));
+
+    // Update or delete the ammo item
+    if (newAmmoQty <= 0) {
+      await chosenAmmoDoc.delete();
+    } else {
+      await chosenAmmoDoc.update({ 'system.quantity': newAmmoQty });
+    }
   }
 
   async _onOpenTeamMember(event) {
