@@ -572,27 +572,126 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       return rs.category === 'networker' && (Number(rs.rank) || 0) >= 1;
     });
     const networkerRoleSystem = networkerRole ? normalizeRoleSystemData(networkerRole.system) : null;
+    const networkerRank = Number(networkerRoleSystem?.rank) || 0;
     context.showNetrunningTab = Boolean(networkerRole);
-    context.netrunningRole = networkerRole
-      ? {
-        id: networkerRole.id,
-        name: networkerRole.name,
-        rank: Number(networkerRoleSystem.rank) || 0,
-        enrichedSections: await Promise.all(
-          (networkerRoleSystem.abilitySections ?? [])
-            .filter((section) => (Number(section.unlockRank) || 0) <= (Number(networkerRoleSystem.rank) || 0))
-            .map(async (section) => ({
-              ...section,
-              enrichedContent: await foundry.applications.ux.TextEditor.implementation.enrichHTML(section.content ?? '', {
-                secrets: this.document.isOwner,
-                async: true,
-                rollData: this.document.getRollData(),
-                relativeTo: this.document,
-              }),
-            }))
-        ),
+
+    // ── Netrunner tab context ──────────────────────────────────────────────
+    if (networkerRole) {
+      // Component uses (excluding Software)
+      const NETRUNNER_COMPONENT_USES = {
+        codebreak:   [{ slug: 'breach', label: 'Breach' }, { slug: 'encryptDecrypt', label: 'Encrypt/Decrypt' }],
+        cracker:     [{ slug: 'defend', label: 'Defend' }, { slug: 'zap', label: 'Zap' }],
+        dev:         [{ slug: 'code', label: 'Code' }, { slug: 'deconstruct', label: 'Deconstruct' }],
+        ghost:       [{ slug: 'cloak', label: 'Cloak' }, { slug: 'slide', label: 'Slide' }],
+        spider:      [{ slug: 'eyeDee', label: 'Eye-Dee' }, { slug: 'pathfinder', label: 'Pathfinder' }, { slug: 'scanner', label: 'Scanner' }],
+        quickhacking: [{ slug: 'upload', label: 'Upload' }, { slug: 'quickbreach', label: 'Quickbreach' }],
+      };
+      const NETRUNNER_COMPONENTS_ORDER = ['codebreak', 'cracker', 'dev', 'ghost', 'spider', 'quickhacking'];
+      const intVal = system.stats?.int?.value ?? 0;
+      const netrunningSkillRank = system.skills?.netrunning?.rank ?? 0;
+
+      context.netrunnerComponents = NETRUNNER_COMPONENTS_ORDER.map((slug) => {
+        const componentRank = system.components?.[slug]?.rank ?? 0;
+        const modifier = intVal + networkerRank + Math.min(netrunningSkillRank, componentRank);
+        const modLabel = (modifier >= 0 ? '+' : '') + modifier;
+        // Embed componentSlug + modifier into each use so the template doesn't need ../
+        const uses = (NETRUNNER_COMPONENT_USES[slug] ?? []).map((u) => ({
+          ...u,
+          componentSlug: slug,
+          modifier,
+          modLabel,
+        }));
+        return {
+          slug,
+          label: CONFIG.CYBER_BLUE.components[slug]?.label ?? slug,
+          rank: componentRank,
+          modifier,
+          modLabel,
+          uses,
+        };
+      });
+
+      // Computer items from actor inventory (gear + cyberware where isComputer)
+      const computerItems = embeddedItems.filter((item) =>
+        (item.type === 'gear' || item.type === 'cyberware') && item.system.isComputer
+      );
+
+      // Count executables installed on each computer
+      const allExecutables = embeddedItems.filter((item) => item.type === 'programExecutable');
+      const execsPerComputer = new Map();
+      for (const exe of allExecutables) {
+        const cid = exe.system.installedOnId;
+        if (cid) execsPerComputer.set(cid, (execsPerComputer.get(cid) ?? 0) + 1);
       }
-      : null;
+
+      context.netrunnerComputers = computerItems
+        .map((c) => {
+          const comp = c.system.computer ?? {};
+          const usedSlots = execsPerComputer.get(c.id) ?? 0;
+          const totalSlots = (comp.softwareSlots ?? 0) + (comp.generalSlots ?? 0);
+          return {
+            id: c.id,
+            name: c.name,
+            img: c.img,
+            hardwareSlots: comp.hardwareSlots ?? 0,
+            softwareSlots: comp.softwareSlots ?? 0,
+            generalSlots: comp.generalSlots ?? 0,
+            ram: comp.ram ?? 0,
+            isCyberdeck: comp.isCyberdeck ?? false,
+            canQuickhack: comp.canQuickhack ?? false,
+            running: comp.running ?? false,
+            usedSlots,
+            freeSlots: Math.max(totalSlots - usedSlots, 0),
+          };
+        })
+        .sort((a, b) => {
+          if (a.isCyberdeck !== b.isCyberdeck) return a.isCyberdeck ? -1 : 1;
+          if (a.canQuickhack !== b.canQuickhack) return a.canQuickhack ? -1 : 1;
+          return a.name.localeCompare(b.name);
+        });
+
+      // Split executables into On Disk vs On Shards
+      const computerIdSet = new Set(computerItems.map((c) => c.id));
+      const computerById = new Map(context.netrunnerComputers.map((c) => [c.id, c]));
+      const executablesOnDisk = [];
+      const executablesOnShards = [];
+      for (const exe of allExecutables) {
+        const cid = exe.system.installedOnId;
+        const valid = cid && computerIdSet.has(cid);
+        const entry = { ...exe };
+        if (valid) {
+          entry.computerName = computerById.get(cid)?.name ?? '?';
+          executablesOnDisk.push(entry);
+        } else {
+          entry.invalidComputer = Boolean(cid && !computerIdSet.has(cid));
+          executablesOnShards.push(entry);
+        }
+      }
+
+      const buildColVis = (items, isDisk) => ({
+        showNote: items.some((e) => e.system.note),
+        showAct:  items.some((e) => (e.system.act ?? 0) > 0),
+        showAtk:  items.some((e) => (e.system.atk ?? 0) > 0),
+        showDef:  items.some((e) => (e.system.def ?? 0) > 0),
+        showNet:  items.some((e) => (e.system.net ?? 0) > 0),
+        showPer:  items.some((e) => (e.system.per ?? 0) > 0),
+        showRez:  items.some((e) => isDisk
+          ? ((e.system.rez?.max ?? 0) > 0 || (e.system.rez?.value ?? 0) > 0)
+          : (e.system.rez?.max ?? 0) > 0),
+      });
+
+      context.executablesOnDisk   = executablesOnDisk;
+      context.executablesOnShards = executablesOnShards;
+      context.diskColVis   = buildColVis(executablesOnDisk, true);
+      context.shardsColVis = buildColVis(executablesOnShards, false);
+    } else {
+      context.netrunnerComponents  = [];
+      context.netrunnerComputers   = [];
+      context.executablesOnDisk    = [];
+      context.executablesOnShards  = [];
+      context.diskColVis   = {};
+      context.shardsColVis = {};
+    }
 
     // Character creation state
     const isCC = actorData.type === 'character' && (system.characterCreation?.active ?? false);
@@ -696,6 +795,26 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
     this.element.querySelector('[data-action="begin-character-creation"]')?.addEventListener('click', this._onBeginCharacterCreation.bind(this));
     this.element.querySelector('[data-action="open-character-creation-wizard"]')?.addEventListener('click', this._onOpenCharacterCreationWizard.bind(this));
+
+    // Netrunner tab
+    this.element.querySelectorAll('[data-action="netrunner-component-roll"]').forEach((button) => {
+      button.addEventListener('click', this._onNetrunnerComponentRoll.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="executable-install"]').forEach((button) => {
+      button.addEventListener('click', this._onExecutableInstall.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="executable-uninstall"]').forEach((button) => {
+      button.addEventListener('click', this._onExecutableUninstall.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="executable-roll-atk"]').forEach((button) => {
+      button.addEventListener('click', this._onExecutableRollAtk.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="executable-roll-per"]').forEach((button) => {
+      button.addEventListener('click', this._onExecutableRollPer.bind(this));
+    });
+    this.element.querySelectorAll('[data-executable-field]').forEach((input) => {
+      input.addEventListener('change', this._onExecutableFieldUpdate.bind(this));
+    });
 
     // Restore scroll positions after re-render
     if (this._savedScrolls?.length) {
@@ -1202,5 +1321,150 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     });
 
     return picker.browse();
+  }
+
+  // ── Netrunner tab handlers ────────────────────────────────────────────────
+
+  async _onNetrunnerComponentRoll(event) {
+    event.preventDefault();
+    const componentSlug = event.currentTarget.dataset.componentSlug;
+    const useLabel = event.currentTarget.dataset.useLabel;
+    const modifier = Number(event.currentTarget.dataset.modifier) || 0;
+    if (!componentSlug) return;
+
+    const componentLabel = CONFIG.CYBER_BLUE.components[componentSlug]?.label ?? componentSlug;
+    const formula = modifier >= 0 ? `1d10+${modifier}` : `1d10${modifier}`;
+    const roll = await new Roll(formula).evaluate();
+    const flavor = `<div class="cyberpunk-blue chat-card"><h3>${componentLabel}: ${useLabel}</h3></div>`;
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: this.document }),
+      flavor,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
+  }
+
+  async _onExecutableInstall(event) {
+    event.preventDefault();
+    const itemId = event.currentTarget.dataset.itemId;
+    const exeDoc = itemId ? this.document.items.get(itemId) : null;
+    if (!exeDoc || exeDoc.type !== 'programExecutable') return;
+
+    // Find all computers with available slots
+    const computerItems = this.document.items.filter((i) =>
+      (i.type === 'gear' || i.type === 'cyberware') && i.system.isComputer
+    );
+    const allExes = this.document.items.filter((i) => i.type === 'programExecutable');
+    const execsPerComputer = new Map();
+    for (const exe of allExes) {
+      const cid = exe.system.installedOnId;
+      if (cid) execsPerComputer.set(cid, (execsPerComputer.get(cid) ?? 0) + 1);
+    }
+
+    const eligible = computerItems
+      .map((c) => {
+        const comp = c.system.computer ?? {};
+        const totalSlots = (comp.softwareSlots ?? 0) + (comp.generalSlots ?? 0);
+        const used = execsPerComputer.get(c.id) ?? 0;
+        return { id: c.id, name: c.name, isCyberdeck: comp.isCyberdeck ?? false, free: totalSlots - used };
+      })
+      .filter((c) => c.free > 0)
+      .sort((a, b) => {
+        if (a.isCyberdeck !== b.isCyberdeck) return a.isCyberdeck ? -1 : 1;
+        return a.name.localeCompare(b.name);
+      });
+
+    if (eligible.length === 0) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.NoEligibleComputers'));
+      return;
+    }
+
+    let chosenId = eligible[0].id;
+    if (eligible.length > 1) {
+      const { promise, resolve } = Promise.withResolvers();
+      const buttons = eligible.map((c) => ({
+        action: c.id,
+        label: `${c.name}${c.isCyberdeck ? ' ★' : ''} (${c.free} free)`,
+        callback: () => resolve(c.id),
+      }));
+      buttons.push({ action: 'cancel', label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Cancel'), icon: 'fas fa-times', callback: () => resolve(null) });
+      const dialog = new foundry.applications.api.DialogV2({
+        window: { title: game.i18n.localize('CYBER_BLUE.Combat.ChooseComputer') },
+        content: `<div class="cyberpunk-blue"><p>${game.i18n.localize('CYBER_BLUE.Combat.ChooseComputerHint')}</p></div>`,
+        buttons,
+        submit: (result) => resolve(result),
+      });
+      dialog.addEventListener('close', () => resolve(null), { once: true });
+      dialog.render(true);
+      const result = await promise;
+      if (!result) return;
+      chosenId = result;
+    }
+
+    const computer = eligible.find((c) => c.id === chosenId);
+    await exeDoc.update({ 'system.installedOnId': chosenId });
+    ui.notifications.info(game.i18n.format('CYBER_BLUE.Combat.ExecutableInstalled', {
+      name: exeDoc.name, computer: computer?.name ?? chosenId,
+    }));
+  }
+
+  async _onExecutableUninstall(event) {
+    event.preventDefault();
+    const itemId = event.currentTarget.dataset.itemId;
+    const exeDoc = itemId ? this.document.items.get(itemId) : null;
+    if (!exeDoc || exeDoc.type !== 'programExecutable') return;
+
+    await exeDoc.update({ 'system.installedOnId': null, 'system.running': false });
+    ui.notifications.info(game.i18n.format('CYBER_BLUE.Combat.ExecutableUninstalled', { name: exeDoc.name }));
+  }
+
+  async _onExecutableRollAtk(event) {
+    event.preventDefault();
+    const itemId = event.currentTarget.dataset.itemId;
+    const exeDoc = itemId ? this.document.items.get(itemId) : null;
+    if (!exeDoc || exeDoc.type !== 'programExecutable') return;
+
+    const atk = Number(exeDoc.system.atk) || 0;
+    const formula = atk >= 0 ? `1d10+${atk}` : `1d10${atk}`;
+    const roll = await new Roll(formula).evaluate();
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: this.document }),
+      flavor: `<div class="cyberpunk-blue chat-card"><h3>${exeDoc.name}: ATK</h3></div>`,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
+  }
+
+  async _onExecutableRollPer(event) {
+    event.preventDefault();
+    const itemId = event.currentTarget.dataset.itemId;
+    const exeDoc = itemId ? this.document.items.get(itemId) : null;
+    if (!exeDoc || exeDoc.type !== 'programExecutable') return;
+
+    const per = Number(exeDoc.system.per) || 0;
+    const formula = per >= 0 ? `1d10+${per}` : `1d10${per}`;
+    const roll = await new Roll(formula).evaluate();
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: this.document }),
+      flavor: `<div class="cyberpunk-blue chat-card"><h3>${exeDoc.name}: PER</h3></div>`,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
+  }
+
+  async _onExecutableFieldUpdate(event) {
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    const itemId = event.currentTarget.dataset.executableId;
+    const field = event.currentTarget.dataset.field;
+    if (!itemId || !field) return;
+    const exeDoc = this.document.items.get(itemId);
+    if (!exeDoc || exeDoc.type !== 'programExecutable') return;
+
+    const rawValue = event.currentTarget.type === 'checkbox'
+      ? event.currentTarget.checked
+      : event.currentTarget.value;
+    const value = event.currentTarget.dataset.dtype === 'Number'
+      ? Number(rawValue) || 0
+      : rawValue;
+
+    await exeDoc.update({ [field]: value });
   }
 }

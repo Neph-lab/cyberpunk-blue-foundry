@@ -755,17 +755,190 @@
 
     {{#if showNetrunningTab}}
       <div class="tab" data-group="primary" data-tab="netrunning">
-        {{#if netrunningRole}}
-          <section class="sheet-panel netrunning-panel">
-            <h2>{{netrunningRole.name}} <span class="resource-value">{{localize "CYBER_BLUE.Sheet.Labels.Rank"}}: {{netrunningRole.rank}}</span></h2>
-            {{#each netrunningRole.enrichedSections as |section|}}
-              <div class="netrunning-section">
-                <h3>{{localize "CYBER_BLUE.Sheet.Labels.Rank"}} {{section.unlockRank}}</h3>
-                <div class="enriched-html">{{{section.enrichedContent}}}</div>
+
+        {{!-- ── Component interface boxes ── --}}
+        <section class="sheet-panel">
+          <h2>{{localize "CYBER_BLUE.Combat.NetrunnerComponents"}}</h2>
+          <div class="netrunner-components-row">
+            {{#each netrunnerComponents as |comp|}}
+              <div class="netrunner-component-box">
+                <div class="netrunner-comp-header">
+                  <span class="netrunner-comp-name">{{comp.label}}</span>
+                  <span class="netrunner-comp-mod">{{comp.modLabel}}</span>
+                </div>
+                <div class="netrunner-comp-uses">
+                  {{#each comp.uses as |use|}}
+                    <button type="button"
+                      class="netrunner-use-btn"
+                      data-action="netrunner-component-roll"
+                      data-component-slug="{{use.componentSlug}}"
+                      data-use-label="{{use.label}}"
+                      data-modifier="{{use.modifier}}"
+                      title="Roll 1d10 {{use.modLabel}}">
+                      {{use.label}}
+                    </button>
+                  {{/each}}
+                </div>
               </div>
             {{/each}}
-          </section>
-        {{/if}}
+          </div>
+        </section>
+
+        {{!-- ── Computers ── --}}
+        <section class="sheet-panel">
+          <h2>{{localize "CYBER_BLUE.Combat.NetrunnerComputers"}}</h2>
+          {{#if netrunnerComputers.length}}
+            <div class="netrunner-computers-list">
+              {{#each netrunnerComputers as |comp|}}
+                <div class="netrunner-computer-card">
+                  <div class="netrunner-computer-name">
+                    <img src="{{comp.img}}" class="item-img" alt="{{comp.name}}" />
+                    <span>{{comp.name}}</span>
+                    {{#if comp.isCyberdeck}}<span class="state-chip">Cyberdeck</span>{{/if}}
+                    {{#if comp.canQuickhack}}<span class="state-chip">Quickhack</span>{{/if}}
+                  </div>
+                  <div class="netrunner-computer-stats">
+                    {{#if comp.hardwareSlots}}<span title="Hardware Slots">HW: {{comp.hardwareSlots}}</span>{{/if}}
+                    <span title="Software Slots">SW: {{comp.softwareSlots}} ({{comp.freeSlots}} free)</span>
+                    {{#if comp.generalSlots}}<span title="General Slots">Gen: {{comp.generalSlots}}</span>{{/if}}
+                    {{#if comp.ram}}<span title="RAM">RAM: {{comp.ram}}</span>{{/if}}
+                  </div>
+                </div>
+              {{/each}}
+            </div>
+          {{else}}
+            <p class="hint">{{localize "CYBER_BLUE.Combat.NetrunnerNoComputers"}}</p>
+          {{/if}}
+        </section>
+
+        {{!-- ── On Disk executables ── --}}
+        <section class="sheet-panel">
+          <h2>{{localize "CYBER_BLUE.Combat.ExecutablesOnDisk"}}</h2>
+          {{#if executablesOnDisk.length}}
+            <table class="netrunner-exe-table">
+              <thead>
+                <tr>
+                  <th class="exe-name-col">Name</th>
+                  {{#if diskColVis.showNote}}<th>Note</th>{{/if}}
+                  {{#if diskColVis.showAct}}<th>ACT</th>{{/if}}
+                  {{#if diskColVis.showAtk}}<th>ATK</th>{{/if}}
+                  {{#if diskColVis.showDef}}<th>DEF</th>{{/if}}
+                  {{#if diskColVis.showNet}}<th>NET</th>{{/if}}
+                  {{#if diskColVis.showPer}}<th>PER</th>{{/if}}
+                  {{#if diskColVis.showRez}}<th>REZ</th>{{/if}}
+                  <th>Running</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each executablesOnDisk as |exe|}}
+                  <tr data-item-id="{{exe.id}}">
+                    <td class="exe-name-col">
+                      <a class="item-name-link" data-item-id="{{exe.id}}">{{exe.name}}</a>
+                      {{#if exe.computerName}}<span class="hint exe-computer-name">{{exe.computerName}}</span>{{/if}}
+                    </td>
+                    {{#if @root.diskColVis.showNote}}<td>{{exe.system.note}}</td>{{/if}}
+                    {{#if @root.diskColVis.showAct}}<td>{{#if exe.system.act}}{{exe.system.act}}{{/if}}</td>{{/if}}
+                    {{#if @root.diskColVis.showAtk}}
+                      <td>
+                        {{#if exe.system.atk}}
+                          <button type="button" class="exe-roll-btn" data-action="executable-roll-atk" data-item-id="{{exe.id}}" title="Roll 1d10+ATK">
+                            {{exe.system.atk}} <i class="fas fa-dice-d10"></i>
+                          </button>
+                        {{/if}}
+                      </td>
+                    {{/if}}
+                    {{#if @root.diskColVis.showDef}}<td>{{#if exe.system.def}}{{exe.system.def}}{{/if}}</td>{{/if}}
+                    {{#if @root.diskColVis.showNet}}<td>{{#if exe.system.net}}{{exe.system.net}}{{/if}}</td>{{/if}}
+                    {{#if @root.diskColVis.showPer}}
+                      <td>
+                        {{#if exe.system.per}}
+                          <button type="button" class="exe-roll-btn" data-action="executable-roll-per" data-item-id="{{exe.id}}" title="Roll 1d10+PER">
+                            {{exe.system.per}} <i class="fas fa-dice-d10"></i>
+                          </button>
+                        {{/if}}
+                      </td>
+                    {{/if}}
+                    {{#if @root.diskColVis.showRez}}
+                      <td class="exe-rez-cell">
+                        <input type="number" class="exe-rez-input"
+                          data-executable-field
+                          data-executable-id="{{exe.id}}"
+                          data-field="system.rez.value"
+                          data-dtype="Number"
+                          value="{{exe.system.rez.value}}"
+                          min="0"
+                          max="{{exe.system.rez.max}}" />
+                        <span>/{{exe.system.rez.max}}</span>
+                      </td>
+                    {{/if}}
+                    <td class="exe-running-cell">
+                      <input type="checkbox"
+                        data-executable-field
+                        data-executable-id="{{exe.id}}"
+                        data-field="system.running"
+                        {{checked exe.system.running}} />
+                    </td>
+                    <td>
+                      <button type="button" class="exe-action-btn" data-action="executable-uninstall" data-item-id="{{exe.id}}" title="{{localize "CYBER_BLUE.Sheet.Labels.UninstallExecutable"}}">
+                        <i class="fas fa-eject"></i>
+                      </button>
+                    </td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          {{else}}
+            <p class="hint">{{localize "CYBER_BLUE.Combat.NoExecutablesOnDisk"}}</p>
+          {{/if}}
+        </section>
+
+        {{!-- ── On Shards executables ── --}}
+        <section class="sheet-panel">
+          <h2>{{localize "CYBER_BLUE.Combat.ExecutablesOnShards"}}</h2>
+          {{#if executablesOnShards.length}}
+            <table class="netrunner-exe-table">
+              <thead>
+                <tr>
+                  <th class="exe-name-col">Name</th>
+                  {{#if shardsColVis.showNote}}<th>Note</th>{{/if}}
+                  {{#if shardsColVis.showAct}}<th>ACT</th>{{/if}}
+                  {{#if shardsColVis.showAtk}}<th>ATK</th>{{/if}}
+                  {{#if shardsColVis.showDef}}<th>DEF</th>{{/if}}
+                  {{#if shardsColVis.showNet}}<th>NET</th>{{/if}}
+                  {{#if shardsColVis.showPer}}<th>PER</th>{{/if}}
+                  {{#if shardsColVis.showRez}}<th>REZ</th>{{/if}}
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each executablesOnShards as |exe|}}
+                  <tr data-item-id="{{exe.id}}">
+                    <td class="exe-name-col">
+                      <a class="item-name-link" data-item-id="{{exe.id}}">{{exe.name}}</a>
+                      {{#if exe.invalidComputer}}<span class="hint ammo-type-missing">(computer not found)</span>{{/if}}
+                    </td>
+                    {{#if @root.shardsColVis.showNote}}<td>{{exe.system.note}}</td>{{/if}}
+                    {{#if @root.shardsColVis.showAct}}<td>{{#if exe.system.act}}{{exe.system.act}}{{/if}}</td>{{/if}}
+                    {{#if @root.shardsColVis.showAtk}}<td>{{#if exe.system.atk}}{{exe.system.atk}}{{/if}}</td>{{/if}}
+                    {{#if @root.shardsColVis.showDef}}<td>{{#if exe.system.def}}{{exe.system.def}}{{/if}}</td>{{/if}}
+                    {{#if @root.shardsColVis.showNet}}<td>{{#if exe.system.net}}{{exe.system.net}}{{/if}}</td>{{/if}}
+                    {{#if @root.shardsColVis.showPer}}<td>{{#if exe.system.per}}{{exe.system.per}}{{/if}}</td>{{/if}}
+                    {{#if @root.shardsColVis.showRez}}<td>{{#if exe.system.rez.max}}{{exe.system.rez.max}}{{/if}}</td>{{/if}}
+                    <td>
+                      <button type="button" class="exe-action-btn" data-action="executable-install" data-item-id="{{exe.id}}" title="{{localize "CYBER_BLUE.Sheet.Labels.InstallExecutable"}}">
+                        <i class="fas fa-download"></i>
+                      </button>
+                    </td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          {{else}}
+            <p class="hint">{{localize "CYBER_BLUE.Combat.NoExecutablesOnShards"}}</p>
+          {{/if}}
+        </section>
+
       </div>
     {{/if}}
 

@@ -58,6 +58,16 @@ export default class CyberBlueCyberware extends CyberBlueItemBase {
     schema.installationDv = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
     schema.useCyberneticsComponent = new fields.BooleanField({ initial: false });
     schema.notes = new fields.HTMLField({ initial: '' });
+    schema.computer = new fields.SchemaField({
+      nodes: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+      hardwareSlots: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+      softwareSlots: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+      generalSlots: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+      ram: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+      isCyberdeck: new fields.BooleanField({ initial: false }),
+      canQuickhack: new fields.BooleanField({ initial: false }),
+      running: new fields.BooleanField({ initial: false }),
+    });
     schema.embeddedMods = new fields.ArrayField(
       new fields.SchemaField({
         id: new fields.StringField({ required: true, blank: true }),

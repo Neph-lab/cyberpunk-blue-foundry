@@ -45,6 +45,16 @@ export default class CyberBlueGear extends CyberBlueItemBase {
     schema.state = new fields.StringField({ required: true, blank: false, initial: 'carried' });
     schema.carried = new fields.BooleanField({ initial: true });
     schema.equipped = new fields.BooleanField({ initial: false });
+    schema.computer = new fields.SchemaField({
+      nodes: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+      hardwareSlots: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+      softwareSlots: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+      generalSlots: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+      ram: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+      isCyberdeck: new fields.BooleanField({ initial: false }),
+      canQuickhack: new fields.BooleanField({ initial: false }),
+      running: new fields.BooleanField({ initial: false }),
+    });
     schema.embeddedMods = new fields.ArrayField(
       new fields.SchemaField({
         id: new fields.StringField({ required: true, blank: true }),

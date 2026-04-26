@@ -131,7 +131,20 @@
         "ModImportInvalidUuid": "Could not find an item with that UUID.",
         "ModImportNotMod": "The item at that UUID is not a Mod.",
         "ModSyncAll": "Sync all mods from source",
-        "ModSyncDone": "Embedded mods synced."
+        "ModSyncDone": "Embedded mods synced.",
+        "ComputerConfig": "Computer",
+        "ComputerNodes": "Nodes",
+        "ComputerHardwareSlots": "Hardware Slots",
+        "ComputerSoftwareSlots": "Software Slots",
+        "ComputerGeneralSlots": "General Slots",
+        "ComputerRAM": "RAM",
+        "ComputerIsCyberdeck": "Cyberdeck",
+        "ComputerCanQuickhack": "Can Quickhack",
+        "ComputerRunning": "Running",
+        "OnDisk": "On Disk",
+        "OnShards": "On Shards",
+        "InstallExecutable": "Install to Disk",
+        "UninstallExecutable": "Move to Shards"
       },
         "Buttons": {
         "AddRole": "Add Role",
@@ -393,7 +406,19 @@
       "ChooseAmmoHint": "Select which ammunition to load:",
       "AmmoNotFound": "(ammo not found)",
       "MovementLimitReached": "Movement limit reached ({remaining}m remaining of {max}m).",
-      "RateOfFireTitle": "Rate of Fire (attacks used / max per turn)"
+      "RateOfFireTitle": "Rate of Fire (attacks used / max per turn)",
+      "NetrunnerComponents": "Interface Components",
+      "NetrunnerComputers": "Computers",
+      "NetrunnerNoComputers": "No computers found in inventory.",
+      "ExecutablesOnDisk": "On Disk",
+      "ExecutablesOnShards": "On Shards",
+      "NoExecutablesOnDisk": "No executables installed on disk.",
+      "NoExecutablesOnShards": "No executables on shards.",
+      "ChooseComputer": "Choose Computer",
+      "ChooseComputerHint": "Select which computer to install this executable on:",
+      "NoEligibleComputers": "No computers with available slots in inventory.",
+      "ExecutableInstalled": "Installed \"{name}\" on {computer}.",
+      "ExecutableUninstalled": "Moved \"{name}\" to shards."
     }
   },
   "TYPES": {

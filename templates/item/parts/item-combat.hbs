@@ -1,4 +1,71 @@
 <div class="combat-layout">
+  {{#if system.isComputer}}
+    <section class="sheet-panel">
+      <div class="panel-header"><h2>{{localize "CYBER_BLUE.Sheet.Labels.ComputerConfig"}}</h2></div>
+      <div class="computer-fields-grid">
+        <label class="compact-field">
+          <span>{{localize "CYBER_BLUE.Sheet.Labels.ComputerNodes"}}</span>
+          {{#if @root.canManageRestricted}}
+            <input type="number" name="system.computer.nodes" value="{{system.computer.nodes}}" data-dtype="Number" min="0" />
+          {{else}}
+            <div class="readonly-value">{{system.computer.nodes}}</div>
+          {{/if}}
+        </label>
+        <label class="compact-field">
+          <span>{{localize "CYBER_BLUE.Sheet.Labels.ComputerHardwareSlots"}}</span>
+          {{#if @root.canManageRestricted}}
+            <input type="number" name="system.computer.hardwareSlots" value="{{system.computer.hardwareSlots}}" data-dtype="Number" min="0" />
+          {{else}}
+            <div class="readonly-value">{{system.computer.hardwareSlots}}</div>
+          {{/if}}
+        </label>
+        <label class="compact-field">
+          <span>{{localize "CYBER_BLUE.Sheet.Labels.ComputerSoftwareSlots"}}</span>
+          {{#if @root.canManageRestricted}}
+            <input type="number" name="system.computer.softwareSlots" value="{{system.computer.softwareSlots}}" data-dtype="Number" min="0" />
+          {{else}}
+            <div class="readonly-value">{{system.computer.softwareSlots}}</div>
+          {{/if}}
+        </label>
+        <label class="compact-field">
+          <span>{{localize "CYBER_BLUE.Sheet.Labels.ComputerGeneralSlots"}}</span>
+          {{#if @root.canManageRestricted}}
+            <input type="number" name="system.computer.generalSlots" value="{{system.computer.generalSlots}}" data-dtype="Number" min="0" />
+          {{else}}
+            <div class="readonly-value">{{system.computer.generalSlots}}</div>
+          {{/if}}
+        </label>
+        <label class="compact-field">
+          <span>{{localize "CYBER_BLUE.Sheet.Labels.ComputerRAM"}}</span>
+          {{#if @root.canManageRestricted}}
+            <input type="number" name="system.computer.ram" value="{{system.computer.ram}}" data-dtype="Number" min="0" />
+          {{else}}
+            <div class="readonly-value">{{system.computer.ram}}</div>
+          {{/if}}
+        </label>
+        <label class="checkbox-label">
+          <span>{{localize "CYBER_BLUE.Sheet.Labels.ComputerIsCyberdeck"}}</span>
+          {{#if @root.canManageRestricted}}
+            <input type="checkbox" name="system.computer.isCyberdeck" {{checked system.computer.isCyberdeck}} />
+          {{else}}
+            <span class="readonly-icon"><i class="fas {{#if system.computer.isCyberdeck}}fa-check{{else}}fa-xmark{{/if}}"></i></span>
+          {{/if}}
+        </label>
+        <label class="checkbox-label">
+          <span>{{localize "CYBER_BLUE.Sheet.Labels.ComputerCanQuickhack"}}</span>
+          {{#if @root.canManageRestricted}}
+            <input type="checkbox" name="system.computer.canQuickhack" {{checked system.computer.canQuickhack}} />
+          {{else}}
+            <span class="readonly-icon"><i class="fas {{#if system.computer.canQuickhack}}fa-check{{else}}fa-xmark{{/if}}"></i></span>
+          {{/if}}
+        </label>
+        <label class="checkbox-label">
+          <span>{{localize "CYBER_BLUE.Sheet.Labels.ComputerRunning"}}</span>
+          <input type="checkbox" name="system.computer.running" {{checked system.computer.running}} />
+        </label>
+      </div>
+    </section>
+  {{/if}}
   {{#if system.isArmor}}
     <section class="sheet-panel">
       <div class="item-meta-row combat-armor-row">

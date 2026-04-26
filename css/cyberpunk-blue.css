@@ -1985,3 +1985,168 @@ button, .cyberpunk-blue .button, a.button {
 .cyberpunk-blue .mod-effect-label {
   font-size: var(--font-size-12);
 }
+
+/* ── Computer config fields ─────────────────────────────────────── */
+.cyberpunk-blue .computer-fields-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: center;
+  padding: 4px 0;
+}
+
+/* ── Netrunner tab ──────────────────────────────────────────────── */
+.cyberpunk-blue .netrunner-components-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.cyberpunk-blue .netrunner-component-box {
+  border: 1px solid var(--color-border-light-tertiary, #999);
+  border-radius: 4px;
+  padding: 6px 8px;
+  min-width: 120px;
+  background: var(--color-bg-option, rgba(0,0,0,0.05));
+}
+
+.cyberpunk-blue .netrunner-comp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+  gap: 6px;
+}
+
+.cyberpunk-blue .netrunner-comp-name {
+  font-weight: bold;
+  font-size: var(--font-size-13);
+}
+
+.cyberpunk-blue .netrunner-comp-mod {
+  font-size: var(--font-size-12);
+  color: var(--color-text-light-secondary, #555);
+  white-space: nowrap;
+}
+
+.cyberpunk-blue .netrunner-comp-uses {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cyberpunk-blue .netrunner-use-btn {
+  width: 100%;
+  text-align: left;
+  padding: 2px 6px;
+  font-size: var(--font-size-12);
+  cursor: pointer;
+  border: 1px solid var(--color-border-light-tertiary, #bbb);
+  border-radius: 3px;
+  background: var(--color-bg-btn, rgba(255,255,255,0.15));
+}
+
+.cyberpunk-blue .netrunner-use-btn:hover {
+  background: var(--color-bg-btn-hover, rgba(0,0,0,0.1));
+}
+
+/* Computers list */
+.cyberpunk-blue .netrunner-computers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cyberpunk-blue .netrunner-computer-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border: 1px solid var(--color-border-light-tertiary, #ccc);
+  border-radius: 4px;
+  background: var(--color-bg-option, rgba(0,0,0,0.03));
+}
+
+.cyberpunk-blue .netrunner-computer-name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  font-weight: bold;
+  font-size: var(--font-size-13);
+}
+
+.cyberpunk-blue .netrunner-computer-name img.item-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.cyberpunk-blue .netrunner-computer-stats {
+  display: flex;
+  gap: 8px;
+  font-size: var(--font-size-12);
+  color: var(--color-text-light-secondary, #555);
+}
+
+/* Executable tables */
+.cyberpunk-blue .netrunner-exe-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-12);
+}
+
+.cyberpunk-blue .netrunner-exe-table th {
+  text-align: center;
+  padding: 2px 4px;
+  border-bottom: 1px solid var(--color-border-light-tertiary, #aaa);
+  font-size: var(--font-size-11);
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.cyberpunk-blue .netrunner-exe-table td {
+  padding: 2px 4px;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--color-border-light-tertiary, #ddd);
+}
+
+.cyberpunk-blue .netrunner-exe-table .exe-name-col {
+  text-align: left;
+  min-width: 100px;
+}
+
+.cyberpunk-blue .exe-computer-name {
+  display: block;
+  font-size: var(--font-size-10);
+}
+
+.cyberpunk-blue .exe-rez-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.cyberpunk-blue .exe-rez-input {
+  width: 36px;
+  text-align: center;
+  padding: 0 2px;
+}
+
+.cyberpunk-blue .exe-roll-btn {
+  padding: 1px 6px;
+  font-size: var(--font-size-11);
+  cursor: pointer;
+  border: 1px solid var(--color-border-light-tertiary, #bbb);
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.cyberpunk-blue .exe-action-btn {
+  padding: 2px 6px;
+  font-size: var(--font-size-12);
+  cursor: pointer;
+}
