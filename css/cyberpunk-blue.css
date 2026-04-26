@@ -2363,3 +2363,78 @@ button, .cyberpunk-blue .button, a.button {
   background: #8b0000;
   color: #fff;
 }
+
+/* ─── Health Effects: critical injury delete button ─────────────────────────── */
+
+.cyberpunk-blue .health-effect-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.cyberpunk-blue .health-effect-row .health-effect {
+  flex: 1;
+  min-width: 0;
+}
+
+.cyberpunk-blue .health-effect-row.is-critical-injury .health-effect {
+  border-color: #8b000044;
+}
+
+.cyberpunk-blue .health-effect-row.is-mortal .health-effect {
+  border-color: #8b0000;
+}
+
+.cyberpunk-blue .effect-mortal-badge {
+  color: #8b0000;
+  font-size: var(--font-size-11);
+  flex-shrink: 0;
+}
+
+.cyberpunk-blue .health-effect-delete {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid #8b0000;
+  color: #8b0000;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: var(--font-size-10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cyberpunk-blue .health-effect-delete:hover {
+  background: #8b0000;
+  color: #fff;
+}
+
+/* ─── Weapon Table: Target Vitals column ─────────────────────────────────────── */
+
+.cyberpunk-blue .target-vitals-cell {
+  text-align: center;
+}
+
+.cyberpunk-blue .target-vitals-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cyberpunk-blue .target-vitals-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: #8b0000;
+}
+
+.cyberpunk-blue .target-vitals-note {
+  color: #8b0000;
+  font-size: var(--font-size-11);
+  margin-bottom: 0.2rem;
+}

@@ -29,7 +29,7 @@ import {
   resetAllTracking,
 } from './helpers/combat-tracker.mjs';
 import * as models from './data/_module.mjs';
-import { CRITICAL_INJURY_FLAG } from './helpers/critical-injury.mjs';
+import { CRITICAL_INJURY_FLAG, buildCritBodyTableData, buildCritHeadTableData } from './helpers/critical-injury.mjs';
 
 Hooks.once('init', function () {
   game.cyberpunkblue = {
@@ -404,6 +404,8 @@ Hooks.once('ready', async () => {
     return;
   }
 
+  await ensureCritInjuryTables();
+
   const seen = new Set();
   const cyberwareItems = [
     ...game.items.contents,
@@ -537,6 +539,33 @@ Hooks.on('combatTurn', (combat) => {
 });
 
 Hooks.on('combatRound', () => resetAllTracking());
+
+// ─── Critical Injury: populate compendium tables on first run ────────────────
+
+async function ensureCritInjuryTables() {
+  if (!game.user.isGM) return;
+  const PACK_ID = 'cyberpunk-blue.critical-injury-tables';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) {
+    console.warn('Cyberpunk Blue | Critical injury tables compendium not found — skipping auto-populate.');
+    return;
+  }
+  const index = await pack.getIndex();
+  if (index.size >= 2) return; // already populated
+
+  console.log('Cyberpunk Blue | Populating critical injury tables compendium…');
+  try {
+    // Unlock the system pack temporarily so we can write into it
+    await pack.configure({ locked: false });
+    await RollTable.create(buildCritBodyTableData(), { pack: PACK_ID });
+    await RollTable.create(buildCritHeadTableData(), { pack: PACK_ID });
+    console.log('Cyberpunk Blue | Critical injury tables created in compendium.');
+  } catch (err) {
+    console.error('Cyberpunk Blue | Failed to create critical injury tables:', err);
+  } finally {
+    await pack.configure({ locked: true });
+  }
+}
 
 // ─── Critical Injury: chat card remove button ────────────────────────────────
 

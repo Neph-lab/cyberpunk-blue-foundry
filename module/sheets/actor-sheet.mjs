@@ -9,7 +9,7 @@ import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
 import { buildWeaponUpdate, getWeaponTypeDefinition, getWeaponAmmoTypes } from '../helpers/combat.mjs';
 import { getCombatAttackState } from '../helpers/combat-tracker.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack } from '../helpers/combat-resolution.mjs';
-import { getCriticalInjuries } from '../helpers/critical-injury.mjs';
+import { CRITICAL_INJURY_FLAG } from '../helpers/critical-injury.mjs';
 import { CharacterCreationWizard, CC_STEPS_LIST } from '../helpers/character-creation.mjs';
 import {
   getRoleCategoryLabel,
@@ -389,6 +389,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         damageType,
         hasAutofire: damageType === 'autofire',
         autofireAmmoOk: damageType === 'autofire' && ammo.current >= 10,
+        isStandardDamage: !['autofire', 'cone', 'explosion'].includes(damageType),
+        targetVitals: itemDoc.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false,
         autofireLabel: `${autofireTotal >= 0 ? '+' : ''}${autofireTotal}`,
         autofireTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + min(${rollContext.skillLabel} ${rollContext.usedRank}, Autofire ${autofireRank})`,
         skillSlug,
@@ -545,6 +547,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       effects: this.document.effects.contents
         .filter((effect) => !effect.disabled)
         .map((effect) => {
+          const critFlag = effect.getFlag('cyberpunk-blue', CRITICAL_INJURY_FLAG);
           return {
             id: effect.id,
             uuid: effect.uuid,
@@ -552,6 +555,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
             icon: effect.img || effect.icon,
             duration: effect.duration?.label || game.i18n.localize('CYBER_BLUE.Effect.Ongoing'),
             canEdit: game.user.role >= CONST.USER_ROLES.TRUSTED,
+            isCriticalInjury: !!critFlag,
+            mortal: critFlag?.mortal ?? false,
           };
         })
         .sort((left, right) => left.name.localeCompare(right.name)),
@@ -711,7 +716,6 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       highlightSkills: isCC && stepIdx === 6,
     };
 
-    context.criticalInjuries = getCriticalInjuries(this.document);
     context.isGM = game.user.isGM;
 
     return context;
@@ -803,6 +807,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     this.element.querySelectorAll('[data-action="remove-critical-injury"]').forEach((button) => {
       button.addEventListener('click', this._onRemoveCriticalInjury.bind(this));
     });
+    this.element.querySelectorAll('[data-action="toggle-target-vitals"]').forEach((checkbox) => {
+      checkbox.addEventListener('change', this._onToggleTargetVitals.bind(this));
+    });
 
     // Netrunner tab
     this.element.querySelectorAll('[data-action="netrunner-component-roll"]').forEach((button) => {
@@ -844,6 +851,15 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       return;
     }
     await effect.delete();
+  }
+
+  async _onToggleTargetVitals(event) {
+    const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
+    if (Number.isNaN(weaponIndex) || weaponIndex < 0) return;
+    const item = this._getItemFromEvent(event);
+    if (!item) return;
+    const current = item.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false;
+    await item.setFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`, !current);
   }
 
   async _onItemCreate(event) {

@@ -382,7 +382,8 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
       if (result?.confirmed) {
         await targetActor.applyDamage(finalDamage);
         if (isCritical) {
-          await rollCriticalInjury(targetActor, result.injuryTable, { attackerActor: attacker });
+          // Explosion/cone always uses the body table
+          await rollCriticalInjury(targetActor, 'body', { attackerActor: attacker });
         }
       }
     }
@@ -513,7 +514,8 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
       if (result?.confirmed) {
         await targetActor.applyDamage(finalDamage);
         if (isCritical) {
-          await rollCriticalInjury(targetActor, result.injuryTable, { attackerActor: attacker });
+          // Cone attacks always use the body table
+          await rollCriticalInjury(targetActor, 'body', { attackerActor: attacker });
         }
       }
     }

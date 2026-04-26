@@ -83,13 +83,23 @@
             <div class="health-effects-list">
               {{#if health.effects.length}}
                 {{#each health.effects as |effect|}}
-                  <button type="button" class="health-effect" data-action="open-health-effect" data-effect-id="{{effect.id}}" title="{{#if effect.canEdit}}Open and edit effect{{else}}Open effect{{/if}}">
-                    <img src="{{effect.icon}}" alt="{{effect.name}}" />
-                    <span>{{effect.name}}</span>
-                    {{#if effect.duration}}
-                      <span class="effect-duration">{{effect.duration}}</span>
+                  <div class="health-effect-row {{#if effect.isCriticalInjury}}is-critical-injury{{/if}} {{#if effect.mortal}}is-mortal{{/if}}">
+                    <button type="button" class="health-effect" data-action="open-health-effect" data-effect-id="{{effect.id}}" title="{{#if effect.canEdit}}Open and edit effect{{else}}Open effect{{/if}}">
+                      <img src="{{effect.icon}}" alt="{{effect.name}}" />
+                      <span>{{effect.name}}</span>
+                      {{#if effect.duration}}
+                        <span class="effect-duration">{{effect.duration}}</span>
+                      {{/if}}
+                      {{#if effect.mortal}}
+                        <span class="effect-mortal-badge" title="{{localize 'CYBER_BLUE.CriticalInjury.MortalWound'}}"><i class="fas fa-heart-pulse"></i></span>
+                      {{/if}}
+                    </button>
+                    {{#if (and @root.isGM effect.isCriticalInjury)}}
+                      <button type="button" class="health-effect-delete" data-action="remove-critical-injury" data-effect-id="{{effect.id}}" title="{{localize 'CYBER_BLUE.CriticalInjury.Remove'}}">
+                        <i class="fas fa-trash"></i>
+                      </button>
                     {{/if}}
-                  </button>
+                  </div>
                 {{/each}}
               {{else}}
                 <p class="hint">No direct health effects on this character.</p>
@@ -99,34 +109,8 @@
         </div>
       </section>
 
-      {{#if criticalInjuries.length}}
-      <section class="sheet-panel critical-injuries-panel">
-        <div class="panel-header">
-          <h2><i class="fas fa-skull-crossbones"></i> {{localize "CYBER_BLUE.CriticalInjury.Title"}}</h2>
-        </div>
-        <ul class="critical-injuries-list">
-          {{#each criticalInjuries as |injury|}}
-          <li class="critical-injury-item {{#if injury.mortal}}is-mortal{{/if}}">
-            <div class="injury-info">
-              <span class="injury-name">{{injury.name}}</span>
-              {{#if injury.mortal}}
-              <span class="injury-mortal-badge">{{localize "CYBER_BLUE.CriticalInjury.MortalWound"}}</span>
-              {{/if}}
-              <p class="injury-desc">{{injury.description}}</p>
-            </div>
-            {{#if @root.isGM}}
-            <button type="button" class="injury-remove" data-action="remove-critical-injury" data-effect-id="{{injury.id}}"
-                    title="{{localize 'CYBER_BLUE.CriticalInjury.Remove'}}">
-              <i class="fas fa-trash"></i>
-            </button>
-            {{/if}}
-          </li>
-          {{/each}}
-        </ul>
-      </section>
-      {{/if}}
 
-      <section class="quick-stats-row {{#if charCreation.highlightSecondary}}char-creation-highlight{{/if}}">
+<section class="quick-stats-row {{#if charCreation.highlightSecondary}}char-creation-highlight{{/if}}">
         <div class="sheet-panel stat-card armor-card">
           <span class="stat-short">{{localize "CYBER_BLUE.Sheet.Labels.StoppingPower"}}</span>
           <select name="system.combat.activeArmorItemId">
@@ -188,6 +172,7 @@
             <colgroup>
               <col />
               <col class="column-compact" />
+              <col class="column-compact" />
               <col />
               <col class="column-compact" />
               <col class="column-compact" />
@@ -199,6 +184,7 @@
               <tr>
                 <th>Weapon</th>
                 <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Attack"}}</th>
+                <th class="numeric-column" title="{{localize 'CYBER_BLUE.Combat.TargetVitals'}}"><i class="fas fa-crosshairs"></i></th>
                 <th>{{localize "CYBER_BLUE.Sheet.Labels.WeaponSkill"}}</th>
                 <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Damage"}}</th>
                 <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.RateOfFire"}}</th>
@@ -230,6 +216,13 @@
                       <button type="button" data-action="weapon-autofire" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.autofireTooltip}}" {{#unless weapon.autofireAmmoOk}}disabled{{/unless}} {{#if weapon.attackDisabled}}disabled{{/if}}>
                         {{localize "CYBER_BLUE.Combat.Autofire"}} ({{weapon.autofireLabel}})
                       </button>
+                    {{/if}}
+                  </td>
+                  <td class="numeric-column target-vitals-cell">
+                    {{#if weapon.isStandardDamage}}
+                      <label class="target-vitals-label" title="{{localize 'CYBER_BLUE.Combat.TargetVitalsHint'}}">
+                        <input type="checkbox" data-action="toggle-target-vitals" data-weapon-index="{{weapon.weaponIndex}}" {{#if weapon.targetVitals}}checked{{/if}} />
+                      </label>
                     {{/if}}
                   </td>
                   <td>

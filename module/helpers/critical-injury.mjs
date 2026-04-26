@@ -7,9 +7,20 @@
  *
  * On trigger: damage +5, then roll 2d6 on the appropriate table and apply the
  * resulting Active Effect to the target actor.
+ *
+ * Table selection: if the attacker was targeting vitals the Head table is used;
+ * cone / explosion / autofire attacks always use the Body table.
+ *
+ * Foundry RollTables: the two tables are shipped as a compendium pack and
+ * auto-created in the pack the first time a GM loads the world.  The rolling
+ * code looks for them in the world first (in case the GM imported them), then
+ * in the compendium, and falls back to a pure-JS roll if neither is found.
  */
 
 export const CRITICAL_INJURY_FLAG = 'criticalInjury';
+
+export const CRITICAL_BODY_TABLE_NAME = 'Critical Body Injuries';
+export const CRITICAL_HEAD_TABLE_NAME = 'Critical Head Injuries';
 
 // ─── Helper builders ──────────────────────────────────────────────────────────
 
@@ -183,6 +194,49 @@ export const CRITICAL_HEAD_INJURY_TABLE = {
   },
 };
 
+// ─── Compendium table data builders ──────────────────────────────────────────
+
+function buildResultsFromTable(jsTable, tableType) {
+  return Object.entries(jsTable).map(([roll, entry]) => ({
+    type: 0, // CONST.TABLE_RESULT_TYPES.TEXT
+    text: game.i18n?.localize(entry.nameKey) ?? entry.key,
+    weight: 1,
+    range: [Number(roll), Number(roll)],
+    drawn: false,
+    flags: {
+      'cyberpunk-blue': {
+        critKey: entry.key,
+        instantDeath: entry.instantDeath ?? false,
+        tableType,
+      },
+    },
+  }));
+}
+
+export function buildCritBodyTableData() {
+  return {
+    name: CRITICAL_BODY_TABLE_NAME,
+    formula: '2d6',
+    replacement: true,
+    displayRoll: true,
+    description: 'Roll when a critical hit strikes the body (2+ damage dice show 6, damage penetrates SP). Used by the Cyberpunk Blue system.',
+    results: buildResultsFromTable(CRITICAL_INJURY_TABLE, 'body'),
+    flags: { 'cyberpunk-blue': { critTableType: 'body' } },
+  };
+}
+
+export function buildCritHeadTableData() {
+  return {
+    name: CRITICAL_HEAD_TABLE_NAME,
+    formula: '2d6',
+    replacement: true,
+    displayRoll: true,
+    description: 'Roll when a critical hit strikes the head (Target Vitals active, 2+ damage dice show 6, damage penetrates SP). Used by the Cyberpunk Blue system.',
+    results: buildResultsFromTable(CRITICAL_HEAD_INJURY_TABLE, 'head'),
+    flags: { 'cyberpunk-blue': { critTableType: 'head' } },
+  };
+}
+
 // ─── Detection ────────────────────────────────────────────────────────────────
 
 /**
@@ -202,36 +256,31 @@ export function detectCriticalDice(roll) {
   return { count, isCritical: count >= 2 };
 }
 
-// ─── Confirm dialog with optional crit options ────────────────────────────────
+// ─── Confirm dialog ───────────────────────────────────────────────────────────
 
 /**
- * Show the apply-damage confirm dialog.  When a critical hit is detected the
- * dialog also lets the GM pick which injury table (body / head) to use.
+ * Show the apply-damage confirm dialog.
+ * When a critical hit is detected a note is shown but the table type is
+ * determined externally (target vitals → head, everything else → body).
  *
  * @param {object} opts
  * @param {Actor}   opts.targetActor
- * @param {number}  opts.finalDamage  - Pre-SP damage including the +5 bonus if applicable
+ * @param {number}  opts.finalDamage  - Pre-SP damage including all bonuses
  * @param {number}  opts.sp           - Target SP at time of roll
  * @param {number}  opts.netDamage    - HP loss after SP
  * @param {boolean} opts.ablatesArmor
  * @param {boolean} opts.isCritical
  * @param {number}  opts.critDiceCount
- * @returns {Promise<{ confirmed: boolean, injuryTable: 'body'|'head' }|null>}
+ * @returns {Promise<{ confirmed: boolean }|null>}
  */
 export async function confirmDamageDialog({ targetActor, finalDamage, sp, netDamage, ablatesArmor, isCritical, critDiceCount }) {
   const spNote = sp !== null
     ? `${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}`
     : `${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>`;
 
-  const critBlock = isCritical ? `
-    <div class="crit-confirm-block">
-      <p class="crit-dice-note"><i class="fas fa-skull"></i> ${game.i18n.format('CYBER_BLUE.CriticalInjury.CritDetected', { count: critDiceCount })}</p>
-      <div class="crit-location-row">
-        <span>${game.i18n.localize('CYBER_BLUE.CriticalInjury.InjuryLocation')}:</span>
-        <label><input type="radio" name="crit-table" value="body" checked /> ${game.i18n.localize('CYBER_BLUE.CriticalInjury.InjuryLocationBody')}</label>
-        <label><input type="radio" name="crit-table" value="head" /> ${game.i18n.localize('CYBER_BLUE.CriticalInjury.InjuryLocationHead')}</label>
-      </div>
-    </div>` : '';
+  const critBlock = isCritical
+    ? `<p class="crit-dice-note" style="margin-top:0.4rem;"><i class="fas fa-skull"></i> ${game.i18n.format('CYBER_BLUE.CriticalInjury.CritDetected', { count: critDiceCount })}</p>`
+    : '';
 
   const content = `
     <div class="cyberpunk-blue" style="padding:0.5rem;">
@@ -250,16 +299,13 @@ export async function confirmDamageDialog({ targetActor, finalDamage, sp, netDam
           icon: 'fa-solid fa-check',
           label: game.i18n.localize('CYBER_BLUE.Combat.ApplyDamage'),
           default: true,
-          callback: (_event, button) => {
-            const table = button.form?.elements['crit-table']?.value ?? 'body';
-            return { confirmed: true, injuryTable: table };
-          },
+          callback: () => ({ confirmed: true }),
         },
         {
           action: 'cancel',
           icon: 'fa-solid fa-xmark',
           label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Cancel'),
-          callback: () => ({ confirmed: false, injuryTable: 'body' }),
+          callback: () => ({ confirmed: false }),
         },
       ],
       submit: resolve,
@@ -272,6 +318,30 @@ export async function confirmDamageDialog({ targetActor, finalDamage, sp, netDam
 // ─── Rolling & application ────────────────────────────────────────────────────
 
 /**
+ * Locate a Foundry RollTable for the given injury type.
+ * Searches the world first, then the compendium pack.
+ *
+ * @param {'body'|'head'} tableType
+ * @returns {Promise<RollTable|null>}
+ */
+async function findRollTable(tableType) {
+  const name = tableType === 'head' ? CRITICAL_HEAD_TABLE_NAME : CRITICAL_BODY_TABLE_NAME;
+
+  // 1. World tables (GM may have imported / customised them)
+  const worldTable = game.tables.find((t) => t.getFlag('cyberpunk-blue', 'critTableType') === tableType)
+    ?? game.tables.getName(name);
+  if (worldTable) return worldTable;
+
+  // 2. Compendium pack
+  const pack = game.packs.get('cyberpunk-blue.critical-injury-tables');
+  if (!pack) return null;
+  const index = await pack.getIndex();
+  const entry = index.find((e) => e.name === name);
+  if (!entry) return null;
+  return pack.getDocument(entry._id);
+}
+
+/**
  * Roll on the appropriate critical injury table, apply the AE to targetActor,
  * and post a chat message.
  *
@@ -281,32 +351,51 @@ export async function confirmDamageDialog({ targetActor, finalDamage, sp, netDam
  * @param {Actor}  [opts.attackerActor]  - Used as chat speaker if provided
  */
 export async function rollCriticalInjury(targetActor, tableType = 'body', { attackerActor } = {}) {
-  const table = tableType === 'head' ? CRITICAL_HEAD_INJURY_TABLE : CRITICAL_INJURY_TABLE;
+  const hardcodedTable = tableType === 'head' ? CRITICAL_HEAD_INJURY_TABLE : CRITICAL_INJURY_TABLE;
   const tableLabel = tableType === 'head'
     ? game.i18n.localize('CYBER_BLUE.CriticalInjury.Head.Title')
     : game.i18n.localize('CYBER_BLUE.CriticalInjury.Body.Title');
 
-  const roll = await new Roll('2d6').evaluate();
-  const total = roll.total;
-  const entry = table[total] ?? table[12]; // fallback
+  const speaker = attackerActor
+    ? ChatMessage.getSpeaker({ actor: attackerActor })
+    : ChatMessage.getSpeaker({ actor: targetActor });
 
-  const name = game.i18n.localize(entry.nameKey);
-  const description = game.i18n.localize(entry.descKey);
+  // ── Try Foundry RollTable ──
+  const rollTable = await findRollTable(tableType);
+
+  let total, entry, name, description;
+
+  if (rollTable) {
+    const drawResult = await rollTable.draw({ displayChat: false });
+    total = drawResult.roll.total;
+    const tableResult = drawResult.results[0];
+
+    // Prefer critKey from flags for AE lookup; fall back to roll-total keying
+    const critKey = tableResult?.getFlag('cyberpunk-blue', 'critKey');
+    entry = critKey
+      ? Object.values(hardcodedTable).find((e) => e.key === critKey)
+      : (hardcodedTable[total] ?? hardcodedTable[12]);
+
+    name = tableResult?.text || (entry ? game.i18n.localize(entry.nameKey) : String(total));
+    description = entry ? game.i18n.localize(entry.descKey) : '';
+  } else {
+    // ── Pure-JS fallback ──
+    const roll = await new Roll('2d6').evaluate();
+    total = roll.total;
+    entry = hardcodedTable[total] ?? hardcodedTable[12];
+    name = game.i18n.localize(entry.nameKey);
+    description = game.i18n.localize(entry.descKey);
+  }
 
   // ── Instant Death ──
-  if (entry.instantDeath) {
+  if (entry?.instantDeath) {
     await targetActor.update({ 'system.resources.hp.value': 0 });
     const content = buildInjuryChatHtml({
       tableLabel, roll: total, targetName: targetActor.name,
       name, description, mortal: false, instantDeath: true,
       actorId: null, effectId: null,
     });
-    await ChatMessage.create({
-      speaker: attackerActor
-        ? ChatMessage.getSpeaker({ actor: attackerActor })
-        : ChatMessage.getSpeaker({ actor: targetActor }),
-      content,
-    });
+    await ChatMessage.create({ speaker, content });
     return;
   }
 
@@ -317,14 +406,14 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
     origin: targetActor.uuid,
     disabled: false,
     transfer: false,
-    system: { changes: entry.changes },
+    system: { changes: entry?.changes ?? [] },
     flags: {
       'cyberpunk-blue': {
         [CRITICAL_INJURY_FLAG]: {
-          key: entry.key,
+          key: entry?.key ?? 'unknown',
           tableType,
-          mortal: entry.mortal,
-          descKey: entry.descKey,
+          mortal: entry?.mortal ?? false,
+          descKey: entry?.descKey ?? '',
         },
       },
     },
@@ -335,14 +424,12 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
   // ── Post chat card ──
   const content = buildInjuryChatHtml({
     tableLabel, roll: total, targetName: targetActor.name,
-    name, description, mortal: entry.mortal, instantDeath: false,
+    name, description, mortal: entry?.mortal ?? false, instantDeath: false,
     actorId: targetActor.id, effectId: createdAE?.id ?? null,
   });
 
   await ChatMessage.create({
-    speaker: attackerActor
-      ? ChatMessage.getSpeaker({ actor: attackerActor })
-      : ChatMessage.getSpeaker({ actor: targetActor }),
+    speaker,
     content,
     flags: { 'cyberpunk-blue': { criticalInjuryCard: true } },
   });
@@ -376,25 +463,4 @@ function buildInjuryChatHtml({ tableLabel, roll, targetName, name, description, 
       ${mortalBlock}${deathBlock}
       <div class="critical-injury-actions">${removeBtn}</div>
     </div>`;
-}
-
-// ─── Actor-sheet context helper ───────────────────────────────────────────────
-
-/**
- * Build the list of critical injury AEs for display on the actor sheet.
- * @param {Actor} actor
- * @returns {{ id: string, name: string, description: string, mortal: boolean }[]}
- */
-export function getCriticalInjuries(actor) {
-  return actor.effects
-    .filter((e) => e.getFlag('cyberpunk-blue', CRITICAL_INJURY_FLAG))
-    .map((e) => {
-      const flag = e.getFlag('cyberpunk-blue', CRITICAL_INJURY_FLAG);
-      return {
-        id: e.id,
-        name: e.name,
-        description: flag?.descKey ? game.i18n.localize(flag.descKey) : '',
-        mortal: flag?.mortal ?? false,
-      };
-    });
 }

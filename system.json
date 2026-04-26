@@ -134,6 +134,16 @@
       }
     }
   },
+  "packs": [
+    {
+      "name": "critical-injury-tables",
+      "label": "Critical Injury Tables",
+      "type": "RollTable",
+      "path": "packs/critical-injury-tables",
+      "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
+      "flags": {}
+    }
+  ],
   "initiative": "1d10 + @stats.rflx.value",
   "manifest": "https://raw.githubusercontent.com/Neph-lab/cyberpunk-blue-foundry/main/system.json",
   "download": "https://github.com/Neph-lab/cyberpunk-blue-foundry/archive/refs/heads/main.zip",

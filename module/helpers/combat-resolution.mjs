@@ -194,7 +194,11 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     resolvedDV = rawDV;
   }
 
-  const attackRoll = await attacker.rollSkill({ skillSlug, dv: resolvedDV });
+  // ── Target Vitals ──────────────────────────────────────────────────────────
+  const targetVitals = item.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false;
+  const targetVitalsPenalty = -(weapon.targetVitalsPenalty ?? 8);
+
+  const attackRoll = await attacker.rollSkill({ skillSlug, dv: resolvedDV, modifier: targetVitals ? targetVitalsPenalty : 0 });
 
   // Record this attack for RoF tracking
   const attackerToken = attacker.getActiveTokens()[0];
@@ -216,31 +220,46 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
 
   // ── Critical Injury detection ──────────────────────────────────────────────
   const { count: critDiceCount } = detectCriticalDice(damageRoll);
-  // Penetration without the +5 bonus: original roll must beat SP
+  // Penetration check uses the original roll (before any bonus) so the bonus
+  // cannot self-validate the critical trigger.
   const penetratesWithoutBonus = sp === null ? damageRoll.total > 0 : damageRoll.total > sp;
   const isCritical = critDiceCount >= 2 && penetratesWithoutBonus;
-  const finalDamage = isCritical ? damageRoll.total + 5 : damageRoll.total;
+
+  // Target Vitals: +5 damage if any damage gets through SP (independent of crit)
+  const vitalsBonus = (targetVitals && penetratesWithoutBonus) ? 5 : 0;
+  const critBonus = isCritical ? 5 : 0;
+  const finalDamage = damageRoll.total + critBonus + vitalsBonus;
+
+  // Critical table: head when targeting vitals, body otherwise
+  const tableType = targetVitals ? 'head' : 'body';
 
   const netDamage = sp !== null ? Math.max(finalDamage - sp, 0) : finalDamage;
   const ablatesArmor = sp !== null && finalDamage >= sp;
 
-  const critLine = isCritical
-    ? `<p class="crit-roll-note"><i class="fas fa-skull"></i> ${game.i18n.format('CYBER_BLUE.CriticalInjury.CritDetected', { count: critDiceCount })} ${game.i18n.localize('CYBER_BLUE.CriticalInjury.CritBonus')}</p>`
+  const bonusNotes = [];
+  if (isCritical) bonusNotes.push(game.i18n.localize('CYBER_BLUE.CriticalInjury.CritBonus'));
+  if (vitalsBonus) bonusNotes.push(game.i18n.localize('CYBER_BLUE.Combat.TargetVitalsBonus'));
+  const critLine = isCritical || vitalsBonus
+    ? `<p class="crit-roll-note"><i class="fas fa-skull"></i> ${bonusNotes.join(' · ')}</p>`
     : '';
   const spLine = sp !== null
-    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}${isCritical ? ` (+5)` : ''}</p>`
+    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}${critBonus + vitalsBonus ? ` (+${critBonus + vitalsBonus})` : ''}</p>`
     : '';
 
   const weaponLabel = (item.system.weapons?.length ?? 0) > 1
     ? `${item.name} - ${definition.label}`
     : item.name;
 
+  const targetVitalsLine = targetVitals
+    ? `<p class="target-vitals-note"><i class="fas fa-crosshairs"></i> ${game.i18n.localize('CYBER_BLUE.Combat.TargetVitalsActive')}</p>`
+    : '';
+
   await damageRoll.toMessage({
     speaker: ChatMessage.getSpeaker({ actor: attacker }),
     flavor: `
       <div class="cyberpunk-blue chat-card">
         <h3>${game.i18n.localize('CYBER_BLUE.Sheet.Labels.Damage')}: ${weaponLabel}</h3>
-        ${spLine}${critLine}
+        ${targetVitalsLine}${spLine}${critLine}
       </div>`,
     rollMode: game.settings.get('core', 'rollMode'),
   });
@@ -252,7 +271,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     if (result?.confirmed) {
       await targetActor.applyDamage(finalDamage);
       if (isCritical) {
-        await rollCriticalInjury(targetActor, result.injuryTable, { attackerActor: attacker });
+        await rollCriticalInjury(targetActor, tableType, { attackerActor: attacker });
       }
     }
   }
@@ -451,7 +470,8 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
     if (result?.confirmed) {
       await targetActor.applyDamage(finalDamage);
       if (isCritical) {
-        await rollCriticalInjury(targetActor, result.injuryTable, { attackerActor: attacker });
+        // Autofire always uses the body table
+        await rollCriticalInjury(targetActor, 'body', { attackerActor: attacker });
       }
     }
   }
