@@ -198,7 +198,7 @@ export const CRITICAL_HEAD_INJURY_TABLE = {
 
 function buildResultsFromTable(jsTable, tableType) {
   return Object.entries(jsTable).map(([roll, entry]) => ({
-    type: 0, // CONST.TABLE_RESULT_TYPES.TEXT
+    type: 'text', // Foundry V14+: string literal, not the deprecated numeric constant
     text: game.i18n?.localize(entry.nameKey) ?? entry.key,
     weight: 1,
     range: [Number(roll), Number(roll)],

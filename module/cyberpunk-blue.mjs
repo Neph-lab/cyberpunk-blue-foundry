@@ -569,7 +569,8 @@ async function ensureCritInjuryTables() {
 
 // ─── Critical Injury: chat card remove button ────────────────────────────────
 
-Hooks.on('renderChatMessage', (message, html) => {
+Hooks.on('renderChatMessageHTML', (message, html) => {
+  // html is already an HTMLElement in Foundry V13+
   const el = html instanceof HTMLElement ? html : html[0];
   if (!el) return;
 
