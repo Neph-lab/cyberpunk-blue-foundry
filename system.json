@@ -142,6 +142,22 @@
       "path": "packs/critical-injury-tables",
       "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
       "flags": {}
+    },
+    {
+      "name": "weapons",
+      "label": "Weapons",
+      "type": "Item",
+      "path": "packs/weapons",
+      "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
+      "flags": {}
+    },
+    {
+      "name": "weapon-mods",
+      "label": "Weapon Mods",
+      "type": "Item",
+      "path": "packs/weapon-mods",
+      "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
+      "flags": {}
     }
   ],
   "initiative": "1d10 + @stats.rflx.value",

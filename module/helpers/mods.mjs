@@ -86,6 +86,40 @@ export function getModificationValidation(itemLike, mod) {
         return { valid: false, reason: 'Requires a specific weapon selection.' };
       }
 
+      // ── Scope installability ─────────────────────────────────────────────
+      // 'short' (pistols + SMGs), 'long' (SG/MG/AR/PR), 'sniper' (SR-only).
+      const scopeType = mod.scopeType ?? '';
+      if (scopeType) {
+        const wt = targetWeapon.type;
+        const SHORT_OK = new Set(['mediumPistol', 'heavyPistol', 'veryHeavyPistol', 'smg', 'heavySmg']);
+        const LONG_OK = new Set(['shotgun', 'machineGun', 'assaultRifle', 'precisionRifle']);
+        const SNIPER_OK = new Set(['sniperRifle']);
+        const okSet = scopeType === 'short' ? SHORT_OK : (scopeType === 'long' ? LONG_OK : SNIPER_OK);
+        if (!okSet.has(wt)) {
+          return { valid: false, reason: `Scope type "${scopeType}" not compatible with weapon type "${wt}".` };
+        }
+      }
+
+      // ── Compatibility flags on the mod ───────────────────────────────────
+      if (mod.requiresPowerWeapon && !targetWeapon.isPowerWeapon) {
+        return { valid: false, reason: 'Requires a Power Weapon.' };
+      }
+      if (mod.requiresSmartWeapon && !targetWeapon.isSmartWeapon) {
+        return { valid: false, reason: 'Requires a Smart Weapon.' };
+      }
+      if (mod.requiresTechWeapon && !targetWeapon.isTechWeapon) {
+        return { valid: false, reason: 'Requires a Tech Weapon.' };
+      }
+      if (mod.blockedOnPower && targetWeapon.isPowerWeapon) {
+        return { valid: false, reason: 'Cannot be installed on Power Weapons.' };
+      }
+      if (mod.blockedOnSmart && targetWeapon.isSmartWeapon) {
+        return { valid: false, reason: 'Cannot be installed on Smart Weapons.' };
+      }
+      if (mod.blockedOnTech && targetWeapon.isTechWeapon) {
+        return { valid: false, reason: 'Cannot be installed on Tech Weapons.' };
+      }
+
       return { valid: true, reason: '' };
     }
     default:

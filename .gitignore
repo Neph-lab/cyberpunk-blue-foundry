@@ -1,3 +1,15 @@
 node_modules/
 .sass-cache/
 .vscode/
+
+# LevelDB compendium files — populated at runtime by the system itself
+# (RollTables auto-create on first GM load; weapon packs are filled by the
+# import dialog). The .gitkeep preserves the directories.
+packs/*/000*.log
+packs/*/CURRENT
+packs/*/LOCK
+packs/*/LOG
+packs/*/LOG.old
+packs/*/MANIFEST-*
+packs/*/*.ldb
+packs/*/*.sst

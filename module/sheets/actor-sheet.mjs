@@ -391,6 +391,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         autofireAmmoOk: damageType === 'autofire' && ammo.current >= 10,
         isStandardDamage: !['autofire', 'cone', 'explosion'].includes(damageType),
         targetVitals: itemDoc.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false,
+        jammed: !!itemDoc.getFlag('cyberpunk-blue', `jammed-${weaponIndex}`),
+        canJam: (weapon.jamOnRoll ?? 0) > 0,
         autofireLabel: `${autofireTotal >= 0 ? '+' : ''}${autofireTotal}`,
         autofireTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + min(${rollContext.skillLabel} ${rollContext.usedRank}, Autofire ${autofireRank})`,
         skillSlug,
@@ -810,6 +812,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     this.element.querySelectorAll('[data-action="toggle-target-vitals"]').forEach((checkbox) => {
       checkbox.addEventListener('change', this._onToggleTargetVitals.bind(this));
     });
+    this.element.querySelectorAll('[data-action="weapon-unjam"]').forEach((button) => {
+      button.addEventListener('click', this._onWeaponUnjam.bind(this));
+    });
 
     // Netrunner tab
     this.element.querySelectorAll('[data-action="netrunner-component-roll"]').forEach((button) => {
@@ -860,6 +865,19 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     if (!item) return;
     const current = item.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false;
     await item.setFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`, !current);
+  }
+
+  async _onWeaponUnjam(event) {
+    event.preventDefault();
+    const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
+    if (Number.isNaN(weaponIndex) || weaponIndex < 0) return;
+    const item = this._getItemFromEvent(event);
+    if (!item) return;
+    await item.unsetFlag('cyberpunk-blue', `jammed-${weaponIndex}`);
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.document }),
+      content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-wrench"></i> ${game.i18n.format('CYBER_BLUE.Combat.WeaponUnjammed', { weapon: item.name })}</p></div>`,
+    });
   }
 
   async _onItemCreate(event) {

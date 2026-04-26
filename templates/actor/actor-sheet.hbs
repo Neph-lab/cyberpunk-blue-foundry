@@ -209,8 +209,8 @@
                     {{/if}}
                   </td>
                   <td class="numeric-column">
-                    <button type="button" data-action="weapon-attack" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.attackTooltip}}" {{#if weapon.attackDisabled}}disabled{{/if}}>
-                      {{localize "CYBER_BLUE.Combat.Attack"}} ({{weapon.attackLabel}}){{#if weapon.rofExhausted}} ✗{{/if}}
+                    <button type="button" data-action="weapon-attack" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.attackTooltip}}" {{#if weapon.attackDisabled}}disabled{{/if}} {{#if weapon.jammed}}disabled{{/if}}>
+                      {{localize "CYBER_BLUE.Combat.Attack"}} ({{weapon.attackLabel}}){{#if weapon.rofExhausted}} ✗{{/if}}{{#if weapon.jammed}} <i class="fas fa-exclamation-triangle"></i>{{/if}}
                     </button>
                     {{#if weapon.hasAutofire}}
                       <button type="button" data-action="weapon-autofire" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.autofireTooltip}}" {{#unless weapon.autofireAmmoOk}}disabled{{/unless}} {{#if weapon.attackDisabled}}disabled{{/if}}>
@@ -262,6 +262,11 @@
                     {{#if weapon.showsAmmo}}
                       <button type="button" data-action="weapon-reload" data-weapon-index="{{weapon.weaponIndex}}" data-magazine="{{weapon.magazine}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Reload"}}">
                         <i class="fas fa-rotate-right"></i>
+                      </button>
+                    {{/if}}
+                    {{#if weapon.jammed}}
+                      <button type="button" class="weapon-unjam-btn" data-action="weapon-unjam" data-weapon-index="{{weapon.weaponIndex}}" title="{{localize 'CYBER_BLUE.Combat.WeaponUnjamHint'}}">
+                        <i class="fas fa-wrench"></i>
                       </button>
                     {{/if}}
                   </td>

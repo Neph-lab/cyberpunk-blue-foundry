@@ -16,7 +16,7 @@ import {
   syncActorCyberwareDisableEffects,
 } from './helpers/cyberware-disable.mjs';
 import { syncActorLeaderRoles } from './helpers/roles.mjs';
-import { CyberBlueJsonImportDialog, CyberBlueMacroCreator } from './helpers/gm-tools.mjs';
+import { CyberBlueJsonImportDialog, CyberBlueMacroCreator, CyberBlueWeaponImportDialog } from './helpers/gm-tools.mjs';
 import { CharacterCreationWizard } from './helpers/character-creation.mjs';
 import {
   recordCombatAttack,
@@ -145,6 +145,15 @@ Hooks.once('init', function () {
     hint: 'CYBER_BLUE.Settings.CreateMacros.Hint',
     icon: 'fas fa-code',
     type: CyberBlueMacroCreator,
+    restricted: true,
+  });
+
+  game.settings.registerMenu('cyberpunk-blue', 'importWeaponsMenu', {
+    name: 'CYBER_BLUE.Settings.ImportWeapons.Name',
+    label: 'CYBER_BLUE.Settings.ImportWeapons.Label',
+    hint: 'CYBER_BLUE.Settings.ImportWeapons.Hint',
+    icon: 'fas fa-crosshairs',
+    type: CyberBlueWeaponImportDialog,
     restricted: true,
   });
 

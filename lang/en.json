@@ -291,6 +291,11 @@
         "Name": "Create GM Macros",
         "Label": "Create Macros",
         "Hint": "Creates useful GM utility macros in your Macro Directory."
+      },
+      "ImportWeapons": {
+        "Name": "Import Weapons to Compendium",
+        "Label": "Import Weapons",
+        "Hint": "Import weapon items from a JSON file into the Weapons compendium, organised into folders by weapon type."
       }
     },
     "CC": {
@@ -409,6 +414,13 @@
       "TargetVitalsHint": "Target Vitals: −8 attack penalty; +5 damage if any gets through SP; critical hit uses Head Injury table.",
       "TargetVitalsActive": "Targeting Vitals",
       "TargetVitalsBonus": "+5 (target vitals)",
+      "PayloadBonus": "+{n} (toxic payload)",
+      "WeaponJammed": "Weapon is jammed — clear the jam (Action) before firing.",
+      "WeaponJammedAfterShot": "shot fires, then weapon JAMS. (Poor Quality)",
+      "WeaponJammedNoShot": "JAMS before firing — shot is wasted. (Cheap)",
+      "WeaponUnjamHint": "Clear weapon jam (costs an Action)",
+      "WeaponUnjammed": "Cleared the jam on {weapon}.",
+      "MinBodyReqWarning": "{weapon} requires BODY {required}; {body} BODY is too low to fire safely without a mount.",
       "MovementLimitReached": "Movement limit reached ({remaining}m remaining of {max}m).",
       "RateOfFireTitle": "Rate of Fire (attacks used / max per turn)",
       "NetrunnerComponents": "Interface Components",

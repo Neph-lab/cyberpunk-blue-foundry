@@ -194,11 +194,54 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     resolvedDV = rawDV;
   }
 
-  // ── Target Vitals ──────────────────────────────────────────────────────────
+  // ── Jam check ─────────────────────────────────────────────────────────────
+  // weapon.isJammed is a transient flag (item flag) set when a previous shot jammed.
+  if (item.getFlag('cyberpunk-blue', `jammed-${weaponIndex}`)) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.WeaponJammed'));
+    return;
+  }
+
+  // ── Minimum BODY check ────────────────────────────────────────────────────
+  // HVY weapons (MG Helix, Defenders) require a BODY minimum to fire without a mount.
+  const minBodyReq = Number(item.system?.minBodyReq) || 0;
+  if (minBodyReq > 0) {
+    const attackerBody = Number(attacker.system?.stats?.body?.value) || 0;
+    if (attackerBody < minBodyReq) {
+      ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.MinBodyReqWarning', { weapon: item.name, body: attackerBody, required: minBodyReq }));
+      // Continue anyway — this is a warning, not a hard block.
+    }
+  }
+
+  // ── Weapon attack-roll modifier ────────────────────────────────────────────
+  // Sum of: Target Vitals penalty, Smart Weapon (+1), Excellent Quality (+1).
   const targetVitals = item.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false;
   const targetVitalsPenalty = -(weapon.targetVitalsPenalty ?? 8);
 
-  const attackRoll = await attacker.rollSkill({ skillSlug, dv: resolvedDV, modifier: targetVitals ? targetVitalsPenalty : 0 });
+  let attackModifier = 0;
+  if (targetVitals) attackModifier += targetVitalsPenalty;
+  if (weapon.isSmartWeapon) attackModifier += 1;
+  if (weapon.isExcellentQuality) attackModifier += 1;
+
+  const attackRoll = await attacker.rollSkill({ skillSlug, dv: resolvedDV, modifier: attackModifier });
+
+  // ── Jam-on-1 detection (Cheap = JAM, Poor Quality = POQ) ──────────────────
+  // jamOnRoll is a threshold; jamFiresFirst differentiates POQ (shot lands)
+  // from JAM (shot is lost).
+  const d10Term = attackRoll.terms?.find((t) => t instanceof foundry.dice.terms.Die && t.faces === 10);
+  const d10Result = d10Term?.results?.[0]?.result ?? null;
+  const jammed = (weapon.jamOnRoll ?? 0) > 0 && d10Result !== null && d10Result <= weapon.jamOnRoll;
+  if (jammed) {
+    await item.setFlag('cyberpunk-blue', `jammed-${weaponIndex}`, true);
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-exclamation-triangle"></i> <strong>${item.name}</strong> ${game.i18n.localize(weapon.jamFiresFirst ? 'CYBER_BLUE.Combat.WeaponJammedAfterShot' : 'CYBER_BLUE.Combat.WeaponJammedNoShot')}</p></div>`,
+    });
+    if (!weapon.jamFiresFirst) {
+      // JAM: shot is lost — no ammo consumed, no damage
+      return;
+    }
+    // POQ: fall through, the shot still lands
+  }
 
   // Record this attack for RoF tracking
   const attackerToken = attacker.getActiveTokens()[0];
@@ -228,7 +271,9 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // Target Vitals: +5 damage if any damage gets through SP (independent of crit)
   const vitalsBonus = (targetVitals && penetratesWithoutBonus) ? 5 : 0;
   const critBonus = isCritical ? 5 : 0;
-  const finalDamage = damageRoll.total + critBonus + vitalsBonus;
+  // Toxic Payload (Yanari MP, Hercules 3AX): +N damage on penetration
+  const payloadBonus = (penetratesWithoutBonus && weapon.payloadDmgBonus) ? Number(weapon.payloadDmgBonus) : 0;
+  const finalDamage = damageRoll.total + critBonus + vitalsBonus + payloadBonus;
 
   // Critical table: head when targeting vitals, body otherwise
   const tableType = targetVitals ? 'head' : 'body';
@@ -239,11 +284,13 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const bonusNotes = [];
   if (isCritical) bonusNotes.push(game.i18n.localize('CYBER_BLUE.CriticalInjury.CritBonus'));
   if (vitalsBonus) bonusNotes.push(game.i18n.localize('CYBER_BLUE.Combat.TargetVitalsBonus'));
-  const critLine = isCritical || vitalsBonus
+  if (payloadBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.PayloadBonus', { n: payloadBonus }));
+  const totalBonus = critBonus + vitalsBonus + payloadBonus;
+  const critLine = bonusNotes.length
     ? `<p class="crit-roll-note"><i class="fas fa-skull"></i> ${bonusNotes.join(' · ')}</p>`
     : '';
   const spLine = sp !== null
-    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}${critBonus + vitalsBonus ? ` (+${critBonus + vitalsBonus})` : ''}</p>`
+    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}${totalBonus ? ` (+${totalBonus})` : ''}</p>`
     : '';
 
   const weaponLabel = (item.system.weapons?.length ?? 0) > 1
