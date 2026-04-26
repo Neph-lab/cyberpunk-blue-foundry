@@ -366,9 +366,21 @@ export class CyberBlueWeaponImportDialog extends ApplicationV2 {
     }
     const firstWeapon = item?.system?.weapons?.[0];
     const typeKey = firstWeapon?.type ?? 'lightMelee';
-    const def = CONFIG.CYBER_BLUE?.weaponTypes?.find?.((w) => w.value === typeKey)
-      ?? game.cyberpunkblue?.config?.weaponTypeMap?.[typeKey];
-    const folderName = def?.label ?? typeKey;
+    const def = game.cyberpunkblue?.combat?.applyWeaponTypeDefaults
+      ? Object.values(game.cyberpunkblue.config?.combat?.weaponTypeMap ?? {}).find?.((w) => w?.value === typeKey)
+      : null;
+    // Fall back to a built-in label table so the dialog never produces a slug-named folder.
+    const fallbackLabels = {
+      lightMelee: 'Light Melee Weapon', mediumMelee: 'Medium Melee Weapon',
+      heavyMelee: 'Heavy Melee Weapon', veryHeavyMelee: 'Very Heavy Melee Weapon',
+      mediumPistol: 'Medium Pistol', heavyPistol: 'Heavy Pistol', veryHeavyPistol: 'Very Heavy Pistol',
+      smg: 'SMG', heavySmg: 'Heavy SMG', shotgun: 'Shotgun',
+      assaultRifle: 'Assault Rifle', precisionRifle: 'Precision Rifle',
+      machineGun: 'Machine Gun', sniperRifle: 'Sniper Rifle',
+      grenadeLauncher: 'Grenade Launcher', rocketLauncher: 'Rocket Launcher',
+      flamethrower: 'Flamethrower', bowCrossbow: 'Bow / Crossbow', thrown: 'Thrown',
+    };
+    const folderName = def?.label ?? fallbackLabels[typeKey] ?? typeKey;
     return { packId: 'cyberpunk-blue.weapons', folderName };
   }
 

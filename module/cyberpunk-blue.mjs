@@ -7,7 +7,7 @@ import { CyberBlueProgramSheet } from './sheets/program-sheet.mjs';
 import { CyberBlueVehicleSheet } from './sheets/vehicle-sheet.mjs';
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
 import { CYBER_BLUE } from './helpers/config.mjs';
-import { applyWeaponTypeDefaults, createWeaponData } from './helpers/combat.mjs';
+import { applyWeaponTypeDefaults, createWeaponData, COMBAT_CONFIG } from './helpers/combat.mjs';
 import {
   CYBERWARE_DISABLE_CHANGE_KEYS,
   getActorCyberwareDisableState,
@@ -30,6 +30,8 @@ import {
 } from './helpers/combat-tracker.mjs';
 import * as models from './data/_module.mjs';
 import { CRITICAL_INJURY_FLAG, buildCritBodyTableData, buildCritHeadTableData } from './helpers/critical-injury.mjs';
+import { WEAPON_CATALOGUE } from './data/weapon-catalogue.mjs';
+import { MOD_CATALOGUE } from './data/mod-catalogue.mjs';
 
 Hooks.once('init', function () {
   game.cyberpunkblue = {
@@ -414,6 +416,7 @@ Hooks.once('ready', async () => {
   }
 
   await ensureCritInjuryTables();
+  await ensureWeaponCatalogue();
 
   const seen = new Set();
   const cyberwareItems = [
@@ -573,6 +576,93 @@ async function ensureCritInjuryTables() {
     console.error('Cyberpunk Blue | Failed to create critical injury tables:', err);
   } finally {
     await pack.configure({ locked: true });
+  }
+}
+
+// ─── Weapon catalogue: populate compendium packs on first run ────────────────
+
+/** Resolve the folder name for a single catalogue item. */
+function _classifyForFolder(item) {
+  if (item?.type === 'mod') {
+    const map = {
+      'short':  'Short Scope',
+      'long':   'Long Scope',
+      'sniper': 'Sniper Scope',
+    };
+    const sys = item?.system ?? {};
+    if (sys.scopeType) return { packId: 'cyberpunk-blue.weapon-mods', folderName: map[sys.scopeType] };
+    if (sys.silenceDV) return { packId: 'cyberpunk-blue.weapon-mods', folderName: 'Silencer' };
+    if (sys.lostForce) return { packId: 'cyberpunk-blue.weapon-mods', folderName: 'Muzzle Break' };
+    if (sys.modSlots && sys.modSlots >= 2) return { packId: 'cyberpunk-blue.weapon-mods', folderName: 'Under-Barrel' };
+    return { packId: 'cyberpunk-blue.weapon-mods', folderName: 'Attachment' };
+  }
+  // Weapon → folder by weapon-type label
+  const firstWeapon = item?.system?.weapons?.[0];
+  const typeKey = firstWeapon?.type ?? 'lightMelee';
+  const def = COMBAT_CONFIG.weaponTypeMap[typeKey];
+  return { packId: 'cyberpunk-blue.weapons', folderName: def?.label ?? typeKey };
+}
+
+async function _ensureFolderInPack(pack, name) {
+  await pack.getIndex({ fields: ['name', 'type'] });
+  const existing = pack.folders.find((f) => f.name === name);
+  if (existing) return existing;
+  return Folder.create({ name, type: 'Item', sorting: 'a', color: null }, { pack: pack.collection });
+}
+
+async function _populatePack(packId, items) {
+  const pack = game.packs.get(packId);
+  if (!pack) {
+    console.warn(`Cyberpunk Blue | Pack "${packId}" not found.`);
+    return 0;
+  }
+  await pack.getIndex();
+  if (pack.index.size > 0) return 0; // already populated
+
+  // Group by folder
+  const byFolder = new Map();
+  for (const item of items) {
+    const { folderName } = _classifyForFolder(item);
+    if (!byFolder.has(folderName)) byFolder.set(folderName, []);
+    byFolder.get(folderName).push(item);
+  }
+
+  let created = 0;
+  await pack.configure({ locked: false });
+  try {
+    for (const [folderName, group] of byFolder.entries()) {
+      const folder = await _ensureFolderInPack(pack, folderName);
+      const cleaned = group.map((it) => {
+        const copy = foundry.utils.deepClone(it);
+        delete copy._id;
+        copy.folder = folder?.id ?? null;
+        return copy;
+      });
+      const docs = await Item.createDocuments(cleaned, { pack: packId });
+      created += docs.length;
+    }
+  } finally {
+    await pack.configure({ locked: true });
+  }
+  return created;
+}
+
+async function ensureWeaponCatalogue() {
+  if (!game.user.isGM) return;
+  try {
+    // Filter catalogue by destination pack
+    const weapons = WEAPON_CATALOGUE.filter((it) => _classifyForFolder(it).packId === 'cyberpunk-blue.weapons');
+    const mods = MOD_CATALOGUE.filter((it) => _classifyForFolder(it).packId === 'cyberpunk-blue.weapon-mods');
+
+    const wCreated = await _populatePack('cyberpunk-blue.weapons', weapons);
+    const mCreated = await _populatePack('cyberpunk-blue.weapon-mods', mods);
+
+    if (wCreated || mCreated) {
+      console.log(`Cyberpunk Blue | Weapon catalogue imported: ${wCreated} weapons, ${mCreated} mods.`);
+      ui.notifications.info(`Cyberpunk Blue: Weapon catalogue imported (${wCreated} weapons, ${mCreated} mods).`);
+    }
+  } catch (err) {
+    console.error('Cyberpunk Blue | Failed to import weapon catalogue:', err);
   }
 }
 
