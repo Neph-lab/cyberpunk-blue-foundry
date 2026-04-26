@@ -2,6 +2,7 @@ import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './com
 import { getEffectiveItemWeapons } from './mods.mjs';
 import { resolveConeAttack, resolveExplosionAttack } from './cone-attack.mjs';
 import { recordCombatAttack } from './combat-tracker.mjs';
+import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
 
 function getTarget() {
   const token = game.user.targets.first() ?? null;
@@ -212,10 +213,22 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const damageRoll = await new Roll(damageFormula).evaluate();
 
   const sp = targetSP !== null ? targetSP : null;
-  const netDamage = sp !== null ? Math.max(damageRoll.total - sp, 0) : damageRoll.total;
-  const ablatesArmor = sp !== null && damageRoll.total >= sp;
+
+  // ── Critical Injury detection ──────────────────────────────────────────────
+  const { count: critDiceCount } = detectCriticalDice(damageRoll);
+  // Penetration without the +5 bonus: original roll must beat SP
+  const penetratesWithoutBonus = sp === null ? damageRoll.total > 0 : damageRoll.total > sp;
+  const isCritical = critDiceCount >= 2 && penetratesWithoutBonus;
+  const finalDamage = isCritical ? damageRoll.total + 5 : damageRoll.total;
+
+  const netDamage = sp !== null ? Math.max(finalDamage - sp, 0) : finalDamage;
+  const ablatesArmor = sp !== null && finalDamage >= sp;
+
+  const critLine = isCritical
+    ? `<p class="crit-roll-note"><i class="fas fa-skull"></i> ${game.i18n.format('CYBER_BLUE.CriticalInjury.CritDetected', { count: critDiceCount })} ${game.i18n.localize('CYBER_BLUE.CriticalInjury.CritBonus')}</p>`
+    : '';
   const spLine = sp !== null
-    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}</p>`
+    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}${isCritical ? ` (+5)` : ''}</p>`
     : '';
 
   const weaponLabel = (item.system.weapons?.length ?? 0) > 1
@@ -227,22 +240,20 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     flavor: `
       <div class="cyberpunk-blue chat-card">
         <h3>${game.i18n.localize('CYBER_BLUE.Sheet.Labels.Damage')}: ${weaponLabel}</h3>
-        ${spLine}
+        ${spLine}${critLine}
       </div>`,
     rollMode: game.settings.get('core', 'rollMode'),
   });
 
   if (targetActor && (netDamage > 0 || ablatesArmor)) {
-    const confirmContent = ablatesArmor
-      ? `<p>${game.i18n.format('CYBER_BLUE.Combat.ApplyDamageWithSP', { damage: damageRoll.total, hp: netDamage, target: targetActor.name })}</p>`
-      : `<p>${game.i18n.format('CYBER_BLUE.Combat.ApplyDamagePrompt', { damage: netDamage, target: targetActor.name })}</p>`;
-
-    const confirmed = await foundry.applications.api.DialogV2.confirm({
-      window: { title: game.i18n.localize('CYBER_BLUE.Combat.ApplyDamage') },
-      content: confirmContent,
+    const result = await confirmDamageDialog({
+      targetActor, finalDamage, sp, netDamage, ablatesArmor, isCritical, critDiceCount,
     });
-    if (confirmed) {
-      await targetActor.applyDamage(damageRoll.total);
+    if (result?.confirmed) {
+      await targetActor.applyDamage(finalDamage);
+      if (isCritical) {
+        await rollCriticalInjury(targetActor, result.injuryTable, { attackerActor: attacker });
+      }
     }
   }
 }
@@ -401,11 +412,22 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
     : multiplier;
   const rawDamage = Math.round(damageRoll.total * effectiveMultiplier);
 
+  // ── Critical Injury detection ──────────────────────────────────────────────
+  const { count: critDiceCount } = detectCriticalDice(damageRoll);
   const sp = targetSP !== null ? targetSP : null;
-  const netDamage = sp !== null ? Math.max(rawDamage - sp, 0) : rawDamage;
-  const ablatesArmor = sp !== null && rawDamage >= sp;
+  // Penetration check uses rawDamage (post-multiplier, pre-bonus)
+  const penetratesWithoutBonus = sp === null ? rawDamage > 0 : rawDamage > sp;
+  const isCritical = critDiceCount >= 2 && penetratesWithoutBonus;
+  const finalDamage = isCritical ? rawDamage + 5 : rawDamage;
+
+  const netDamage = sp !== null ? Math.max(finalDamage - sp, 0) : finalDamage;
+  const ablatesArmor = sp !== null && finalDamage >= sp;
+
+  const critLine = isCritical
+    ? `<p class="crit-roll-note"><i class="fas fa-skull"></i> ${game.i18n.format('CYBER_BLUE.CriticalInjury.CritDetected', { count: critDiceCount })} ${game.i18n.localize('CYBER_BLUE.CriticalInjury.CritBonus')}</p>`
+    : '';
   const spLine = sp !== null
-    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}</p>`
+    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}${isCritical ? ` (+5)` : ''}</p>`
     : '';
 
   const weaponLabel = (item.system.weapons?.length ?? 0) > 1 ? `${item.name} - ${definition.label}` : item.name;
@@ -417,20 +439,20 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
       <div class="cyberpunk-blue chat-card">
         <h3>${game.i18n.localize('CYBER_BLUE.Combat.Autofire')} ${game.i18n.localize('CYBER_BLUE.Sheet.Labels.Damage')}: ${weaponLabel}</h3>
         <p>${damageFormula}${multNote}</p>
-        ${spLine}
+        ${spLine}${critLine}
       </div>`,
     rollMode: game.settings.get('core', 'rollMode'),
   });
 
   if (targetActor && (netDamage > 0 || ablatesArmor)) {
-    const confirmContent = ablatesArmor
-      ? `<p>${game.i18n.format('CYBER_BLUE.Combat.ApplyDamageWithSP', { damage: rawDamage, hp: netDamage, target: targetActor.name })}</p>`
-      : `<p>${game.i18n.format('CYBER_BLUE.Combat.ApplyDamagePrompt', { damage: netDamage, target: targetActor.name })}</p>`;
-
-    const confirmed = await foundry.applications.api.DialogV2.confirm({
-      window: { title: game.i18n.localize('CYBER_BLUE.Combat.ApplyDamage') },
-      content: confirmContent,
+    const result = await confirmDamageDialog({
+      targetActor, finalDamage, sp, netDamage, ablatesArmor, isCritical, critDiceCount,
     });
-    if (confirmed) await targetActor.applyDamage(rawDamage);
+    if (result?.confirmed) {
+      await targetActor.applyDamage(finalDamage);
+      if (isCritical) {
+        await rollCriticalInjury(targetActor, result.injuryTable, { attackerActor: attacker });
+      }
+    }
   }
 }

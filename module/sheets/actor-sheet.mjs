@@ -9,6 +9,7 @@ import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
 import { buildWeaponUpdate, getWeaponTypeDefinition, getWeaponAmmoTypes } from '../helpers/combat.mjs';
 import { getCombatAttackState } from '../helpers/combat-tracker.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack } from '../helpers/combat-resolution.mjs';
+import { getCriticalInjuries } from '../helpers/critical-injury.mjs';
 import { CharacterCreationWizard, CC_STEPS_LIST } from '../helpers/character-creation.mjs';
 import {
   getRoleCategoryLabel,
@@ -710,6 +711,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       highlightSkills: isCC && stepIdx === 6,
     };
 
+    context.criticalInjuries = getCriticalInjuries(this.document);
+    context.isGM = game.user.isGM;
+
     return context;
   }
 
@@ -796,6 +800,10 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     this.element.querySelector('[data-action="begin-character-creation"]')?.addEventListener('click', this._onBeginCharacterCreation.bind(this));
     this.element.querySelector('[data-action="open-character-creation-wizard"]')?.addEventListener('click', this._onOpenCharacterCreationWizard.bind(this));
 
+    this.element.querySelectorAll('[data-action="remove-critical-injury"]').forEach((button) => {
+      button.addEventListener('click', this._onRemoveCriticalInjury.bind(this));
+    });
+
     // Netrunner tab
     this.element.querySelectorAll('[data-action="netrunner-component-roll"]').forEach((button) => {
       button.addEventListener('click', this._onNetrunnerComponentRoll.bind(this));
@@ -824,6 +832,18 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       }
       this._savedScrolls = null;
     }
+  }
+
+  async _onRemoveCriticalInjury(event) {
+    event.preventDefault();
+    const effectId = event.currentTarget.dataset.effectId;
+    if (!effectId) return;
+    const effect = this.document.effects.get(effectId);
+    if (!effect) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.CriticalInjury.EffectNotFound'));
+      return;
+    }
+    await effect.delete();
   }
 
   async _onItemCreate(event) {

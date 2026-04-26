@@ -99,6 +99,33 @@
         </div>
       </section>
 
+      {{#if criticalInjuries.length}}
+      <section class="sheet-panel critical-injuries-panel">
+        <div class="panel-header">
+          <h2><i class="fas fa-skull-crossbones"></i> {{localize "CYBER_BLUE.CriticalInjury.Title"}}</h2>
+        </div>
+        <ul class="critical-injuries-list">
+          {{#each criticalInjuries as |injury|}}
+          <li class="critical-injury-item {{#if injury.mortal}}is-mortal{{/if}}">
+            <div class="injury-info">
+              <span class="injury-name">{{injury.name}}</span>
+              {{#if injury.mortal}}
+              <span class="injury-mortal-badge">{{localize "CYBER_BLUE.CriticalInjury.MortalWound"}}</span>
+              {{/if}}
+              <p class="injury-desc">{{injury.description}}</p>
+            </div>
+            {{#if @root.isGM}}
+            <button type="button" class="injury-remove" data-action="remove-critical-injury" data-effect-id="{{injury.id}}"
+                    title="{{localize 'CYBER_BLUE.CriticalInjury.Remove'}}">
+              <i class="fas fa-trash"></i>
+            </button>
+            {{/if}}
+          </li>
+          {{/each}}
+        </ul>
+      </section>
+      {{/if}}
+
       <section class="quick-stats-row {{#if charCreation.highlightSecondary}}char-creation-highlight{{/if}}">
         <div class="sheet-panel stat-card armor-card">
           <span class="stat-short">{{localize "CYBER_BLUE.Sheet.Labels.StoppingPower"}}</span>

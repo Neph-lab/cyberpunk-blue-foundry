@@ -1,5 +1,6 @@
 import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
 import { getEffectiveItemWeapons } from './mods.mjs';
+import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
 
 function getPixelsPerMeter() {
   const gridSize = canvas.grid.size;
@@ -345,32 +346,45 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
     rollMode: game.settings.get('core', 'rollMode'),
   });
 
+  // Crit detection uses the single baseDamage roll (same dice for all targets)
+  const { count: expCritDiceCount } = detectCriticalDice(damageRoll);
+
   for (const { actor: targetActor, isFullDamage } of targets) {
     const evasionRoll = await rollTargetEvasion(targetActor);
     const evaded = evasionRoll.total > attackRoll.total;
+
+    // Half-damage: outer zone OR successful evasion → no critical injury
+    const halfDamage = !isFullDamage || evaded;
 
     let damage = baseDamage;
     if (!isFullDamage) damage = Math.ceil(damage / 2);
     if (evaded) damage = Math.ceil(damage / 2);
 
     const sp = targetActor.system?.resources?.armor?.value ?? 0;
-    const netDamage = Math.max(damage - sp, 0);
-    const ablatesArmor = damage >= sp && sp > 0;
+
+    // Crit: 2+ sixes AND original damage would penetrate AND not half-damage
+    const penetratesWithoutBonus = damage > sp;
+    const isCritical = expCritDiceCount >= 2 && penetratesWithoutBonus && !halfDamage;
+    const finalDamage = isCritical ? damage + 5 : damage;
+
+    const netDamage = Math.max(finalDamage - sp, 0);
+    const ablatesArmor = finalDamage >= sp && sp > 0;
 
     const zone = isFullDamage
       ? game.i18n.localize('CYBER_BLUE.Combat.ConeFullDamage')
       : game.i18n.localize('CYBER_BLUE.Combat.ConeHalfDamage');
     const evasionNote = evaded ? ` (${game.i18n.localize('CYBER_BLUE.Combat.Evaded')})` : '';
 
-    const confirmContent = `<p><strong>${targetActor.name}</strong> — ${zone}${evasionNote}</p>`
-      + `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}</p>`;
-
     if (netDamage > 0 || ablatesArmor) {
-      const confirmed = await foundry.applications.api.DialogV2.confirm({
-        window: { title: game.i18n.localize('CYBER_BLUE.Combat.ApplyDamage') },
-        content: `<div class="cyberpunk-blue">${confirmContent}</div>`,
+      const result = await confirmDamageDialog({
+        targetActor, finalDamage, sp, netDamage, ablatesArmor, isCritical, critDiceCount: expCritDiceCount,
       });
-      if (confirmed) await targetActor.applyDamage(damage);
+      if (result?.confirmed) {
+        await targetActor.applyDamage(finalDamage);
+        if (isCritical) {
+          await rollCriticalInjury(targetActor, result.injuryTable, { attackerActor: attacker });
+        }
+      }
     }
   }
 }
@@ -468,32 +482,40 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
     rollMode: game.settings.get('core', 'rollMode'),
   });
 
+  // Crit detection uses the single baseDamage roll (same dice for all targets)
+  const { count: coneCritDiceCount } = detectCriticalDice(damageRoll);
+
   for (const { actor: targetActor, isFullDamage } of targets) {
     const evasionRoll = await rollTargetEvasion(targetActor);
     const evaded = evasionRoll.total > attackTotal;
+
+    // Half-damage: outer zone OR successful evasion → no critical injury
+    const halfDamage = !isFullDamage || evaded;
 
     let damage = baseDamage;
     if (!isFullDamage) damage = Math.ceil(damage / 2);
     if (evaded) damage = Math.ceil(damage / 2);
 
     const sp = targetActor.system?.resources?.armor?.value ?? 0;
-    const netDamage = Math.max(damage - sp, 0);
-    const ablatesArmor = damage >= sp && sp > 0;
 
-    const zone = isFullDamage
-      ? game.i18n.localize('CYBER_BLUE.Combat.ConeFullDamage')
-      : game.i18n.localize('CYBER_BLUE.Combat.ConeHalfDamage');
-    const evasionNote = evaded ? ` (${game.i18n.localize('CYBER_BLUE.Combat.Evaded')})` : '';
+    // Crit: 2+ sixes AND original damage would penetrate AND not half-damage
+    const penetratesWithoutBonus = damage > sp;
+    const isCritical = coneCritDiceCount >= 2 && penetratesWithoutBonus && !halfDamage;
+    const finalDamage = isCritical ? damage + 5 : damage;
 
-    const confirmContent = `<p><strong>${targetActor.name}</strong> — ${zone}${evasionNote}</p>`
-      + `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}</p>`;
+    const netDamage = Math.max(finalDamage - sp, 0);
+    const ablatesArmor = finalDamage >= sp && sp > 0;
 
     if (netDamage > 0 || ablatesArmor) {
-      const confirmed = await foundry.applications.api.DialogV2.confirm({
-        window: { title: game.i18n.localize('CYBER_BLUE.Combat.ApplyDamage') },
-        content: `<div class="cyberpunk-blue">${confirmContent}</div>`,
+      const result = await confirmDamageDialog({
+        targetActor, finalDamage, sp, netDamage, ablatesArmor, isCritical, critDiceCount: coneCritDiceCount,
       });
-      if (confirmed) await targetActor.applyDamage(damage);
+      if (result?.confirmed) {
+        await targetActor.applyDamage(finalDamage);
+        if (isCritical) {
+          await rollCriticalInjury(targetActor, result.injuryTable, { attackerActor: attacker });
+        }
+      }
     }
   }
 }

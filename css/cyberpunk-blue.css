@@ -2150,3 +2150,216 @@ button, .cyberpunk-blue .button, a.button {
   font-size: var(--font-size-12);
   cursor: pointer;
 }
+
+/* ─── Critical Injury Chat Card ─────────────────────────────────────────────── */
+
+.cyberpunk-blue .critical-injury-card {
+  padding: 0.5rem;
+}
+
+.cyberpunk-blue .critical-injury-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--font-size-14);
+  font-weight: bold;
+  border-bottom: 2px solid #8b0000;
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.5rem;
+  color: #8b0000;
+}
+
+.cyberpunk-blue .crit-table-label {
+  flex: 1;
+}
+
+.cyberpunk-blue .crit-target-name {
+  font-style: italic;
+  color: var(--color-text-dark-secondary, #555);
+}
+
+.cyberpunk-blue .critical-injury-roll {
+  font-size: var(--font-size-12);
+  color: var(--color-text-dark-secondary, #555);
+  margin-bottom: 0.25rem;
+}
+
+.cyberpunk-blue .critical-injury-name {
+  font-size: var(--font-size-14);
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.cyberpunk-blue .critical-injury-desc {
+  font-size: var(--font-size-12);
+  margin-bottom: 0.4rem;
+  line-height: 1.4;
+}
+
+.cyberpunk-blue .crit-mortal-warning {
+  color: #8b0000;
+  font-size: var(--font-size-12);
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.cyberpunk-blue .crit-instant-death {
+  color: #000;
+  background: #8b0000;
+  color: #fff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  font-size: var(--font-size-12);
+  font-weight: bold;
+  margin-bottom: 0.4rem;
+}
+
+.cyberpunk-blue .critical-injury-actions {
+  margin-top: 0.4rem;
+}
+
+.cyberpunk-blue .remove-critical-injury {
+  font-size: var(--font-size-12);
+  padding: 2px 8px;
+  cursor: pointer;
+  border: 1px solid #8b0000;
+  border-radius: 3px;
+  color: #8b0000;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.cyberpunk-blue .remove-critical-injury:hover {
+  background: #8b0000;
+  color: #fff;
+}
+
+/* ─── Confirm Dialog: Crit block ─────────────────────────────────────────────── */
+
+.cyberpunk-blue .crit-confirm-block {
+  margin-top: 0.5rem;
+  border-top: 1px solid #8b0000;
+  padding-top: 0.5rem;
+}
+
+.cyberpunk-blue .crit-dice-note {
+  color: #8b0000;
+  font-weight: bold;
+  font-size: var(--font-size-12);
+  margin-bottom: 0.3rem;
+}
+
+.cyberpunk-blue .crit-location-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: var(--font-size-13);
+}
+
+.cyberpunk-blue .crit-location-row label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+
+/* ─── Actor Sheet: Critical Injuries Panel ───────────────────────────────────── */
+
+.cyberpunk-blue .critical-injuries-panel {
+  margin-top: 0.5rem;
+}
+
+.cyberpunk-blue .critical-injuries-panel .panel-header {
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid #8b0000;
+  padding-bottom: 0.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.cyberpunk-blue .critical-injuries-panel .panel-header h2 {
+  color: #8b0000;
+  font-size: var(--font-size-14);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cyberpunk-blue .critical-injuries-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.cyberpunk-blue .critical-injury-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--color-border-light-tertiary, #ccc);
+  border-radius: 4px;
+  background: var(--color-bg-option, #f5f5f5);
+}
+
+.cyberpunk-blue .critical-injury-item.is-mortal {
+  border-color: #8b0000;
+  background: #fff5f5;
+}
+
+.cyberpunk-blue .critical-injury-item .injury-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cyberpunk-blue .critical-injury-item .injury-name {
+  font-weight: bold;
+  font-size: var(--font-size-13);
+  display: block;
+}
+
+.cyberpunk-blue .critical-injury-item .injury-mortal-badge {
+  display: inline-block;
+  font-size: var(--font-size-10);
+  font-weight: bold;
+  color: #8b0000;
+  border: 1px solid #8b0000;
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.cyberpunk-blue .critical-injury-item .injury-desc {
+  font-size: var(--font-size-11);
+  color: var(--color-text-dark-secondary, #555);
+  margin: 0.15rem 0 0;
+  line-height: 1.4;
+}
+
+.cyberpunk-blue .critical-injury-item .injury-remove {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid #8b0000;
+  color: #8b0000;
+  border-radius: 3px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  cursor: pointer;
+  font-size: var(--font-size-11);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+}
+
+.cyberpunk-blue .critical-injury-item .injury-remove:hover {
+  background: #8b0000;
+  color: #fff;
+}

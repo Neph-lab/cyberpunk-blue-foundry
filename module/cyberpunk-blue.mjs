@@ -29,6 +29,7 @@ import {
   resetAllTracking,
 } from './helpers/combat-tracker.mjs';
 import * as models from './data/_module.mjs';
+import { CRITICAL_INJURY_FLAG } from './helpers/critical-injury.mjs';
 
 Hooks.once('init', function () {
   game.cyberpunkblue = {
@@ -536,6 +537,44 @@ Hooks.on('combatTurn', (combat) => {
 });
 
 Hooks.on('combatRound', () => resetAllTracking());
+
+// ─── Critical Injury: chat card remove button ────────────────────────────────
+
+Hooks.on('renderChatMessage', (message, html) => {
+  const el = html instanceof HTMLElement ? html : html[0];
+  if (!el) return;
+
+  el.querySelectorAll('.remove-critical-injury').forEach((btn) => {
+    // Hide the button for non-GMs
+    if (!game.user.isGM) {
+      btn.style.display = 'none';
+      return;
+    }
+    btn.addEventListener('click', async (event) => {
+      event.preventDefault();
+      const actorId = btn.dataset.actorId;
+      const effectId = btn.dataset.effectId;
+      if (!actorId || !effectId) return;
+
+      const actor = game.actors.get(actorId);
+      if (!actor) {
+        ui.notifications.warn(game.i18n.localize('CYBER_BLUE.CriticalInjury.ActorNotFound'));
+        return;
+      }
+
+      const effect = actor.effects.get(effectId);
+      if (!effect) {
+        ui.notifications.warn(game.i18n.localize('CYBER_BLUE.CriticalInjury.EffectNotFound'));
+        return;
+      }
+
+      await effect.delete();
+      ui.notifications.info(
+        game.i18n.format('CYBER_BLUE.CriticalInjury.EffectRemoved', { name: effect.name, actor: actor.name })
+      );
+    });
+  });
+});
 
 // Re-export tracker helpers for external use (e.g., actor sheet context)
 export { getCombatAttackState, recordCombatAttack };
