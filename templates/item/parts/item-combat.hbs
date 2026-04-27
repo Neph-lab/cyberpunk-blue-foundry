@@ -202,6 +202,18 @@
                     <span>{{localize "CYBER_BLUE.Sheet.Labels.Explosion"}}</span>
                     <input type="radio" data-weapon-damage-type data-weapon-index="{{weapon.index}}" value="explosion" {{#if (eq weapon.damageType "explosion")}}checked{{/if}} />
                   </label>
+                  <label class="checkbox-label">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.Affliction"}}</span>
+                    <input type="radio" data-weapon-damage-type data-weapon-index="{{weapon.index}}" value="affliction" {{#if (eq weapon.damageType "affliction")}}checked{{/if}} />
+                  </label>
+                  <label class="checkbox-label">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.AfflictionCone"}}</span>
+                    <input type="radio" data-weapon-damage-type data-weapon-index="{{weapon.index}}" value="affliction-cone" {{#if (eq weapon.damageType "affliction-cone")}}checked{{/if}} />
+                  </label>
+                  <label class="checkbox-label">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.AfflictionExplosion"}}</span>
+                    <input type="radio" data-weapon-damage-type data-weapon-index="{{weapon.index}}" value="affliction-explosion" {{#if (eq weapon.damageType "affliction-explosion")}}checked{{/if}} />
+                  </label>
                 </fieldset>
               </div>
 
@@ -235,9 +247,9 @@
                 </div>
               {{/if}}
 
-              {{#if (or (eq weapon.damageType "cone") (eq weapon.damageType "explosion"))}}
+              {{#if (or (or (or (eq weapon.damageType "cone") (eq weapon.damageType "explosion")) (eq weapon.damageType "affliction-cone")) (eq weapon.damageType "affliction-explosion"))}}
                 <div class="weapon-subfields cone-fields">
-                  {{#if (eq weapon.damageType "cone")}}
+                  {{#if (or (eq weapon.damageType "cone") (eq weapon.damageType "affliction-cone"))}}
                     <label class="compact-field">
                       <span>{{localize "CYBER_BLUE.Sheet.Labels.ConeSpread"}}</span>
                       <input type="number" name="system.weapons.{{weapon.index}}.coneSpread" value="{{weapon.coneSpread}}" data-dtype="Number" min="0" />
@@ -255,6 +267,46 @@
                   <label class="compact-field">
                     <span>{{localize "CYBER_BLUE.Sheet.Labels.ConeHalfDamageDistance"}}</span>
                     <input type="number" name="system.weapons.{{weapon.index}}.coneHalfDamageDistance" value="{{weapon.coneHalfDamageDistance}}" data-dtype="Number" min="0" />
+                  </label>
+                </div>
+              {{/if}}
+
+              {{#if (or (or (eq weapon.damageType "affliction") (eq weapon.damageType "affliction-cone")) (eq weapon.damageType "affliction-explosion"))}}
+                <div class="weapon-subfields affliction-fields">
+                  <p class="hint"><i class="fas fa-biohazard"></i> {{localize "CYBER_BLUE.Combat.AfflictionHint"}}</p>
+                  <label class="compact-field">
+                    <span>{{localize "CYBER_BLUE.Combat.AfflictionPrimary"}}</span>
+                    <select name="system.weapons.{{weapon.index}}.afflictionPrimary">
+                      {{#each @root.afflictionStatOptions as |opt|}}
+                        <option value="{{opt.value}}" {{#if (eq opt.value weapon.afflictionPrimary)}}selected{{/if}}>{{opt.label}}</option>
+                      {{/each}}
+                    </select>
+                  </label>
+                  <label class="compact-field">
+                    <span>{{localize "CYBER_BLUE.Combat.AfflictionSkill"}}</span>
+                    <select name="system.weapons.{{weapon.index}}.afflictionSkill">
+                      <option value="">—</option>
+                      {{#each @root.afflictionSkillOptions as |opt|}}
+                        <option value="{{opt.value}}" {{#if (eq opt.value weapon.afflictionSkill)}}selected{{/if}}>{{opt.label}}</option>
+                      {{/each}}
+                    </select>
+                  </label>
+                  <label class="compact-field">
+                    <span>{{localize "CYBER_BLUE.Combat.AfflictionDV"}}</span>
+                    <input type="number" name="system.weapons.{{weapon.index}}.afflictionDv" value="{{weapon.afflictionDv}}" data-dtype="Number" min="0" />
+                  </label>
+                  <label class="compact-field">
+                    <span>{{localize "CYBER_BLUE.Combat.AfflictionEffect"}}</span>
+                    {{#if @root.itemDisabledEffects.length}}
+                      <select name="system.weapons.{{weapon.index}}.afflictionEffectId">
+                        <option value="">— {{localize "CYBER_BLUE.Combat.AfflictionSelectEffect"}} —</option>
+                        {{#each @root.itemDisabledEffects as |effect|}}
+                          <option value="{{effect.id}}" {{#if (eq effect.id weapon.afflictionEffectId)}}selected{{/if}}>{{effect.name}}</option>
+                        {{/each}}
+                      </select>
+                    {{else}}
+                      <span class="hint">{{localize "CYBER_BLUE.Combat.AfflictionNoDisabledEffects"}}</span>
+                    {{/if}}
                   </label>
                 </div>
               {{/if}}

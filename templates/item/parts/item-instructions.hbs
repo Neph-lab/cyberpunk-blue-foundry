@@ -1,0 +1,121 @@
+{{!-- Instructions sequence editor — GM only, shown in the Advanced tab --}}
+{{#if canManageRestricted}}
+<section class="sheet-panel instructions-panel">
+  <div class="panel-header panel-actions">
+    <span>{{localize "CYBER_BLUE.Instructions.Title"}}</span>
+    <button type="button" data-action="add-instruction" title="{{localize "CYBER_BLUE.Instructions.AddStep"}}">
+      <i class="fas fa-plus"></i>
+    </button>
+  </div>
+
+  {{#if isGear}}
+    <label class="checkbox-label">
+      <input type="checkbox" name="system.instructionReduceQuantity" {{checked system.instructionReduceQuantity}} />
+      <span>{{localize "CYBER_BLUE.Instructions.ReduceQuantity"}}</span>
+    </label>
+  {{/if}}
+
+  {{#if instructionSteps.length}}
+    {{#each instructionSteps as |step|}}
+      <section class="instruction-step role-config-block">
+        <div class="panel-header panel-actions">
+          <span>{{localize "CYBER_BLUE.Instructions.Step"}} {{step.displayIndex}}</span>
+          <div class="panel-action-buttons">
+            {{#unless @first}}
+              <button type="button" data-action="move-instruction" data-direction="up" data-step-index="{{step.index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}">
+                <i class="fas fa-arrow-up"></i>
+              </button>
+            {{/unless}}
+            {{#unless @last}}
+              <button type="button" data-action="move-instruction" data-direction="down" data-step-index="{{step.index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}">
+                <i class="fas fa-arrow-down"></i>
+              </button>
+            {{/unless}}
+            <button type="button" data-action="remove-instruction" data-step-index="{{step.index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+
+        {{!-- Name and type --}}
+        <div class="item-meta-row">
+          <label>
+            <span>{{localize "CYBER_BLUE.Instructions.StepName"}}</span>
+            <input type="text" name="system.instructions.{{step.index}}.name" value="{{step.name}}" placeholder="{{localize "CYBER_BLUE.Instructions.StepNameHint"}}" />
+          </label>
+          <label>
+            <span>{{localize "CYBER_BLUE.Instructions.StepType"}}</span>
+            <select name="system.instructions.{{step.index}}.type">
+              <option value="check" {{#if (eq step.type "check")}}selected{{/if}}>{{localize "CYBER_BLUE.Instructions.TypeCheck"}}</option>
+              <option value="effect" {{#if (eq step.type "effect")}}selected{{/if}}>{{localize "CYBER_BLUE.Instructions.TypeEffect"}}</option>
+            </select>
+          </label>
+        </div>
+
+        {{!-- Effect step fields --}}
+        {{#if (eq step.type "effect")}}
+          <div class="item-meta-row">
+            <label>
+              <span>{{localize "CYBER_BLUE.Instructions.Effect"}}</span>
+              <select name="system.instructions.{{step.index}}.effectId">
+                <option value="">— {{localize "CYBER_BLUE.Instructions.SelectEffect"}} —</option>
+                {{#each @root.instructionEffectOptions as |opt|}}
+                  <option value="{{opt.id}}" {{#if (eq opt.id step.effectId)}}selected{{/if}}>{{opt.name}}</option>
+                {{/each}}
+              </select>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="system.instructions.{{step.index}}.effectEnabled" {{checked step.effectEnabled}} />
+              <span>{{localize "CYBER_BLUE.Instructions.EffectEnabled"}}</span>
+            </label>
+          </div>
+        {{/if}}
+
+        {{!-- Check step fields --}}
+        {{#if (eq step.type "check")}}
+          <div class="item-meta-row">
+            <label>
+              <span>{{localize "CYBER_BLUE.Instructions.PrimaryStat"}}</span>
+              <select name="system.instructions.{{step.index}}.primary">
+                {{#each @root.instructionStatOptions as |opt|}}
+                  <option value="{{opt.value}}" {{#if (eq opt.value step.primary)}}selected{{/if}}>{{opt.label}}</option>
+                {{/each}}
+              </select>
+            </label>
+            <label>
+              <span>{{localize "CYBER_BLUE.Instructions.Skill"}}</span>
+              <select name="system.instructions.{{step.index}}.skill">
+                <option value="">—</option>
+                {{#each @root.instructionSkillOptions as |opt|}}
+                  <option value="{{opt.value}}" {{#if (eq opt.value step.skill)}}selected{{/if}}>{{opt.label}}</option>
+                {{/each}}
+              </select>
+            </label>
+            {{#if step.skillHasComponents}}
+              <label>
+                <span>{{localize "CYBER_BLUE.Instructions.Component"}}</span>
+                <select name="system.instructions.{{step.index}}.component">
+                  <option value="">{{localize "CYBER_BLUE.Instructions.NoComponent"}}</option>
+                  {{#each step.componentOptions as |comp|}}
+                    <option value="{{comp.value}}" {{#if (eq comp.value step.component)}}selected{{/if}}>{{comp.label}}</option>
+                  {{/each}}
+                </select>
+              </label>
+            {{/if}}
+            <label class="compact-field">
+              <span>{{localize "CYBER_BLUE.Instructions.DV"}}</span>
+              <input type="number" name="system.instructions.{{step.index}}.dv" value="{{step.dv}}" data-dtype="Number" min="0" />
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="system.instructions.{{step.index}}.progress" {{checked step.progress}} />
+              <span>{{localize "CYBER_BLUE.Instructions.ProgressOnSuccess"}}</span>
+            </label>
+          </div>
+        {{/if}}
+      </section>
+    {{/each}}
+  {{else}}
+    <p class="hint">{{localize "CYBER_BLUE.Instructions.NoSteps"}}</p>
+  {{/if}}
+</section>
+{{/if}}

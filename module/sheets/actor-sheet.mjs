@@ -10,6 +10,8 @@ import { buildWeaponUpdate, getWeaponTypeDefinition, getWeaponAmmoTypes } from '
 import { getCombatAttackState } from '../helpers/combat-tracker.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack } from '../helpers/combat-resolution.mjs';
 import { CRITICAL_INJURY_FLAG } from '../helpers/critical-injury.mjs';
+import { AFFLICTION_EFFECT_FLAG } from '../helpers/affliction-attack.mjs';
+import { startInstructions, advanceInstructions, getInstructionContext } from '../helpers/instructions.mjs';
 import { CharacterCreationWizard, CC_STEPS_LIST } from '../helpers/character-creation.mjs';
 import {
   getRoleCategoryLabel,
@@ -224,6 +226,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
             const itemDoc = this.document.items.get(item.id);
             return {
               ...item,
+              ...getInstructionContext(item),
               isDisabled: cyberwareDisableState.byItemId.has(item.id),
               disabledBy: cyberwareDisableState.byItemId.get(item.id)?.effectNames ?? [],
               disabledTooltip: cyberwareDisableState.byItemId.get(item.id)?.tooltip ?? '',
@@ -284,6 +287,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           const eligiblePlatforms = getEligiblePlatforms(this.document, item.id, item.system);
           return {
             ...item,
+            ...getInstructionContext(item),
             isDisabled: cyberwareDisableState.byItemId.has(item.id),
             disabledTooltip: cyberwareDisableState.byItemId.get(item.id)?.tooltip ?? '',
             manufacturerLogo: manufacturerLogoMap.get(item.system.manufacturer) ?? null,
@@ -308,6 +312,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       const effectiveWeapons = itemDoc.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(itemDoc);
       return {
         ...item,
+        ...getInstructionContext(item),
         state,
         manufacturerLogo: manufacturerLogoMap.get(item.system.manufacturer) ?? null,
         armorText: item.system.isArmor ? `${Math.max(item.system.armor?.currentSp ?? 0, 0)}/${Math.max(item.system.armor?.maxSp ?? 0, 0)}` : null,
@@ -389,7 +394,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         damageType,
         hasAutofire: damageType === 'autofire',
         autofireAmmoOk: damageType === 'autofire' && ammo.current >= 10,
-        isStandardDamage: !['autofire', 'cone', 'explosion'].includes(damageType),
+        isAffliction: ['affliction', 'affliction-cone', 'affliction-explosion'].includes(damageType),
+        isStandardDamage: !['autofire', 'cone', 'explosion', 'affliction', 'affliction-cone', 'affliction-explosion'].includes(damageType),
         targetVitals: itemDoc.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false,
         jammed: !!itemDoc.getFlag('cyberpunk-blue', `jammed-${weaponIndex}`),
         canJam: (weapon.jamOnRoll ?? 0) > 0,
@@ -550,6 +556,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         .filter((effect) => !effect.disabled)
         .map((effect) => {
           const critFlag = effect.getFlag('cyberpunk-blue', CRITICAL_INJURY_FLAG);
+          const afflictionFlag = effect.getFlag('cyberpunk-blue', AFFLICTION_EFFECT_FLAG);
           return {
             id: effect.id,
             uuid: effect.uuid,
@@ -559,6 +566,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
             canEdit: game.user.role >= CONST.USER_ROLES.TRUSTED,
             isCriticalInjury: !!critFlag,
             mortal: critFlag?.mortal ?? false,
+            isAffliction: !!afflictionFlag,
           };
         })
         .sort((left, right) => left.name.localeCompare(right.name)),
@@ -809,6 +817,15 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     this.element.querySelectorAll('[data-action="remove-critical-injury"]').forEach((button) => {
       button.addEventListener('click', this._onRemoveCriticalInjury.bind(this));
     });
+    this.element.querySelectorAll('[data-action="remove-affliction"]').forEach((button) => {
+      button.addEventListener('click', this._onRemoveAffliction.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="start-instructions"]').forEach((button) => {
+      button.addEventListener('click', this._onStartInstructions.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="advance-instructions"]').forEach((button) => {
+      button.addEventListener('click', this._onAdvanceInstructions.bind(this));
+    });
     this.element.querySelectorAll('[data-action="toggle-target-vitals"]').forEach((checkbox) => {
       checkbox.addEventListener('change', this._onToggleTargetVitals.bind(this));
     });
@@ -856,6 +873,32 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       return;
     }
     await effect.delete();
+  }
+
+  async _onRemoveAffliction(event) {
+    event.preventDefault();
+    const effectId = event.currentTarget.dataset.effectId;
+    if (!effectId) return;
+    const effect = this.document.effects.get(effectId);
+    if (!effect) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.AfflictionEffectNotFound'));
+      return;
+    }
+    await effect.delete();
+  }
+
+  async _onStartInstructions(event) {
+    event.preventDefault();
+    const item = this._getItemFromEvent(event);
+    if (!item) return;
+    await startInstructions(item, this.document);
+  }
+
+  async _onAdvanceInstructions(event) {
+    event.preventDefault();
+    const item = this._getItemFromEvent(event);
+    if (!item) return;
+    await advanceInstructions(item, this.document);
   }
 
   async _onToggleTargetVitals(event) {

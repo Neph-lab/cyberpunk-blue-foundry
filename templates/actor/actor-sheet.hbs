@@ -99,6 +99,11 @@
                         <i class="fas fa-trash"></i>
                       </button>
                     {{/if}}
+                    {{#if (and @root.isGM effect.isAffliction)}}
+                      <button type="button" class="health-effect-delete" data-action="remove-affliction" data-effect-id="{{effect.id}}" title="{{localize 'CYBER_BLUE.Combat.AfflictionRemove'}}">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    {{/if}}
                   </div>
                 {{/each}}
               {{else}}
@@ -210,7 +215,7 @@
                   </td>
                   <td class="numeric-column">
                     <button type="button" data-action="weapon-attack" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.attackTooltip}}" {{#if weapon.attackDisabled}}disabled{{/if}} {{#if weapon.jammed}}disabled{{/if}}>
-                      {{localize "CYBER_BLUE.Combat.Attack"}} ({{weapon.attackLabel}}){{#if weapon.rofExhausted}} ✗{{/if}}{{#if weapon.jammed}} <i class="fas fa-exclamation-triangle"></i>{{/if}}
+                      {{#if weapon.isAffliction}}<i class="fas fa-biohazard"></i> {{localize "CYBER_BLUE.Combat.AfflictionAttackLabel"}}{{else}}{{localize "CYBER_BLUE.Combat.Attack"}}{{/if}} ({{weapon.attackLabel}}){{#if weapon.rofExhausted}} ✗{{/if}}{{#if weapon.jammed}} <i class="fas fa-exclamation-triangle"></i>{{/if}}
                     </button>
                     {{#if weapon.hasAutofire}}
                       <button type="button" data-action="weapon-autofire" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.autofireTooltip}}" {{#unless weapon.autofireAmmoOk}}disabled{{/unless}} {{#if weapon.attackDisabled}}disabled{{/if}}>
@@ -583,6 +588,7 @@
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.Integration"}}</span>
                   <span class="numeric-column">Slots</span>
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.Platform"}}</span>
+                  <span>{{localize "CYBER_BLUE.Instructions.Activate"}}</span>
                   <span>Controls</span>
                 </div>
                 <div class="embedded-entries">
@@ -609,6 +615,15 @@
                         <div class="embedded-summary">{{item.integrationLabel}}</div>
                         <span class="embedded-rank numeric-column">{{item.slotText}}</span>
                         <div class="embedded-summary">{{item.platformName}}</div>
+                        <div class="instruction-cell">
+                          {{#if item.hasInstructions}}
+                            {{#if item.instructionActive}}
+                              <button type="button" data-action="advance-instructions" title="{{item.instructionNextLabel}}"><i class="fas fa-forward-step"></i></button>
+                            {{else}}
+                              <button type="button" data-action="start-instructions" title="{{item.instructionNextLabel}}">{{localize "CYBER_BLUE.Instructions.Activate"}}</button>
+                            {{/if}}
+                          {{/if}}
+                        </div>
                         <div class="embedded-controls">
                           {{#if item.canDetachPlatform}}
                             <button type="button" data-action="remove-platform" title="{{localize "CYBER_BLUE.Sheet.Buttons.RemovePlatform"}}"><i class="fas fa-link-slash"></i></button>
@@ -641,6 +656,7 @@
                 <span>{{localize "CYBER_BLUE.Sheet.Labels.Integration"}}</span>
                 <span class="numeric-column">Slots</span>
                 <span>{{localize "CYBER_BLUE.Sheet.Labels.Platform"}}</span>
+                <span>{{localize "CYBER_BLUE.Instructions.Activate"}}</span>
                 <span>Controls</span>
               </div>
               <div class="embedded-entries">
@@ -667,6 +683,15 @@
                       <div class="embedded-summary">{{item.integrationLabel}}</div>
                       <span class="embedded-rank numeric-column">{{item.slotText}}</span>
                       <div class="embedded-summary">{{localize "CYBER_BLUE.Cyberware.Unassigned"}}</div>
+                      <div class="instruction-cell">
+                        {{#if item.hasInstructions}}
+                          {{#if item.instructionActive}}
+                            <button type="button" data-action="advance-instructions" title="{{item.instructionNextLabel}}"><i class="fas fa-forward-step"></i></button>
+                          {{else}}
+                            <button type="button" data-action="start-instructions" title="{{item.instructionNextLabel}}">{{localize "CYBER_BLUE.Instructions.Activate"}}</button>
+                          {{/if}}
+                        {{/if}}
+                      </div>
                       <div class="embedded-controls">
                         <button type="button" data-action="assign-platform" title="{{localize "CYBER_BLUE.Sheet.Buttons.AssignPlatform"}}" {{#unless item.hasEligiblePlatforms}}disabled{{/unless}}><i class="fas fa-link"></i></button>
                         {{#if item.canMoveUp}}<button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>{{/if}}
@@ -721,6 +746,7 @@
                   <span>Item</span>
                   <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Quantity"}}</span>
                   <span>{{localize "CYBER_BLUE.Sheet.Labels.Details"}}</span>
+                  <span>{{localize "CYBER_BLUE.Instructions.Use"}}</span>
                   <span class="numeric-column">Controls</span>
                 </div>
                 <div class="embedded-entries">
@@ -756,6 +782,15 @@
                             <div>{{weapon.label}}: {{weapon.ammoText}}</div>
                           {{/if}}
                         {{/each}}
+                      </div>
+                      <div class="instruction-cell">
+                        {{#if item.hasInstructions}}
+                          {{#if item.instructionActive}}
+                            <button type="button" data-action="advance-instructions" title="{{item.instructionNextLabel}}"><i class="fas fa-forward-step"></i></button>
+                          {{else}}
+                            <button type="button" data-action="start-instructions" title="{{item.instructionNextLabel}}">{{localize "CYBER_BLUE.Instructions.Use"}}</button>
+                          {{/if}}
+                        {{/if}}
                       </div>
                       <div class="embedded-controls">
                         {{#unless (eq item.state "equipped")}}<button type="button" data-action="set-gear-state" data-state="equipped" title="{{localize "CYBER_BLUE.Sheet.Buttons.Equip"}}"><i class="fas fa-shield-halved"></i></button>{{/unless}}

@@ -1,8 +1,9 @@
 import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
 import { getEffectiveItemWeapons } from './mods.mjs';
-import { resolveConeAttack, resolveExplosionAttack } from './cone-attack.mjs';
+import { resolveConeAttack, resolveExplosionAttack, resolveAfflictionConeAttack, resolveAfflictionExplosionAttack } from './cone-attack.mjs';
 import { recordCombatAttack } from './combat-tracker.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
+import { resolveAfflictionAttack } from './affliction-attack.mjs';
 
 function getTarget() {
   const token = game.user.targets.first() ?? null;
@@ -77,12 +78,12 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   if (!weapon) return;
 
   // Route special attack types to their own resolvers
-  if ((weapon.damageType ?? '') === 'cone') {
-    return resolveConeAttack(attacker, item, weaponIndex);
-  }
-  if ((weapon.damageType ?? '') === 'explosion') {
-    return resolveExplosionAttack(attacker, item, weaponIndex);
-  }
+  const damageType = weapon.damageType ?? '';
+  if (damageType === 'cone') return resolveConeAttack(attacker, item, weaponIndex);
+  if (damageType === 'explosion') return resolveExplosionAttack(attacker, item, weaponIndex);
+  if (damageType === 'affliction') return resolveAfflictionAttack(attacker, item, weaponIndex);
+  if (damageType === 'affliction-cone') return resolveAfflictionConeAttack(attacker, item, weaponIndex);
+  if (damageType === 'affliction-explosion') return resolveAfflictionExplosionAttack(attacker, item, weaponIndex);
 
   const definition = getWeaponTypeDefinition(weapon.type);
   const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill

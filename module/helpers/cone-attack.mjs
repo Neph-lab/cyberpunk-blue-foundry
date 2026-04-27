@@ -1,6 +1,7 @@
 import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
 import { getEffectiveItemWeapons } from './mods.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
+import { rollAfflictionDefense, checkAfflictionSP, applyAfflictionEffect } from './affliction-attack.mjs';
 
 function getPixelsPerMeter() {
   const gridSize = canvas.grid.size;
@@ -519,5 +520,241 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
         }
       }
     }
+  }
+}
+
+// ─── Affliction Cone ────────────────────────────────────────────────────────
+
+export async function resolveAfflictionConeAttack(attacker, item, weaponIndex) {
+  const effectiveWeapons = item.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(item);
+  const weapon = effectiveWeapons[weaponIndex];
+  if (!weapon) return;
+
+  const definition = getWeaponTypeDefinition(weapon.type);
+  const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill
+    : (item.system.weapons?.[weaponIndex]?.skill ?? weapon.skill);
+
+  const attackerToken = attacker.getActiveTokens()[0];
+  if (!attackerToken) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.NeedActiveToken'));
+    return;
+  }
+
+  const spread = weapon.coneSpread ?? 0;
+  const angleDeg = weapon.coneAngle ?? 45;
+  const halfDamageDistance = weapon.coneHalfDamageDistance ?? 0;
+  if (spread <= 0) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.ConeNoSpread'));
+    return;
+  }
+
+  const pixelsPerMeter = getPixelsPerMeter();
+  const spreadPx = spread * pixelsPerMeter;
+  const halfDamagePx = halfDamageDistance * pixelsPerMeter;
+  const halfAngleRad = (angleDeg * Math.PI / 180) / 2;
+  const attackerCenter = getTokenCenter(attackerToken.document);
+
+  ui.notifications.info(game.i18n.localize('CYBER_BLUE.Combat.ConeAimPrompt'));
+  const confirmedAngle = await placeConeOverlay(attackerCenter.x, attackerCenter.y, spreadPx, halfDamagePx, angleDeg);
+  if (confirmedAngle === null) return;
+
+  // Attack roll (used for evasion comparison per target)
+  const attackRoll = await attacker.rollSkill({ skillSlug });
+  const attackTotal = attackRoll.total;
+
+  // Consume ammo
+  const shots = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
+  if (shots > 0) {
+    const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
+    await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: Math.max(currentAmmo - shots, 0) }));
+  }
+
+  // Find tokens in cone
+  const targets = [];
+  for (const token of canvas.tokens.objects?.children ?? []) {
+    if (token === attackerToken || !token.actor) continue;
+    const tc = getTokenCenter(token.document);
+    const dx = tc.x - attackerCenter.x;
+    const dy = tc.y - attackerCenter.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist > spreadPx) continue;
+    let angleDiff = Math.abs(Math.atan2(dy, dx) - confirmedAngle);
+    if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
+    if (angleDiff > halfAngleRad) continue;
+    if (isBlockedByWalls(attackerCenter, tc)) continue;
+    const distMeters = dist / pixelsPerMeter;
+    const isFullDamage = halfDamageDistance <= 0 || distMeters <= halfDamageDistance;
+    targets.push({ token, actor: token.actor, isFullDamage });
+  }
+
+  if (targets.length === 0) {
+    ui.notifications.info(game.i18n.localize('CYBER_BLUE.Combat.ConeNoTargets'));
+    return;
+  }
+
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor: attacker }),
+    content: `<div class="cyberpunk-blue chat-card">
+      <h3><i class="fas fa-biohazard"></i> ${game.i18n.localize('CYBER_BLUE.Combat.AfflictionCone')}: ${item.name}</h3>
+      <p>${game.i18n.format('CYBER_BLUE.Combat.ConeTargetCount', { count: targets.length })}</p>
+    </div>`,
+  });
+
+  for (const { actor: targetActor, isFullDamage } of targets) {
+    // Evasion check (evaded targets are immune to affliction)
+    const rflx = targetActor.system?.stats?.rflx?.value ?? 0;
+    const rflxMod = targetActor.system?.stats?.rflx?.rollMod ?? 0;
+    const evasionRank = targetActor.system?.skills?.evasion?.rank
+      ?? targetActor.system?.skills?.athletics?.rank ?? 0;
+    const evasionRoll = await new Roll(`1d10 + ${rflx} + ${evasionRank}${rflxMod ? ` + ${rflxMod}` : ''}`).evaluate();
+    await evasionRoll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: targetActor }),
+      flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.EvasionRoll')}: ${targetActor.name}</h3><p>RFLX ${rflx} + ${game.i18n.localize('CYBER_BLUE.Combat.EvasionSkill')} ${evasionRank}</p></div>`,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
+    if (evasionRoll.total > attackTotal) continue; // evaded
+
+    // SP check — outer zone halves damage for SP purposes; resistBonus +2
+    const isHalf = !isFullDamage;
+    const penetrates = await checkAfflictionSP(weapon, targetActor, isHalf);
+    if (!penetrates) continue;
+
+    const resistBonus = isHalf ? 2 : 0;
+    const defenseRoll = await rollAfflictionDefense(targetActor, weapon, resistBonus);
+    if (defenseRoll.total >= (weapon.afflictionDv ?? 13)) continue; // resisted
+
+    await applyAfflictionEffect(item, weapon, targetActor);
+  }
+}
+
+// ─── Affliction Explosion ───────────────────────────────────────────────────
+
+export async function resolveAfflictionExplosionAttack(attacker, item, weaponIndex) {
+  const effectiveWeapons = item.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(item);
+  const weapon = effectiveWeapons[weaponIndex];
+  if (!weapon) return;
+
+  const definition = getWeaponTypeDefinition(weapon.type);
+  const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill
+    : (item.system.weapons?.[weaponIndex]?.skill ?? weapon.skill);
+
+  const attackerToken = attacker.getActiveTokens()[0];
+  if (!attackerToken) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.NeedActiveToken'));
+    return;
+  }
+
+  const spread = weapon.coneSpread ?? 0;
+  const halfDamageDistance = weapon.coneHalfDamageDistance ?? 0;
+  if (spread <= 0) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.ExplosionNoSpread'));
+    return;
+  }
+
+  const rangeTable = weapon.rangeTable ?? [];
+  const maxRangeIndex = rangeTable.reduce((best, dv, i) => (dv > 0 ? i : best), -1);
+  const rangeBands = COMBAT_CONFIG.rangeBands ?? [];
+  const maxRangeMeters = maxRangeIndex >= 0 ? (rangeBands[maxRangeIndex]?.max ?? 100) : 100;
+
+  const pixelsPerMeter = getPixelsPerMeter();
+  const maxRangePx = maxRangeMeters * pixelsPerMeter;
+  const spreadPx = spread * pixelsPerMeter;
+  const halfDamagePx = halfDamageDistance * pixelsPerMeter;
+  const attackerCenter = getTokenCenter(attackerToken.document);
+
+  ui.notifications.info(game.i18n.localize('CYBER_BLUE.Combat.ExplosionAimPrompt'));
+  const aimPoint = await placeExplosionPoint(attackerCenter.x, attackerCenter.y, maxRangePx, spreadPx, halfDamagePx);
+  if (aimPoint === null) return;
+
+  // DV from range table at aimed distance
+  const aimedDistMeters = Math.hypot(aimPoint.x - attackerCenter.x, aimPoint.y - attackerCenter.y) / pixelsPerMeter;
+  let resolvedDV = null;
+  for (let i = 0; i < rangeBands.length; i++) {
+    const band = rangeBands[i];
+    if (aimedDistMeters <= (band.max ?? Infinity) && rangeTable[i] > 0) {
+      resolvedDV = rangeTable[i];
+      break;
+    }
+  }
+  if (resolvedDV === null) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.OutOfRange'));
+    return;
+  }
+
+  const attackRoll = await attacker.rollSkill({ skillSlug });
+  const hit = attackRoll.total >= resolvedDV;
+
+  // Consume ammo
+  const shots = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
+  if (shots > 0) {
+    const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
+    await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: Math.max(currentAmmo - shots, 0) }));
+  }
+
+  let explosionCenter = aimPoint;
+  if (!hit) {
+    const scatter = 1 + Math.max(0, resolvedDV - attackRoll.total);
+    explosionCenter = scatterPoint(aimPoint, scatter, pixelsPerMeter);
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      content: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.ExplosionScatter')}</h3>`
+        + `<p>${game.i18n.format('CYBER_BLUE.Combat.ExplosionScatterDist', { dist: scatter })}</p></div>`,
+    });
+  }
+
+  // Find tokens in blast radius
+  const targets = [];
+  for (const token of canvas.tokens.objects?.children ?? []) {
+    if (token === attackerToken || !token.actor) continue;
+    const tc = getTokenCenter(token.document);
+    const dist = Math.hypot(tc.x - explosionCenter.x, tc.y - explosionCenter.y);
+    if (dist > spreadPx) continue;
+    if (isBlockedByWalls(explosionCenter, tc)) continue;
+    const distMeters = dist / pixelsPerMeter;
+    const isFullDamage = halfDamageDistance <= 0 || distMeters <= halfDamageDistance;
+    targets.push({ token, actor: token.actor, isFullDamage });
+  }
+
+  if (targets.length === 0) {
+    ui.notifications.info(game.i18n.localize('CYBER_BLUE.Combat.ExplosionNoTargets'));
+    return;
+  }
+
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor: attacker }),
+    content: `<div class="cyberpunk-blue chat-card">
+      <h3><i class="fas fa-biohazard"></i> ${game.i18n.localize('CYBER_BLUE.Combat.AfflictionExplosion')}: ${item.name}</h3>
+      <p>${game.i18n.format('CYBER_BLUE.Combat.ConeTargetCount', { count: targets.length })}</p>
+    </div>`,
+  });
+
+  for (const { actor: targetActor, isFullDamage } of targets) {
+    // Evasion check
+    const rflx = targetActor.system?.stats?.rflx?.value ?? 0;
+    const rflxMod = targetActor.system?.stats?.rflx?.rollMod ?? 0;
+    const evasionRank = targetActor.system?.skills?.evasion?.rank
+      ?? targetActor.system?.skills?.athletics?.rank ?? 0;
+    const evasionRoll = await new Roll(`1d10 + ${rflx} + ${evasionRank}${rflxMod ? ` + ${rflxMod}` : ''}`).evaluate();
+    await evasionRoll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: targetActor }),
+      flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.EvasionRoll')}: ${targetActor.name}</h3><p>RFLX ${rflx} + ${game.i18n.localize('CYBER_BLUE.Combat.EvasionSkill')} ${evasionRank}</p></div>`,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
+    const evaded = evasionRoll.total > attackRoll.total;
+    const isHalf = !isFullDamage || evaded;
+    if (evaded && isFullDamage) {
+      // Successful evasion from inner zone → fully immune (same as damage version)
+      continue;
+    }
+
+    // SP check
+    const penetrates = await checkAfflictionSP(weapon, targetActor, isHalf);
+    if (!penetrates) continue;
+
+    const resistBonus = isHalf ? 2 : 0;
+    const defenseRoll = await rollAfflictionDefense(targetActor, weapon, resistBonus);
+    if (defenseRoll.total >= (weapon.afflictionDv ?? 13)) continue;
+
+    await applyAfflictionEffect(item, weapon, targetActor);
   }
 }

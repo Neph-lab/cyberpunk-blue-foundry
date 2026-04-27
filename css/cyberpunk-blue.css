@@ -995,7 +995,7 @@ button, .cyberpunk-blue .button, a.button {
 }
 
 .cyberpunk-blue .cyberware-row {
-  grid-template-columns: minmax(180px, 1.4fr) minmax(110px, 0.8fr) 72px minmax(160px, 1fr) minmax(180px, 1fr);
+  grid-template-columns: minmax(180px, 1.4fr) minmax(110px, 0.8fr) 72px minmax(160px, 1fr) 80px minmax(180px, 1fr);
 }
 
 .cyberpunk-blue .cyberware-sheet.is-disabled .sheet-panel:not(.status-disabled) {
@@ -1216,7 +1216,13 @@ button, .cyberpunk-blue .button, a.button {
 }
 
 .cyberpunk-blue .inventory-row {
-  grid-template-columns: minmax(180px, 1.2fr) 70px minmax(220px, 1.6fr) minmax(220px, 1fr);
+  grid-template-columns: minmax(180px, 1.2fr) 70px minmax(220px, 1.6fr) 80px minmax(220px, 1fr);
+}
+
+.cyberpunk-blue .instruction-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cyberpunk-blue .inventory-row .embedded-summary {

@@ -103,7 +103,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       itemData.system.state = normalizeGearState(itemData.system);
     }
     context.showAdvancedTab = (context.isCyberware || context.isGear)
-      && (itemData.system.isArmor || itemData.system.isWeapon || itemData.system.isComputer);
+      && (itemData.system.isArmor || itemData.system.isWeapon || itemData.system.isComputer || canManageRestricted);
     context.showWeaponSection = itemData.system.isWeapon || canManageRestricted;
     context.showCyberwareDetailsTab = context.isCyberware;
     context.enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(itemData.system.description, {
@@ -232,6 +232,59 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     context.effects = prepareActiveEffectCategories(
       this.document.effects.filter((effect) => !effect.getFlag('cyberpunk-blue', 'modId'))
     );
+
+    // Disabled AEs on this item — available as targets for Affliction weapons
+    context.itemDisabledEffects = this.document.effects
+      .filter((e) => e.disabled && !e.getFlag('cyberpunk-blue', 'modId'))
+      .map((e) => ({ id: e.id, name: e.name }));
+
+    // Stat options for affliction primary-for-defense dropdown (no MOVE)
+    context.afflictionStatOptions = Object.entries(CONFIG.CYBER_BLUE.stats ?? {})
+      .filter(([key]) => key !== 'move')
+      .map(([key, stat]) => ({ value: key, label: stat.shortLabel ?? key.toUpperCase() }));
+
+    // Skill options for affliction skill-for-defense dropdown
+    context.afflictionSkillOptions = Object.entries(CONFIG.CYBER_BLUE.skills ?? {})
+      .map(([key, skill]) => ({ value: key, label: skill.label ?? key }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+
+    // ── Instruction sequence context (GM-only Advanced tab) ────────────────
+    if ((context.isGear || context.isCyberware) && canManageRestricted) {
+      // All non-mod effects on this item are available as instruction step targets
+      context.instructionEffectOptions = this.document.effects
+        .filter((e) => !e.getFlag('cyberpunk-blue', 'modId'))
+        .map((e) => ({ id: e.id, name: e.name }));
+
+      context.instructionStatOptions = Object.entries(CONFIG.CYBER_BLUE.stats ?? {})
+        .filter(([key]) => key !== 'move')
+        .map(([key, stat]) => ({ value: key, label: stat.shortLabel ?? key.toUpperCase() }));
+
+      context.instructionSkillOptions = Object.entries(CONFIG.CYBER_BLUE.skills ?? {})
+        .map(([key, skill]) => ({ value: key, label: skill.label ?? key }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+
+      // Enrich each instruction step with component data derived from the selected skill
+      context.instructionSteps = (itemData.system.instructions ?? []).map((step, index) => {
+        const skillDef = step.skill ? (CONFIG.CYBER_BLUE.skills?.[step.skill] ?? null) : null;
+        const componentSlugs = skillDef?.components ?? [];
+        return {
+          ...step,
+          index,
+          displayIndex: index + 1,
+          skillHasComponents: componentSlugs.length > 0,
+          componentOptions: componentSlugs.map((compSlug) => ({
+            value: compSlug,
+            label: CONFIG.CYBER_BLUE.components?.[compSlug]?.label ?? compSlug,
+          })),
+        };
+      });
+    } else {
+      context.instructionEffectOptions = [];
+      context.instructionStatOptions = [];
+      context.instructionSkillOptions = [];
+      context.instructionSteps = [];
+    }
+
     context.showEffectsTab = !context.isCyberware && !context.isAmmo && !context.isProgramExecutable
       && (!(context.isAbility || context.isGear) || canManageRestricted);
     context.showProgramExecutableNotesTab = context.isProgramExecutable && (this.document.isOwner || game.user.isGM);
@@ -557,6 +610,14 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       ?.addEventListener('click', this._onSyncEmbeddedMods.bind(this));
     this.element.querySelectorAll('[data-action="remove-embedded-mod"]').forEach((btn) => {
       btn.addEventListener('click', this._onRemoveEmbeddedMod.bind(this));
+    });
+    this.element.querySelector('[data-action="add-instruction"]')
+      ?.addEventListener('click', this._onAddInstruction.bind(this));
+    this.element.querySelectorAll('[data-action="remove-instruction"]').forEach((btn) => {
+      btn.addEventListener('click', this._onRemoveInstruction.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="move-instruction"]').forEach((btn) => {
+      btn.addEventListener('click', this._onMoveInstruction.bind(this));
     });
     // Restore scroll positions after re-render
     if (this._savedScrolls?.length) {
@@ -1105,5 +1166,48 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     const system = this.document.system.toObject?.() ?? this.document.system;
     const embeddedMods = (system.embeddedMods ?? []).filter((m) => m.id !== modId);
     await this.document.update({ 'system.embeddedMods': embeddedMods });
+  }
+
+  // ── Instruction sequence handlers ─────────────────────────────────────────
+
+  async _onAddInstruction(event) {
+    event.preventDefault();
+    const raw = this.document.system.toObject?.() ?? this.document.system;
+    const instructions = foundry.utils.deepClone(raw.instructions ?? []);
+    instructions.push({
+      name: '',
+      type: 'check',
+      effectId: '',
+      effectEnabled: true,
+      primary: 'body',
+      skill: '',
+      component: '',
+      dv: 13,
+      progress: true,
+    });
+    await this.document.update({ 'system.instructions': instructions });
+  }
+
+  async _onRemoveInstruction(event) {
+    event.preventDefault();
+    const stepIndex = Number.parseInt(event.currentTarget.dataset.stepIndex ?? '-1', 10);
+    if (Number.isNaN(stepIndex) || stepIndex < 0) return;
+    const raw = this.document.system.toObject?.() ?? this.document.system;
+    const instructions = foundry.utils.deepClone(raw.instructions ?? []);
+    instructions.splice(stepIndex, 1);
+    await this.document.update({ 'system.instructions': instructions });
+  }
+
+  async _onMoveInstruction(event) {
+    event.preventDefault();
+    const stepIndex = Number.parseInt(event.currentTarget.dataset.stepIndex ?? '-1', 10);
+    const direction = event.currentTarget.dataset.direction;
+    if (Number.isNaN(stepIndex) || stepIndex < 0 || !direction) return;
+    const raw = this.document.system.toObject?.() ?? this.document.system;
+    const instructions = foundry.utils.deepClone(raw.instructions ?? []);
+    const swapIndex = direction === 'up' ? stepIndex - 1 : stepIndex + 1;
+    if (swapIndex < 0 || swapIndex >= instructions.length) return;
+    [instructions[stepIndex], instructions[swapIndex]] = [instructions[swapIndex], instructions[stepIndex]];
+    await this.document.update({ 'system.instructions': instructions });
   }
 }

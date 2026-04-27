@@ -64,5 +64,41 @@ export function buildWeaponField() {
 
     // ── Toxic Payload bonus (Yanari MP, Hercules 3AX) ─────────────────────
     payloadDmgBonus: new fields.NumberField({ required: true, nullable: false, integer: true, initial: 0 }),
+
+    // ── Affliction ─────────────────────────────────────────────────────────
+    // Used when damageType is 'affliction', 'affliction-cone', or
+    // 'affliction-explosion'.  Damage is only rolled to check SP penetration;
+    // no HP loss occurs.  On penetration the target rolls
+    // 1d10 + afflictionPrimary + afflictionSkill vs afflictionDv.
+    // On failure the referenced disabled AE is copied to them and enabled.
+    afflictionPrimary: new fields.StringField({ required: true, blank: true, initial: 'body' }),
+    afflictionSkill: new fields.StringField({ required: true, blank: true, initial: '' }),
+    afflictionDv: new fields.NumberField({ ...requiredInteger, initial: 13, min: 0 }),
+    // _id of a *disabled* ActiveEffect that lives on this Item
+    afflictionEffectId: new fields.StringField({ required: true, blank: true, initial: '' }),
+  });
+}
+
+/**
+ * One step in an item's instruction sequence.
+ * type='effect' — temporarily enables/disables a named AE on the item.
+ * type='check'  — rolls 1d10 + stat + skill (+ component) vs DV; the progress
+ *                 flag determines whether rolling ≥ DV advances or ends.
+ */
+export function buildInstructionStepField() {
+  const fields = foundry.data.fields;
+  const requiredInteger = { required: true, nullable: false, integer: true };
+  return new fields.SchemaField({
+    name:          new fields.StringField({ required: true, blank: true, initial: '' }),
+    type:          new fields.StringField({ required: true, blank: false, initial: 'check' }),
+    // Effect step
+    effectId:      new fields.StringField({ required: true, blank: true, initial: '' }),
+    effectEnabled: new fields.BooleanField({ initial: true }),
+    // Check step
+    primary:       new fields.StringField({ required: true, blank: true, initial: 'body' }),
+    skill:         new fields.StringField({ required: true, blank: true, initial: '' }),
+    component:     new fields.StringField({ required: true, blank: true, initial: '' }),
+    dv:            new fields.NumberField({ ...requiredInteger, initial: 13, min: 0 }),
+    progress:      new fields.BooleanField({ initial: true }),
   });
 }

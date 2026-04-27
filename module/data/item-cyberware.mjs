@@ -1,5 +1,5 @@
 import CyberBlueItemBase from "./base-item.mjs";
-import { buildWeaponField } from "./weapon-schema.mjs";
+import { buildWeaponField, buildInstructionStepField } from "./weapon-schema.mjs";
 
 export default class CyberBlueCyberware extends CyberBlueItemBase {
   static defineSchema() {
@@ -46,6 +46,11 @@ export default class CyberBlueCyberware extends CyberBlueItemBase {
       canQuickhack: new fields.BooleanField({ initial: false }),
       running: new fields.BooleanField({ initial: false }),
     });
+    // ── Instruction sequence ──────────────────────────────────────────────────
+    schema.instructions = new fields.ArrayField(buildInstructionStepField(), { initial: [] });
+    schema.instructionActive = new fields.BooleanField({ initial: false });
+    schema.instructionStep = new fields.NumberField({ required: true, nullable: false, integer: true, initial: -1 });
+
     schema.embeddedMods = new fields.ArrayField(
       new fields.SchemaField({
         id: new fields.StringField({ required: true, blank: true }),
