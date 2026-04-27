@@ -433,5 +433,8 @@ export const CYBER_BLUE = {
     ability: { label: 'Ability' },
     cyberware: { label: 'Cyberware' },
     gear: { label: 'Gear' },
+    drug: { label: 'Drug' },
+    programExecutable: { label: 'Program' },
+    mod: { label: 'Mod' },
   },
 };
