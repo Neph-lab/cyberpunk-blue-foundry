@@ -110,6 +110,10 @@
               <input type="checkbox" name="system.instructions.{{step.index}}.progress" {{checked step.progress}} />
               <span>{{localize "CYBER_BLUE.Instructions.ProgressOnSuccess"}}</span>
             </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="system.instructions.{{step.index}}.requiresComponent" {{checked step.requiresComponent}} />
+              <span>{{localize "CYBER_BLUE.Instructions.RequiresComponent"}}</span>
+            </label>
           </div>
         {{/if}}
       </section>

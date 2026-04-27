@@ -100,5 +100,8 @@ export function buildInstructionStepField() {
     component:     new fields.StringField({ required: true, blank: true, initial: '' }),
     dv:            new fields.NumberField({ ...requiredInteger, initial: 13, min: 0 }),
     progress:      new fields.BooleanField({ initial: true }),
+    // When true, the check auto-fails if the actor doesn't have the component at all
+    // (i.e. componentRank === null). Used for role-gated specialties like Cryotech.
+    requiresComponent: new fields.BooleanField({ initial: false }),
   });
 }

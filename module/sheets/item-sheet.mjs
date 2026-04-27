@@ -98,6 +98,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     context.isGear = this.document.type === 'gear';
     context.isAmmo = this.document.type === 'ammo';
     context.isProgramExecutable = this.document.type === 'programExecutable';
+    context.isDrug = this.document.type === 'drug';
     context.isMod = this.document.type === 'mod';
     if (context.isGear) {
       itemData.system.state = normalizeGearState(itemData.system);
@@ -112,7 +113,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       rollData: this.document.parent?.getRollData?.() ?? {},
       relativeTo: this.document,
     });
-    context.enrichedNotes = (context.isRole || context.isCyberware || context.isProgramExecutable || context.isGear)
+    context.enrichedNotes = (context.isRole || context.isCyberware || context.isProgramExecutable || context.isGear || context.isDrug)
       ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(itemData.system.notes ?? '', {
         secrets: this.document.isOwner,
         async: true,
@@ -120,6 +121,11 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
         relativeTo: this.document,
       })
       : '';
+    if (context.isDrug) {
+      context.enrichedDrugPrimary = await foundry.applications.ux.TextEditor.implementation.enrichHTML(itemData.system.primaryEffect ?? '', { secrets: this.document.isOwner, async: true, relativeTo: this.document });
+      context.enrichedDrugSecondary = await foundry.applications.ux.TextEditor.implementation.enrichHTML(itemData.system.secondaryEffect ?? '', { secrets: this.document.isOwner, async: true, relativeTo: this.document });
+      context.enrichedDrugAddiction = await foundry.applications.ux.TextEditor.implementation.enrichHTML(itemData.system.addictionPenalty ?? '', { secrets: this.document.isOwner, async: true, relativeTo: this.document });
+    }
     context.enrichedLifepathLinks = context.isRole
       ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(itemData.system.lifepathLinks, {
         secrets: this.document.isOwner,
@@ -285,7 +291,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       context.instructionSteps = [];
     }
 
-    context.showEffectsTab = !context.isCyberware && !context.isAmmo && !context.isProgramExecutable
+    context.showEffectsTab = !context.isCyberware && !context.isAmmo && !context.isProgramExecutable && !context.isDrug
       && (!(context.isAbility || context.isGear) || canManageRestricted);
     context.showProgramExecutableNotesTab = context.isProgramExecutable && (this.document.isOwner || game.user.isGM);
     context.ammoTypeOptions = [

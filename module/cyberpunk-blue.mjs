@@ -32,6 +32,10 @@ import * as models from './data/_module.mjs';
 import { CRITICAL_INJURY_FLAG, buildCritBodyTableData, buildCritHeadTableData } from './helpers/critical-injury.mjs';
 import { WEAPON_CATALOGUE } from './data/weapon-catalogue.mjs';
 import { MOD_CATALOGUE } from './data/mod-catalogue.mjs';
+import { EQUIPMENT_CATALOGUE } from './data/equipment-catalogue.mjs';
+import { CYBERWARE_CATALOGUE } from './data/cyberware-catalogue.mjs';
+import { DRUG_CATALOGUE } from './data/drug-catalogue.mjs';
+import { PROGRAM_CATALOGUE } from './data/program-catalogue.mjs';
 
 Hooks.once('init', function () {
   game.cyberpunkblue = {
@@ -100,6 +104,7 @@ Hooks.once('init', function () {
     gear: models.CyberBlueGear,
     ammo: models.CyberBlueAmmo,
     programExecutable: models.CyberBlueProgramExecutable,
+    drug: models.CyberBlueDrug,
     mod: models.CyberBlueMod,
   };
 
@@ -129,7 +134,7 @@ Hooks.once('init', function () {
   Items.registerSheet('cyberpunk-blue', CyberBlueItemSheet, {
     makeDefault: true,
     label: 'CYBER_BLUE.SheetLabels.Item',
-    types: ['role', 'ability', 'cyberware', 'gear', 'ammo', 'programExecutable', 'mod'],
+    types: ['role', 'ability', 'cyberware', 'gear', 'ammo', 'programExecutable', 'drug', 'mod'],
   });
 
   game.settings.registerMenu('cyberpunk-blue', 'importItemsMenu', {
@@ -417,6 +422,7 @@ Hooks.once('ready', async () => {
 
   await ensureCritInjuryTables();
   await ensureWeaponCatalogue();
+  await ensureEquipmentCatalogue();
 
   const seen = new Set();
   const cyberwareItems = [
@@ -663,6 +669,74 @@ async function ensureWeaponCatalogue() {
     }
   } catch (err) {
     console.error('Cyberpunk Blue | Failed to import weapon catalogue:', err);
+  }
+}
+
+// ─── Equipment catalogue ──────────────────────────────────────────────────────
+
+/**
+ * Populate the gear, drugs, cyberware, and programs compendium packs on first load.
+ * Each catalogue entry carries a `_folder` property for folder classification;
+ * it is stripped before the item is written to the pack.
+ */
+async function _populateEquipmentPack(packId, items) {
+  const pack = game.packs.get(packId);
+  if (!pack) {
+    console.warn(`Cyberpunk Blue | Pack "${packId}" not found.`);
+    return 0;
+  }
+  await pack.getIndex();
+  if (pack.index.size > 0) return 0; // already populated
+
+  // Group by _folder
+  const byFolder = new Map();
+  for (const item of items) {
+    const folderName = item._folder ?? 'General';
+    if (!byFolder.has(folderName)) byFolder.set(folderName, []);
+    byFolder.get(folderName).push(item);
+  }
+
+  let created = 0;
+  await pack.configure({ locked: false });
+  try {
+    for (const [folderName, group] of byFolder.entries()) {
+      const folder = await _ensureFolderInPack(pack, folderName);
+      const cleaned = group.map((it) => {
+        const copy = foundry.utils.deepClone(it);
+        delete copy._id;
+        delete copy._folder;
+        copy.folder = folder?.id ?? null;
+        return copy;
+      });
+      const docs = await Item.createDocuments(cleaned, { pack: packId });
+      created += docs.length;
+    }
+  } finally {
+    await pack.configure({ locked: true });
+  }
+  return created;
+}
+
+async function ensureEquipmentCatalogue() {
+  if (!game.user.isGM) return;
+  try {
+    const gearItems = EQUIPMENT_CATALOGUE.filter((it) => it.type === 'gear' || (it.type === 'mod' && it.system?.modType === 'weaponMod' && it._folder));
+    const cyItems  = CYBERWARE_CATALOGUE;
+    const drugItems = DRUG_CATALOGUE;
+    const progItems = PROGRAM_CATALOGUE;
+
+    const gCreated  = await _populateEquipmentPack('cyberpunk-blue.gear',      gearItems);
+    const cyCreated = await _populateEquipmentPack('cyberpunk-blue.cyberware', cyItems);
+    const dCreated  = await _populateEquipmentPack('cyberpunk-blue.drugs',     drugItems);
+    const pCreated  = await _populateEquipmentPack('cyberpunk-blue.programs',  progItems);
+
+    const total = gCreated + cyCreated + dCreated + pCreated;
+    if (total > 0) {
+      console.log(`Cyberpunk Blue | Equipment catalogue imported: ${gCreated} gear, ${cyCreated} cyberware, ${dCreated} drugs, ${pCreated} programs.`);
+      ui.notifications.info(`Cyberpunk Blue: Equipment catalogue imported (${total} items).`);
+    }
+  } catch (err) {
+    console.error('Cyberpunk Blue | Failed to import equipment catalogue:', err);
   }
 }
 

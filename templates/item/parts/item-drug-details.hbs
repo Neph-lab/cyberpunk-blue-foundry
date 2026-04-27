@@ -1,0 +1,30 @@
+{{!-- Drug phase details — shown in the Details tab for Drug items --}}
+{{#if isDrug}}
+<section class="sheet-panel drug-details-panel">
+  <div class="panel-header"><span>{{localize "CYBER_BLUE.Drug.PrimaryEffect"}}</span></div>
+  <div class="editor-container">
+    {{editor system.primaryEffect target="system.primaryEffect" button=false editable=editable}}
+  </div>
+
+  <div class="item-meta-row">
+    <label>
+      <span>{{localize "CYBER_BLUE.Drug.Duration"}}</span>
+      <input type="text" name="system.duration" value="{{system.duration}}" />
+    </label>
+    <label class="compact-field">
+      <span>{{localize "CYBER_BLUE.Drug.SecondaryDV"}}</span>
+      <input type="number" name="system.secondaryDv" value="{{system.secondaryDv}}" data-dtype="Number" min="0" />
+    </label>
+  </div>
+
+  <div class="panel-header"><span>{{localize "CYBER_BLUE.Drug.SecondaryEffect"}}</span></div>
+  <div class="editor-container">
+    {{editor system.secondaryEffect target="system.secondaryEffect" button=false editable=editable}}
+  </div>
+
+  <div class="panel-header"><span>{{localize "CYBER_BLUE.Drug.AddictionPenalty"}}</span></div>
+  <div class="editor-container">
+    {{editor system.addictionPenalty target="system.addictionPenalty" button=false editable=editable}}
+  </div>
+</section>
+{{/if}}

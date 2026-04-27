@@ -1,0 +1,602 @@
+/**
+ * Equipment catalogue — all non-weapon gear from the Cyberpunk Blue source.
+ *
+ * Includes: Clothing, Grenades, Media Gear, Survival & Exploration, Scientific &
+ * Medical, Computer Hardware, Cyberdeck Hardware MODs, Clandestine Gear,
+ * Miscellaneous, Chipware, and Architecture Hardware.
+ *
+ * Each entry is Foundry Item create-data ready for `Item.createDocuments`.
+ * The `_folder` property is stripped before the item is written to the pack.
+ */
+
+const COST = {
+  CH:  '€$10 (Cheap)',
+  EV:  '€$20 (Everyday)',
+  CO:  '€$50 (Costly)',
+  PR:  '€$100 (Premium)',
+  EX:  '€$500 (Expensive)',
+  VEX: '€$1,000 (Very Expensive)',
+  LUX: '€$5,000 (Luxury)',
+  SLX: '€$10,000 (Super Luxury)',
+};
+
+const h = (text) => `<p>${text}</p>`;
+
+/**
+ * Build a standard Gear item.
+ */
+function gear({
+  name, manufacturer = '', cost, folder, description = '',
+  isArmor = false, maxSp = 0, quantity = 1,
+  isComputer = false, computer = {},
+}) {
+  return {
+    _folder: folder,
+    name,
+    type: 'gear',
+    img: '',
+    system: {
+      manufacturer,
+      cost: COST[cost] ?? cost,
+      note: '',
+      notes: '',
+      isArmor,
+      isWeapon: false,
+      isComputer,
+      minBodyReq: 0,
+      armor: { maxSp, currentSp: maxSp },
+      weapons: [],
+      quantity,
+      state: 'carried',
+      carried: true,
+      equipped: false,
+      description: description ? h(description) : '',
+      computer: {
+        nodes:         computer.nodes         ?? 0,
+        hardwareSlots: computer.hardwareSlots ?? 0,
+        softwareSlots: computer.softwareSlots ?? 0,
+        generalSlots:  computer.generalSlots  ?? 0,
+        ram:           computer.ram           ?? 0,
+        isCyberdeck:   !!computer.isCyberdeck,
+        canQuickhack:  !!computer.canQuickhack,
+        running: false,
+      },
+    },
+  };
+}
+
+// ─── Style descriptions (embedded in clothing item descriptions) ───────────────
+
+const STYLE_DESC = {
+  Entropism:
+    'Entropism — Necessity over Style. Survival ethos born from the Time of the Red. ' +
+    'Materials must be rough, durable, with pockets or attachment points for gear. ' +
+    'Headgear protects from sun or acid rain; footwear handles rough terrain. ' +
+    'Military surplus is a common source. Prevalent in Santo Domingo and the Northside Industrial District.',
+  Kitch:
+    'Kitch — Style over Substance. All about making a statement. More is more: bold colors, ' +
+    'unique hairstyles, impressive jewelry or cyberware threading. Clothes and decorations ' +
+    'often have embedded tech producing light effects. The default style across most of Night City.',
+  Neomilitarism:
+    'Neomilitarism — Substance over Style. Corporate cold show of power. Minimalism, strict lines, ' +
+    'quality materials. One statement, perfectly executed. Popular among career corpos and high society ' +
+    'throughout central Night City.',
+  Neokitch:
+    'Neokitch — Style and Substance. A statement perfectly tailored to its message, designed specifically ' +
+    'for the wearer and context. Only the ultra-rich or those well-connected in fashion can maintain true ' +
+    'neokitch style. Found mostly in Westbrook or Downtown.',
+};
+
+function clothing(type, style, cost) {
+  return gear({
+    name: `${type} (${style})`,
+    folder: 'Outfit',
+    cost,
+    description: `${type}. ${STYLE_DESC[style]}`,
+  });
+}
+
+export const EQUIPMENT_CATALOGUE = [
+
+  // ── Outfit / Clothing ─────────────────────────────────────────────────────
+
+  clothing('Bottoms',  'Entropism',    'PR'),
+  clothing('Bottoms',  'Kitch',        'CO'),
+  clothing('Bottoms',  'Neomilitarism','EX'),
+  clothing('Bottoms',  'Neokitch',     'VEX'),
+  clothing('Top',      'Entropism',    'EV'),
+  clothing('Top',      'Kitch',        'EV'),
+  clothing('Top',      'Neomilitarism','CO'),
+  clothing('Top',      'Neokitch',     'EX'),
+  clothing('Jacket',   'Entropism',    'PR'),
+  clothing('Jacket',   'Kitch',        'CO'),
+  clothing('Jacket',   'Neomilitarism','EX'),
+  clothing('Jacket',   'Neokitch',     'VEX'),
+  clothing('Footwear', 'Entropism',    'PR'),
+  clothing('Footwear', 'Kitch',        'CO'),
+  clothing('Footwear', 'Neomilitarism','EX'),
+  clothing('Footwear', 'Neokitch',     'LUX'),
+  clothing('Jewelry',  'Entropism',    'CO'),
+  clothing('Jewelry',  'Kitch',        'PR'),
+  clothing('Jewelry',  'Neomilitarism','VEX'),
+  clothing('Jewelry',  'Neokitch',     'LUX'),
+  clothing('Shades',   'Entropism',    'CO'),
+  clothing('Shades',   'Kitch',        'PR'),
+  clothing('Shades',   'Neomilitarism','EX'),
+  clothing('Shades',   'Neokitch',     'VEX'),
+  clothing('Glasses',  'Entropism',    'CO'),
+  clothing('Glasses',  'Kitch',        'PR'),
+  clothing('Glasses',  'Neomilitarism','EX'),
+  clothing('Glasses',  'Neokitch',     'VEX'),
+  clothing('Headwear', 'Entropism',    'EV'),
+  clothing('Headwear', 'Kitch',        'CO'),
+  clothing('Headwear', 'Neomilitarism','EX'),
+  clothing('Headwear', 'Neokitch',     'LUX'),
+
+  // ── Grenades ──────────────────────────────────────────────────────────────
+
+  gear({
+    name: 'Knock-Out Grenade',
+    folder: 'Grenades', cost: 'EX',
+    description: 'Deals no damage. AoE: 4m inner / 8m outer sphere; targets in outer zone get +5 to resist. DV13 BODY+Endurance or fall unconscious for a number of minutes equal to the margin of failure (waking from damage or an action taken to rouse them). No SP ablation. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind. Quality: Standard (EX), Poor (PR), Excellent (VEX).',
+  }),
+  gear({
+    name: 'Smoke Grenade',
+    folder: 'Grenades', cost: 'CO',
+    description: 'Deals no damage. AoE: 16m inner / 22m outer sphere. DV13 BODY+Endurance or suffer Damaged Eye Critical Injury for 1 minute. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind. Quality: Standard (CO), Poor (EV), Excellent (PR).',
+  }),
+  gear({
+    name: 'Teargas Grenade',
+    folder: 'Grenades', cost: 'CO',
+    description: 'Deals no damage. AoE: 10m inner / 12m outer sphere; targets in outer zone get +4 to resist. DV13 BODY+Endurance or suffer Damaged Eye Critical Injury for 1 minute. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind. Quality: Standard (CO), Poor (EV), Excellent (PR).',
+  }),
+  gear({
+    name: 'Toxic Grenade',
+    folder: 'Grenades', cost: 'EX',
+    description: 'Deals no damage, no SP ablation, cannot cause Critical Injuries. AoE: 4m inner / 10m outer sphere; targets in outer zone get +2 to resist. DV15 BODY+Endurance or take 2d6 HP; on a successful resist, take half (rounded down). Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind. Quality: Standard (EX), Poor (PR), Excellent (VEX).',
+  }),
+
+  // ── Media Gear ────────────────────────────────────────────────────────────
+
+  gear({
+    name: 'Audio Recorder',
+    folder: 'Media Gear', cost: 'CO',
+    description: '24-hour recording capacity per shard (1 shard included).',
+  }),
+  gear({
+    name: 'Braindance',
+    folder: 'Media Gear', cost: 'PR',
+    description: 'Up to 4 hours of full-sensory recorded experience on a shard.',
+  }),
+  gear({
+    name: 'Braindance Wreath',
+    folder: 'Media Gear', cost: 'EX',
+    description: 'Required to experience a Braindance recording.',
+  }),
+  gear({
+    name: 'Drum Synthesizer',
+    folder: 'Media Gear', cost: 'EX',
+    description: 'Plastic pads that simulate a drum kit; includes pre-programmed beats and loops. Requires a pocket amplifier or amp.',
+  }),
+  gear({
+    name: 'Electric Guitar',
+    folder: 'Media Gear', cost: 'EX',
+    description: 'Requires a pocket amplifier or amp.',
+  }),
+  gear({
+    name: 'Movie (Shard)',
+    folder: 'Media Gear', cost: 'CO',
+    description: '2–5 hours of screen-viewable content on a shard.',
+  }),
+  gear({
+    name: 'Music Album (Shard)',
+    folder: 'Media Gear', cost: 'CH',
+    description: '10–20 songs on a shard or legacy format.',
+  }),
+  gear({
+    name: 'Pocket Amplifier',
+    folder: 'Media Gear', cost: 'PR',
+    description: 'Large-book sized amplifier. Connects up to 2 instruments; up to 90dB output.',
+  }),
+  gear({
+    name: 'Radio / Music Player',
+    folder: 'Media Gear', cost: 'CO',
+    description: 'Can play audio from the Data Pool, memory chip, or radio broadcast.',
+  }),
+  gear({
+    name: 'Video Camera',
+    folder: 'Media Gear', cost: 'PR',
+    description: '10-hour recording capacity per shard (1 shard included).',
+  }),
+
+  // ── Survival & Exploration Gear ───────────────────────────────────────────
+
+  gear({
+    name: 'Anti-Smog Breathing Mask',
+    folder: 'Survival & Exploration', cost: 'PR',
+    description: 'Immune to airborne toxins that require inhalation while worn.',
+  }),
+  gear({
+    name: 'Auto-Level Ear Protectors',
+    folder: 'Survival & Exploration', cost: 'PR',
+    description: 'Immune to deafness effects and damage from loud noises while worn.',
+  }),
+  gear({
+    name: 'Backpack',
+    folder: 'Survival & Exploration', cost: 'CO',
+    description: 'Spacious and sturdy.',
+  }),
+  gear({
+    name: 'Binoculars',
+    folder: 'Survival & Exploration', cost: 'CO',
+    description: 'Magnifies up to ×5.',
+  }),
+  gear({
+    name: 'Duct Tape',
+    folder: 'Survival & Exploration', cost: 'EV',
+    description: '100m roll. Available in glow-in-the-dark color options.',
+  }),
+  gear({
+    name: 'Flashlight',
+    folder: 'Survival & Exploration', cost: 'EV',
+    description: '100m illumination beam.',
+  }),
+  gear({
+    name: 'Food Stick',
+    folder: 'Survival & Exploration', cost: 'CH',
+    description: '1 meal. Available in various awful flavors.',
+  }),
+  gear({
+    name: 'Grapple Gun',
+    folder: 'Survival & Exploration', cost: 'PR',
+    description: 'Rocket-propelled grapple that embeds in thick cover within 30m. Action to fire or fully retract. 30m rope, 2-person capacity, rope has 10 HP.',
+  }),
+  gear({
+    name: 'Inflatable Bed & Sleeping Bag',
+    folder: 'Survival & Exploration', cost: 'EV',
+    description: 'Folds down to a 15×15×10cm package.',
+  }),
+  gear({
+    name: 'Personal Care Pack',
+    folder: 'Survival & Exploration', cost: 'EV',
+    description: 'Toothbrush, towel, soap, and other basic hygiene items.',
+  }),
+  gear({
+    name: 'Radar Detector',
+    folder: 'Survival & Exploration', cost: 'EX',
+    description: 'Detects radar, ladar, and echo scan in the area; triangulates the source within a 10% margin.',
+  }),
+  gear({
+    name: 'Road Flare',
+    folder: 'Survival & Exploration', cost: 'CH',
+    description: '100m radius illumination, lasts 1 hour, single use. Available in various colors.',
+  }),
+  gear({
+    name: 'Rope',
+    folder: 'Survival & Exploration', cost: 'EV',
+    description: '60m nylon rope with 400kg capacity.',
+  }),
+  gear({
+    name: 'Tent & Camping Equipment',
+    folder: 'Survival & Exploration', cost: 'CO',
+    description: 'Small tent, self-heating pot (2-hour use with 5-minute recharge), and basic utensils.',
+  }),
+
+  // ── Scientific & Medical Equipment ────────────────────────────────────────
+
+  gear({
+    name: 'Airhypo',
+    folder: 'Scientific & Medical', cost: 'CO',
+    description: 'Holds up to 3 drug ampules. Administers a dose as an Action. To inject an unwilling target, make a BODY+Melee attack instead of dealing damage on a hit.',
+  }),
+  gear({
+    name: 'Chemical Analyzer',
+    folder: 'Scientific & Medical', cost: 'VEX',
+    description: 'Action to insert a sample; identifies the compound on the following round.',
+  }),
+  gear({
+    name: 'Cryopump',
+    folder: 'Scientific & Medical', cost: 'LUX',
+    description: 'Medtech only. Briefcase that unfolds into a body-bag and coolant pump (Action). DV12 TECH+Medicine (Cryotech) to place a person in stasis for up to 1 week (Action). The bag has 15 HP. Recharge costs CO.',
+  }),
+  gear({
+    name: 'Cryotank',
+    folder: 'Scientific & Medical', cost: 'LUX',
+    description: 'Medtech only. DV15 TECH+Medicine (Cryotech) for indefinite stasis, or conscious suspension with 2× the natural healing rate.',
+  }),
+  gear({
+    name: 'Medscanner',
+    folder: 'Scientific & Medical', cost: 'VEX',
+    description: 'Performs most medical tests. +2 to Medicine checks.',
+  }),
+  gear({
+    name: 'Medtech Bag',
+    folder: 'Scientific & Medical', cost: 'PR',
+    description: 'Complete set of basic medicine tools; equivalent to mall-level medical facilities.',
+  }),
+  gear({
+    name: 'Tech Bag',
+    folder: 'Scientific & Medical', cost: 'EX',
+    description: 'Contains: Techtool, hammer, 2 prybars, heat torch, voltmeter, and assorted screws, nuts, and wire.',
+  }),
+  gear({
+    name: 'Techscanner',
+    folder: 'Scientific & Medical', cost: 'VEX',
+    description: '+2 to Electronics and Mechanics checks (hardware only).',
+  }),
+  gear({
+    name: 'Techtool',
+    folder: 'Scientific & Medical', cost: 'PR',
+    description: 'Multi-tool containing pliers, blade, screwdrivers, files, and clippers.',
+  }),
+
+  // ── Computer Hardware ─────────────────────────────────────────────────────
+
+  gear({
+    name: 'Cyberdeck, Poor',
+    folder: 'Computer Hardware', cost: 'PR',
+    isComputer: true,
+    computer: { softwareSlots: 5, ram: 4, isCyberdeck: true },
+    description: '5 program slots, 4 RAM, 10m wireless range. Requires a Neuroport Cyberdeck Port or Interface Plugs to use.',
+  }),
+  gear({
+    name: 'Cyberdeck, Standard',
+    folder: 'Computer Hardware', cost: 'EX',
+    isComputer: true,
+    computer: { softwareSlots: 7, ram: 6, isCyberdeck: true },
+    description: '7 program slots, 6 RAM, 10m wireless range. Requires a Neuroport Cyberdeck Port or Interface Plugs to use.',
+  }),
+  gear({
+    name: 'Cyberdeck, Excellent',
+    folder: 'Computer Hardware', cost: 'VEX',
+    isComputer: true,
+    computer: { softwareSlots: 9, ram: 8, isCyberdeck: true },
+    description: '9 program slots, 8 RAM, 10m wireless range. Requires a Neuroport Cyberdeck Port or Interface Plugs to use.',
+  }),
+  gear({
+    name: 'Memory Shard',
+    folder: 'Computer Hardware', cost: 'CH',
+    description: 'Data storage wafer. Fits any standard shard socket.',
+  }),
+  gear({
+    name: 'Netrunner Chair',
+    folder: 'Computer Hardware', cost: 'VEX',
+    isComputer: true,
+    computer: { hardwareSlots: 1 },
+    description: '1 hardware slot (functionally part of a connected cyberdeck). −2 to remote hack damage while seated. Requires a Neuroport Cyberdeck Port.',
+  }),
+  gear({
+    name: 'Netrunner Chair, Advanced',
+    folder: 'Computer Hardware', cost: 'LUX',
+    isComputer: true,
+    computer: { hardwareSlots: 2 },
+    description: '+1 NET Action per turn and 2 hardware slots (functionally part of a connected cyberdeck). −3 to remote hack damage while seated. Requires a Neuroport Cyberdeck Port.',
+  }),
+  gear({
+    name: 'Smart Visor',
+    folder: 'Computer Hardware', cost: 'EX',
+    description: 'Functions as a 2-slot cybereye with Virtuality pre-installed while worn. Note: interaction with installed cyberoptics may vary; consult your GM.',
+  }),
+
+  // ── Cyberdeck Hardware MODs ───────────────────────────────────────────────
+
+  gear({
+    name: 'Backup Drive',
+    folder: 'Cyberdeck Hardware MODs', cost: 'PR',
+    description: 'Cyberdeck MOD — 2 hardware slots. Non-Black ICE programs deleted from the connected deck are saved separately; they can be retrieved as a full Action.',
+  }),
+  gear({
+    name: 'DNA Lock',
+    folder: 'Cyberdeck Hardware MODs', cost: 'PR',
+    description: 'Cyberdeck MOD — 1 hardware slot. Biometric lock. Bypass DV: 17 TECH+Electronics (Security).',
+  }),
+  gear({
+    name: 'Hardened Circuitry',
+    folder: 'Cyberdeck Hardware MODs', cost: 'EX',
+    description: 'Cyberdeck MOD — 1 hardware slot. The device is immune to EMP, microwave pulses, and non-Black ICE programs.',
+  }),
+  gear({
+    name: 'Insulated Wiring',
+    folder: 'Cyberdeck Hardware MODs', cost: 'PR',
+    description: 'Cyberdeck MOD — 1 hardware slot. The cyberdeck, runner, and their clothes will not catch fire from program effects.',
+  }),
+  gear({
+    name: 'KRASH-Barrier',
+    folder: 'Cyberdeck Hardware MODs', cost: 'PR',
+    description: 'Cyberdeck MOD — 1 hardware slot. Unsafe disconnections are made safe.',
+  }),
+  gear({
+    name: 'Range Upgrade',
+    folder: 'Cyberdeck Hardware MODs', cost: 'PR',
+    description: 'Cyberdeck MOD — 1 hardware slot. Doubles the cyberdeck\'s wireless connection range.',
+  }),
+
+  // ── Clandestine Gear ──────────────────────────────────────────────────────
+
+  gear({
+    name: 'Bug Detector',
+    folder: 'Clandestine Gear', cost: 'EX',
+    description: 'Creates and detects resonance in microphones within 2m.',
+  }),
+  gear({
+    name: 'Caltrops',
+    folder: 'Clandestine Gear', cost: 'EV',
+    description: 'Covers 2m². Any creature moving through must make a DV15 RFLX+Athletics check or take 1d6 damage per 2m of movement through the area. Shoes have SP 1 against this; army boots have SP 5. DV10 INT+Perception to detect.',
+  }),
+  gear({
+    name: 'Disposable Phone',
+    folder: 'Clandestine Gear', cost: 'CO',
+    description: 'Voice and holo-calls without a neuroport.',
+  }),
+  gear({
+    name: 'Handcuffs',
+    folder: 'Clandestine Gear', cost: 'CO',
+    description: 'Steel. A character with BODY 10+ can break free.',
+  }),
+  gear({
+    name: 'Homing Tracer',
+    folder: 'Clandestine Gear', cost: 'PR',
+    description: '1 button beacon included; additional beacons cost CO each. City-street range of 1km.',
+  }),
+  gear({
+    name: 'Lock-Picking Kit',
+    folder: 'Clandestine Gear', cost: 'EV',
+    description: 'Tools for bypassing mechanical locks.',
+  }),
+  gear({
+    name: 'Radio Communicator',
+    folder: 'Clandestine Gear', cost: 'CO',
+    description: 'Discreet earpiece. 1-mile range; does not use public networks.',
+  }),
+  gear({
+    name: 'Scrambler / Descrambler',
+    folder: 'Clandestine Gear', cost: 'EX',
+    description: 'Sold in pairs for encrypted communications. Can read additional encryption keys from a shard.',
+  }),
+  gear({
+    name: 'Toxin',
+    folder: 'Clandestine Gear', cost: 'PR',
+    description: 'DV13 BODY+Endurance or take 2d6 HP and suffer −1 to BODY checks for the duration; on a successful resist, take 1d6 HP. Duration: 40 − (2 × BODY) minutes.',
+  }),
+  gear({
+    name: 'Toxin, Strong',
+    folder: 'Clandestine Gear', cost: 'EX',
+    description: '‡ Illegal without a permit. DV15 BODY+Endurance or take 3d6 HP and suffer −1 to both BODY and RFLX checks for the duration; on a successful resist, take 1d6 HP. Duration: 40 − (2 × BODY) minutes.',
+  }),
+
+  // ── Miscellaneous Gear ────────────────────────────────────────────────────
+
+  gear({
+    name: 'Glow Paint',
+    folder: 'Miscellaneous', cost: 'EV',
+    description: 'Rattling spray can of glow-in-the-dark paint.',
+  }),
+  gear({
+    name: 'Glow Stick',
+    folder: 'Miscellaneous', cost: 'CH',
+    description: '4m radius illumination, lasts up to 10 hours. Single use.',
+  }),
+  gear({
+    name: 'Linear Frame Sigma',
+    folder: 'Miscellaneous', cost: 'VEX',
+    description: 'Exoskeleton. Connect via Personal Link as an Action; regular limbs are unavailable until disconnected (also an Action). While connected, perform strength-based tasks as if BODY were 12.',
+  }),
+  gear({
+    name: 'Linear Frame Beta',
+    folder: 'Miscellaneous', cost: 'LUX',
+    description: 'Exoskeleton. Connect via Personal Link as an Action; regular limbs are unavailable until disconnected (also an Action). While connected, perform strength-based tasks as if BODY were 14.',
+  }),
+
+  // ── Chipware ──────────────────────────────────────────────────────────────
+  // Chipware is treated as Gear. Active while equipped in a shard socket.
+
+  gear({
+    name: 'Chemical Sniffer Chip',
+    folder: 'Chipware', cost: 'EX',
+    description: 'Chipware — equipped in a shard socket. Identifies most compounds by comparing smell and touch against an onboard database.',
+  }),
+  gear({
+    name: 'Language Chip',
+    folder: 'Chipware', cost: 'EX',
+    description: 'Chipware — equipped in a shard socket. Full language comprehension while installed; sub-second processing lag.',
+  }),
+  gear({
+    name: 'Olfactory Boost Chip',
+    folder: 'Chipware', cost: 'PR',
+    description: 'Chipware — equipped in a shard socket. Scent-based tracking using Survival; +2 to scent-based Perception checks.',
+  }),
+  gear({
+    name: 'Pain Editor Chip',
+    folder: 'Chipware', cost: 'EX',
+    description: 'Chipware — equipped in a shard socket. Ignore Seriously Wounded penalties while installed.',
+  }),
+  gear({
+    name: 'Skill Chip',
+    folder: 'Chipware', cost: 'EX',
+    description: 'Chipware — equipped in a shard socket. Covers one Skill or Component. While installed: if the user has fewer than 3 ranks in that Skill or Component, it is treated as 3.',
+  }),
+  gear({
+    name: 'Tactile Boost Chip',
+    folder: 'Chipware', cost: 'PR',
+    description: 'Chipware — equipped in a shard socket. Detects motion within 20 units on any surface being touched.',
+  }),
+
+  // ── Architecture Hardware ─────────────────────────────────────────────────
+
+  gear({
+    name: 'MicroComp',
+    folder: 'Architecture Hardware', cost: 'CO',
+    isComputer: true,
+    computer: { nodes: 2, softwareSlots: 4 },
+    description: 'Architecture Hardware. 2 nodes, 4 active program slots.',
+  }),
+  gear({
+    name: 'MicroComp, Advanced',
+    folder: 'Architecture Hardware', cost: 'PR',
+    isComputer: true,
+    computer: { nodes: 3, softwareSlots: 5 },
+    description: 'Architecture Hardware. 3 nodes, 5 active program slots.',
+  }),
+  gear({
+    name: 'Laptop',
+    folder: 'Architecture Hardware', cost: 'PR',
+    isComputer: true,
+    computer: { nodes: 4, softwareSlots: 5 },
+    description: 'Architecture Hardware. 4 nodes, 5 active program slots.',
+  }),
+  gear({
+    name: 'Laptop, Advanced',
+    folder: 'Architecture Hardware', cost: 'EX',
+    isComputer: true,
+    computer: { nodes: 6, softwareSlots: 7 },
+    description: 'Architecture Hardware. 6 nodes, 7 active program slots.',
+  }),
+  gear({
+    name: 'Desktop',
+    folder: 'Architecture Hardware', cost: 'EX',
+    isComputer: true,
+    computer: { nodes: 5, softwareSlots: 8 },
+    description: 'Architecture Hardware. 5 nodes, 8 active program slots.',
+  }),
+  gear({
+    name: 'Desktop, Advanced',
+    folder: 'Architecture Hardware', cost: 'VEX',
+    isComputer: true,
+    computer: { nodes: 7, softwareSlots: 10 },
+    description: 'Architecture Hardware. 7 nodes, 10 active program slots.',
+  }),
+  gear({
+    name: 'Server',
+    folder: 'Architecture Hardware', cost: 'VEX',
+    isComputer: true,
+    computer: { nodes: 8, softwareSlots: 11 },
+    description: 'Architecture Hardware. 8 nodes, 11 active program slots.',
+  }),
+  gear({
+    name: 'Server, High Capacity',
+    folder: 'Architecture Hardware', cost: 'LUX',
+    isComputer: true,
+    computer: { nodes: 12, softwareSlots: 16 },
+    description: 'Architecture Hardware. 12 nodes, 16 active program slots.',
+  }),
+  gear({
+    name: 'Access Point',
+    folder: 'Architecture Hardware', cost: 'CO',
+    description: 'Architecture Hardware add-on. Provides a wired and wireless (10m; each toggled independently via circuitboard) connection to a node.',
+  }),
+  gear({
+    name: 'Coolant',
+    folder: 'Architecture Hardware', cost: 'CO',
+    description: 'Architecture Hardware add-on. Nitrogen cooling throughout the system. Device is immune to fire-inducing program effects. +1 active program slot.',
+  }),
+  gear({
+    name: 'Insulation',
+    folder: 'Architecture Hardware', cost: 'VEX',
+    description: 'Architecture Hardware add-on. Device is immune to EMP and microwave radiation.',
+  }),
+  gear({
+    name: 'Memory Upgrade',
+    folder: 'Architecture Hardware', cost: 'PR',
+    description: 'Architecture Hardware add-on. Adds +1 DATA node to the device. Can be purchased multiple times (servers only).',
+  }),
+];

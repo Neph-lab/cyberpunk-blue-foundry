@@ -6,7 +6,10 @@ export default class CyberBlueMod extends CyberBlueItemBase {
     const requiredInteger = { required: true, nullable: false, integer: true };
     const schema = super.defineSchema();
 
+    // modType: 'weaponMod' | 'cyberwareMod' | 'computerMod'
     schema.modType = new fields.StringField({ required: true, blank: false, initial: 'weaponMod' });
+    // For computerMod: which slot type to consume first ('hardware' | 'general')
+    schema.computerSlotType = new fields.StringField({ required: true, blank: false, initial: 'hardware' });
     schema.installedOnId = new fields.StringField({ required: true, blank: true });
     schema.cost = new fields.StringField({ required: true, blank: true });
     schema.note = new fields.StringField({ required: true, blank: true });

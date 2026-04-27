@@ -153,6 +153,18 @@ async function _rollCheckStep(item, step, actor) {
   const statRollMod  = actor.system?.stats?.[statSlug]?.rollMod ?? 0;
   const skillRank    = skillSlug ? (actor.system?.skills?.[skillSlug]?.rank ?? 0) : 0;
   const componentRank = componentSlug ? (actor.system?.components?.[componentSlug]?.rank ?? null) : null;
+
+  // Auto-fail: requiresComponent is true and the actor doesn't have the component at all.
+  if (step.requiresComponent && componentSlug && componentRank === null) {
+    const stepName = step.name || game.i18n.localize('CYBER_BLUE.Instructions.Check');
+    const compLabel = CONFIG.CYBER_BLUE.components?.[componentSlug]?.label ?? componentSlug;
+    await ChatMessage.create({
+      speaker:  ChatMessage.getSpeaker({ actor }),
+      content:  `<div class="cyberpunk-blue chat-card"><h3>${stepName}: ${item.name}</h3><p>${game.i18n.format('CYBER_BLUE.Instructions.CheckRequiresComponent', { component: compLabel })}</p><p><strong>${game.i18n.localize('CYBER_BLUE.Instructions.CheckEnds')}</strong></p></div>`,
+    });
+    return { advances: false };
+  }
+
   const effectiveSkill = componentRank !== null ? Math.min(skillRank, componentRank) : skillRank;
   const flatBonus    = statValue + effectiveSkill + (statRollMod || 0);
 

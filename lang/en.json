@@ -537,7 +537,15 @@
       "gear": "Gear",
       "ammo": "Ammo",
       "programExecutable": "Executable",
+      "drug": "Drug",
       "mod": "Mod"
+    },
+    "Drug": {
+      "PrimaryEffect": "Primary effect",
+      "Duration": "Duration",
+      "SecondaryDV": "Secondary DV",
+      "SecondaryEffect": "Secondary effect (on fail)",
+      "AddictionPenalty": "Addiction penalty"
     },
     "Instructions": {
       "Title": "Instructions",
@@ -564,7 +572,9 @@
       "CheckEnds": "Failure — sequence ends.",
       "End": "End sequence",
       "Use": "Use",
-      "Activate": "Activate"
+      "Activate": "Activate",
+      "RequiresComponent": "Auto-fail if component absent",
+      "CheckRequiresComponent": "Requires {component} — automatic failure."
     }
   }
 }

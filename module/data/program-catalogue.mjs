@@ -1,0 +1,370 @@
+/**
+ * Program catalogue — all Program Executable items from the Cyberpunk Blue source.
+ *
+ * Categories: attack | black-ice | defender | booster | daemon | quickhack | malware
+ * Each entry is Foundry Item create-data ready for `Item.createDocuments`.
+ * The `_folder` property is stripped before the item is written to the pack.
+ */
+
+const COST = {
+  CH:  '€$10 (Cheap)',
+  EV:  '€$20 (Everyday)',
+  CO:  '€$50 (Costly)',
+  PR:  '€$100 (Premium)',
+  EX:  '€$500 (Expensive)',
+  VEX: '€$1,000 (Very Expensive)',
+  LUX: '€$5,000 (Luxury)',
+  SLX: '€$10,000 (Super Luxury)',
+};
+
+const FOLDER = {
+  'attack':    'Attack',
+  'black-ice': 'Black ICE',
+  'defender':  'Defender',
+  'booster':   'Booster',
+  'daemon':    'Daemon',
+  'quickhack': 'Quickhack',
+  'malware':   'Malware',
+};
+
+const h = (text) => `<p>${text}</p>`;
+
+function prog({ name, cost, category, act = 0, atk = 0, def = 0, net = 0, per = 0, rez = 0, ram = 0, description }) {
+  return {
+    _folder: FOLDER[category] ?? category,
+    name,
+    type: 'programExecutable',
+    img: '',
+    system: {
+      manufacturer: '',
+      cost: COST[cost] ?? cost,
+      note: '',
+      category,
+      programType: 'antipersonnel',
+      act,
+      atk,
+      def,
+      net,
+      per,
+      rez: { value: rez, max: rez },
+      ram,
+      running: false,
+      installedOnId: null,
+      description: h(description),
+      notes: '',
+    },
+  };
+}
+
+export const PROGRAM_CATALOGUE = [
+
+  // ── Attack Programs ───────────────────────────────────────────────────────
+  // Used by a Netrunner to attack enemy systems or runners.
+  // Deactivate after use unless noted.
+
+  prog({
+    name: 'Deckkrash',
+    cost: 'PR', category: 'attack',
+    atk: 0, def: 10, rez: 5,
+    description: 'Attack a netrunner with a connected cyberdeck. Deals no damage; instead unsafely disconnects the target.',
+  }),
+  prog({
+    name: 'Hellbolt',
+    cost: 'PR', category: 'attack',
+    atk: 1, def: 14, rez: 5,
+    description: 'Attack a netrunner. Deals 2d6 HP directly; a non-insulated cyberdeck starts a small fire. Target has 1 fewer NET action (non-cumulative) on their next turn.',
+  }),
+  prog({
+    name: 'Nervescrub',
+    cost: 'EX', category: 'attack',
+    atk: 0, def: 10, rez: 5,
+    description: 'Attack a netrunner. No damage. Target\'s RFLX and INT are each reduced by 1d6 (minimum 1) for 1 hour. Effect is non-stacking and psychosomatic.',
+  }),
+  prog({
+    name: 'Poison Flatline',
+    cost: 'EX', category: 'attack',
+    atk: 0, def: 12, rez: 10,
+    description: 'Attack a netrunner. No damage. Deletes one random program from the target\'s cyberdeck.',
+  }),
+  prog({
+    name: 'Speed-Slice',
+    cost: 'PR', category: 'attack',
+    act: 1, atk: 2, def: 10, rez: 5,
+    description: 'Attack a program (as own action or as a NET action). Deals 2d6 damage. ACT 1. A single target can only be attacked once per turn per copy of this program.',
+  }),
+  prog({
+    name: 'Superglue',
+    cost: 'PR', category: 'attack',
+    atk: 2, def: 14, rez: 10,
+    description: 'Attack a netrunner. No damage. For 1d6 turns, or until closed, the target cannot move between nodes or safely disconnect. Must be closed and re-run to use again.',
+  }),
+  prog({
+    name: 'Sword',
+    cost: 'CO', category: 'attack',
+    atk: 2, def: 10, rez: 5,
+    description: 'Attack a program. Deals 2d6 damage (+1d6 extra against Black ICE).',
+  }),
+  prog({
+    name: 'Vrizzbolt',
+    cost: 'CO', category: 'attack',
+    atk: 2, def: 10, rez: 5,
+    description: 'Attack a netrunner. Deals 1d6 HP directly to the brain. Target\'s NET actions on their next turn are reduced by 1 (minimum 2).',
+  }),
+
+  // ── Black ICE ─────────────────────────────────────────────────────────────
+  // Protect the system they are on; can harm intruding netrunners.
+  // ACT 1 each unless noted.
+
+  prog({
+    name: 'Asp',
+    cost: 'PR', category: 'black-ice',
+    act: 1, atk: 2, def: 12, net: 0, per: 12, rez: 15,
+    description: 'Destroys a single program installed on the enemy\'s system.',
+  }),
+  prog({
+    name: 'Dragon',
+    cost: 'VEX', category: 'black-ice',
+    act: 1, atk: 6, def: 16, net: 2, per: 15, rez: 30,
+    description: 'Deals 6d6 damage to a program. If the program\'s REZ reaches 0, the program is deleted rather than merely derezzed.',
+  }),
+  prog({
+    name: 'Giant',
+    cost: 'VEX', category: 'black-ice',
+    act: 1, atk: 8, def: 14, net: 2, per: 14, rez: 25,
+    description: 'Deals 3d6 HP directly to a netrunner and unsafely disconnects them. This disconnect effect can only happen once per Giant.',
+  }),
+  prog({
+    name: 'Hellhound',
+    cost: 'EX', category: 'black-ice',
+    act: 1, atk: 6, def: 12, net: 1, per: 15, rez: 20,
+    description: 'Deals 3d6 HP directly to a netrunner. The runner\'s non-insulated cyberdeck and clothes catch Fire (Mild).',
+  }),
+  prog({
+    name: 'Killer',
+    cost: 'EX', category: 'black-ice',
+    act: 1, atk: 6, def: 12, net: 1, per: 12, rez: 20,
+    description: 'Deals 4d6 damage to a program. If the program\'s REZ reaches 0, it is deleted rather than merely derezzed.',
+  }),
+  prog({
+    name: 'Kraken',
+    cost: 'VEX', category: 'black-ice',
+    act: 1, atk: 8, def: 14, net: 2, per: 14, rez: 30,
+    description: 'Deals 4d6 HP directly to a netrunner. Until the end of their next turn, the target cannot connect to a different node or safely disconnect.',
+  }),
+  prog({
+    name: 'Liche',
+    cost: 'EX', category: 'black-ice',
+    act: 1, atk: 6, def: 12, net: 1, per: 13, rez: 25,
+    description: 'Target netrunner\'s RFLX, TECH, and INT are each reduced by 1d6 (minimum 1) for 1 hour. Effect is non-stacking and psychosomatic.',
+  }),
+  prog({
+    name: 'Raven',
+    cost: 'CO', category: 'black-ice',
+    act: 1, atk: 4, def: 12, net: 0, per: 14, rez: 15,
+    description: 'Derezzes a random Defender program from a target netrunner, then deals 1d6 HP directly.',
+  }),
+  prog({
+    name: 'Sabertooth',
+    cost: 'EX', category: 'black-ice',
+    act: 1, atk: 7, def: 12, net: 3, per: 10, rez: 25,
+    description: 'Deals 6d6 damage to a program.',
+  }),
+  prog({
+    name: 'Scorpion',
+    cost: 'PR', category: 'black-ice',
+    act: 1, atk: 3, def: 12, net: 0, per: 8, rez: 15,
+    description: 'Target netrunner\'s MOVE is reduced by 1d6 (minimum 1) for 1 hour. Effect is non-stacking and psychosomatic.',
+  }),
+  prog({
+    name: 'Skunk',
+    cost: 'PR', category: 'black-ice',
+    act: 1, atk: 0, def: 12, net: 1, per: 10, rez: 10,
+    description: 'While rezzed: any detected target runner makes all Slide and Cloak checks at −2. Follows one runner; penalties from multiple Skunks stack.',
+  }),
+  prog({
+    name: 'Wisp',
+    cost: 'CO', category: 'black-ice',
+    act: 1, atk: 4, def: 14, net: 0, per: 9, rez: 15,
+    description: 'Deals 1d6 HP directly to a target netrunner. Reduces their NET actions by 1 (minimum 2) until they disconnect.',
+  }),
+
+  // ── Defender Programs ─────────────────────────────────────────────────────
+
+  prog({
+    name: 'Armor',
+    cost: 'CO', category: 'defender',
+    def: 12, rez: 5,
+    description: 'Damage dealt to the netrunner from an attack is lowered by Armor\'s current REZ. If the netrunner still takes damage, Armor loses 1 REZ. Only one copy protects against any single attack.',
+  }),
+  prog({
+    name: 'Flack',
+    cost: 'PR', category: 'defender',
+    def: 10, rez: 7,
+    description: 'Halves the ATK of all ICE against the user while Flack is rezzed. Only one copy can run on any given Architecture at a time.',
+  }),
+  prog({
+    name: 'Restore',
+    cost: 'PR', category: 'defender',
+    def: 14, rez: 7,
+    description: 'When a program in the same node as Restore would be maliciously deleted: roll 1d10 and reduce Restore to 0 REZ. On a result of 7 or higher, the program is closed instead of deleted.',
+  }),
+  prog({
+    name: 'Shield',
+    cost: 'CO', category: 'defender',
+    def: 10, rez: 7,
+    description: 'Intercepts the first non-Black ICE effect that would deal damage to the Netrunner or one of their programs, taking the damage instead. Deactivates if REZ > 0 after absorbing an effect.',
+  }),
+
+  // ── Booster Programs ──────────────────────────────────────────────────────
+  // Each provides +2 to a specific NET action type until the start of your
+  // next turn. Only one copy of each may benefit you at a time. ACT 1.
+
+  prog({
+    name: 'Eraser',
+    cost: 'EV', category: 'booster',
+    act: 1, def: 12, rez: 7,
+    description: '+2 to Cloak checks until the start of your next turn. Only one copy may benefit you at a time.',
+  }),
+  prog({
+    name: 'See-Ya',
+    cost: 'EV', category: 'booster',
+    act: 1, def: 12, rez: 7,
+    description: '+2 to Pathfinder checks until the start of your next turn. Only one copy may benefit you at a time.',
+  }),
+  prog({
+    name: 'Worm',
+    cost: 'CO', category: 'booster',
+    act: 1, def: 12, rez: 7,
+    description: '+2 to Breach checks until the start of your next turn. Only one copy may benefit you at a time.',
+  }),
+
+  // ── Daemons ───────────────────────────────────────────────────────────────
+  // Control programs for automated systems (turrets, doors, etc.).
+  // Logic follows simple rules defined at install time.
+
+  prog({
+    name: 'Gremlin',
+    cost: 'EX', category: 'daemon',
+    act: 2, atk: 10, def: 15, net: 2, per: 13, rez: 15,
+    description: 'A control program for automated systems (turrets, doors, etc.). Logic follows simple if/then rules defined when installed.',
+  }),
+  prog({
+    name: 'Imp',
+    cost: 'VEX', category: 'daemon',
+    act: 3, atk: 13, def: 18, net: 3, per: 15, rez: 20,
+    description: 'A control program for automated systems (turrets, doors, etc.). Logic follows simple if/then rules defined when installed.',
+  }),
+  prog({
+    name: 'Efreet',
+    cost: 'LUX', category: 'daemon',
+    act: 4, atk: 14, def: 19, net: 4, per: 16, rez: 25,
+    description: 'A control program for automated systems (turrets, doors, etc.). Logic follows simple if/then rules defined when installed.',
+  }),
+  prog({
+    name: 'Balron',
+    cost: 'SLX', category: 'daemon',
+    act: 5, atk: 15, def: 20, net: 7, per: 18, rez: 30,
+    description: 'A control program for automated systems (turrets, doors, etc.). Logic follows simple if/then rules defined when installed.',
+  }),
+
+  // ── Quickhacks ────────────────────────────────────────────────────────────
+  // Uploaded to a target's neuroport to hack or disable their cyberware.
+  // RAM = cyberdeck RAM consumed on upload.
+  // Duration: 30 rounds − 1 per rank in TECH and Endurance the target has.
+
+  prog({
+    name: 'Cyberware Malfunction',
+    cost: 'EX', category: 'quickhack',
+    ram: 3, atk: 2, def: 14, rez: 20,
+    description: 'Disable one selected piece of cyberware (not the neuroport, COS, or neuroport cyberdeck port). Cyberlimbs become inoperable as a Broken limb Critical Injury; subsystems (e.g. weapons in a cyberarm) also fail.',
+  }),
+  prog({
+    name: 'Impair Movement',
+    cost: 'EV', category: 'quickhack',
+    ram: 1, atk: 6, def: 12, rez: 20,
+    description: 'MOVE −1. At 0 MOVE, the target cannot take a Move Action.',
+  }),
+  prog({
+    name: 'Lure',
+    cost: 'EX', category: 'quickhack',
+    ram: 3, atk: 2, def: 14, rez: 20,
+    description: 'If the target knows they are being hacked, they may defend with TECH+Human Perception; otherwise it succeeds automatically. On their next turn, the Netrunner decides the target\'s Move (full Move if the target was unaware; the target cannot be Lured into obvious danger).',
+  }),
+  prog({
+    name: 'Overheat',
+    cost: 'PR', category: 'quickhack',
+    ram: 2, atk: 4, def: 13, rez: 20,
+    description: 'Target ignites and takes 4 HP direct damage (bypasses and does not ablate armor) at the end of their turns for 1 minute (20 turns) or until the fire is extinguished as an Action.',
+  }),
+  prog({
+    name: 'Puppet',
+    cost: 'VEX', category: 'quickhack',
+    ram: 4, atk: 0, def: 15, rez: 20,
+    description: 'Control the target\'s Action and Move on their next turn, using the target\'s own stats.',
+  }),
+  prog({
+    name: 'Shard Ejection',
+    cost: 'EX', category: 'quickhack',
+    ram: 4, atk: 0, def: 15, rez: 20,
+    description: 'Forcibly uninstalls and ejects one slotted shard (Netrunner\'s choice, including chipware) into an adjacent space. A cover plate over the socket prevents ejection.',
+  }),
+  prog({
+    name: 'Short Circuit',
+    cost: 'PR', category: 'quickhack',
+    ram: 2, atk: 4, def: 13, rez: 20,
+    description: 'GM selects 3 non-foundational cyberware pieces; all 3 are disabled for the duration.',
+  }),
+  prog({
+    name: 'Slow',
+    cost: 'EX', category: 'quickhack',
+    ram: 3, atk: 2, def: 14, rez: 20,
+    description: 'MOVE −1d6 (−2d6 if the target has only cyberlegs). At 0 MOVE, the target cannot take a Move Action.',
+  }),
+  prog({
+    name: 'Sonic Shock',
+    cost: 'CO', category: 'quickhack',
+    ram: 1, atk: 6, def: 12, rez: 20,
+    description: 'Target suffers a Damaged Ear Critical Injury (no bonus damage) for the duration.',
+  }),
+  prog({
+    name: 'Synapse Burnout',
+    cost: 'VEX', category: 'quickhack',
+    ram: 3, atk: 2, def: 14, rez: 20,
+    description: 'Deals 3d6 damage directly to the target\'s brain, ignoring and not ablating armor.',
+  }),
+  prog({
+    name: 'System Reset',
+    cost: 'VEX', category: 'quickhack',
+    ram: 4, atk: 0, def: 15, rez: 20,
+    description: 'Target collapses unconscious for the duration, until they take damage, or until someone wakes them up.',
+  }),
+
+  // ── Malware ───────────────────────────────────────────────────────────────
+  // Black ICE capabilities combined with precise programmed instructions.
+  // All Malware is illegal without a permit (‡).
+
+  prog({
+    name: 'Corrupt',
+    cost: 'PR', category: 'malware',
+    act: 1, atk: 1, def: 10, net: 2, per: 3, rez: 15,
+    description: '‡ Illegal without a permit. Provided an encryption key before upload. Spreads randomly, giving all data it finds DV13 encryption.',
+  }),
+  prog({
+    name: 'Download',
+    cost: 'EX', category: 'malware',
+    act: 1, atk: 2, def: 10, net: 1, per: 7, rez: 15,
+    description: '‡ Illegal without a permit. Searches for a named file (or any file if none specified) and sends it to a designated NET address.',
+  }),
+  prog({
+    name: 'Mapper',
+    cost: 'PR', category: 'malware',
+    act: 1, atk: 1, def: 14, net: 4, per: 5, rez: 10,
+    description: '‡ Illegal without a permit. Slides into every node it enters and runs Pathfinding; attempts to Breach any Passwalls it finds. Sends a complete Architecture map to a specified NET address.',
+  }),
+  prog({
+    name: 'WireTap',
+    cost: 'PR', category: 'malware',
+    act: 1, atk: 3, def: 10, net: 2, per: 10, rez: 10,
+    description: '‡ Illegal without a permit. Alternates between Sliding into nodes and Cloaking. The number of nodes to reach and Passwalls to Breach are set beforehand. Logs all activity and sends reports to a given NET address.',
+  }),
+];

@@ -127,6 +127,15 @@
           "notes"
         ]
       },
+      "drug": {
+        "htmlFields": [
+          "description",
+          "notes",
+          "primaryEffect",
+          "secondaryEffect",
+          "addictionPenalty"
+        ]
+      },
       "mod": {
         "htmlFields": [
           "description"
@@ -156,6 +165,38 @@
       "label": "Weapon Mods",
       "type": "Item",
       "path": "packs/weapon-mods",
+      "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
+      "flags": {}
+    },
+    {
+      "name": "gear",
+      "label": "Gear",
+      "type": "Item",
+      "path": "packs/gear",
+      "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
+      "flags": {}
+    },
+    {
+      "name": "drugs",
+      "label": "Drugs",
+      "type": "Item",
+      "path": "packs/drugs",
+      "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
+      "flags": {}
+    },
+    {
+      "name": "cyberware",
+      "label": "Cyberware",
+      "type": "Item",
+      "path": "packs/cyberware",
+      "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
+      "flags": {}
+    },
+    {
+      "name": "programs",
+      "label": "Programs",
+      "type": "Item",
+      "path": "packs/programs",
       "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
       "flags": {}
     }
