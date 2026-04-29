@@ -13,6 +13,20 @@
  *   - Budget Arms Slaught-O-Matic (can't reload + melts)
  */
 
+// ─── Cost abbreviation → full COST_LADDER string ─────────────────────────────
+
+const COST_EXPAND = {
+  CH:  '€$10 (Cheap)',
+  EV:  '€$20 (Everyday)',
+  C:   '€$50 (Costly)',
+  CO:  '€$50 (Costly)',
+  PR:  '€$100 (Premium)',
+  EX:  '€$500 (Expensive)',
+  VEX: '€$1,000 (Very Expensive)',
+  LUX: '€$5,000 (Luxury)',
+  SLX: '€$10,000 (Super Luxury)',
+};
+
 const ASSET_BASE = 'systems/cyberpunk-blue/assets/items/weapons';
 const W_MELEE = `${ASSET_BASE}/Melee`;
 const W_PISTOL = `${ASSET_BASE}/Pisols`; // sic — that's the on-disk folder name
@@ -106,7 +120,7 @@ function weaponItem({ name, manufacturer = '', cost = '', minBody = 0, weapons =
     img: imgPath,
     system: {
       manufacturer,
-      cost,
+      cost: COST_EXPAND[cost] ?? cost,
       note: '',
       notes: notes || '',
       isArmor: false,

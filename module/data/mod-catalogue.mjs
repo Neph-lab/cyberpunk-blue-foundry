@@ -6,6 +6,20 @@
  * The accompanying weapon catalogue lives in `weapon-catalogue.mjs`.
  */
 
+// ─── Cost abbreviation → full COST_LADDER string ─────────────────────────────
+
+const COST_EXPAND = {
+  CH:  '€$10 (Cheap)',
+  EV:  '€$20 (Everyday)',
+  C:   '€$50 (Costly)',
+  CO:  '€$50 (Costly)',
+  PR:  '€$100 (Premium)',
+  EX:  '€$500 (Expensive)',
+  VEX: '€$1,000 (Very Expensive)',
+  LUX: '€$5,000 (Luxury)',
+  SLX: '€$10,000 (Super Luxury)',
+};
+
 const ASSET_BASE = 'systems/cyberpunk-blue/assets/items/mods';
 const M_SCOPES = `${ASSET_BASE}/Scopes`;
 const M_MUZZLE = `${ASSET_BASE}/Muzzle`;
@@ -25,7 +39,7 @@ function modItem({ name, manufacturer = '', cost = '', description = '', imgPath
     img: imgPath,
     system: {
       manufacturer,
-      cost,
+      cost: COST_EXPAND[cost] ?? cost,
       note: '',
       modType: system.modType ?? 'weaponMod',
       installedOnId: '',

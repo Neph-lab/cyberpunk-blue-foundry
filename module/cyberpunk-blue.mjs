@@ -421,6 +421,7 @@ Hooks.once('ready', async () => {
   }
 
   await ensureCritInjuryTables();
+  await migrateCostStrings();
   await ensureWeaponCatalogue();
   await ensureEquipmentCatalogue();
 
@@ -652,6 +653,59 @@ async function _populatePack(packId, items) {
   }
   return created;
 }
+
+// ─── Cost-string migration ────────────────────────────────────────────────────
+
+/**
+ * One-time migration: expand abbreviated cost strings (e.g. 'EX', 'VEX', 'C')
+ * to their full COST_LADDER equivalents in the weapons and weapon-mods packs.
+ * Safe to run on every load — items already using full strings are untouched.
+ */
+const _COST_EXPAND = {
+  CH:  '€$10 (Cheap)',
+  EV:  '€$20 (Everyday)',
+  C:   '€$50 (Costly)',
+  CO:  '€$50 (Costly)',
+  PR:  '€$100 (Premium)',
+  EX:  '€$500 (Expensive)',
+  VEX: '€$1,000 (Very Expensive)',
+  LUX: '€$5,000 (Luxury)',
+  SLX: '€$10,000 (Super Luxury)',
+};
+
+async function migrateCostStrings() {
+  if (!game.user.isGM) return;
+  const packIds = [
+    'cyberpunk-blue.weapons',
+    'cyberpunk-blue.weapon-mods',
+    'cyberpunk-blue.gear',
+    'cyberpunk-blue.cyberware',
+    'cyberpunk-blue.drugs',
+    'cyberpunk-blue.programs',
+  ];
+  let total = 0;
+  for (const packId of packIds) {
+    const pack = game.packs.get(packId);
+    if (!pack) continue;
+    const docs = await pack.getDocuments();
+    const updates = docs
+      .filter((d) => _COST_EXPAND[d.system?.cost])
+      .map((d) => ({ _id: d.id, 'system.cost': _COST_EXPAND[d.system.cost] }));
+    if (!updates.length) continue;
+    await pack.configure({ locked: false });
+    try {
+      await Item.updateDocuments(updates, { pack: packId });
+      total += updates.length;
+    } finally {
+      await pack.configure({ locked: true });
+    }
+  }
+  if (total > 0) {
+    console.log(`Cyberpunk Blue | Migrated ${total} item cost strings to full COST_LADDER format.`);
+  }
+}
+
+// ─── Weapon catalogue ─────────────────────────────────────────────────────────
 
 async function ensureWeaponCatalogue() {
   if (!game.user.isGM) return;
