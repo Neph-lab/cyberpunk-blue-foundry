@@ -22,13 +22,38 @@ export const CRITICAL_INJURY_FLAG = 'criticalInjury';
 export const CRITICAL_BODY_TABLE_NAME = 'Critical Body Injuries';
 export const CRITICAL_HEAD_TABLE_NAME = 'Critical Head Injuries';
 
-// ─── Helper builders ──────────────────────────────────────────────────────────
+// ─── AE change helpers ────────────────────────────────────────────────────────
 
+/** Modify a primary stat's roll modifier (affects checks using that stat). */
 const add = (stat, val) => ({ key: `system.stats.${stat}.rollMod`, type: 'add', value: String(val) });
+
+/** Modify MOVE directly (displayed value; minimum enforced by game rules). */
+const addMove = (val) => ({ key: 'system.stats.move.value', type: 'add', value: String(val) });
+
+/** Modify Death Save bonus (Death Save = BODY + bonus; minimum 1 per rules). */
+const addDeathSave = (val) => ({ key: 'system.resources.deathSave.bonus', type: 'add', value: String(val) });
+
+/** Modify a single skill rank. */
+const addSkill = (skill, val) => ({ key: `system.skills.${skill}.rank`, type: 'add', value: String(val) });
+
+/** Apply a modifier to every primary stat (all checks). */
 const addAll = (val) => ['body', 'rflx', 'int', 'tech', 'cool'].map((s) => add(s, val));
-const overrideMove = { key: 'system.stats.move.value', type: 'override', value: '1' };
 
 // ─── Body Critical Injury Table (2d6) ────────────────────────────────────────
+//
+// Entry metadata:
+//   key           - unique stable identifier used in AE flags and macro lookup
+//   nameKey       - i18n key for the injury name
+//   descKey       - i18n key for the flavour description
+//   mortal        - true → Mortal Wound note in chat card
+//   changes       - Foundry AE changes array (applied immediately)
+//   lateralize    - 'arm'|'hand'|'leg'|'eye'|'ear' → randomise L/R side
+//   noQuickFix    - true → quick fix not possible for this injury
+//   quickFixDv    - DV for the Medicine quick-fix check (null if noQuickFix)
+//   treatmentDv   - DV for the standard Medicine treatment check
+//   surgeryRequired - true → treatment requires Medtech role + Surgery specialisation
+//   surgeryDv     - DV when treating with Surgery (lower DV option; null if not applicable)
+//   deathSavePenalty - true → -1 to Death Save stat (encoded in changes via addDeathSave)
 
 export const CRITICAL_INJURY_TABLE = {
   2: {
@@ -36,78 +61,144 @@ export const CRITICAL_INJURY_TABLE = {
     nameKey: 'CYBER_BLUE.CriticalInjury.Body.DismemberedArm',
     descKey: 'CYBER_BLUE.CriticalInjury.Body.DismemberedArmDesc',
     mortal: true,
-    changes: [add('rflx', -4), add('tech', -4)],
+    changes: [addDeathSave(-1)],
+    lateralize: 'arm',
+    noQuickFix: true,
+    quickFixDv: null,
+    treatmentDv: 17,
+    surgeryRequired: true,
+    surgeryDv: null,
   },
   3: {
-    key: 'dismembered-leg',
-    nameKey: 'CYBER_BLUE.CriticalInjury.Body.DismemberedLeg',
-    descKey: 'CYBER_BLUE.CriticalInjury.Body.DismemberedLegDesc',
+    key: 'dismembered-hand',
+    nameKey: 'CYBER_BLUE.CriticalInjury.Body.DismemberedHand',
+    descKey: 'CYBER_BLUE.CriticalInjury.Body.DismemberedHandDesc',
     mortal: true,
-    changes: [add('body', -4), overrideMove],
+    changes: [addDeathSave(-1)],
+    lateralize: 'hand',
+    noQuickFix: true,
+    quickFixDv: null,
+    treatmentDv: 17,
+    surgeryRequired: true,
+    surgeryDv: null,
   },
   4: {
     key: 'collapsed-lung',
     nameKey: 'CYBER_BLUE.CriticalInjury.Body.CollapsedLung',
     descKey: 'CYBER_BLUE.CriticalInjury.Body.CollapsedLungDesc',
     mortal: true,
-    changes: addAll(-4),
+    changes: [addMove(-2), addDeathSave(-1)],
+    lateralize: null,
+    noQuickFix: false,
+    quickFixDv: 15,
+    treatmentDv: 17,
+    surgeryRequired: true,
+    surgeryDv: null,
   },
   5: {
-    key: 'broken-arm',
-    nameKey: 'CYBER_BLUE.CriticalInjury.Body.BrokenArm',
-    descKey: 'CYBER_BLUE.CriticalInjury.Body.BrokenArmDesc',
-    mortal: false,
-    changes: [add('rflx', -4), add('tech', -4)],
-  },
-  6: {
     key: 'broken-ribs',
     nameKey: 'CYBER_BLUE.CriticalInjury.Body.BrokenRibs',
     descKey: 'CYBER_BLUE.CriticalInjury.Body.BrokenRibsDesc',
     mortal: false,
-    changes: addAll(-2),
+    changes: [],
+    lateralize: null,
+    noQuickFix: false,
+    quickFixDv: 15,
+    treatmentDv: 18,
+    surgeryRequired: false,
+    surgeryDv: 15,
+  },
+  6: {
+    key: 'broken-arm',
+    nameKey: 'CYBER_BLUE.CriticalInjury.Body.BrokenArm',
+    descKey: 'CYBER_BLUE.CriticalInjury.Body.BrokenArmDesc',
+    mortal: false,
+    changes: [],
+    lateralize: 'arm',
+    noQuickFix: false,
+    quickFixDv: 15,
+    treatmentDv: 18,
+    surgeryRequired: false,
+    surgeryDv: 15,
   },
   7: {
-    key: 'broken-leg',
-    nameKey: 'CYBER_BLUE.CriticalInjury.Body.BrokenLeg',
-    descKey: 'CYBER_BLUE.CriticalInjury.Body.BrokenLegDesc',
-    mortal: false,
-    changes: [add('body', -4), overrideMove],
-  },
-  8: {
-    key: 'torn-muscle',
-    nameKey: 'CYBER_BLUE.CriticalInjury.Body.TornMuscle',
-    descKey: 'CYBER_BLUE.CriticalInjury.Body.TornMuscleDesc',
-    mortal: false,
-    changes: [add('body', -2), add('rflx', -2)],
-  },
-  9: {
-    key: 'spinal-injury',
-    nameKey: 'CYBER_BLUE.CriticalInjury.Body.SpinalInjury',
-    descKey: 'CYBER_BLUE.CriticalInjury.Body.SpinalInjuryDesc',
-    mortal: false,
-    changes: addAll(-4),
-  },
-  10: {
-    key: 'crushed-windpipe',
-    nameKey: 'CYBER_BLUE.CriticalInjury.Body.CrushedWindpipe',
-    descKey: 'CYBER_BLUE.CriticalInjury.Body.CrushedWindpipeDesc',
-    mortal: true,
-    changes: [add('body', -4), add('cool', -4)],
-  },
-  11: {
     key: 'foreign-object',
     nameKey: 'CYBER_BLUE.CriticalInjury.Body.ForeignObject',
     descKey: 'CYBER_BLUE.CriticalInjury.Body.ForeignObjectDesc',
     mortal: false,
-    changes: addAll(-2),
+    changes: [],
+    lateralize: null,
+    noQuickFix: true,
+    quickFixDv: null,
+    treatmentDv: 14,
+    surgeryRequired: false,
+    surgeryDv: null,
+  },
+  8: {
+    key: 'broken-leg',
+    nameKey: 'CYBER_BLUE.CriticalInjury.Body.BrokenLeg',
+    descKey: 'CYBER_BLUE.CriticalInjury.Body.BrokenLegDesc',
+    mortal: false,
+    changes: [addMove(-2)],
+    lateralize: 'leg',
+    noQuickFix: false,
+    quickFixDv: 15,
+    treatmentDv: 18,
+    surgeryRequired: false,
+    surgeryDv: 15,
+  },
+  9: {
+    key: 'torn-muscle',
+    nameKey: 'CYBER_BLUE.CriticalInjury.Body.TornMuscle',
+    descKey: 'CYBER_BLUE.CriticalInjury.Body.TornMuscleDesc',
+    mortal: false,
+    changes: [addSkill('athletics', -2), addSkill('martialArts', -2), addSkill('meleeWeapons', -2)],
+    lateralize: null,
+    noQuickFix: true,
+    quickFixDv: null,
+    treatmentDv: 13,
+    surgeryRequired: false,
+    surgeryDv: null,
+  },
+  10: {
+    key: 'spinal-injury',
+    nameKey: 'CYBER_BLUE.CriticalInjury.Body.SpinalInjury',
+    descKey: 'CYBER_BLUE.CriticalInjury.Body.SpinalInjuryDesc',
+    mortal: false,
+    changes: [addDeathSave(-1)],
+    lateralize: null,
+    noQuickFix: false,
+    quickFixDv: 17,
+    treatmentDv: 17,
+    surgeryRequired: true,
+    surgeryDv: null,
+  },
+  11: {
+    key: 'crushed-fingers',
+    nameKey: 'CYBER_BLUE.CriticalInjury.Body.CrushedFingers',
+    descKey: 'CYBER_BLUE.CriticalInjury.Body.CrushedFingersDesc',
+    mortal: false,
+    changes: [],
+    lateralize: 'hand',
+    noQuickFix: false,
+    quickFixDv: 15,
+    treatmentDv: 15,
+    surgeryRequired: true,
+    surgeryDv: null,
   },
   12: {
-    key: 'instant-death',
-    nameKey: 'CYBER_BLUE.CriticalInjury.InstantDeath',
-    descKey: 'CYBER_BLUE.CriticalInjury.InstantDeathDesc',
-    mortal: false,
-    instantDeath: true,
-    changes: [],
+    key: 'dismembered-leg',
+    nameKey: 'CYBER_BLUE.CriticalInjury.Body.DismemberedLeg',
+    descKey: 'CYBER_BLUE.CriticalInjury.Body.DismemberedLegDesc',
+    mortal: true,
+    changes: [addMove(-6), addDeathSave(-1)],
+    lateralize: 'leg',
+    noQuickFix: true,
+    quickFixDv: null,
+    treatmentDv: 17,
+    surgeryRequired: true,
+    surgeryDv: null,
+    evasionPrompt: true,
   },
 };
 
@@ -119,86 +210,196 @@ export const CRITICAL_HEAD_INJURY_TABLE = {
     nameKey: 'CYBER_BLUE.CriticalInjury.Head.LostEye',
     descKey: 'CYBER_BLUE.CriticalInjury.Head.LostEyeDesc',
     mortal: false,
-    changes: [add('rflx', -4), add('int', -2)],
+    changes: [add('rflx', -4), addDeathSave(-1)],
+    lateralize: 'eye',
+    noQuickFix: true,
+    quickFixDv: null,
+    treatmentDv: 17,
+    surgeryRequired: true,
+    surgeryDv: null,
   },
   3: {
     key: 'brain-injury',
     nameKey: 'CYBER_BLUE.CriticalInjury.Head.BrainInjury',
     descKey: 'CYBER_BLUE.CriticalInjury.Head.BrainInjuryDesc',
     mortal: false,
-    changes: [add('int', -2), add('cool', -2)],
+    changes: [...addAll(-2), addDeathSave(-1)],
+    lateralize: null,
+    noQuickFix: true,
+    quickFixDv: null,
+    treatmentDv: 17,
+    surgeryRequired: true,
+    surgeryDv: null,
   },
   4: {
-    key: 'concussion',
-    nameKey: 'CYBER_BLUE.CriticalInjury.Head.Concussion',
-    descKey: 'CYBER_BLUE.CriticalInjury.Head.ConcussionDesc',
-    mortal: false,
-    changes: addAll(-2),
-  },
-  5: {
-    key: 'broken-nose',
-    nameKey: 'CYBER_BLUE.CriticalInjury.Head.BrokenNose',
-    descKey: 'CYBER_BLUE.CriticalInjury.Head.BrokenNoseDesc',
-    mortal: false,
-    changes: [add('cool', -2)],
-  },
-  6: {
-    key: 'lost-ear',
-    nameKey: 'CYBER_BLUE.CriticalInjury.Head.LostEar',
-    descKey: 'CYBER_BLUE.CriticalInjury.Head.LostEarDesc',
-    mortal: false,
-    changes: [add('int', -2)],
-  },
-  7: {
-    key: 'cracked-skull',
-    nameKey: 'CYBER_BLUE.CriticalInjury.Head.CrackedSkull',
-    descKey: 'CYBER_BLUE.CriticalInjury.Head.CrackedSkullDesc',
-    mortal: true,
-    changes: addAll(-4),
-  },
-  8: {
     key: 'damaged-eye',
     nameKey: 'CYBER_BLUE.CriticalInjury.Head.DamagedEye',
     descKey: 'CYBER_BLUE.CriticalInjury.Head.DamagedEyeDesc',
     mortal: false,
     changes: [add('rflx', -2)],
+    lateralize: 'eye',
+    noQuickFix: false,
+    quickFixDv: 15,
+    treatmentDv: 15,
+    surgeryRequired: true,
+    surgeryDv: null,
   },
-  9: {
-    key: 'damaged-ear',
-    nameKey: 'CYBER_BLUE.CriticalInjury.Head.DamagedEar',
-    descKey: 'CYBER_BLUE.CriticalInjury.Head.DamagedEarDesc',
+  5: {
+    key: 'concussion',
+    nameKey: 'CYBER_BLUE.CriticalInjury.Head.Concussion',
+    descKey: 'CYBER_BLUE.CriticalInjury.Head.ConcussionDesc',
     mortal: false,
-    changes: [add('int', -1)],
+    changes: addAll(-2),
+    lateralize: null,
+    noQuickFix: true,
+    quickFixDv: null,
+    treatmentDv: 13,
+    surgeryRequired: false,
+    surgeryDv: null,
   },
-  10: {
+  6: {
+    key: 'broken-jaw',
+    nameKey: 'CYBER_BLUE.CriticalInjury.Head.BrokenJaw',
+    descKey: 'CYBER_BLUE.CriticalInjury.Head.BrokenJawDesc',
+    mortal: false,
+    changes: [],
+    lateralize: null,
+    noQuickFix: false,
+    quickFixDv: 15,
+    treatmentDv: 18,
+    surgeryRequired: false,
+    surgeryDv: 15,
+  },
+  7: {
     key: 'foreign-object-head',
     nameKey: 'CYBER_BLUE.CriticalInjury.Head.ForeignObject',
     descKey: 'CYBER_BLUE.CriticalInjury.Head.ForeignObjectDesc',
     mortal: false,
-    changes: addAll(-2),
+    changes: [],
+    lateralize: null,
+    noQuickFix: true,
+    quickFixDv: null,
+    treatmentDv: 13,
+    surgeryRequired: false,
+    surgeryDv: null,
   },
-  11: {
+  8: {
     key: 'whiplash',
     nameKey: 'CYBER_BLUE.CriticalInjury.Head.Whiplash',
     descKey: 'CYBER_BLUE.CriticalInjury.Head.WhiplashDesc',
     mortal: false,
-    changes: [add('body', -2), add('rflx', -2)],
+    changes: [add('rflx', -1), addDeathSave(-1)],
+    lateralize: null,
+    noQuickFix: false,
+    quickFixDv: 15,
+    treatmentDv: 15,
+    surgeryRequired: false,
+    surgeryDv: 13,
+  },
+  9: {
+    key: 'cracked-skull',
+    nameKey: 'CYBER_BLUE.CriticalInjury.Head.CrackedSkull',
+    descKey: 'CYBER_BLUE.CriticalInjury.Head.CrackedSkullDesc',
+    mortal: true,
+    changes: [addDeathSave(-1)],
+    lateralize: null,
+    noQuickFix: false,
+    quickFixDv: 17,
+    treatmentDv: 18,
+    surgeryRequired: false,
+    surgeryDv: 15,
+  },
+  10: {
+    key: 'damaged-ear',
+    nameKey: 'CYBER_BLUE.CriticalInjury.Head.DamagedEar',
+    descKey: 'CYBER_BLUE.CriticalInjury.Head.DamagedEarDesc',
+    mortal: false,
+    changes: [],
+    lateralize: 'ear',
+    noQuickFix: false,
+    quickFixDv: 15,
+    treatmentDv: 15,
+    surgeryRequired: true,
+    surgeryDv: null,
+  },
+  11: {
+    key: 'crushed-windpipe',
+    nameKey: 'CYBER_BLUE.CriticalInjury.Head.CrushedWindpipe',
+    descKey: 'CYBER_BLUE.CriticalInjury.Head.CrushedWindpipeDesc',
+    mortal: true,
+    changes: [addDeathSave(-1)],
+    lateralize: null,
+    noQuickFix: true,
+    quickFixDv: null,
+    treatmentDv: 15,
+    surgeryRequired: true,
+    surgeryDv: null,
   },
   12: {
-    key: 'instant-death',
-    nameKey: 'CYBER_BLUE.CriticalInjury.InstantDeath',
-    descKey: 'CYBER_BLUE.CriticalInjury.InstantDeathDesc',
+    key: 'lost-ear',
+    nameKey: 'CYBER_BLUE.CriticalInjury.Head.LostEar',
+    descKey: 'CYBER_BLUE.CriticalInjury.Head.LostEarDesc',
     mortal: false,
-    instantDeath: true,
-    changes: [],
+    changes: [addDeathSave(-1)],
+    lateralize: 'ear',
+    noQuickFix: true,
+    quickFixDv: null,
+    treatmentDv: 17,
+    surgeryRequired: true,
+    surgeryDv: null,
   },
 };
+
+// ─── Lateralization ───────────────────────────────────────────────────────────
+
+/**
+ * Body-part keyword lists used to find matching installed cyberware.
+ */
+const PART_KEYWORDS = {
+  arm:  ['arm', 'limb'],
+  hand: ['hand', 'claw', 'grip', 'finger'],
+  leg:  ['leg', 'foot'],
+  eye:  ['eye', 'optical', 'cybereye'],
+  ear:  ['ear', 'audio', 'cyberaudio'],
+};
+
+/**
+ * Determine which side (or which cyberware variant) is affected.
+ *
+ * Rules:
+ *  - If the actor has MORE THAN TWO installed cyberware items matching the
+ *    body part, pick one at random from those cyberware names.
+ *  - Otherwise randomly choose "Left" or "Right".
+ *
+ * @param {object} entry         - Injury table entry
+ * @param {Actor|null} targetActor
+ * @returns {{ side: 'left'|'right'|null, cywareName: string|null }}
+ */
+function lateralizeInjury(entry, targetActor) {
+  if (!entry.lateralize) return { side: null, cywareName: null };
+
+  const keywords = PART_KEYWORDS[entry.lateralize] ?? [entry.lateralize];
+
+  const matching = (targetActor?.items?.contents ?? []).filter((item) => {
+    if (item.type !== 'cyberware') return false;
+    const n = item.name.toLowerCase();
+    return keywords.some((kw) => n.includes(kw));
+  });
+
+  if (matching.length > 2) {
+    const pick = matching[Math.floor(Math.random() * matching.length)];
+    return { side: null, cywareName: pick.name };
+  }
+
+  const side = Math.random() < 0.5 ? 'left' : 'right';
+  return { side, cywareName: null };
+}
 
 // ─── Compendium table data builders ──────────────────────────────────────────
 
 function buildResultsFromTable(jsTable, tableType) {
   return Object.entries(jsTable).map(([roll, entry]) => ({
-    type: 'text', // Foundry V14+: string literal, not the deprecated numeric constant
+    type: 'text',
     text: game.i18n?.localize(entry.nameKey) ?? entry.key,
     weight: 1,
     range: [Number(roll), Number(roll)],
@@ -206,8 +407,14 @@ function buildResultsFromTable(jsTable, tableType) {
     flags: {
       'cyberpunk-blue': {
         critKey: entry.key,
-        instantDeath: entry.instantDeath ?? false,
         tableType,
+        noQuickFix: entry.noQuickFix ?? false,
+        quickFixDv: entry.quickFixDv ?? null,
+        treatmentDv: entry.treatmentDv ?? null,
+        surgeryRequired: entry.surgeryRequired ?? false,
+        surgeryDv: entry.surgeryDv ?? null,
+        lateralize: entry.lateralize ?? null,
+        evasionPrompt: entry.evasionPrompt ?? false,
       },
     },
   }));
@@ -260,14 +467,12 @@ export function detectCriticalDice(roll) {
 
 /**
  * Show the apply-damage confirm dialog.
- * When a critical hit is detected a note is shown but the table type is
- * determined externally (target vitals → head, everything else → body).
  *
  * @param {object} opts
  * @param {Actor}   opts.targetActor
- * @param {number}  opts.finalDamage  - Pre-SP damage including all bonuses
- * @param {number}  opts.sp           - Target SP at time of roll
- * @param {number}  opts.netDamage    - HP loss after SP
+ * @param {number}  opts.finalDamage
+ * @param {number}  opts.sp
+ * @param {number}  opts.netDamage
  * @param {boolean} opts.ablatesArmor
  * @param {boolean} opts.isCritical
  * @param {number}  opts.critDiceCount
@@ -327,12 +532,10 @@ export async function confirmDamageDialog({ targetActor, finalDamage, sp, netDam
 async function findRollTable(tableType) {
   const name = tableType === 'head' ? CRITICAL_HEAD_TABLE_NAME : CRITICAL_BODY_TABLE_NAME;
 
-  // 1. World tables (GM may have imported / customised them)
   const worldTable = game.tables.find((t) => t.getFlag('cyberpunk-blue', 'critTableType') === tableType)
     ?? game.tables.getName(name);
   if (worldTable) return worldTable;
 
-  // 2. Compendium pack
   const pack = game.packs.get('cyberpunk-blue.critical-injury-tables');
   if (!pack) return null;
   const index = await pack.getIndex();
@@ -348,7 +551,7 @@ async function findRollTable(tableType) {
  * @param {Actor}  targetActor
  * @param {'body'|'head'} tableType
  * @param {object} opts
- * @param {Actor}  [opts.attackerActor]  - Used as chat speaker if provided
+ * @param {Actor}  [opts.attackerActor]
  */
 export async function rollCriticalInjury(targetActor, tableType = 'body', { attackerActor } = {}) {
   const hardcodedTable = tableType === 'head' ? CRITICAL_HEAD_INJURY_TABLE : CRITICAL_INJURY_TABLE;
@@ -360,43 +563,38 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
     ? ChatMessage.getSpeaker({ actor: attackerActor })
     : ChatMessage.getSpeaker({ actor: targetActor });
 
-  // ── Try Foundry RollTable ──
   const rollTable = await findRollTable(tableType);
 
-  let total, entry, name, description;
+  let total, entry, baseName, description;
 
   if (rollTable) {
     const drawResult = await rollTable.draw({ displayChat: false });
     total = drawResult.roll.total;
     const tableResult = drawResult.results[0];
 
-    // Prefer critKey from flags for AE lookup; fall back to roll-total keying
     const critKey = tableResult?.getFlag('cyberpunk-blue', 'critKey');
     entry = critKey
       ? Object.values(hardcodedTable).find((e) => e.key === critKey)
       : (hardcodedTable[total] ?? hardcodedTable[12]);
 
-    name = tableResult?.text || (entry ? game.i18n.localize(entry.nameKey) : String(total));
+    baseName = entry ? game.i18n.localize(entry.nameKey) : (tableResult?.text || String(total));
     description = entry ? game.i18n.localize(entry.descKey) : '';
   } else {
-    // ── Pure-JS fallback ──
     const roll = await new Roll('2d6').evaluate();
     total = roll.total;
     entry = hardcodedTable[total] ?? hardcodedTable[12];
-    name = game.i18n.localize(entry.nameKey);
+    baseName = game.i18n.localize(entry.nameKey);
     description = game.i18n.localize(entry.descKey);
   }
 
-  // ── Instant Death ──
-  if (entry?.instantDeath) {
-    await targetActor.update({ 'system.resources.hp.value': 0 });
-    const content = buildInjuryChatHtml({
-      tableLabel, roll: total, targetName: targetActor.name,
-      name, description, mortal: false, instantDeath: true,
-      actorId: null, effectId: null,
-    });
-    await ChatMessage.create({ speaker, content });
-    return;
+  // ── Lateralization ──
+  const { side, cywareName } = lateralizeInjury(entry, targetActor);
+  let name = baseName;
+  if (cywareName) {
+    name = `${baseName} (${cywareName})`;
+  } else if (side) {
+    const sideLabel = game.i18n.localize(`CYBER_BLUE.CriticalInjury.Side.${side === 'left' ? 'Left' : 'Right'}`);
+    name = `${sideLabel} ${baseName}`;
   }
 
   // ── Apply Active Effect ──
@@ -414,6 +612,17 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
           tableType,
           mortal: entry?.mortal ?? false,
           descKey: entry?.descKey ?? '',
+          side: side ?? null,
+          cywareName: cywareName ?? null,
+          lateralize: entry?.lateralize ?? null,
+          noQuickFix: entry?.noQuickFix ?? false,
+          quickFixDv: entry?.quickFixDv ?? null,
+          quickFixUsed: false,
+          treatmentDv: entry?.treatmentDv ?? null,
+          surgeryRequired: entry?.surgeryRequired ?? false,
+          surgeryDv: entry?.surgeryDv ?? null,
+          evasionPrompt: entry?.evasionPrompt ?? false,
+          stabilized: false,
         },
       },
     },
@@ -424,7 +633,13 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
   // ── Post chat card ──
   const content = buildInjuryChatHtml({
     tableLabel, roll: total, targetName: targetActor.name,
-    name, description, mortal: entry?.mortal ?? false, instantDeath: false,
+    name, description,
+    mortal: entry?.mortal ?? false,
+    noQuickFix: entry?.noQuickFix ?? false,
+    quickFixDv: entry?.quickFixDv ?? null,
+    treatmentDv: entry?.treatmentDv ?? null,
+    surgeryRequired: entry?.surgeryRequired ?? false,
+    surgeryDv: entry?.surgeryDv ?? null,
     actorId: targetActor.id, effectId: createdAE?.id ?? null,
   });
 
@@ -437,13 +652,35 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
 
 // ─── Chat HTML builder ────────────────────────────────────────────────────────
 
-function buildInjuryChatHtml({ tableLabel, roll, targetName, name, description, mortal, instantDeath, actorId, effectId }) {
+function buildInjuryChatHtml({
+  tableLabel, roll, targetName, name, description,
+  mortal, noQuickFix, quickFixDv, treatmentDv, surgeryRequired, surgeryDv,
+  actorId, effectId,
+}) {
   const mortalBlock = mortal
     ? `<p class="crit-mortal-warning"><i class="fas fa-heart-pulse"></i> ${game.i18n.localize('CYBER_BLUE.CriticalInjury.MortalWound')}</p>`
     : '';
-  const deathBlock = instantDeath
-    ? `<p class="crit-instant-death"><i class="fas fa-skull"></i> ${game.i18n.localize('CYBER_BLUE.CriticalInjury.InstantDeathMessage')}</p>`
+
+  const qfText = noQuickFix
+    ? game.i18n.localize('CYBER_BLUE.CriticalInjury.NoQuickFix')
+    : quickFixDv != null
+      ? game.i18n.format('CYBER_BLUE.CriticalInjury.QuickFixDv', { dv: quickFixDv })
+      : '';
+
+  const surgeryNote = surgeryRequired
+    ? ` (${game.i18n.localize('CYBER_BLUE.CriticalInjury.SurgeryRequired')})`
+    : surgeryDv != null
+      ? ` (DV ${surgeryDv} ${game.i18n.localize('CYBER_BLUE.CriticalInjury.WithSurgery')})`
+      : '';
+
+  const txText = treatmentDv != null
+    ? `${game.i18n.format('CYBER_BLUE.CriticalInjury.TreatmentDv', { dv: treatmentDv })}${surgeryNote}`
     : '';
+
+  const infoBlock = (qfText || txText)
+    ? `<div class="crit-treatment-info" style="font-size:0.85em;margin-top:0.3rem;">${qfText ? `<span>${qfText}</span>` : ''}${qfText && txText ? ' &bull; ' : ''}${txText ? `<span>${txText}</span>` : ''}</div>`
+    : '';
+
   const removeBtn = (actorId && effectId)
     ? `<button type="button" class="remove-critical-injury" data-actor-id="${actorId}" data-effect-id="${effectId}">
         <i class="fas fa-trash"></i> ${game.i18n.localize('CYBER_BLUE.CriticalInjury.Remove')}
@@ -460,7 +697,7 @@ function buildInjuryChatHtml({ tableLabel, roll, targetName, name, description, 
       <div class="critical-injury-roll">${game.i18n.format('CYBER_BLUE.CriticalInjury.RollResult', { roll })}</div>
       <div class="critical-injury-name">${name}</div>
       <div class="critical-injury-desc">${description}</div>
-      ${mortalBlock}${deathBlock}
+      ${mortalBlock}${infoBlock}
       <div class="critical-injury-actions">${removeBtn}</div>
     </div>`;
 }

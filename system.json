@@ -199,6 +199,14 @@
       "path": "packs/programs",
       "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
       "flags": {}
+    },
+    {
+      "name": "macros",
+      "label": "Macros",
+      "type": "Macro",
+      "path": "packs/macros",
+      "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
+      "flags": {}
     }
   ],
   "initiative": "1d10 + @stats.rflx.value",

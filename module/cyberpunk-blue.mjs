@@ -30,6 +30,7 @@ import {
 } from './helpers/combat-tracker.mjs';
 import * as models from './data/_module.mjs';
 import { CRITICAL_INJURY_FLAG, buildCritBodyTableData, buildCritHeadTableData } from './helpers/critical-injury.mjs';
+import { MACRO_CATALOGUE } from './helpers/critical-injury-macros.mjs';
 import { WEAPON_CATALOGUE } from './data/weapon-catalogue.mjs';
 import { MOD_CATALOGUE } from './data/mod-catalogue.mjs';
 import { EQUIPMENT_CATALOGUE } from './data/equipment-catalogue.mjs';
@@ -163,6 +164,177 @@ Hooks.once('init', function () {
     type: CyberBlueWeaponImportDialog,
     restricted: true,
   });
+
+  // ── Foundry Conditions (status effects) ────────────────────────────────────
+  // These map system conditions to Foundry's token condition overlay system.
+  // AE changes on conditions with numeric effects are applied via embeds; purely
+  // descriptive conditions use no changes and rely on the GM to apply them.
+  CONFIG.statusEffects = [
+    {
+      id: 'dying',
+      name: 'CYBER_BLUE.Condition.Dying',
+      icon: 'icons/svg/skull.svg',
+      changes: [
+        { key: 'system.stats.body.rollMod', type: 'add', value: '-2' },
+        { key: 'system.stats.rflx.rollMod', type: 'add', value: '-2' },
+        { key: 'system.stats.int.rollMod',  type: 'add', value: '-2' },
+        { key: 'system.stats.tech.rollMod', type: 'add', value: '-2' },
+        { key: 'system.stats.cool.rollMod', type: 'add', value: '-2' },
+        { key: 'system.stats.move.value',   type: 'add', value: '-6' },
+      ],
+      flags: { 'cyberpunk-blue': { conditionId: 'dying' } },
+    },
+    {
+      id: 'dead',
+      name: 'CYBER_BLUE.Condition.Dead',
+      icon: 'icons/svg/tombstone.svg',
+      changes: [],
+      flags: { 'cyberpunk-blue': { conditionId: 'dead' } },
+    },
+    {
+      id: 'unconscious',
+      name: 'CYBER_BLUE.Condition.Unconscious',
+      icon: 'icons/svg/unconscious.svg',
+      changes: [
+        { key: 'system.stats.rflx.rollMod', type: 'override', value: '-99' },
+        { key: 'system.stats.int.rollMod',  type: 'override', value: '-99' },
+        { key: 'system.stats.tech.rollMod', type: 'override', value: '-99' },
+        { key: 'system.stats.cool.rollMod', type: 'override', value: '-99' },
+        { key: 'system.stats.move.value',   type: 'override', value: '0' },
+      ],
+      flags: { 'cyberpunk-blue': { conditionId: 'unconscious' } },
+    },
+    {
+      id: 'prone',
+      name: 'CYBER_BLUE.Condition.Prone',
+      icon: 'icons/svg/falling.svg',
+      changes: [
+        { key: 'system.stats.move.value', type: 'add', value: '-2' },
+      ],
+      flags: { 'cyberpunk-blue': { conditionId: 'prone' } },
+    },
+    {
+      id: 'asleep',
+      name: 'CYBER_BLUE.Condition.Asleep',
+      icon: 'icons/svg/sleep.svg',
+      changes: [
+        { key: 'system.stats.rflx.rollMod', type: 'override', value: '-99' },
+        { key: 'system.stats.int.rollMod',  type: 'override', value: '-99' },
+        { key: 'system.stats.tech.rollMod', type: 'override', value: '-99' },
+        { key: 'system.stats.cool.rollMod', type: 'override', value: '-99' },
+        { key: 'system.stats.move.value',   type: 'override', value: '0' },
+      ],
+      flags: { 'cyberpunk-blue': { conditionId: 'asleep' } },
+    },
+    {
+      id: 'stunned',
+      name: 'CYBER_BLUE.Condition.Stunned',
+      icon: 'icons/svg/daze.svg',
+      changes: [
+        { key: 'system.stats.body.rollMod', type: 'add', value: '-4' },
+        { key: 'system.stats.rflx.rollMod', type: 'add', value: '-4' },
+        { key: 'system.stats.int.rollMod',  type: 'add', value: '-4' },
+        { key: 'system.stats.tech.rollMod', type: 'add', value: '-4' },
+        { key: 'system.stats.cool.rollMod', type: 'add', value: '-4' },
+      ],
+      flags: { 'cyberpunk-blue': { conditionId: 'stunned' } },
+    },
+    {
+      id: 'restrained',
+      name: 'CYBER_BLUE.Condition.Restrained',
+      icon: 'icons/svg/net.svg',
+      changes: [
+        { key: 'system.stats.move.value', type: 'override', value: '0' },
+      ],
+      flags: { 'cyberpunk-blue': { conditionId: 'restrained' } },
+    },
+    {
+      id: 'grappled',
+      name: 'CYBER_BLUE.Condition.Grappled',
+      icon: 'icons/svg/grab.svg',
+      changes: [
+        { key: 'system.stats.move.value', type: 'override', value: '0' },
+      ],
+      flags: { 'cyberpunk-blue': { conditionId: 'grappled' } },
+    },
+    {
+      id: 'burning-embers',
+      name: 'CYBER_BLUE.Condition.BurningEmbers',
+      icon: 'icons/svg/fire.svg',
+      changes: [],
+      flags: { 'cyberpunk-blue': { conditionId: 'burning-embers', burnDamage: 2 } },
+    },
+    {
+      id: 'burning-fire',
+      name: 'CYBER_BLUE.Condition.BurningFire',
+      icon: 'icons/svg/fire.svg',
+      changes: [],
+      flags: { 'cyberpunk-blue': { conditionId: 'burning-fire', burnDamage: 4 } },
+    },
+    {
+      id: 'burning-deadly',
+      name: 'CYBER_BLUE.Condition.BurningDeadly',
+      icon: 'icons/svg/fire.svg',
+      changes: [],
+      flags: { 'cyberpunk-blue': { conditionId: 'burning-deadly', burnDamage: 6 } },
+    },
+    {
+      id: 'fatigued',
+      name: 'CYBER_BLUE.Condition.Fatigued',
+      icon: 'icons/svg/downgrade.svg',
+      changes: [
+        { key: 'system.stats.body.rollMod', type: 'add', value: '-2' },
+        { key: 'system.stats.rflx.rollMod', type: 'add', value: '-2' },
+        { key: 'system.stats.int.rollMod',  type: 'add', value: '-2' },
+        { key: 'system.stats.tech.rollMod', type: 'add', value: '-2' },
+        { key: 'system.stats.cool.rollMod', type: 'add', value: '-2' },
+      ],
+      flags: { 'cyberpunk-blue': { conditionId: 'fatigued' } },
+    },
+    {
+      id: 'severe-fatigue',
+      name: 'CYBER_BLUE.Condition.SevereFatigue',
+      icon: 'icons/svg/downgrade.svg',
+      changes: [
+        { key: 'system.stats.body.rollMod', type: 'add', value: '-2' },
+        { key: 'system.stats.rflx.rollMod', type: 'add', value: '-4' },
+        { key: 'system.stats.int.rollMod',  type: 'add', value: '-4' },
+        { key: 'system.stats.tech.rollMod', type: 'add', value: '-2' },
+        { key: 'system.stats.cool.rollMod', type: 'add', value: '-2' },
+      ],
+      flags: { 'cyberpunk-blue': { conditionId: 'severe-fatigue' } },
+    },
+    {
+      id: 'extreme-fatigue',
+      name: 'CYBER_BLUE.Condition.ExtremeFatigue',
+      icon: 'icons/svg/downgrade.svg',
+      changes: [
+        { key: 'system.stats.body.rollMod', type: 'add', value: '-4' },
+        { key: 'system.stats.rflx.rollMod', type: 'add', value: '-6' },
+        { key: 'system.stats.int.rollMod',  type: 'add', value: '-6' },
+        { key: 'system.stats.tech.rollMod', type: 'add', value: '-4' },
+        { key: 'system.stats.cool.rollMod', type: 'add', value: '-4' },
+        { key: 'system.stats.move.value',   type: 'override', value: '2' },
+      ],
+      flags: { 'cyberpunk-blue': { conditionId: 'extreme-fatigue' } },
+    },
+    {
+      id: 'deaf',
+      name: 'CYBER_BLUE.Condition.Deaf',
+      icon: 'icons/svg/deaf.svg',
+      changes: [],
+      flags: { 'cyberpunk-blue': { conditionId: 'deaf' } },
+    },
+    {
+      id: 'blind',
+      name: 'CYBER_BLUE.Condition.Blind',
+      icon: 'icons/svg/blind.svg',
+      changes: [
+        { key: 'system.stats.rflx.rollMod', type: 'add', value: '-6' },
+      ],
+      flags: { 'cyberpunk-blue': { conditionId: 'blind' } },
+    },
+  ];
 
   return preloadHandlebarsTemplates();
 });
@@ -395,6 +567,76 @@ Hooks.on('createActiveEffect', syncCyberwareOperationalEffects);
 Hooks.on('updateActiveEffect', syncCyberwareOperationalEffects);
 Hooks.on('deleteActiveEffect', syncCyberwareOperationalEffects);
 
+// ─── PSYCHE state sync ────────────────────────────────────────────────────────
+
+const PSYCHE_STATE_FLAG = 'psycheState';
+
+const PSYCHE_STATES = [
+  { id: 'full-cyberpsychosis',     min: -Infinity, max: -1,  nameKey: 'CYBER_BLUE.PsycheState.FullCyberpsychosis' },
+  { id: 'beginning-cyberpsychosis', min: 0,         max: 9,   nameKey: 'CYBER_BLUE.PsycheState.BeginningCyberpsychosis' },
+  { id: 'disrupted-mind',           min: 10,        max: 19,  nameKey: 'CYBER_BLUE.PsycheState.DisruptedMind' },
+  { id: 'disassociation',           min: 20,        max: 29,  nameKey: 'CYBER_BLUE.PsycheState.Disassociation' },
+];
+
+function getPsycheState(psycheValue) {
+  return PSYCHE_STATES.find((s) => psycheValue >= s.min && psycheValue <= s.max) ?? null;
+}
+
+async function syncPsycheStateEffect(actor, options = {}) {
+  if (options?.cyberBlueSyncPsycheState) return;
+  if (!(actor instanceof CyberBlueActor)) return;
+  if (!['character', 'npc'].includes(actor.type)) return;
+
+  const psycheValue = actor.system?.resources?.psyche?.value ?? 60;
+  const desiredState = getPsycheState(psycheValue);
+
+  const existingEffect = actor.effects.find((e) => e.getFlag('cyberpunk-blue', PSYCHE_STATE_FLAG));
+
+  if (!desiredState) {
+    // PSYCHE ≥ 30: no state — remove any existing
+    if (existingEffect) {
+      await existingEffect.delete({ cyberBlueSyncPsycheState: true });
+    }
+    return;
+  }
+
+  const existingId = existingEffect?.getFlag('cyberpunk-blue', `${PSYCHE_STATE_FLAG}.id`);
+
+  if (existingEffect) {
+    if (existingId === desiredState.id) return; // already correct
+    await existingEffect.update({
+      name: game.i18n.localize(desiredState.nameKey),
+      'flags.cyberpunk-blue': {
+        [PSYCHE_STATE_FLAG]: { id: desiredState.id },
+      },
+    }, { cyberBlueSyncPsycheState: true });
+  } else {
+    await actor.createEmbeddedDocuments('ActiveEffect', [{
+      name: game.i18n.localize(desiredState.nameKey),
+      icon: 'icons/svg/angel.svg',
+      origin: actor.uuid,
+      disabled: false,
+      transfer: false,
+      system: { changes: [] },
+      flags: {
+        'cyberpunk-blue': {
+          [PSYCHE_STATE_FLAG]: { id: desiredState.id },
+        },
+      },
+    }], { cyberBlueSyncPsycheState: true });
+  }
+}
+
+const onUpdateActorPsyche = (actor, changed, options) => {
+  if (!('system' in changed)) return;
+  const psycheChanged = 'resources' in (changed.system ?? {})
+    && 'psyche' in (changed.system?.resources ?? {});
+  if (!psycheChanged) return;
+  return syncPsycheStateEffect(actor, options);
+};
+
+Hooks.on('updateActor', onUpdateActorPsyche);
+
 const syncLeaderTeams = (document, options = {}) => {
   if (document instanceof Item && document.type !== 'role') {
     return;
@@ -424,6 +666,7 @@ Hooks.once('ready', async () => {
   await migrateCostStrings();
   await ensureWeaponCatalogue();
   await ensureEquipmentCatalogue();
+  await ensureMacroCatalogue();
 
   const seen = new Set();
   const cyberwareItems = [
@@ -446,6 +689,7 @@ Hooks.once('ready', async () => {
   for (const actor of game.actors.contents) {
     await syncActorCyberwareDisableEffects(actor, { cyberBlueSyncCyberwareDisable: true });
     await syncActorLeaderRoles(actor);
+    await syncPsycheStateEffect(actor, { cyberBlueSyncPsycheState: false });
   }
 });
 
@@ -570,12 +814,41 @@ async function ensureCritInjuryTables() {
     return;
   }
   const index = await pack.getIndex();
-  if (index.size >= 2) return; // already populated
 
-  console.log('Cyberpunk Blue | Populating critical injury tables compendium…');
+  // Check if migration is needed: look for the new 'dismembered-hand' body entry
+  // (absent in the v1 tables that had Dismembered Leg at roll 3 instead).
+  let needsMigration = false;
+  if (index.size >= 2) {
+    const bodyEntry = index.find((e) => {
+      return pack.contents.find((t) => t.id === e._id)
+        ?.getFlag('cyberpunk-blue', 'critTableType') === 'body';
+    });
+    if (bodyEntry) {
+      try {
+        const bodyTable = await pack.getDocument(bodyEntry._id);
+        const hasNewEntries = bodyTable.results.contents.some(
+          (r) => r.getFlag('cyberpunk-blue', 'critKey') === 'dismembered-hand'
+        );
+        needsMigration = !hasNewEntries;
+      } catch {
+        needsMigration = true;
+      }
+    } else {
+      needsMigration = true;
+    }
+  }
+
+  if (index.size >= 2 && !needsMigration) return; // already up to date
+
+  console.log('Cyberpunk Blue | Creating/updating critical injury tables in compendium…');
+  await pack.configure({ locked: false });
   try {
-    // Unlock the system pack temporarily so we can write into it
-    await pack.configure({ locked: false });
+    if (index.size >= 2 && needsMigration) {
+      // Delete existing tables and recreate with new data
+      const docs = await pack.getDocuments();
+      for (const doc of docs) await doc.delete();
+      console.log('Cyberpunk Blue | Old critical injury tables removed for migration.');
+    }
     await RollTable.create(buildCritBodyTableData(), { pack: PACK_ID });
     await RollTable.create(buildCritHeadTableData(), { pack: PACK_ID });
     console.log('Cyberpunk Blue | Critical injury tables created in compendium.');
@@ -791,6 +1064,55 @@ async function ensureEquipmentCatalogue() {
     }
   } catch (err) {
     console.error('Cyberpunk Blue | Failed to import equipment catalogue:', err);
+  }
+}
+
+// ─── Macro catalogue ─────────────────────────────────────────────────────────
+
+async function _ensureMacroFolderInPack(pack, name) {
+  const existing = pack.folders.find((f) => f.name === name);
+  if (existing) return existing;
+  return Folder.create({ name, type: 'Macro', sorting: 'a', color: null }, { pack: pack.collection });
+}
+
+async function ensureMacroCatalogue() {
+  if (!game.user.isGM) return;
+  const PACK_ID = 'cyberpunk-blue.macros';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) {
+    console.warn('Cyberpunk Blue | Macros compendium not found — skipping auto-populate.');
+    return;
+  }
+  await pack.getIndex();
+  if (pack.index.size > 0) return; // already populated
+
+  console.log('Cyberpunk Blue | Populating macros compendium…');
+  const byFolder = new Map();
+  for (const item of MACRO_CATALOGUE) {
+    const folderName = item._folder ?? 'General';
+    if (!byFolder.has(folderName)) byFolder.set(folderName, []);
+    byFolder.get(folderName).push(item);
+  }
+
+  let created = 0;
+  await pack.configure({ locked: false });
+  try {
+    for (const [folderName, group] of byFolder.entries()) {
+      const folder = await _ensureMacroFolderInPack(pack, folderName);
+      const cleaned = group.map((item) => {
+        const copy = foundry.utils.deepClone(item);
+        delete copy._folder;
+        copy.folder = folder?.id ?? null;
+        return copy;
+      });
+      const docs = await Macro.createDocuments(cleaned, { pack: PACK_ID });
+      created += docs.length;
+    }
+    console.log(`Cyberpunk Blue | Macros compendium populated: ${created} macros.`);
+  } catch (err) {
+    console.error('Cyberpunk Blue | Failed to populate macros compendium:', err);
+  } finally {
+    await pack.configure({ locked: true });
   }
 }
 
