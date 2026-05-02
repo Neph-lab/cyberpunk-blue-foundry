@@ -228,20 +228,20 @@ button, .cyberpunk-blue .button, a.button {
 }
 
 .cyberpunk-blue .sheet-header {
-  align-items: center;
+  align-items: end;
   display: grid;
   gap: 1rem;
-  grid-template-columns: 120px minmax(0, 1fr);
+  grid-template-columns: 200px minmax(0, 1fr);
 }
 
 .cyberpunk-blue .profile-img {
   aspect-ratio: 1;
-  border: 1px solid var(--cpb-accent);
+  border: none;
   margin: 0 1rem 1rem 0;
-  box-shadow: var(--cpb-glow);
-  object-fit: cover;
-  width: 200px;
-  max-height: 400px;
+  box-shadow: none;
+  object-fit: contain;
+  max-width: 200px;
+  max-height: 300px;
 }
 
 .cyberpunk-blue .header-fields {
@@ -1263,7 +1263,20 @@ button, .cyberpunk-blue .button, a.button {
   min-width: min(100%, 16rem);
 }
 
-.cyberpunk-blue .item-meta-row .checkbox-label + .checkbox-label {
+.cyberpunk-blue .item-meta-row .ammo-type-grid {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.cyberpunk-blue .item-meta-row .ammo-type-grid .checkbox-label {
+  display: grid;
+  grid-template-columns: min-content max-content;
+  align-items: center;
+  gap: .2rem;
+}
+
+.cyberpunk-blue .item-meta-row .checkbox-label {
   margin-left: 0.35rem;
 }
 
@@ -2461,4 +2474,56 @@ button, .cyberpunk-blue .button, a.button {
 .cyberpunk-blue .weapon-unjam-btn:hover {
   background: #c89500;
   color: #000;
+}
+
+/* ─── Martial Arts ──────────────────────────────────────────────────────────── */
+
+.cyberpunk-blue .martial-arts-panel .section-header {
+  font-size: var(--font-size-14);
+  margin: 0.3rem 0 0.4rem;
+}
+
+.cyberpunk-blue .ma-specials-grid {
+  columns: 4 450px;
+  column-gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.cyberpunk-blue .ma-special-entry {
+  break-inside: avoid;
+  background: var(--cpb-panel);
+  border: 1px solid var(--color-border-light-tertiary);
+  border-radius: 3px;
+  padding: 0.35rem 0.45rem;
+  margin-bottom: 0.35rem;
+}
+
+.cyberpunk-blue .ma-special-header {
+  margin-bottom: 0.2rem;
+}
+
+.cyberpunk-blue .ma-special-btn {
+  background: transparent;
+  border: 1px solid var(--color-border-light-secondary);
+  border-radius: 3px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: var(--font-size-12);
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  text-align: left;
+}
+
+.cyberpunk-blue .ma-special-btn:hover {
+  background: var(--cpb-highlight);
+  border-color: var(--cpb-accent);
+}
+
+.cyberpunk-blue .ma-special-desc {
+  font-size: var(--font-size-11);
+  color: var(--color-text-dark-secondary);
+  line-height: 1.3;
 }

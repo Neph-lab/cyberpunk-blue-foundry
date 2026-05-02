@@ -282,6 +282,10 @@
         </section>
       {{/if}}
 
+      {{#if martialArtsAttacks.length}}
+        {{> "systems/cyberpunk-blue/templates/actor/parts/actor-martial-arts.hbs"}}
+      {{/if}}
+
       {{#if enrichedRoleOverviewFeatures.length}}
         <section class="sheet-panel role-overview-panel">
           {{#each enrichedRoleOverviewFeatures as |feature|}}

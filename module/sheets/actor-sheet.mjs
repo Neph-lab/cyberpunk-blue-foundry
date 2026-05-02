@@ -23,6 +23,23 @@ import {
   getVisibleRoleAbilitySections,
   normalizeRoleSystemData,
 } from '../helpers/roles.mjs';
+import {
+  buildMartialArtsContext,
+  resolveMartialArtsAttack,
+  resolveGrab,
+  resolveChoke,
+  resolveRecovery,
+  resolveThrow,
+  resolveIronGrip,
+  resolveImprovisedWeapon,
+  resolveStrongAttack,
+  resolveBoneBreakingCombination,
+  resolveArmorBreakingCombination,
+  resolveCounterThrow,
+  resolveGrabEscape,
+  resolvePressurePointStrike,
+  resolveFlyingKick,
+} from '../helpers/martial-arts.mjs';
 
 function sortEmbeddedDocuments(left, right) {
   return (left.sort ?? 0) - (right.sort ?? 0) || left.name.localeCompare(right.name);
@@ -432,6 +449,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       }
     }
     context.combatWeapons = combatWeaponEntries;
+
+    // Martial Arts context (attacks + special moves for Overview tab)
+    const maContext = buildMartialArtsContext(this.document, rofState);
+    context.martialArtsAttacks = maContext.martialArtsAttacks;
+    context.martialArtsSpecialMoves = maContext.martialArtsSpecialMoves;
+
     context.roleOverviewFeatures = context.roles.map((role) => {
       const roleSystem = normalizeRoleSystemData(role.system);
       const roleRank = Number(roleSystem.rank) || 0;
@@ -833,6 +856,17 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       button.addEventListener('click', this._onWeaponUnjam.bind(this));
     });
 
+    // Martial Arts
+    this.element.querySelectorAll('[data-action="ma-attack"]').forEach((button) => {
+      button.addEventListener('click', this._onMartialArtsAttack.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="ma-special"]').forEach((button) => {
+      button.addEventListener('click', this._onMartialArtsSpecialMove.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="ma-toggle-vitals"]').forEach((checkbox) => {
+      checkbox.addEventListener('change', this._onMaToggleTargetVitals.bind(this));
+    });
+
     // Netrunner tab
     this.element.querySelectorAll('[data-action="netrunner-component-roll"]').forEach((button) => {
       button.addEventListener('click', this._onNetrunnerComponentRoll.bind(this));
@@ -921,6 +955,43 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       speaker: ChatMessage.getSpeaker({ actor: this.document }),
       content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-wrench"></i> ${game.i18n.format('CYBER_BLUE.Combat.WeaponUnjammed', { weapon: item.name })}</p></div>`,
     });
+  }
+
+  async _onMartialArtsAttack(event) {
+    event.preventDefault();
+    const maIndex = Number.parseInt(event.currentTarget.dataset.maIndex ?? '0', 10);
+    const componentSlug = event.currentTarget.dataset.componentSlug || null;
+    const targetVitals = this.document.getFlag('cyberpunk-blue', `ma-targetVitals-${maIndex}`) ?? false;
+    await resolveMartialArtsAttack(this.document, componentSlug, { targetVitals, maIndex });
+  }
+
+  async _onMaToggleTargetVitals(event) {
+    const maIndex = Number.parseInt(event.currentTarget.dataset.maIndex ?? '0', 10);
+    const current = this.document.getFlag('cyberpunk-blue', `ma-targetVitals-${maIndex}`) ?? false;
+    await this.document.setFlag('cyberpunk-blue', `ma-targetVitals-${maIndex}`, !current);
+  }
+
+  async _onMartialArtsSpecialMove(event) {
+    event.preventDefault();
+    const moveId = event.currentTarget.dataset.moveId;
+    const actor = this.document;
+    switch (moveId) {
+      case 'grab':                       return resolveGrab(actor);
+      case 'choke':                      return resolveChoke(actor);
+      case 'recovery':                   return resolveRecovery(actor);
+      case 'throw':                      return resolveThrow(actor);
+      case 'iron-grip':                  return resolveIronGrip(actor);
+      case 'improvised-weapon':          return resolveImprovisedWeapon(actor, 0);
+      case 'strong-attack':              return resolveStrongAttack(actor, 0);
+      case 'bone-breaking-combination':  return resolveBoneBreakingCombination(actor, 0);
+      case 'armor-breaking-combination': return resolveArmorBreakingCombination(actor, game.user.targets.first()?.actor ?? null);
+      case 'counter-throw':              return resolveCounterThrow(actor, 0);
+      case 'grab-escape':                return resolveGrabEscape(actor);
+      case 'pressure-point-strike':      return resolvePressurePointStrike(actor, 0);
+      case 'flying-kick':                return resolveFlyingKick(actor, 0);
+      default:
+        ui.notifications.warn(`Unknown martial arts move: ${moveId}`);
+    }
   }
 
   async _onItemCreate(event) {
