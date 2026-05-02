@@ -339,13 +339,9 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
   const damageRoll = await new Roll(damageFormula).evaluate();
   const baseDamage = damageRoll.total;
   const weaponLabel = (item.system.weapons?.length ?? 0) > 1 ? `${item.name} - ${definition.label}` : item.name;
-
-  await damageRoll.toMessage({
-    speaker: ChatMessage.getSpeaker({ actor: attacker }),
-    flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.ExplosionDamage')}: ${weaponLabel}</h3>`
-      + `<p>${game.i18n.format('CYBER_BLUE.Combat.ConeTargetCount', { count: targets.length })}</p></div>`,
-    rollMode: game.settings.get('core', 'rollMode'),
-  });
+  const explosionDamageFlavorHtml = `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.ExplosionDamage')}: ${weaponLabel}</h3>`
+    + `<p>${game.i18n.format('CYBER_BLUE.Combat.ConeTargetCount', { count: targets.length })}</p></div>`;
+  let explosionDamagePosted = false;
 
   // Crit detection uses the single baseDamage roll (same dice for all targets)
   const { count: expCritDiceCount } = detectCriticalDice(damageRoll);
@@ -381,6 +377,14 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
         targetActor, finalDamage, sp, netDamage, ablatesArmor, isCritical, critDiceCount: expCritDiceCount,
       });
       if (result?.confirmed) {
+        if (!explosionDamagePosted) {
+          explosionDamagePosted = true;
+          await damageRoll.toMessage({
+            speaker: ChatMessage.getSpeaker({ actor: attacker }),
+            flavor: explosionDamageFlavorHtml,
+            rollMode: game.settings.get('core', 'rollMode'),
+          });
+        }
         await targetActor.applyDamage(finalDamage);
         if (isCritical) {
           // Explosion/cone always uses the body table
@@ -388,6 +392,14 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
         }
       }
     }
+  }
+  // If no target confirmed damage, still post the damage roll so the dice are visible
+  if (!explosionDamagePosted) {
+    await damageRoll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      flavor: explosionDamageFlavorHtml,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
   }
 }
 

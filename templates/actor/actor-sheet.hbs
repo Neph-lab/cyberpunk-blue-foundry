@@ -511,15 +511,18 @@
       <section class="sheet-panel">
         <div class="skill-table-container">
           <div class="skill-header skill-row">
+            <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Roll"}}</span>
             <span>Skill</span>
             <span class="numeric-column">Stat</span>
             <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Rank"}}</span>
             <span>{{localize "CYBER_BLUE.Sheet.Labels.LinkedComponents"}}</span>
             <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Modifier"}}</span>
-            <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Roll"}}</span>
           </div>
           {{#each skills as |skill|}}
             <div class="skill-row" data-skill-row data-skill-slug="{{skill.slug}}">
+              <button type="button" class="roll-button" data-action="roll-skill" data-skill-slug="{{skill.slug}}">
+                {{localize "CYBER_BLUE.Sheet.Labels.Roll"}}
+              </button>
               <span class="skill-name">{{skill.label}}</span>
               <span class="skill-stat numeric-column">{{skill.statLabel}}</span>
               <input class="numeric-column" type="number" name="system.skills.{{skill.slug}}.rank" value="{{skill.rank}}" data-dtype="Number" {{#unless ../charCreation.skillsWritable}}disabled{{/unless}} />
@@ -531,9 +534,6 @@
                 {{/each}}
               </div>
               <input class="numeric-column" type="number" value="0" data-field="modifier" />
-              <button type="button" class="roll-button" data-action="roll-skill" data-skill-slug="{{skill.slug}}">
-                {{localize "CYBER_BLUE.Sheet.Labels.Roll"}}
-              </button>
             </div>
           {{/each}}
         </div>

@@ -31,7 +31,6 @@ export default class CyberBlueGear extends CyberBlueItemBase {
       ram: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
       isCyberdeck: new fields.BooleanField({ initial: false }),
       canQuickhack: new fields.BooleanField({ initial: false }),
-      running: new fields.BooleanField({ initial: false }),
     });
     // ── Instruction sequence ──────────────────────────────────────────────────
     schema.instructions = new fields.ArrayField(buildInstructionStepField(), { initial: [] });

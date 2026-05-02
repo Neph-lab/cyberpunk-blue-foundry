@@ -89,6 +89,15 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill
     : (item.system.weapons?.[weaponIndex]?.skill ?? weapon.skill);
 
+  // Block attack if the magazine is empty
+  if (definition.usesMagazine) {
+    const ammoCurrent = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
+    if (ammoCurrent <= 0) {
+      ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.NoAmmo', { weapon: item.name }));
+      return;
+    }
+  }
+
   const { token: targetToken, actor: targetActor } = getTarget();
   const targetSP = targetActor ? (targetActor.system?.resources?.armor?.value ?? 0) : null;
   const targetRflx = targetActor?.system?.stats?.rflx?.value ?? 0;
@@ -302,26 +311,34 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     ? `<p class="target-vitals-note"><i class="fas fa-crosshairs"></i> ${game.i18n.localize('CYBER_BLUE.Combat.TargetVitalsActive')}</p>`
     : '';
 
-  await damageRoll.toMessage({
-    speaker: ChatMessage.getSpeaker({ actor: attacker }),
-    flavor: `
-      <div class="cyberpunk-blue chat-card">
-        <h3>${game.i18n.localize('CYBER_BLUE.Sheet.Labels.Damage')}: ${weaponLabel}</h3>
-        ${targetVitalsLine}${spLine}${critLine}
-      </div>`,
-    rollMode: game.settings.get('core', 'rollMode'),
-  });
+  const damageFlavorHtml = `
+    <div class="cyberpunk-blue chat-card">
+      <h3>${game.i18n.localize('CYBER_BLUE.Sheet.Labels.Damage')}: ${weaponLabel}</h3>
+      ${targetVitalsLine}${spLine}${critLine}
+    </div>`;
 
   if (targetActor && (netDamage > 0 || ablatesArmor)) {
     const result = await confirmDamageDialog({
       targetActor, finalDamage, sp, netDamage, ablatesArmor, isCritical, critDiceCount,
     });
     if (result?.confirmed) {
+      await damageRoll.toMessage({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        flavor: damageFlavorHtml,
+        rollMode: game.settings.get('core', 'rollMode'),
+      });
       await targetActor.applyDamage(finalDamage);
       if (isCritical) {
         await rollCriticalInjury(targetActor, tableType, { attackerActor: attacker });
       }
     }
+  } else {
+    // No applicable damage (no target or zero damage) — still show the roll result
+    await damageRoll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      flavor: damageFlavorHtml,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
   }
 }
 
@@ -500,27 +517,34 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
   const weaponLabel = (item.system.weapons?.length ?? 0) > 1 ? `${item.name} - ${definition.label}` : item.name;
   const multNote = effectiveMultiplier !== 1 ? ` ×${effectiveMultiplier}${effectiveMultiplier !== multiplier ? ` (capped from ×${multiplier})` : ''} = ${rawDamage}` : '';
 
-  await damageRoll.toMessage({
-    speaker: ChatMessage.getSpeaker({ actor: attacker }),
-    flavor: `
-      <div class="cyberpunk-blue chat-card">
-        <h3>${game.i18n.localize('CYBER_BLUE.Combat.Autofire')} ${game.i18n.localize('CYBER_BLUE.Sheet.Labels.Damage')}: ${weaponLabel}</h3>
-        <p>${damageFormula}${multNote}</p>
-        ${spLine}${critLine}
-      </div>`,
-    rollMode: game.settings.get('core', 'rollMode'),
-  });
+  const autofireFlavorHtml = `
+    <div class="cyberpunk-blue chat-card">
+      <h3>${game.i18n.localize('CYBER_BLUE.Combat.Autofire')} ${game.i18n.localize('CYBER_BLUE.Sheet.Labels.Damage')}: ${weaponLabel}</h3>
+      <p>${damageFormula}${multNote}</p>
+      ${spLine}${critLine}
+    </div>`;
 
   if (targetActor && (netDamage > 0 || ablatesArmor)) {
     const result = await confirmDamageDialog({
       targetActor, finalDamage, sp, netDamage, ablatesArmor, isCritical, critDiceCount,
     });
     if (result?.confirmed) {
+      await damageRoll.toMessage({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        flavor: autofireFlavorHtml,
+        rollMode: game.settings.get('core', 'rollMode'),
+      });
       await targetActor.applyDamage(finalDamage);
       if (isCritical) {
         // Autofire always uses the body table
         await rollCriticalInjury(targetActor, 'body', { attackerActor: attacker });
       }
     }
+  } else {
+    await damageRoll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      flavor: autofireFlavorHtml,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
   }
 }

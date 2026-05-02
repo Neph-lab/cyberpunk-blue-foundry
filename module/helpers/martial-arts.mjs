@@ -150,11 +150,7 @@ async function applyMartialArtsDamage({
   const targetVitalsLine = targetVitals
     ? `<p class="target-vitals-note"><i class="fas fa-crosshairs"></i> ${game.i18n.localize('CYBER_BLUE.Combat.TargetVitalsActive')}</p>` : '';
 
-  await damageRoll.toMessage({
-    speaker: ChatMessage.getSpeaker({ actor: attacker }),
-    flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Sheet.Labels.Damage')}: ${label}</h3>${targetVitalsLine}<p>${spNote}</p>${critLine}</div>`,
-    rollMode: game.settings.get('core', 'rollMode'),
-  });
+  const damageFlavorHtml = `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Sheet.Labels.Damage')}: ${label}</h3>${targetVitalsLine}<p>${spNote}</p>${critLine}</div>`;
 
   if (targetActor && (netDamage > 0 || ablatesArmor)) {
     const result = await confirmDamageDialog({
@@ -162,6 +158,11 @@ async function applyMartialArtsDamage({
       isCritical: isCritical && !forcedCritKey, critDiceCount,
     });
     if (result?.confirmed) {
+      await damageRoll.toMessage({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        flavor: damageFlavorHtml,
+        rollMode: game.settings.get('core', 'rollMode'),
+      });
       await targetActor.applyDamage(finalDamage);
       if (isCritical) {
         if (forcedCritKey) {
@@ -171,6 +172,12 @@ async function applyMartialArtsDamage({
         }
       }
     }
+  } else {
+    await damageRoll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      flavor: damageFlavorHtml,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
   }
   return { isCritical, netDamage, finalDamage };
 }
