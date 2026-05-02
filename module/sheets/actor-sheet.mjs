@@ -412,7 +412,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         hasAutofire: damageType === 'autofire',
         autofireAmmoOk: damageType === 'autofire' && ammo.current >= 10,
         isAffliction: ['affliction', 'affliction-cone', 'affliction-explosion'].includes(damageType),
-        isStandardDamage: !['autofire', 'cone', 'explosion', 'affliction', 'affliction-cone', 'affliction-explosion'].includes(damageType),
+        // Target vitals is available on standard and autofire weapons (standard attack only), but not on area-effect types.
+        isStandardDamage: !['cone', 'explosion', 'affliction', 'affliction-cone', 'affliction-explosion'].includes(damageType),
         targetVitals: itemDoc.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false,
         jammed: !!itemDoc.getFlag('cyberpunk-blue', `jammed-${weaponIndex}`),
         canJam: (weapon.jamOnRoll ?? 0) > 0,

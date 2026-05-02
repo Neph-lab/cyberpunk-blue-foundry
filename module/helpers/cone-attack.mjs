@@ -238,6 +238,55 @@ function scatterPoint(origin, distMeters, pixelsPerMeter) {
   return { x: lastX, y: lastY };
 }
 
+// ─── Persistent area-effect overlays ────────────────────────────────────────
+
+/** Show the cone graphic on the canvas for N seconds after an attack resolves. */
+export function showAreaEffectCone(ax, ay, spreadPx, halfDamagePx, halfAngleRad, directionRad) {
+  if (!canvas?.stage) return;
+  const durationSec = game.settings.get('cyberpunk-blue', 'areaEffectDuration') ?? 10;
+  const graphics = new PIXI.Graphics();
+  graphics.eventMode = 'none';
+  canvas.stage.addChild(graphics);
+  drawConeGraphics(graphics, ax, ay, spreadPx, halfDamagePx, halfAngleRad, directionRad);
+  if (durationSec > 0) {
+    setTimeout(() => {
+      try { canvas.stage.removeChild(graphics); graphics.destroy(); } catch { /* already removed */ }
+    }, durationSec * 1000);
+  }
+  return graphics;
+}
+
+/** Show the explosion circle on the canvas for N seconds after an attack resolves. */
+export function showAreaEffectExplosion(centerX, centerY, spreadPx, halfDamagePx) {
+  if (!canvas?.stage) return;
+  const durationSec = game.settings.get('cyberpunk-blue', 'areaEffectDuration') ?? 10;
+  const graphics = new PIXI.Graphics();
+  graphics.eventMode = 'none';
+  canvas.stage.addChild(graphics);
+  // Draw a simple circle (reuse explosion drawing without the aim marker)
+  if (halfDamagePx > 0 && halfDamagePx < spreadPx) {
+    graphics.beginFill(0xff8c00, 0.35);
+    graphics.lineStyle(2, 0xff8c00, 0.9);
+    graphics.drawCircle(centerX, centerY, halfDamagePx);
+    graphics.endFill();
+    graphics.beginFill(0xff4500, 0.15);
+    graphics.lineStyle(1, 0xff6600, 0.6);
+    graphics.drawCircle(centerX, centerY, spreadPx);
+    graphics.endFill();
+  } else {
+    graphics.beginFill(0xff6600, 0.25);
+    graphics.lineStyle(2, 0xff8c00, 0.9);
+    graphics.drawCircle(centerX, centerY, spreadPx);
+    graphics.endFill();
+  }
+  if (durationSec > 0) {
+    setTimeout(() => {
+      try { canvas.stage.removeChild(graphics); graphics.destroy(); } catch { /* already removed */ }
+    }, durationSec * 1000);
+  }
+  return graphics;
+}
+
 export async function resolveExplosionAttack(attacker, item, weaponIndex) {
   const effectiveWeapons = item.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(item);
   const weapon = effectiveWeapons[weaponIndex];
@@ -401,6 +450,8 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
       rollMode: game.settings.get('core', 'rollMode'),
     });
   }
+  // Show persistent area graphic after all damage is resolved
+  showAreaEffectExplosion(explosionCenter.x, explosionCenter.y, spreadPx, halfDamagePx);
 }
 
 // ─── Cone attack ────────────────────────────────────────────────────────────
@@ -489,12 +540,8 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
   const weaponLabel = (item.system.weapons?.length ?? 0) > 1
     ? `${item.name} - ${definition.label}`
     : item.name;
-
-  await damageRoll.toMessage({
-    speaker: ChatMessage.getSpeaker({ actor: attacker }),
-    flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.ConeDamage')}: ${weaponLabel}</h3><p>${game.i18n.format('CYBER_BLUE.Combat.ConeTargetCount', { count: targets.length })}</p></div>`,
-    rollMode: game.settings.get('core', 'rollMode'),
-  });
+  const coneDamageFlavorHtml = `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.ConeDamage')}: ${weaponLabel}</h3><p>${game.i18n.format('CYBER_BLUE.Combat.ConeTargetCount', { count: targets.length })}</p></div>`;
+  let coneDamagePosted = false;
 
   // Crit detection uses the single baseDamage roll (same dice for all targets)
   const { count: coneCritDiceCount } = detectCriticalDice(damageRoll);
@@ -525,6 +572,14 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
         targetActor, finalDamage, sp, netDamage, ablatesArmor, isCritical, critDiceCount: coneCritDiceCount,
       });
       if (result?.confirmed) {
+        if (!coneDamagePosted) {
+          coneDamagePosted = true;
+          await damageRoll.toMessage({
+            speaker: ChatMessage.getSpeaker({ actor: attacker }),
+            flavor: coneDamageFlavorHtml,
+            rollMode: game.settings.get('core', 'rollMode'),
+          });
+        }
         await targetActor.applyDamage(finalDamage);
         if (isCritical) {
           // Cone attacks always use the body table
@@ -533,6 +588,16 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
       }
     }
   }
+  if (!coneDamagePosted) {
+    await damageRoll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      flavor: coneDamageFlavorHtml,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
+  }
+
+  // Show cone area effect for N seconds after damage
+  showAreaEffectCone(attackerCenter.x, attackerCenter.y, spreadPx, halfDamagePx, halfAngleRad, confirmedAngle);
 }
 
 // ─── Affliction Cone ────────────────────────────────────────────────────────

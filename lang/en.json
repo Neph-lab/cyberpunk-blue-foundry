@@ -299,6 +299,10 @@
         "Name": "Import Weapons to Compendium",
         "Label": "Import Weapons",
         "Hint": "Import weapon items from a JSON file into the Weapons compendium, organised into folders by weapon type."
+      },
+      "AreaEffectDuration": {
+        "Name": "Area Effect Region Duration (seconds)",
+        "Hint": "How many seconds to show the explosion/cone area on the canvas after damage is applied. Set to 0 to never auto-remove (requires manual deletion)."
       }
     },
     "CC": {

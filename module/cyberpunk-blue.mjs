@@ -165,6 +165,18 @@ Hooks.once('init', function () {
     restricted: true,
   });
 
+  // ── System settings ────────────────────────────────────────────────────────
+  game.settings.register('cyberpunk-blue', 'areaEffectDuration', {
+    name: 'CYBER_BLUE.Settings.AreaEffectDuration.Name',
+    hint: 'CYBER_BLUE.Settings.AreaEffectDuration.Hint',
+    scope: 'world',
+    config: true,
+    type: Number,
+    default: 10,
+    range: { min: 0, max: 120, step: 5 },
+    requiresReload: false,
+  });
+
   // ── Foundry Conditions (status effects) ────────────────────────────────────
   // These map system conditions to Foundry's token condition overlay system.
   // AE changes on conditions with numeric effects are applied via embeds; purely
