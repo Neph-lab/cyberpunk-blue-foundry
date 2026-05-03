@@ -59,7 +59,6 @@ function gear({
         ram:           computer.ram           ?? 0,
         isCyberdeck:   !!computer.isCyberdeck,
         canQuickhack:  !!computer.canQuickhack,
-        running: false,
       },
     },
   };
@@ -336,21 +335,21 @@ export const EQUIPMENT_CATALOGUE = [
     name: 'Cyberdeck, Poor',
     folder: 'Computer Hardware', cost: 'PR',
     isComputer: true,
-    computer: { softwareSlots: 5, ram: 4, isCyberdeck: true },
+    computer: { generalSlots: 5, ram: 4, isCyberdeck: true, canQuickhack: true },
     description: '5 program slots, 4 RAM, 10m wireless range. Requires a Neuroport Cyberdeck Port or Interface Plugs to use.',
   }),
   gear({
     name: 'Cyberdeck, Standard',
     folder: 'Computer Hardware', cost: 'EX',
     isComputer: true,
-    computer: { softwareSlots: 7, ram: 6, isCyberdeck: true },
+    computer: { generalSlots: 7, ram: 6, isCyberdeck: true, canQuickhack: true },
     description: '7 program slots, 6 RAM, 10m wireless range. Requires a Neuroport Cyberdeck Port or Interface Plugs to use.',
   }),
   gear({
     name: 'Cyberdeck, Excellent',
     folder: 'Computer Hardware', cost: 'VEX',
     isComputer: true,
-    computer: { softwareSlots: 9, ram: 8, isCyberdeck: true },
+    computer: { generalSlots: 9, ram: 8, isCyberdeck: true, canQuickhack: true },
     description: '9 program slots, 8 RAM, 10m wireless range. Requires a Neuroport Cyberdeck Port or Interface Plugs to use.',
   }),
   gear({
@@ -584,19 +583,5 @@ export const EQUIPMENT_CATALOGUE = [
     folder: 'Architecture Hardware', cost: 'CO',
     description: 'Architecture Hardware add-on. Provides a wired and wireless (10m; each toggled independently via circuitboard) connection to a node.',
   }),
-  gear({
-    name: 'Coolant',
-    folder: 'Architecture Hardware', cost: 'CO',
-    description: 'Architecture Hardware add-on. Nitrogen cooling throughout the system. Device is immune to fire-inducing program effects. +1 active program slot.',
-  }),
-  gear({
-    name: 'Insulation',
-    folder: 'Architecture Hardware', cost: 'VEX',
-    description: 'Architecture Hardware add-on. Device is immune to EMP and microwave radiation.',
-  }),
-  gear({
-    name: 'Memory Upgrade',
-    folder: 'Architecture Hardware', cost: 'PR',
-    description: 'Architecture Hardware add-on. Adds +1 DATA node to the device. Can be purchased multiple times (servers only).',
-  }),
+  // Coolant, Insulation, and Memory Upgrade are computerMod items — see mod-catalogue.mjs
 ];

@@ -289,6 +289,31 @@ const accessories = [
 //   EXPORT
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════════════
+//   COMPUTER HARDWARE MODS
+// ═══════════════════════════════════════════════════════════════════════════
+
+const computerMods = [
+  modItem({
+    name: 'Coolant',
+    cost: 'CO',
+    system: { modType: 'computerMod' },
+    description: desc('Architecture Hardware add-on. Nitrogen cooling throughout the system. Device is immune to fire-inducing program effects. +1 active program slot.'),
+  }),
+  modItem({
+    name: 'Insulation',
+    cost: 'VEX',
+    system: { modType: 'computerMod' },
+    description: desc('Architecture Hardware add-on. Device is immune to EMP and microwave radiation.'),
+  }),
+  modItem({
+    name: 'Memory Upgrade',
+    cost: 'PR',
+    system: { modType: 'computerMod' },
+    description: desc('Architecture Hardware add-on. Adds +1 DATA node to the device. Can be purchased multiple times (servers only).'),
+  }),
+];
+
 export const MOD_CATALOGUE = [
   ...shortScopes,
   ...longScopes,
@@ -299,4 +324,5 @@ export const MOD_CATALOGUE = [
   ...attachments,
   ...underBarrels,
   ...accessories,
+  ...computerMods,
 ];
