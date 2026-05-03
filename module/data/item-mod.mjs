@@ -73,6 +73,14 @@ export default class CyberBlueMod extends CyberBlueItemBase {
     schema.synergyBrand = new fields.StringField({ required: true, blank: true, initial: '' });
     schema.synergyDiceThreshold = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
 
+    // ── At-attack-time bonuses ─────────────────────────────────────────────────
+    // Burst Control (ClearVue Mk.8): reduce autofire ammo cost by N (minimum 8).
+    schema.burstControlAmmoReduction = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
+    // Beginner Friendly (Add-Vantage): +1 attack if user has 0 Handgun ranks.
+    schema.beginnerFriendly = new fields.BooleanField({ initial: false });
+    // Target Vitals penalty reduction (Zhanshou): reduces the "target vitals" penalty by N.
+    schema.targetVitalsPenaltyReduction = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
+
     return schema;
   }
 }

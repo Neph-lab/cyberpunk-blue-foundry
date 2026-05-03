@@ -1199,6 +1199,10 @@ async function ensureWeaponCatalogue() {
     // (e.g. computerMods added after the initial population)
     await _syncMissingMods(MOD_CATALOGUE);
 
+    // Update existing mod entries whose system data has changed
+    // (e.g. weaponChanges added, new boolean/numeric flags set)
+    await _syncModEntries(MOD_CATALOGUE);
+
     // Update existing weapon entries whose weapons[] array has changed
     // (e.g. SS+AF merged into single AF entry, autofireDamage added)
     await _syncWeaponEntries(WEAPON_CATALOGUE);
@@ -1241,6 +1245,61 @@ async function _syncMissingMods(catalogue) {
     if (created > 0) {
       console.log(`Cyberpunk Blue | Added ${created} missing mods to weapon-mods pack.`);
     }
+  } finally {
+    await pack.configure({ locked: true });
+  }
+}
+
+/**
+ * Synchronise system fields of existing mod items in the weapon-mods compendium
+ * against the current catalogue definition.  Detects changes to weaponChanges,
+ * burstControlAmmoReduction, beginnerFriendly, and targetVitalsPenaltyReduction
+ * so that catalogue updates propagate without a full pack wipe.
+ */
+async function _syncModEntries(catalogue) {
+  const PACK_ID = 'cyberpunk-blue.weapon-mods';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) return;
+  await pack.getIndex({ fields: ['name', 'type'] });
+
+  // Build a name → catalogue entry map
+  const byName = new Map(catalogue.map((it) => [it.name, it]));
+
+  const updates = [];
+  for (const entry of pack.index) {
+    if (entry.type !== 'mod') continue;
+    const def = byName.get(entry.name);
+    if (!def) continue;
+    const doc = await pack.getDocument(entry._id);
+    if (!doc) continue;
+
+    const sys = doc.system;
+    const defSys = def.system;
+
+    // Compare the fields that can change across catalogue updates
+    const weaponChangesChanged =
+      JSON.stringify(sys.weaponChanges ?? []) !== JSON.stringify(defSys.weaponChanges ?? []);
+    const burstChanged = (sys.burstControlAmmoReduction ?? 0) !== (defSys.burstControlAmmoReduction ?? 0);
+    const beginnerChanged = !!sys.beginnerFriendly !== !!defSys.beginnerFriendly;
+    const vitalsChanged = (sys.targetVitalsPenaltyReduction ?? 0) !== (defSys.targetVitalsPenaltyReduction ?? 0);
+
+    if (weaponChangesChanged || burstChanged || beginnerChanged || vitalsChanged) {
+      updates.push({
+        _id: doc.id,
+        'system.weaponChanges': defSys.weaponChanges ?? [],
+        'system.burstControlAmmoReduction': defSys.burstControlAmmoReduction ?? 0,
+        'system.beginnerFriendly': !!defSys.beginnerFriendly,
+        'system.targetVitalsPenaltyReduction': defSys.targetVitalsPenaltyReduction ?? 0,
+      });
+    }
+  }
+
+  if (updates.length === 0) return;
+
+  await pack.configure({ locked: false });
+  try {
+    await Item.updateDocuments(updates, { pack: PACK_ID });
+    console.log(`Cyberpunk Blue | Updated system fields for ${updates.length} mods in weapon-mods pack.`);
   } finally {
     await pack.configure({ locked: true });
   }

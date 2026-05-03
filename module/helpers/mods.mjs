@@ -204,7 +204,30 @@ function applyWeaponChange(weapon, change) {
   }
 }
 
-export function getEffectiveItemWeapons(itemLike) {
+/**
+ * Returns the array of installed mod system-data objects for a specific weapon
+ * slot on a given actor-owned item.  The actor argument is optional; if absent
+ * (e.g. compendium items), an empty array is returned.
+ *
+ * @param {Item}   item         - The gear/cyberware item the mods are installed on.
+ * @param {number} weaponIndex  - Index of the weapon within item.system.weapons.
+ * @param {Actor}  [actor]      - The owning actor (item.parent in practice).
+ * @returns {object[]}          - Array of mod system objects.
+ */
+export function getInstalledWeaponMods(item, weaponIndex, actor) {
+  if (!actor || !item?.id) return [];
+  return actor.items
+    .filter(
+      (modDoc) =>
+        modDoc.type === 'mod' &&
+        modDoc.system.modType === 'weaponMod' &&
+        modDoc.system.installedOnId === item.id &&
+        Number(modDoc.system.targetWeaponIndex) === weaponIndex,
+    )
+    .map((modDoc) => modDoc.system);
+}
+
+export function getEffectiveItemWeapons(itemLike, actor = null) {
   const weapons = foundry.utils.deepClone(itemLike?.system?.weapons ?? []);
 
   // Apply embedded mods (stored directly on the item — works even without an actor)
@@ -215,6 +238,20 @@ export function getEffectiveItemWeapons(itemLike) {
     if (!weapon) continue;
     for (const change of mod.weaponChanges ?? []) {
       applyWeaponChange(weapon, change);
+    }
+  }
+
+  // Apply weaponChanges from actor-installed mod Items (e.g. Hakatome skill/hands override)
+  if (actor && itemLike?.id) {
+    for (const modDoc of actor.items ?? []) {
+      if (modDoc.type !== 'mod' || modDoc.system.modType !== 'weaponMod') continue;
+      if (modDoc.system.installedOnId !== itemLike.id) continue;
+      const targetIndex = Number(modDoc.system.targetWeaponIndex);
+      const weapon = weapons[targetIndex];
+      if (!weapon) continue;
+      for (const change of modDoc.system.weaponChanges ?? []) {
+        applyWeaponChange(weapon, change);
+      }
     }
   }
 

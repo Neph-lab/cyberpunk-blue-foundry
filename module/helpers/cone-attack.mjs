@@ -472,6 +472,16 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
     return;
   }
 
+  // Upfront ammo check: weapon must have at least `shots` ammo to fire
+  const shotsRequired = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
+  if (shotsRequired > 0) {
+    const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
+    if (currentAmmo < shotsRequired) {
+      ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.NotEnoughAmmoForShots', { required: shotsRequired, current: currentAmmo }));
+      return;
+    }
+  }
+
   const spread = weapon.coneSpread ?? 0;
   const angleDeg = weapon.coneAngle ?? 45;
   const halfDamageDistance = weapon.coneHalfDamageDistance ?? 0;

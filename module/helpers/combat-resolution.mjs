@@ -1,5 +1,5 @@
 import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
-import { getEffectiveItemWeapons } from './mods.mjs';
+import { getEffectiveItemWeapons, getInstalledWeaponMods } from './mods.mjs';
 import { resolveConeAttack, resolveExplosionAttack, resolveAfflictionConeAttack, resolveAfflictionExplosionAttack } from './cone-attack.mjs';
 import { recordCombatAttack } from './combat-tracker.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
@@ -223,15 +223,33 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     }
   }
 
+  // ── Installed mod bonuses ─────────────────────────────────────────────────
+  const installedMods = getInstalledWeaponMods(item, weaponIndex, attacker);
+  const modRecoilBonus = installedMods.reduce(
+    (sum, m) => sum + (!m.recoilAFOnly ? (m.recoilBonus ?? 0) : 0),
+    0,
+  );
+  const modVitalsPenaltyReduction = installedMods.reduce(
+    (sum, m) => sum + (m.targetVitalsPenaltyReduction ?? 0),
+    0,
+  );
+  const hasBeginnerFriendly = installedMods.some((m) => m.beginnerFriendly);
+  const handgunRank = attacker.system?.skills?.handgun?.rank ?? 0;
+  const beginnerBonus = (hasBeginnerFriendly && handgunRank === 0) ? 1 : 0;
+
   // ── Weapon attack-roll modifier ────────────────────────────────────────────
-  // Sum of: Target Vitals penalty, Smart Weapon (+1), Excellent Quality (+1).
+  // Sum of: Target Vitals penalty, Smart Weapon (+1), Excellent Quality (+1),
+  //         recoil bonus from mods, Beginner Friendly bonus.
   const targetVitals = item.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false;
-  const targetVitalsPenalty = -(weapon.targetVitalsPenalty ?? 8);
+  const rawVitalsPenalty = weapon.targetVitalsPenalty ?? 8;
+  const targetVitalsPenalty = -(rawVitalsPenalty - modVitalsPenaltyReduction);
 
   let attackModifier = 0;
   if (targetVitals) attackModifier += targetVitalsPenalty;
   if (weapon.isSmartWeapon) attackModifier += 1;
   if (weapon.isExcellentQuality) attackModifier += 1;
+  attackModifier += modRecoilBonus;
+  attackModifier += beginnerBonus;
 
   const attackRoll = await attacker.rollSkill({ skillSlug, dv: resolvedDV, modifier: attackModifier });
 
@@ -348,7 +366,22 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
   const weapon = effectiveWeapons[weaponIndex];
   if (!weapon) return;
 
-  const AUTOFIRE_AMMO_COST = 10;
+  // ── Installed mod checks ───────────────────────────────────────────────────
+  const installedMods = getInstalledWeaponMods(item, weaponIndex, attacker);
+  // compressRof (silencers): block autofire entirely
+  if (installedMods.some((m) => m.compressRof)) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.SilencerBlocksAutofire'));
+    return;
+  }
+  // burstControlAmmoReduction (ClearVue Mk.8): reduce ammo cost, minimum 8
+  const burstReduction = installedMods.reduce((sum, m) => sum + (m.burstControlAmmoReduction ?? 0), 0);
+  const AUTOFIRE_AMMO_COST = Math.max(8, 10 - burstReduction);
+  // recoilBonus: AF-only mods (Strigoi, Zaar) + general mods
+  const modRecoilBonus = installedMods.reduce(
+    (sum, m) => sum + (m.recoilBonus ?? 0),
+    0,
+  );
+
   const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? weapon.ammoCurrent ?? 0;
   if (currentAmmo < AUTOFIRE_AMMO_COST) {
     ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.AutofireNotEnoughAmmo'));
@@ -416,7 +449,7 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
 
   const dialogContent = `
     <div class="cyberpunk-blue" style="padding:0.5rem;">
-      <p><strong>${game.i18n.localize('CYBER_BLUE.Combat.Autofire')}</strong> — ${game.i18n.format('CYBER_BLUE.Combat.AutofireConsumes', { ammo: AUTOFIRE_AMMO_COST })} | ×${multiplier}</p>
+      <p><strong>${game.i18n.localize('CYBER_BLUE.Combat.Autofire')}</strong> — ${game.i18n.format('CYBER_BLUE.Combat.AutofireConsumes', { ammo: AUTOFIRE_AMMO_COST })}${burstReduction > 0 ? ` <em>(${game.i18n.localize('CYBER_BLUE.Combat.BurstControl')})</em>` : ''} | ×${multiplier}</p>
       <p>${game.i18n.localize('CYBER_BLUE.Combat.AutofireRollNote', { bonus: totalBonus >= 0 ? `+${totalBonus}` : `${totalBonus}` })}</p>
       ${targetLine}
       ${distanceLine}
@@ -475,8 +508,10 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
     resolvedDV = rawDV;
   }
 
-  // Roll attack using custom formula (skill override)
-  const formula = `1d10 + ${totalBonus}`;
+  // Roll attack using custom formula (skill override + recoil mod bonus)
+  const formula = modRecoilBonus !== 0
+    ? `1d10 + ${totalBonus} + ${modRecoilBonus}`
+    : `1d10 + ${totalBonus}`;
   const attackRoll = await (new Roll(formula)).evaluate();
   await attackRoll.toMessage({
     speaker: ChatMessage.getSpeaker({ actor: attacker }),

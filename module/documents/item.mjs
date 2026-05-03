@@ -202,7 +202,7 @@ export class CyberBlueItem extends Item {
   }
 
   getEffectiveWeapons() {
-    return getEffectiveItemWeapons(this);
+    return getEffectiveItemWeapons(this, this.parent);
   }
 
   getPsycheLossEffect() {
