@@ -556,32 +556,6 @@
       "DisruptedMind": "Disrupted Mind",
       "BeginningCyberpsychosis": "Beginning Cyberpsychosis",
       "FullCyberpsychosis": "Full Cyberpsychosis"
-    }
-  },
-  "TYPES": {
-    "Actor": {
-      "character": "Character",
-      "npc": "NPC",
-      "mook": "Mook",
-      "program": "Program",
-      "vehicle": "Vehicle"
-    },
-    "Item": {
-      "role": "Role",
-      "ability": "Ability",
-      "cyberware": "Cyberware",
-      "gear": "Gear",
-      "ammo": "Ammo",
-      "programExecutable": "Executable",
-      "drug": "Drug",
-      "mod": "Mod"
-    },
-    "Drug": {
-      "PrimaryEffect": "Primary effect",
-      "Duration": "Duration",
-      "SecondaryDV": "Secondary DV",
-      "SecondaryEffect": "Secondary effect (on fail)",
-      "AddictionPenalty": "Addiction penalty"
     },
     "MartialArts": {
       "Title": "Martial Arts",
@@ -674,6 +648,32 @@
       "Activate": "Activate",
       "RequiresComponent": "Auto-fail if component absent",
       "CheckRequiresComponent": "Requires {component} — automatic failure."
+    }
+  },
+  "TYPES": {
+    "Actor": {
+      "character": "Character",
+      "npc": "NPC",
+      "mook": "Mook",
+      "program": "Program",
+      "vehicle": "Vehicle"
+    },
+    "Item": {
+      "role": "Role",
+      "ability": "Ability",
+      "cyberware": "Cyberware",
+      "gear": "Gear",
+      "ammo": "Ammo",
+      "programExecutable": "Executable",
+      "drug": "Drug",
+      "mod": "Mod"
+    },
+    "Drug": {
+      "PrimaryEffect": "Primary effect",
+      "Duration": "Duration",
+      "SecondaryDV": "Secondary DV",
+      "SecondaryEffect": "Secondary effect (on fail)",
+      "AddictionPenalty": "Addiction penalty"
     }
   }
 }
