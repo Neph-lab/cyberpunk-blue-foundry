@@ -490,7 +490,9 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
   const hit = resolvedDV === null || attackRoll.total >= resolvedDV;
   if (!hit) return;
 
-  const damageFormula = weapon.damage ?? definition.damage ?? '1d6';
+  // autofireDamage holds the per-bullet AF value when SS and AF damage differ.
+  // Falls back to weapon.damage so non-split weapons (e.g. Helix) work unchanged.
+  const damageFormula = weapon.autofireDamage || weapon.damage || definition.damage || '1d6';
   const damageRoll = await new Roll(damageFormula).evaluate();
   const effectiveMultiplier = (resolvedDV !== null && Number.isFinite(resolvedDV))
     ? Math.min(multiplier, Math.max(1, attackRoll.total - resolvedDV))

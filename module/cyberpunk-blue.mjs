@@ -1049,6 +1049,10 @@ async function ensureWeaponCatalogue() {
     // Sync any new mods that weren't present when the pack was first populated
     // (e.g. computerMods added after the initial population)
     await _syncMissingMods(MOD_CATALOGUE);
+
+    // Update existing weapon entries whose weapons[] array has changed
+    // (e.g. SS+AF merged into single AF entry, autofireDamage added)
+    await _syncWeaponEntries(WEAPON_CATALOGUE);
   } catch (err) {
     console.error('Cyberpunk Blue | Failed to import weapon catalogue:', err);
   }
@@ -1088,6 +1092,54 @@ async function _syncMissingMods(catalogue) {
     if (created > 0) {
       console.log(`Cyberpunk Blue | Added ${created} missing mods to weapon-mods pack.`);
     }
+  } finally {
+    await pack.configure({ locked: true });
+  }
+}
+
+/**
+ * Synchronise the `system.weapons` array of existing gear items in the weapons
+ * compendium against the current catalogue definition.  Runs on every GM load
+ * so removing a duplicate SS entry or changing autofireDamage propagates
+ * without requiring a full pack wipe.
+ */
+async function _syncWeaponEntries(catalogue) {
+  const PACK_ID = 'cyberpunk-blue.weapons';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) return;
+  await pack.getIndex({ fields: ['name', 'type'] });
+
+  // Build a name → catalogue entry map (gear items only)
+  const byName = new Map(catalogue.filter((it) => it.type === 'gear').map((it) => [it.name, it]));
+
+  const updates = [];
+  for (const entry of pack.index) {
+    if (entry.type !== 'gear') continue;
+    const def = byName.get(entry.name);
+    if (!def) continue;
+    const doc = await pack.getDocument(entry._id);
+    if (!doc) continue;
+
+    const currentWeapons = doc.system.weapons ?? [];
+    const catalogueWeapons = def.system?.weapons ?? [];
+
+    // Compare by weapon count only — if counts differ or the first entry's
+    // damageType changed (SS→AF merge), the entry is stale.
+    const countChanged = currentWeapons.length !== catalogueWeapons.length;
+    const typeChanged = (currentWeapons[0]?.damageType ?? '') !== (catalogueWeapons[0]?.damageType ?? '');
+    const autofireDamageChanged = (currentWeapons[0]?.autofireDamage ?? '') !== (catalogueWeapons[0]?.autofireDamage ?? '');
+
+    if (countChanged || typeChanged || autofireDamageChanged) {
+      updates.push({ _id: doc.id, 'system.weapons': catalogueWeapons });
+    }
+  }
+
+  if (updates.length === 0) return;
+
+  await pack.configure({ locked: false });
+  try {
+    await Item.updateDocuments(updates, { pack: PACK_ID });
+    console.log(`Cyberpunk Blue | Updated weapon entries for ${updates.length} items in weapons pack.`);
   } finally {
     await pack.configure({ locked: true });
   }

@@ -97,6 +97,7 @@ function entry(opts = {}) {
     coneHalfDamageDistance: opts.coneHalfDamageDistance ?? 0,
     rangeTable: opts.rangeTable ?? Array(8).fill(0),
     ammoTypeUuid: '',
+    autofireDamage: opts.autofireDamage ?? '',
     isPowerWeapon: !!opts.power,
     isSmartWeapon: !!opts.smart,
     isTechWeapon: !!opts.tech,
@@ -140,12 +141,13 @@ function weaponItem({ name, manufacturer = '', cost = '', minBody = 0, weapons =
 
 // ─── Standardised firing-mode shorthands ──────────────────────────────────────
 
-const smgSS  = (overrides = {}) => entry({ type: 'smg', damage: '3d6', rateOfFire: 1, magazine: 30, hands: 1, concealable: true, rangeTable: R.smgSingle, shots: 3, ...overrides });
-const smgAF  = (overrides = {}) => entry({ type: 'smg', damage: '2d6', rateOfFire: 1, magazine: 30, hands: 1, concealable: true, damageType: 'autofire', autofireMultiplier: 3, autofireRangeTable: R.smgAF, rangeTable: R.smgAF, shots: 10, ...overrides });
-const arSS   = (overrides = {}) => entry({ type: 'assaultRifle', damage: '5d6', rateOfFire: 1, magazine: 24, hands: 2, rangeTable: R.arSingle, shots: 3, ...overrides });
-const arAF   = (overrides = {}) => entry({ type: 'assaultRifle', damage: '2d6', rateOfFire: 1, magazine: 24, hands: 2, damageType: 'autofire', autofireMultiplier: 4, autofireRangeTable: R.arAF, rangeTable: R.arAF, shots: 10, ...overrides });
-const mgSS   = (overrides = {}) => entry({ type: 'machineGun', damage: '5d6', rateOfFire: 1, magazine: 40, hands: 2, rangeTable: R.mgSingle, shots: 5, ...overrides });
-const mgAF   = (overrides = {}) => entry({ type: 'machineGun', damage: '2d6', rateOfFire: 1, magazine: 40, hands: 2, damageType: 'autofire', autofireMultiplier: 3, autofireRangeTable: R.mgAF, rangeTable: R.mgAF, shots: 10, ...overrides });
+// AF factories carry both attack modes in a single entry:
+//   damage         = single-shot damage (used by the Attack button)
+//   autofireDamage = per-bullet autofire damage (used by the Autofire button)
+//   shots          = rounds consumed per single attack
+const smgAF  = (overrides = {}) => entry({ type: 'smg', damage: '3d6', autofireDamage: '2d6', rateOfFire: 1, magazine: 30, hands: 1, concealable: true, damageType: 'autofire', autofireMultiplier: 3, autofireRangeTable: R.smgAF, rangeTable: R.smgAF, shots: 3, ...overrides });
+const arAF   = (overrides = {}) => entry({ type: 'assaultRifle', damage: '5d6', autofireDamage: '2d6', rateOfFire: 1, magazine: 24, hands: 2, damageType: 'autofire', autofireMultiplier: 4, autofireRangeTable: R.arAF, rangeTable: R.arAF, shots: 3, ...overrides });
+const mgAF   = (overrides = {}) => entry({ type: 'machineGun', damage: '5d6', autofireDamage: '2d6', rateOfFire: 1, magazine: 40, hands: 2, damageType: 'autofire', autofireMultiplier: 3, autofireRangeTable: R.mgAF, rangeTable: R.mgAF, shots: 5, ...overrides });
 const sgSlug = (overrides = {}) => entry({ type: 'shotgun', damage: '5d6', rateOfFire: 1, magazine: 5, hands: 2, rangeTable: R.sgSlug, shots: 1, ...overrides });
 const sgShell = (overrides = {}) => entry({ type: 'shotgun', damage: '3d6', rateOfFire: 1, magazine: 5, hands: 2, damageType: 'cone', coneSpread: 8, coneAngle: 53, coneHalfDamageDistance: 3, shots: 1, ...overrides });
 
@@ -294,28 +296,25 @@ const shotguns = [
 
 const smgs = [
   weaponItem({ name: 'Arasaka HJKE-11 Yukimura', manufacturer: 'Arasaka', cost: 'EX', imgPath: img(W_SMG, 'Arasaka HJKE-11 Yukimura.png'),
-    weapons: [smgSS({ smart: true }), smgAF({ smart: true })],
-    description: desc('Smart Weapon. Standard SMG single-shot and autofire patterns.') }),
+    weapons: [smgAF({ smart: true })],
+    description: desc('Smart Weapon.') }),
   weaponItem({ name: 'Kang Tao A-22B Chao', manufacturer: 'Kang Tao', cost: 'EX', imgPath: img(W_SMG, 'Kang Tao A-22B Chao.png'),
     weapons: [
-      smgSS({ damage: '3d6', shots: 2, smart: true }),
-      smgAF({ smart: true, autofireMultiplier: 2 }),
+      // Single shot: 3d6, uses 2 rounds. Autofire capped at ×2.
+      smgAF({ shots: 2, smart: true, autofireMultiplier: 2 }),
     ],
     description: desc('Smart Weapon. Single Shot: 3d6, 2 rounds/atk; if insufficient → fires all remaining at 1d6. Autofire capped at ×2.') }),
   weaponItem({ name: 'KTech Terrier', manufacturer: 'KTech', cost: 'EX', imgPath: img(W_ROOT, 'KTech Terrier.png'),
-    weapons: [smgSS(), smgAF()],
+    weapons: [smgAF()],
     description: desc('KTech Chomp ammo: sticks to target on hit (or autofire miss by ≤5); deals 1d6 to everyone within 2m of the target at the end of the user\'s next turn.') }),
   weaponItem({ name: 'Hansen Arms HA-4 Grit', manufacturer: 'Hansen Arms', cost: 'PR', imgPath: img(W_SMG, 'Hansen Arms HA-4 Grit.png'),
-    weapons: [
-      smgSS({ damage: '3d6' }), // base 2d6 but burst gives 3d6
-      smgAF({ damage: '2d6' }),
-    ],
+    weapons: [smgAF()],
     description: desc('Single shot fires a three-round burst dealing 3d6 (despite a 2d6 base). Charged (HOLD): next attack is ROF1 with thin cover and ignores ½ SP.') }),
   weaponItem({ name: 'Arasaka HJRE-9 Asuka', manufacturer: 'Arasaka', cost: 'EX', imgPath: img(W_ROOT, 'Arasaka Asuka.png'),
-    weapons: [smgSS({ power: true }), smgAF({ power: true })],
+    weapons: [smgAF({ power: true })],
     description: desc('Power Weapon.') }),
   weaponItem({ name: 'Kang Tao S9 Daishi Tang', manufacturer: 'Kang Tao', cost: 'EX', imgPath: img(W_SMG, 'Kang Tao Daishi-Tang.png'),
-    weapons: [smgSS({ smart: true }), smgAF({ smart: true })],
+    weapons: [smgAF({ smart: true })],
     description: desc('Smart Weapon. Single-shot rule: if attack die = 10 and the weapon has enough ammo, treat the shot as autofire instead.') }),
 ];
 
@@ -325,39 +324,39 @@ const smgs = [
 
 const ars = [
   weaponItem({ name: 'Arasaka HJSH-18 Masamune', manufacturer: 'Arasaka', cost: 'VEX', imgPath: img(W_ROOT, 'Arasaka HJSH-18 Masamune.png'),
-    weapons: [arSS({ excellent: true, power: true, autofireMultiplier: 3 }), arAF({ excellent: true, power: true, autofireMultiplier: 3 })],
+    weapons: [arAF({ excellent: true, power: true, autofireMultiplier: 3 })],
     description: desc('Excellent Quality + Power Weapon. Autofire capped at ×3.') }),
   weaponItem({ name: 'Tsunami Kyubi', manufacturer: 'Tsunami Arms', cost: 'VEX', imgPath: img(W_AR, 'Tsunami Kyubi.png'),
-    weapons: [arSS({ smart: true }), arAF({ smart: true })],
+    weapons: [arAF({ smart: true })],
     description: desc('Smart Weapon. Precise: when the attack die rolls a 1 on a single-shot, you may reroll once (must use the new result).') }),
   weaponItem({ name: 'Nokota D5 Sidewinder', manufacturer: 'Nokota', cost: 'EX', imgPath: img(W_ROOT, 'Nokota D5 Sidewinder.png'),
-    weapons: [arSS({ smart: true }), arAF({ smart: true })],
+    weapons: [arAF({ smart: true })],
     description: desc('Smart Weapon. Repairs: lower repair cost by 1 price category.') }),
   weaponItem({ name: 'Arasaka Nowaki', manufacturer: 'Arasaka', cost: 'EX', imgPath: img(W_AR, 'Arasaka Nowaki.png'),
-    weapons: [arSS({ power: true }), arAF({ power: true })],
+    weapons: [arAF({ power: true })],
     description: desc('Power Weapon.') }),
   weaponItem({ name: 'Darra Polytechnic DA8 Umbra', manufacturer: 'Darra Polytechnic', cost: 'PR', imgPath: img(W_ROOT, 'Darra Polytechnic DA8 Umbra.png'),
-    weapons: [arSS({ power: true, jamOnRoll: 1 }), arAF({ power: true, jamOnRoll: 1, autofireMultiplier: 5 })],
+    weapons: [arAF({ power: true, jamOnRoll: 1, autofireMultiplier: 5 })],
     description: desc('Power Weapon, Cheap. Autofire capped at ×5.') }),
   weaponItem({ name: 'Militech Hercules 3AX', manufacturer: 'Militech', cost: 'EX', imgPath: img(W_ROOT, 'Militech Hercules 3AX.png'),
-    weapons: [arSS({ smart: true, payloadDmgBonus: 2 }), arAF({ smart: true, payloadDmgBonus: 2 })],
+    weapons: [arAF({ smart: true, payloadDmgBonus: 2 })],
     description: desc('Smart Weapon. Payload: toxic rounds piercing SP deal +2 damage.') }),
   weaponItem({ name: 'Militech M251s Ajax', manufacturer: 'Militech', cost: 'EX', imgPath: img(W_AR, 'Militech M251s Ajax.png'),
-    weapons: [arSS({ power: true }), arAF({ power: true })],
+    weapons: [arAF({ power: true })],
     description: desc('Power Weapon. Sturdy: 20 HP to break.') }),
   weaponItem({ name: 'Militech AR-9 Brunswick', manufacturer: 'Militech', cost: 'EX', imgPath: img(W_ROOT, 'Militech AR-9 Brunswick.png'),
     weapons: [
-      arSS({ damage: '4d6', shots: 5, power: true }),
-      arAF({ power: true }),
+      // Single shot: 4d6, 5 rounds/atk. Autofire: standard 2d6 ×4.
+      arAF({ damage: '4d6', shots: 5, power: true }),
     ],
     description: desc('Power Weapon. Single shot: 4d6, 5 rounds/atk; if insufficient → fires all remaining at 3d6. Scatter: anything in 2m to either side of target takes ½ damage. Muzzle cannot be modified.') }),
   weaponItem({ name: 'Nokota D5 Copperhead', manufacturer: 'Nokota', cost: 'EX', imgPath: img(W_AR, 'Nokota D5 Copperhead.png'),
-    weapons: [arSS({ power: true }), arAF({ power: true })],
+    weapons: [arAF({ power: true })],
     description: desc('Power Weapon. Repairs: lower repair cost by 1 price category.') }),
   weaponItem({ name: 'Techtronika AK-68 Vologda', manufacturer: 'Techtronika', cost: 'EX', imgPath: img(W_AR, 'Techtronika AT-9 Vologda.png'),
     weapons: [
-      arSS({ damage: '5d6', magazine: 100, shots: 5, power: true }),
-      arAF({ magazine: 100, power: true, autofireMultiplier: 5 }),
+      // Single shot: 5d6, 5 rounds/atk. Magazine locked at 100. Autofire capped at ×5.
+      arAF({ shots: 5, magazine: 100, power: true, autofireMultiplier: 5 }),
     ],
     description: desc('Power Weapon. Single shot: 5d6, 5 rounds/atk; if insufficient → fires all remaining at 3d6. Magazine cannot be modified. Autofire capped at ×5.') }),
 ];
@@ -374,12 +373,12 @@ const mgs = [
     description: desc('Heavy Mounted weapon. Autofire-only, no single shot. Bandfed: extra 40-round bands cost €$50 each, added in sequence. BODY 11+ or properly mounted.') }),
   weaponItem({ name: 'Constitutional Arms M2067 Defender', manufacturer: 'Constitutional Arms', cost: 'VEX', minBody: 8, imgPath: img(W_ROOT, 'Constitutional Arms Defender.png'),
     weapons: [
-      mgSS({ power: true }),
-      mgAF({ damage: '3d6', power: true, autofireMultiplier: 3 }),
+      // Autofire deals 3d6 per hit (not the standard 2d6).
+      mgAF({ power: true, autofireDamage: '3d6', autofireMultiplier: 3 }),
     ],
     description: desc('Power Weapon. Heavy Mounted weapon: BODY 8+. Autofire deals 3d6 per hit (not 2d6).') }),
   weaponItem({ name: 'Midnight Arms MA70 HB', manufacturer: 'Midnight Arms', cost: 'VEX', minBody: 8, imgPath: img(W_ROOT, 'Midnight Arms MA70 HB.png'),
-    weapons: [mgSS({ power: true }), mgAF({ power: true })],
+    weapons: [mgAF({ power: true })],
     description: desc('Power Weapon. Heavy Mounted: BODY 8+. Concussive: explosive rounds deal +2 damage.') }),
 ];
 

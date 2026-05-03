@@ -14,6 +14,8 @@ export function buildWeaponField() {
     type: new fields.StringField({ required: true, blank: false, initial: 'lightMelee' }),
     skill: new fields.StringField({ required: true, blank: false, initial: 'meleeWeapons' }),
     damage: new fields.StringField({ required: true, blank: true, initial: '1d6' }),
+    // Per-bullet damage used only in autofire mode; '' means fall back to `damage`.
+    autofireDamage: new fields.StringField({ required: true, blank: true, initial: '' }),
     rateOfFire: new fields.NumberField({ ...requiredInteger, initial: 1, min: 1 }),
     magazine: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
     ammoCurrent: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
