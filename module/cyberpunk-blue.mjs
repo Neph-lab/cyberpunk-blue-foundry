@@ -417,6 +417,24 @@ const promptCyberwarePsycheLoss = async (item, options = {}, userId = null) => {
     return;
   }
 
+  // Role-granted cyberware: auto-apply suggested loss without prompting
+  if (options?.cyberBlueSkipRoleGrant) {
+    const psycheLoss = item.getCyberwarePsycheLossData();
+    await item.setFlag('cyberpunk-blue', CyberBlueItem.PSYCHE_PROMPT_FLAG, true);
+    if (psycheLoss.valid && psycheLoss.suggested > 0) {
+      const actor = item.parent;
+      const currentPsyche = actor.system.resources.psyche.value ?? 0;
+      await actor.update({
+        'system.resources.psyche.value': Math.max(currentPsyche - psycheLoss.suggested, 0),
+      });
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor }),
+        content: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Sheet.Labels.PsycheLoss')}</h3><p><strong>${item.name}</strong> (Role Grant): −${psycheLoss.suggested} Psyche (suggested).</p></div>`,
+      });
+    }
+    return;
+  }
+
   if (item.getFlag('cyberpunk-blue', CyberBlueItem.PSYCHE_PROMPT_FLAG)) {
     return;
   }

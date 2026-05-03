@@ -63,9 +63,15 @@ export class CyberBlueItem extends Item {
 
     const nextSystem = foundry.utils.deepClone(data.system ?? this.system);
     if (nextSystem.integration === 'extension' && !nextSystem.parentCyberwareId) {
-      const selectedPlatformId = await promptForCyberwarePlatform(
-        getEligiblePlatforms(this.parent, this.id, nextSystem)
-      );
+      const eligiblePlatforms = getEligiblePlatforms(this.parent, this.id, nextSystem);
+
+      let selectedPlatformId;
+      if (options?.cyberBlueSkipRoleGrant) {
+        // Auto-assign to the first eligible platform (no user prompt for role grants)
+        selectedPlatformId = eligiblePlatforms[0]?.id ?? null;
+      } else {
+        selectedPlatformId = await promptForCyberwarePlatform(eligiblePlatforms);
+      }
 
       if (selectedPlatformId === undefined || selectedPlatformId === '') {
         return false;

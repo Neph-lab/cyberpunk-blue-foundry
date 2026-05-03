@@ -375,7 +375,21 @@ export async function applyFirstRoleSetup(actor, roleItem) {
   }
 
   if (createdItems.length) {
-    await actor.createEmbeddedDocuments('Item', createdItems, { cyberBlueSkipRoleGrant: true });
+    // Create platforms before extensions so _preCreate can auto-assign the parent.
+    // Also separates non-cyberware so it's unaffected by cyberware ordering.
+    const extensions = createdItems.filter(
+      (d) => d.type === 'cyberware' && d.system?.integration === 'extension'
+    );
+    const nonExtensions = createdItems.filter(
+      (d) => !(d.type === 'cyberware' && d.system?.integration === 'extension')
+    );
+    const opts = { cyberBlueSkipRoleGrant: true };
+    if (nonExtensions.length) {
+      await actor.createEmbeddedDocuments('Item', nonExtensions, opts);
+    }
+    if (extensions.length) {
+      await actor.createEmbeddedDocuments('Item', extensions, opts);
+    }
   }
 }
 
