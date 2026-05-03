@@ -4,6 +4,7 @@ import { resolveConeAttack, resolveExplosionAttack, resolveAfflictionConeAttack,
 import { recordCombatAttack } from './combat-tracker.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
 import { resolveAfflictionAttack } from './affliction-attack.mjs';
+import { applyDamageWithPermission, rollCriticalInjuryWithPermission } from './socket.mjs';
 
 function getTarget() {
   const token = game.user.targets.first() ?? null;
@@ -327,9 +328,9 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
         flavor: damageFlavorHtml,
         rollMode: game.settings.get('core', 'rollMode'),
       });
-      await targetActor.applyDamage(finalDamage);
+      await applyDamageWithPermission(targetActor, finalDamage);
       if (isCritical) {
-        await rollCriticalInjury(targetActor, tableType, { attackerActor: attacker });
+        await rollCriticalInjuryWithPermission(targetActor, tableType, { attackerActor: attacker });
       }
     }
   } else {
@@ -534,10 +535,10 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
         flavor: autofireFlavorHtml,
         rollMode: game.settings.get('core', 'rollMode'),
       });
-      await targetActor.applyDamage(finalDamage);
+      await applyDamageWithPermission(targetActor, finalDamage);
       if (isCritical) {
         // Autofire always uses the body table
-        await rollCriticalInjury(targetActor, 'body', { attackerActor: attacker });
+        await rollCriticalInjuryWithPermission(targetActor, 'body', { attackerActor: attacker });
       }
     }
   } else {

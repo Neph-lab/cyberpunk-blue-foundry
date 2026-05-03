@@ -37,6 +37,7 @@ import { EQUIPMENT_CATALOGUE } from './data/equipment-catalogue.mjs';
 import { CYBERWARE_CATALOGUE } from './data/cyberware-catalogue.mjs';
 import { DRUG_CATALOGUE } from './data/drug-catalogue.mjs';
 import { PROGRAM_CATALOGUE } from './data/program-catalogue.mjs';
+import { registerSocketHandlers } from './helpers/socket.mjs';
 
 Hooks.once('init', function () {
   game.cyberpunkblue = {
@@ -670,6 +671,9 @@ Hooks.on('deleteItem', syncLeaderTeams);
 Hooks.on('updateActor', syncLeaderTeams);
 
 Hooks.once('ready', async () => {
+  // Register socket handlers for all users (handler itself checks isGM where needed)
+  registerSocketHandlers();
+
   if (!game.user.isGM) {
     return;
   }

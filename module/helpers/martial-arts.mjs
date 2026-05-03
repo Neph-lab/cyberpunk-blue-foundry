@@ -18,11 +18,19 @@
 import {
   detectCriticalDice,
   confirmDamageDialog,
-  rollCriticalInjury,
   CRITICAL_INJURY_TABLE,
   CRITICAL_HEAD_INJURY_TABLE,
 } from './critical-injury.mjs';
 import { recordCombatAttack } from './combat-tracker.mjs';
+import {
+  applyDamageWithPermission,
+  rollCriticalInjuryWithPermission,
+  toggleStatusEffectWithPermission,
+  updateActorWithPermission,
+  unsetFlagWithPermission,
+  createActiveEffectWithPermission,
+  applyForcedCriticalInjuryWithPermission,
+} from './socket.mjs';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -163,12 +171,12 @@ async function applyMartialArtsDamage({
         flavor: damageFlavorHtml,
         rollMode: game.settings.get('core', 'rollMode'),
       });
-      await targetActor.applyDamage(finalDamage);
+      await applyDamageWithPermission(targetActor, finalDamage);
       if (isCritical) {
         if (forcedCritKey) {
-          await applyForcedCriticalInjury(targetActor, forcedCritKey, attacker);
+          await applyForcedCriticalInjuryWithPermission(targetActor, forcedCritKey, attacker);
         } else {
-          await rollCriticalInjury(targetActor, tableType, { attackerActor: attacker });
+          await rollCriticalInjuryWithPermission(targetActor, tableType, { attackerActor: attacker });
         }
       }
     }
@@ -180,71 +188,6 @@ async function applyMartialArtsDamage({
     });
   }
   return { isCritical, netDamage, finalDamage };
-}
-
-/**
- * Apply a specific forced critical injury (e.g. Bone Breaking Combination).
- * If the actor already has that injury, the AE is created as a duplicate.
- */
-async function applyForcedCriticalInjury(targetActor, injuryKey, attackerActor) {
-  // Find in body or head table
-  const entry = Object.values(CRITICAL_INJURY_TABLE).find((e) => e.key === injuryKey)
-    ?? Object.values(CRITICAL_HEAD_INJURY_TABLE).find((e) => e.key === injuryKey);
-  if (!entry) {
-    ui.notifications.warn(`Unknown forced injury key: ${injuryKey}`);
-    return;
-  }
-  // Check if already present
-  const alreadyHas = targetActor.effects.some(
-    (e) => e.getFlag('cyberpunk-blue', 'criticalInjury')?.key === injuryKey
-  );
-  if (alreadyHas) {
-    // Already has it — still apply per spec (can have multiples)
-    ui.notifications.info(`${targetActor.name} already has ${game.i18n.localize(entry.nameKey)} — applying again.`);
-  }
-  const name = game.i18n.localize(entry.nameKey);
-  const aeData = {
-    name,
-    icon: 'icons/svg/bones.svg',
-    origin: targetActor.uuid,
-    disabled: false,
-    transfer: false,
-    system: { changes: entry.changes ?? [] },
-    flags: {
-      'cyberpunk-blue': {
-        criticalInjury: {
-          key: entry.key,
-          tableType: Object.values(CRITICAL_INJURY_TABLE).some((e) => e.key === injuryKey) ? 'body' : 'head',
-          mortal: entry.mortal ?? false,
-          descKey: entry.descKey ?? '',
-          noQuickFix: entry.noQuickFix ?? false,
-          quickFixDv: entry.quickFixDv ?? null,
-          quickFixUsed: false,
-          treatmentDv: entry.treatmentDv ?? null,
-          surgeryRequired: entry.surgeryRequired ?? false,
-          surgeryDv: entry.surgeryDv ?? null,
-          evasionPrompt: entry.evasionPrompt ?? false,
-          stabilized: false,
-        },
-      },
-    },
-  };
-  const [createdAE] = await targetActor.createEmbeddedDocuments('ActiveEffect', [aeData]);
-  const content = `
-    <div class="cyberpunk-blue chat-card critical-injury-card">
-      <div class="critical-injury-header">
-        <i class="fas fa-skull-crossbones"></i>
-        <span class="crit-target-name">${targetActor.name}</span>
-      </div>
-      <div class="critical-injury-name">${name} (Forced)</div>
-      <div class="critical-injury-desc">${game.i18n.localize(entry.descKey)}</div>
-      ${createdAE ? `<div class="critical-injury-actions"><button type="button" class="remove-critical-injury" data-actor-id="${targetActor.id}" data-effect-id="${createdAE.id}"><i class="fas fa-trash"></i> ${game.i18n.localize('CYBER_BLUE.CriticalInjury.Remove')}</button></div>` : ''}
-    </div>`;
-  await ChatMessage.create({
-    speaker: ChatMessage.getSpeaker({ actor: attackerActor }),
-    content,
-    flags: { 'cyberpunk-blue': { criticalInjuryCard: true } },
-  });
 }
 
 // ─── Standard Martial Arts Attack ─────────────────────────────────────────────
@@ -409,7 +352,7 @@ export async function resolveGrab(attacker) {
 
   if (success) {
     // Apply Grappled condition to target (attacker stores flag for tracking)
-    await targetActor.toggleStatusEffect('grappled', { active: true });
+    await toggleStatusEffectWithPermission(targetActor, 'grappled', true);
     await attacker.setFlag('cyberpunk-blue', `grapplingTarget-${targetActor.id}`, true);
   }
 
@@ -445,12 +388,12 @@ export async function resolveChoke(attacker) {
   let chatContent;
   if (wouldDropBelow1 || threeConsecutive) {
     // Force target to 1 HP and apply Unconscious
-    await targetActor.update({ 'system.resources.hp.value': 1 });
-    await targetActor.toggleStatusEffect('unconscious', { active: true });
+    await updateActorWithPermission(targetActor, { 'system.resources.hp.value': 1 });
+    await toggleStatusEffectWithPermission(targetActor, 'unconscious', true);
     await attacker.setFlag('cyberpunk-blue', chokeKey, 0);
     chatContent = `<p><strong>${targetActor.name}</strong> is reduced to 1 HP and is now <strong>Unconscious</strong> (${threeConsecutive ? 'three consecutive chokes' : 'would drop below 1 HP'}).</p>`;
   } else {
-    await targetActor.applyDamage(bodyValue);
+    await applyDamageWithPermission(targetActor, bodyValue);
     chatContent = `<p>${game.i18n.format('CYBER_BLUE.MartialArts.ChokeDamage', { target: targetActor.name, damage: bodyValue })} (choke ${chokeCount}/3)</p>`;
   }
 
@@ -491,9 +434,9 @@ export async function resolveThrow(attacker) {
   }
 
   const bodyValue = attacker.system?.stats?.body?.value ?? 0;
-  await targetActor.applyDamage(bodyValue); // ignores SP (direct HP)
-  await targetActor.toggleStatusEffect('prone', { active: true });
-  await targetActor.toggleStatusEffect('grappled', { active: false });
+  await applyDamageWithPermission(targetActor, bodyValue); // ignores SP (direct HP)
+  await toggleStatusEffectWithPermission(targetActor, 'prone', true);
+  await toggleStatusEffectWithPermission(targetActor, 'grappled', false);
   await attacker.unsetFlag('cyberpunk-blue', `grapplingTarget-${targetActor.id}`);
   await attacker.unsetFlag('cyberpunk-blue', `chokeCount-${targetActor.id}`);
 
@@ -523,7 +466,7 @@ export async function resolveIronGrip(attacker) {
     return;
   }
 
-  await targetActor.createEmbeddedDocuments('ActiveEffect', [{
+  await createActiveEffectWithPermission(targetActor, {
     name: game.i18n.localize('CYBER_BLUE.MartialArts.IronGrip'),
     icon: 'icons/svg/net.svg',
     origin: attacker.uuid,
@@ -534,7 +477,7 @@ export async function resolveIronGrip(attacker) {
       { key: 'system.stats.rflx.rollMod', type: 'add', value: '-2' },
     ] },
     flags: { 'cyberpunk-blue': { ironGrip: true } },
-  }]);
+  });
 
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: attacker }),
@@ -700,7 +643,7 @@ export async function resolveArmorBreakingCombination(attacker, targetActor) {
     // Reduce target's SP by 1 extra
     const currentSP = targetActor.system?.resources?.armor?.value ?? 0;
     if (currentSP > 0) {
-      await targetActor.update({ 'system.resources.armor.value': currentSP - 1 });
+      await updateActorWithPermission(targetActor, { 'system.resources.armor.value': currentSP - 1 });
       ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor: attacker }),
         content: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.MartialArts.ArmorBreakingCombination')}</h3><p>${game.i18n.format('CYBER_BLUE.MartialArts.ArmorBreakSuccess', { target: targetActor.name, sp: currentSP - 1 })}</p></div>`,
@@ -739,7 +682,7 @@ export async function resolveCounterThrow(attacker, maIndex) {
 
   if (!success) return;
 
-  await targetActor.toggleStatusEffect('prone', { active: true });
+  await toggleStatusEffectWithPermission(targetActor, 'prone', true);
   ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: attacker }),
     content: `<div class="cyberpunk-blue chat-card"><p>${game.i18n.format('CYBER_BLUE.MartialArts.CounterThrowSuccess', { target: targetActor.name })}</p></div>`,
@@ -790,8 +733,8 @@ export async function resolveGrabEscape(escapee) {
   if (!success) return;
 
   // End grapple
-  await escapee.toggleStatusEffect('grappled', { active: false });
-  await grappler.unsetFlag('cyberpunk-blue', `grapplingTarget-${escapee.id}`);
+  await toggleStatusEffectWithPermission(escapee, 'grappled', false);
+  await unsetFlagWithPermission(grappler, 'cyberpunk-blue', `grapplingTarget-${escapee.id}`);
 
   // Apply Broken Arm to grappler (player chooses side)
   const side = await new Promise((resolve) => {
@@ -811,7 +754,7 @@ export async function resolveGrabEscape(escapee) {
   const injName = `${game.i18n.localize(`CYBER_BLUE.CriticalInjury.Side.${side === 'left' ? 'Left' : 'Right'}`)} ${game.i18n.localize('CYBER_BLUE.CriticalInjury.Body.BrokenArm')}`;
   const entry = Object.values(CRITICAL_INJURY_TABLE).find((e) => e.key === 'broken-arm');
   if (entry) {
-    await grappler.createEmbeddedDocuments('ActiveEffect', [{
+    await createActiveEffectWithPermission(grappler, {
       name: injName,
       icon: 'icons/svg/bones.svg',
       origin: grappler.uuid,
@@ -829,7 +772,7 @@ export async function resolveGrabEscape(escapee) {
           },
         },
       },
-    }]);
+    });
   }
   ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: escapee }),

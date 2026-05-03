@@ -2,6 +2,7 @@ import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './com
 import { getEffectiveItemWeapons } from './mods.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
 import { rollAfflictionDefense, checkAfflictionSP, applyAfflictionEffect } from './affliction-attack.mjs';
+import { applyDamageWithPermission, rollCriticalInjuryWithPermission } from './socket.mjs';
 
 function getPixelsPerMeter() {
   const gridSize = canvas.grid.size;
@@ -434,10 +435,10 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
             rollMode: game.settings.get('core', 'rollMode'),
           });
         }
-        await targetActor.applyDamage(finalDamage);
+        await applyDamageWithPermission(targetActor, finalDamage);
         if (isCritical) {
           // Explosion/cone always uses the body table
-          await rollCriticalInjury(targetActor, 'body', { attackerActor: attacker });
+          await rollCriticalInjuryWithPermission(targetActor, 'body', { attackerActor: attacker });
         }
       }
     }
@@ -580,10 +581,10 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
             rollMode: game.settings.get('core', 'rollMode'),
           });
         }
-        await targetActor.applyDamage(finalDamage);
+        await applyDamageWithPermission(targetActor, finalDamage);
         if (isCritical) {
           // Cone attacks always use the body table
-          await rollCriticalInjury(targetActor, 'body', { attackerActor: attacker });
+          await rollCriticalInjuryWithPermission(targetActor, 'body', { attackerActor: attacker });
         }
       }
     }
