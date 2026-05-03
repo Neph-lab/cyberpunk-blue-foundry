@@ -1838,6 +1838,7 @@ button, .cyberpunk-blue .button, a.button {
 /* Languages */
 .character-creation-wizard .cc-language-input input {
   width: 100%;
+  direction: ltr;
 }
 
 /* Ability list */

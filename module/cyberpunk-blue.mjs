@@ -709,6 +709,9 @@ Hooks.once('ready', async () => {
     await syncActorLeaderRoles(actor);
     await syncPsycheStateEffect(actor, { cyberBlueSyncPsycheState: false });
   }
+
+  // Auto-create a character for any player who doesn't have one yet
+  await ensurePlayerCharacters();
 });
 
 Handlebars.registerHelper('toLowerCase', function (str) {
@@ -755,6 +758,17 @@ Hooks.once('ready', () => {
 
   // Small delay so the actor sheet can open first
   setTimeout(() => new CharacterCreationWizard(ownedCharacter).render(true), 500);
+});
+
+// Watch for actors being created for the current player (GM may create on ready,
+// but the player might not yet be in the ready hook when that happens).
+Hooks.on('createActor', (actor) => {
+  if (game.user.isGM) return;
+  if (actor.type !== 'character') return;
+  if (!actor.isOwner) return;
+  if (!(actor.system.characterCreation?.active ?? false)) return;
+
+  setTimeout(() => new CharacterCreationWizard(actor).render(true), 500);
 });
 
 // ─── Combat: movement & RoF tracking hooks ──────────────────────────────────
@@ -1260,3 +1274,37 @@ Hooks.on('renderChatMessageHTML', (message, html) => {
 
 // Re-export tracker helpers for external use (e.g., actor sheet context)
 export { getCombatAttackState, recordCombatAttack };
+
+// ─── Auto-create characters for new players ───────────────────────────────────
+
+/**
+ * For every non-GM user who has no owned character actor, create one and
+ * assign ownership to that user. The character starts in CC-active state
+ * so the wizard opens automatically for them.
+ *
+ * Called by the GM during the ready hook.
+ */
+async function ensurePlayerCharacters() {
+  const nonGmUsers = game.users.filter((u) => !u.isGM && u.active !== false);
+  for (const user of nonGmUsers) {
+    const hasCharacter = game.actors.some(
+      (a) => a.type === 'character' && a.getUserLevel(user) >= CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER
+    );
+    if (hasCharacter) continue;
+
+    // Create a character for this user
+    const actorData = {
+      name: user.name,
+      type: 'character',
+      ownership: {
+        default: CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE,
+        [user.id]: CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER,
+      },
+      system: {
+        characterCreation: { active: true, step: 'welcome' },
+      },
+    };
+    await Actor.create(actorData);
+    console.log(`Cyberpunk Blue | Created character for user "${user.name}".`);
+  }
+}

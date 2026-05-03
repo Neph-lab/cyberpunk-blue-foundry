@@ -19,7 +19,7 @@ function calcSkillPointsUsed(actor) {
     const rank = actor.system.skills[slug]?.rank ?? 0;
     skillPts += rank;
     if (rank > 0 && def.components?.length > 0) {
-      freeCompRanks += 1;
+      freeCompRanks += rank; // 1 free component rank per purchased skill rank
     }
   }
 

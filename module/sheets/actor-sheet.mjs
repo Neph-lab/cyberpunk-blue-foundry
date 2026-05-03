@@ -739,7 +739,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     const canEdit = context.editable ?? false;
     context.charCreation = {
       active: isCC,
-      canBegin: actorData.type === 'character' && !isCC && canManageRestricted,
+      canBegin: actorData.type === 'character' && !isCC && (canManageRestricted || this.document.isOwner),
       step: isCC ? (system.characterCreation?.step ?? null) : null,
       notesWritable: !isCC || (stepIdx > 0 && canEdit),
       statsWritable: !isCC || (stepIdx > 2 && canEdit),
