@@ -25,6 +25,10 @@ import {
   recordMovement,
   getMovementUsed,
   combatMovementTracker,
+  combatActionTracker,
+  getActionState,
+  markMainActionUsed,
+  grantActionMove,
   resetTurnTracking,
   resetAllTracking,
 } from './helpers/combat-tracker.mjs';
@@ -789,7 +793,7 @@ Hooks.on('createActor', (actor) => {
   setTimeout(() => new CharacterCreationWizard(actor).render(true), 500);
 });
 
-// ─── Combat: movement & RoF tracking hooks ──────────────────────────────────
+// ─── Combat: movement enforcement & action tracking ──────────────────────────
 
 function getPixelsPerMeterGlobal() {
   const gridSize = canvas?.grid?.size ?? 100;
@@ -803,33 +807,85 @@ function getActiveCombatantTokenId() {
   return game.combat?.combatants.get(game.combat?.current?.combatantId)?.tokenId ?? null;
 }
 
+/** Total movement budget in meters for a token this turn (base + any Sprint grant). */
+function getMovementBudget(tokenId, actor) {
+  const moveValue = Math.max(Number(actor?.system?.stats?.move?.value) || 0, 0);
+  const baseBudget = moveValue * 2;
+  const actionState = getActionState(tokenId);
+  return baseBudget + (actionState.extraMoveMeters ?? 0);
+}
+
+/**
+ * Snap pixel coordinates to the nearest grid vertex.
+ * Falls back to rounding to grid-size multiples when the Foundry API isn't available.
+ */
+function snapToGrid(x, y) {
+  const gridSize = canvas?.grid?.size ?? 100;
+  if (typeof canvas?.grid?.getSnappedPoint === 'function') {
+    return canvas.grid.getSnappedPoint({ x, y });
+  }
+  return { x: Math.round(x / gridSize) * gridSize, y: Math.round(y / gridSize) * gridSize };
+}
+
+// ── preUpdateToken: enforce turn restriction + budget (with truncation) ───────
+
 Hooks.on('preUpdateToken', (tokenDoc, changes, options, userId) => {
   if (!game.combat?.started) return;
-  if (game.users.get(userId)?.isGM) return;
   if (!('x' in changes) && !('y' in changes)) return;
-  if (tokenDoc.id !== getActiveCombatantTokenId()) return;
 
+  const activeTokenId = getActiveCombatantTokenId();
+  const isGM = game.users.get(userId)?.isGM ?? false;
+
+  // ── Out-of-turn movement ──────────────────────────────────────────────────
+  if (tokenDoc.id !== activeTokenId) {
+    if (isGM) return; // GMs may reposition tokens freely
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.MovementOutsideTurn'));
+    return false;
+  }
+
+  // ── Active combatant: enforce movement budget ─────────────────────────────
   const actor = tokenDoc.actor;
   if (!actor) return;
-  const moveValue = Math.max(Number(actor.system?.stats?.move?.value) || 0, 0);
-  if (moveValue === 0) return;
 
-  const maxMeters = moveValue * 2;
+  const budget = getMovementBudget(tokenDoc.id, actor);
+  if (budget <= 0) return; // no move stat — don't interfere
+
   const used = getMovementUsed(tokenDoc.id);
+  const remaining = Math.max(budget - used, 0);
   const ppm = getPixelsPerMeterGlobal();
-  const proposedMeters = Math.hypot(
-    (changes.x ?? tokenDoc.x) - tokenDoc.x,
-    (changes.y ?? tokenDoc.y) - tokenDoc.y
-  ) / ppm;
 
-  if (used + proposedMeters > maxMeters + 0.01) {
-    const remaining = Math.max(maxMeters - used, 0).toFixed(1);
+  const destX = changes.x ?? tokenDoc.x;
+  const destY = changes.y ?? tokenDoc.y;
+  const dx = destX - tokenDoc.x;
+  const dy = destY - tokenDoc.y;
+  const proposedMeters = Math.hypot(dx, dy) / ppm;
+
+  if (proposedMeters <= 0.01) return; // negligible move — allow
+
+  if (remaining < 0.01) {
+    // Budget fully exhausted — block entirely
     ui.notifications.warn(
-      game.i18n.format('CYBER_BLUE.Combat.MovementLimitReached', { max: maxMeters, remaining })
+      game.i18n.format('CYBER_BLUE.Combat.MovementExhausted', { max: budget })
     );
     return false;
   }
+
+  if (used + proposedMeters > budget + 0.01) {
+    // Partial budget left — truncate movement along the same vector
+    const allowedPixels = remaining * ppm;
+    const totalPixels = Math.hypot(dx, dy);
+    const fraction = allowedPixels / totalPixels;
+    const snapped = snapToGrid(tokenDoc.x + dx * fraction, tokenDoc.y + dy * fraction);
+    changes.x = snapped.x;
+    changes.y = snapped.y;
+    ui.notifications.warn(
+      game.i18n.format('CYBER_BLUE.Combat.MovementTruncated', { remaining: remaining.toFixed(1) })
+    );
+    // Allow the update to proceed with the truncated coordinates
+  }
 });
+
+// ── updateToken: record how far the active combatant actually moved ───────────
 
 Hooks.on('updateToken', (tokenDoc, changes, _options, _userId) => {
   if (!game.combat?.started) return;
@@ -837,21 +893,114 @@ Hooks.on('updateToken', (tokenDoc, changes, _options, _userId) => {
   if (tokenDoc.id !== getActiveCombatantTokenId()) return;
 
   const ppm = getPixelsPerMeterGlobal();
-  // tokenDoc now holds the NEW values; _source holds the PRE-update values
   const oldX = tokenDoc._source?.x ?? tokenDoc.x;
   const oldY = tokenDoc._source?.y ?? tokenDoc.y;
   const meters = Math.hypot((changes.x ?? oldX) - oldX, (changes.y ?? oldY) - oldY) / ppm;
   recordMovement(tokenDoc.id, meters);
+
+  // Refresh the combat tracker panel so the movement bar updates in real-time
+  ui.combat?.render(false);
 });
+
+// ── Combat turn / round resets ────────────────────────────────────────────────
 
 Hooks.on('combatTurn', (combat) => {
   const prev = combat.combatants.get(combat.previous?.combatantId);
   if (prev?.tokenId) resetTurnTracking(prev.tokenId);
   const curr = combat.combatants.get(combat.current?.combatantId);
   if (curr?.tokenId) resetTurnTracking(curr.tokenId);
+  ui.combat?.render(false);
 });
 
-Hooks.on('combatRound', () => resetAllTracking());
+Hooks.on('combatRound', () => {
+  resetAllTracking();
+  ui.combat?.render(false);
+});
+
+Hooks.on('deleteCombat', () => {
+  resetAllTracking();
+});
+
+// ── Combat tracker panel: movement + action display ───────────────────────────
+
+Hooks.on('renderCombatTracker', (app, htmlArg, _data) => {
+  if (!game.combat?.started) return;
+
+  // Support both Application (jQuery) and ApplicationV2 (HTMLElement)
+  const root = htmlArg instanceof HTMLElement ? htmlArg : htmlArg[0];
+  if (!root) return;
+
+  // Remove any previous panel so re-renders don't duplicate it
+  root.querySelectorAll('.cyber-blue-combat-panel').forEach((el) => el.remove());
+
+  const activeTokenId = getActiveCombatantTokenId();
+  if (!activeTokenId) return;
+
+  const activeCombatant = game.combat.combatants.find((c) => c.tokenId === activeTokenId);
+  const actor = activeCombatant?.actor;
+  if (!actor) return;
+
+  const moveValue = Math.max(Number(actor.system?.stats?.move?.value) || 0, 0);
+  const budget = getMovementBudget(activeTokenId, actor);
+  const used = getMovementUsed(activeTokenId);
+  const remaining = Math.max(budget - used, 0);
+  const pct = budget > 0 ? Math.min(100, (remaining / budget) * 100) : 0;
+
+  const actionState = getActionState(activeTokenId);
+  const attackMade = combatAttackTracker.has(activeTokenId);
+  const actionUsed = actionState.mainActionUsed || attackMade;
+
+  // Show Sprint button to: the GM (always), or the user who owns the active combatant
+  const actionFree = !actionUsed && !actionState.actionMoveGranted;
+  const ownsActiveCombatant = activeCombatant.isOwner;
+  const canSprint = actionFree && ownsActiveCombatant;
+
+  const sprintMeters = moveValue * 2;
+  const sprintLabel = game.i18n.format('CYBER_BLUE.Combat.Panel.Sprint', { meters: sprintMeters });
+  const sprintBtn = (canSprint && sprintMeters > 0)
+    ? `<button type="button" class="cyber-blue-sprint-btn" title="${game.i18n.localize('CYBER_BLUE.Combat.Panel.SprintTitle')}">${sprintLabel}</button>`
+    : '';
+
+  const panel = document.createElement('div');
+  panel.className = 'cyber-blue-combat-panel';
+  panel.innerHTML = `
+    <div class="cbcp-name">${activeCombatant.name}</div>
+    <div class="cbcp-row cbcp-move">
+      <span class="cbcp-label">${game.i18n.localize('CYBER_BLUE.Combat.Panel.Move')}</span>
+      <div class="cbcp-bar-wrap" title="${remaining.toFixed(1)}m / ${budget}m">
+        <div class="cbcp-bar" style="width:${pct.toFixed(1)}%"></div>
+      </div>
+      <span class="cbcp-value">${remaining.toFixed(1)} / ${budget}m</span>
+    </div>
+    <div class="cbcp-row cbcp-action">
+      <span class="cbcp-label">${game.i18n.localize('CYBER_BLUE.Combat.Panel.Action')}</span>
+      <span class="cbcp-action-state ${actionUsed ? 'used' : 'available'}">
+        ${actionUsed
+          ? game.i18n.localize('CYBER_BLUE.Combat.Panel.ActionUsed')
+          : game.i18n.localize('CYBER_BLUE.Combat.Panel.ActionAvailable')}
+      </span>
+      ${sprintBtn}
+    </div>
+  `;
+
+  // Wire up Sprint button
+  panel.querySelector('.cyber-blue-sprint-btn')?.addEventListener('click', () => {
+    grantActionMove(activeTokenId, sprintMeters);
+    ui.combat?.render(false);
+    ui.notifications.info(
+      game.i18n.format('CYBER_BLUE.Combat.Panel.SprintGranted', { meters: sprintMeters })
+    );
+  });
+
+  // Insert above the combat controls row; fall back to appending
+  const controls = root.querySelector('.combat-controls');
+  if (controls) {
+    controls.before(panel);
+  } else {
+    root.querySelector('.directory-footer, form')?.append(panel)
+      ?? root.append(panel);
+  }
+});
 
 // ─── Critical Injury: populate compendium tables on first run ────────────────
 

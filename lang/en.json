@@ -446,6 +446,18 @@
       "AfflictionCone": "Affliction Cone",
       "AfflictionExplosion": "Affliction Explosion",
       "MovementLimitReached": "Movement limit reached ({remaining}m remaining of {max}m).",
+      "MovementOutsideTurn": "Not your turn — token movement is locked during encounters.",
+      "MovementExhausted": "No movement remaining this turn (budget: {max}m).",
+      "MovementTruncated": "Movement capped — only {remaining}m left. Token stopped at furthest reachable point.",
+      "Panel": {
+        "Move": "Move",
+        "Action": "Action",
+        "ActionAvailable": "Available",
+        "ActionUsed": "Used",
+        "Sprint": "Sprint (+{meters}m)",
+        "SprintTitle": "Spend your Action to gain an additional 2×MOVE meters of movement this turn.",
+        "SprintGranted": "Sprint activated — +{meters}m added to movement budget."
+      },
       "RateOfFireTitle": "Rate of Fire (attacks used / max per turn)",
       "NetrunnerComponents": "Interface Components",
       "NetrunnerComputers": "Computers",

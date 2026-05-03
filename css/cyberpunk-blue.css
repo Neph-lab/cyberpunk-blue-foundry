@@ -2528,3 +2528,96 @@ button, .cyberpunk-blue .button, a.button {
   color: var(--color-text-dark-secondary);
   line-height: 1.3;
 }
+
+/* ─── Combat state panel (in the combat tracker sidebar) ──────────────────── */
+
+.cyber-blue-combat-panel {
+  padding: 6px 8px 8px;
+  margin: 4px 4px 0;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(39, 176, 255, 0.35);
+  border-radius: 4px;
+  font-family: 'Share Tech', monospace;
+  font-size: var(--font-size-11);
+  color: #ddd;
+}
+
+.cyber-blue-combat-panel .cbcp-name {
+  font-size: var(--font-size-12);
+  font-weight: bold;
+  color: var(--cpb-accent);
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cyber-blue-combat-panel .cbcp-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.cyber-blue-combat-panel .cbcp-label {
+  min-width: 42px;
+  color: #aaa;
+  font-size: var(--font-size-10);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Movement progress bar */
+.cyber-blue-combat-panel .cbcp-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.cyber-blue-combat-panel .cbcp-bar {
+  height: 100%;
+  background: var(--cpb-accent);
+  border-radius: 3px;
+  transition: width 0.25s ease;
+  min-width: 2px;
+}
+
+.cyber-blue-combat-panel .cbcp-value {
+  min-width: 54px;
+  text-align: right;
+  font-size: var(--font-size-10);
+  color: #bbb;
+}
+
+/* Action state label */
+.cyber-blue-combat-panel .cbcp-action-state {
+  font-size: var(--font-size-11);
+  font-weight: bold;
+}
+.cyber-blue-combat-panel .cbcp-action-state.available {
+  color: #4cff8a;
+}
+.cyber-blue-combat-panel .cbcp-action-state.used {
+  color: #888;
+  text-decoration: line-through;
+}
+
+/* Sprint button */
+.cyber-blue-sprint-btn {
+  margin-left: auto;
+  padding: 1px 7px;
+  background: rgba(39, 176, 255, 0.15);
+  border: 1px solid rgba(39, 176, 255, 0.5);
+  border-radius: 3px;
+  color: var(--cpb-accent);
+  font-family: 'Share Tech', monospace;
+  font-size: var(--font-size-10);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.cyber-blue-sprint-btn:hover {
+  background: rgba(39, 176, 255, 0.3);
+  border-color: var(--cpb-accent);
+}
