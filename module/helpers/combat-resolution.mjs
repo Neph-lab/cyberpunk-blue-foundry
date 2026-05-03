@@ -4,7 +4,7 @@ import { resolveConeAttack, resolveExplosionAttack, resolveAfflictionConeAttack,
 import { recordCombatAttack } from './combat-tracker.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
 import { resolveAfflictionAttack } from './affliction-attack.mjs';
-import { applyDamageWithPermission, rollCriticalInjuryWithPermission } from './socket.mjs';
+import { applyDamageWithPermission, rollCriticalInjuryWithPermission, deleteActorItemWithPermission } from './socket.mjs';
 
 /** Count the number of d6s in a damage roll (using their face count, not total). */
 function countDamageDice(roll) {
@@ -126,15 +126,47 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const targetSP = targetActor ? (targetActor.system?.resources?.armor?.value ?? 0) : null;
   const targetRflx = targetActor?.system?.stats?.rflx?.value ?? 0;
 
-  // Distance and range DV
+  // Distance measurement
   const distanceMeters = getDistanceMeters(attacker, targetToken);
-  const rangeDV = distanceMeters !== null ? getDvForRange(definition, distanceMeters) : null;
+
+  // ── Installed mods (needed for range improvement and dialog bonuses) ───────
+  const installedMods = getInstalledWeaponMods(item, weaponIndex, attacker);
+
+  // ── Range DV with scope range improvement ─────────────────────────────────
+  // For each mod with rangeImprovementMeters: compute DV for adjusted distances
+  // and use the most favourable (lowest non-zero) DV.
+  let rangeDV = distanceMeters !== null ? getDvForRange(definition, distanceMeters) : null;
+  if (distanceMeters !== null && rangeDV !== null) {
+    for (const mod of installedMods) {
+      const N = mod.rangeImprovementMeters ?? 0;
+      if (N <= 0) continue;
+      const dvCloser = getDvForRange(definition, Math.max(0, distanceMeters - N));
+      if (dvCloser !== null && dvCloser > 0 && (rangeDV === 0 || dvCloser < rangeDV)) rangeDV = dvCloser;
+      if (mod.rangeImprovementBidirectional) {
+        const dvFarther = getDvForRange(definition, distanceMeters + N);
+        if (dvFarther !== null && dvFarther > 0 && (rangeDV === 0 || dvFarther < rangeDV)) rangeDV = dvFarther;
+      }
+    }
+  }
 
   // Abort if out of range
   if (rangeDV === 0) {
     ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.OutOfRange'));
     return;
   }
+
+  // ── Distance-conditional attack bonuses ────────────────────────────────────
+  const trajectoryBonus = (installedMods.some((m) => m.trajectoryCalculations) && distanceMeters !== null && distanceMeters > 40) ? 1 : 0;
+  const closeRangeBonusVal = (installedMods.some((m) => m.closeRangeBonus) && distanceMeters !== null && distanceMeters <= 20) ? 1 : 0;
+
+  // ── Movement-conditional bonus availability ────────────────────────────────
+  const hasDigitalLink = installedMods.some((m) => m.digitalLink);
+  const hasSteady = installedMods.some((m) => m.steady);
+  const hasHandlingComputer = installedMods.some((m) => m.handlingComputer);
+
+  // ── Calibration bonus (set by Calibrate action on sheet) ─────────────────
+  const hasCalibratable = installedMods.some((m) => m.calibration);
+  const calibrationBonus = hasCalibratable ? (item.getFlag('cyberpunk-blue', `calibration-${weaponIndex}`) ?? 0) : 0;
 
   const isMelee = definition.category === 'melee';
   const isRanged = definition.category === 'ranged';
@@ -168,13 +200,41 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
       <span>${game.i18n.localize('CYBER_BLUE.Combat.RollTargetEvasion')}</span>
     </label>` : '';
 
+  const digitalLinkLine = hasDigitalLink ? `
+    <label style="display:flex;align-items:center;gap:0.5rem;">
+      <input type="checkbox" id="digital-link-active" />
+      <span>${game.i18n.localize('CYBER_BLUE.Combat.DigitalLinkBonus')}</span>
+    </label>` : '';
+
+  const steadyLine = hasSteady ? `
+    <label style="display:flex;align-items:center;gap:0.5rem;">
+      <input type="checkbox" id="steady-active" />
+      <span>${game.i18n.localize('CYBER_BLUE.Combat.SteadyBonus')}</span>
+    </label>` : '';
+
+  const handlingComputerLine = hasHandlingComputer ? `
+    <label style="display:flex;align-items:center;gap:0.5rem;">
+      <input type="checkbox" id="handling-computer-active" />
+      <span>${game.i18n.localize('CYBER_BLUE.Combat.HandlingComputerBonus')}</span>
+    </label>` : '';
+
+  const distanceBonusLines = [
+    trajectoryBonus ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-ruler-combined"></i> ${game.i18n.localize('CYBER_BLUE.Combat.TrajectoryCalculations')}</p>` : '',
+    closeRangeBonusVal ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-crosshairs"></i> ${game.i18n.localize('CYBER_BLUE.Combat.CloseRangeBonus')}</p>` : '',
+    calibrationBonus > 0 ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-bullseye"></i> ${game.i18n.format('CYBER_BLUE.Combat.CalibrationActive', { n: calibrationBonus })}</p>` : '',
+  ].filter(Boolean).join('');
+
   const dialogContent = `
     <div class="cyberpunk-blue" style="padding:0.5rem;">
       ${targetLine}
       ${distanceLine}
+      ${distanceBonusLines}
       <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem;">
         ${dvInputLine}
         ${evasionLine}
+        ${digitalLinkLine}
+        ${steadyLine}
+        ${handlingComputerLine}
       </div>
     </div>`;
 
@@ -193,8 +253,11 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
             callback: (_event, button) => {
               const manualDvRaw = button.form?.elements['attack-dv']?.value?.trim();
               const rollEvasion = button.form?.elements['roll-evasion']?.checked ?? false;
+              const digitalLinkActive = button.form?.elements['digital-link-active']?.checked ?? false;
+              const steadyActive = button.form?.elements['steady-active']?.checked ?? false;
+              const handlingComputerActive = button.form?.elements['handling-computer-active']?.checked ?? false;
               const dv = manualDvRaw ? Number(manualDvRaw) : rangeDV;
-              return { dv, rollEvasion };
+              return { dv, rollEvasion, digitalLinkActive, steadyActive, handlingComputerActive };
             },
           },
           {
@@ -215,7 +278,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
 
   if (!dvResult) return;
 
-  const { dv: rawDV, rollEvasion } = dvResult;
+  const { dv: rawDV, rollEvasion, digitalLinkActive, steadyActive, handlingComputerActive } = dvResult;
 
   // Resolve final DV: evasion result vs range DV (take the higher)
   let resolvedDV = null;
@@ -229,25 +292,21 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   }
 
   // ── Jam check ─────────────────────────────────────────────────────────────
-  // weapon.isJammed is a transient flag (item flag) set when a previous shot jammed.
   if (item.getFlag('cyberpunk-blue', `jammed-${weaponIndex}`)) {
     ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.WeaponJammed'));
     return;
   }
 
   // ── Minimum BODY check ────────────────────────────────────────────────────
-  // HVY weapons (MG Helix, Defenders) require a BODY minimum to fire without a mount.
   const minBodyReq = Number(item.system?.minBodyReq) || 0;
   if (minBodyReq > 0) {
     const attackerBody = Number(attacker.system?.stats?.body?.value) || 0;
     if (attackerBody < minBodyReq) {
       ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.MinBodyReqWarning', { weapon: item.name, body: attackerBody, required: minBodyReq }));
-      // Continue anyway — this is a warning, not a hard block.
     }
   }
 
-  // ── Installed mod bonuses ─────────────────────────────────────────────────
-  const installedMods = getInstalledWeaponMods(item, weaponIndex, attacker);
+  // ── Aggregate mod bonuses ─────────────────────────────────────────────────
   const modRecoilBonus = installedMods.reduce(
     (sum, m) => sum + (!m.recoilAFOnly ? (m.recoilBonus ?? 0) : 0),
     0,
@@ -260,9 +319,12 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const handgunRank = attacker.system?.skills?.handgun?.rank ?? 0;
   const beginnerBonus = (hasBeginnerFriendly && handgunRank === 0) ? 1 : 0;
 
+  // ── Clear calibration flag — it's consumed by attacking ──────────────────
+  if (calibrationBonus > 0) {
+    await item.unsetFlag('cyberpunk-blue', `calibration-${weaponIndex}`);
+  }
+
   // ── Weapon attack-roll modifier ────────────────────────────────────────────
-  // Sum of: Target Vitals penalty, Smart Weapon (+1), Excellent Quality (+1),
-  //         recoil bonus from mods, Beginner Friendly bonus.
   const targetVitals = item.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false;
   const rawVitalsPenalty = weapon.targetVitalsPenalty ?? 8;
   const targetVitalsPenalty = -(rawVitalsPenalty - modVitalsPenaltyReduction);
@@ -273,6 +335,12 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   if (weapon.isExcellentQuality) attackModifier += 1;
   attackModifier += modRecoilBonus;
   attackModifier += beginnerBonus;
+  attackModifier += trajectoryBonus;
+  attackModifier += closeRangeBonusVal;
+  attackModifier += digitalLinkActive ? 1 : 0;
+  attackModifier += steadyActive ? 1 : 0;
+  attackModifier += handlingComputerActive ? 1 : 0;
+  attackModifier += calibrationBonus;
 
   const attackRoll = await attacker.rollSkill({ skillSlug, dv: resolvedDV, modifier: attackModifier });
 
@@ -304,6 +372,33 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // Consume ammo on attack (regardless of hit/miss)
   const shots = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
   await consumeAmmo(item, weaponIndex, shots);
+
+  // ── Silence system ────────────────────────────────────────────────────────
+  // Post a public chat message with the DV to hear the silenced shot.
+  // Handle silencer destruction by Tech Weapon discharge or RoF2+ firing.
+  const silencedMods = installedMods.filter((m) => (m.silenceDV ?? 0) > 0);
+  if (silencedMods.length > 0) {
+    const silenceDV = Math.max(...silencedMods.map((m) => m.silenceDV));
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-volume-xmark"></i> ${game.i18n.format('CYBER_BLUE.Combat.SilencedShot', { dv: silenceDV })}</p></div>`,
+    });
+  }
+  // destroyedByTech: silencer destroyed when weapon is a Tech Weapon
+  const isTechWeapon = !!weapon.isTechWeapon;
+  // destroyedByRof2: silencer destroyed when weapon fires 2+ shots per trigger pull
+  const shotsPerAttack = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 1;
+  for (const mod of installedMods) {
+    if (!mod._docId) continue;
+    const shouldDestroy = (mod.destroyedByTech && isTechWeapon) || (mod.destroyedByRof2 && shotsPerAttack >= 2);
+    if (shouldDestroy) {
+      await deleteActorItemWithPermission(attacker, mod._docId);
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-triangle-exclamation"></i> ${game.i18n.format('CYBER_BLUE.Combat.SilencerDestroyed', { weapon: item.name })}</p></div>`,
+      });
+    }
+  }
 
   const hit = resolvedDV === null || attackRoll.total >= resolvedDV;
   if (!hit) return;
@@ -347,6 +442,23 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const critThreshold = hasLostForce ? 3 : 2;
   // Highlighted Vitals can auto-trigger a crit regardless of the Lost Force threshold.
   const isCritical = (highlightedVitalsAutoCrit || critDiceCount >= critThreshold) && penetratesWithoutBonus;
+
+  // ── Stealth Advantage whisper ─────────────────────────────────────────────
+  // When a silencer with stealthAdvantage is installed, targeting vitals,
+  // at least one damage die = 6, and no crit triggered → whisper GM.
+  if (targetVitals && !isCritical && installedMods.some((m) => m.stealthAdvantage)) {
+    const anyDie6 = damageRoll.terms.some(
+      (t) => t instanceof foundry.dice.terms.Die && t.faces === 6 && t.results.some((r) => r.active && r.result === 6),
+    );
+    if (anyDie6) {
+      const gmIds = game.users.filter((u) => u.isGM).map((u) => u.id);
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        whisper: gmIds,
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-eye-slash"></i> ${game.i18n.format('CYBER_BLUE.Combat.StealthAdvantageAlert', { name: attacker.name, target: targetActor?.name ?? '?' })}</p></div>`,
+      });
+    }
+  }
 
   // ── Damage bonuses ─────────────────────────────────────────────────────────
   // Target Vitals: +5 damage if any damage gets through SP (independent of crit)
@@ -621,8 +733,29 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
     rollMode: game.settings.get('core', 'rollMode'),
   });
 
-  // Consume 10 ammo
+  // Consume ammo
   await consumeAmmo(item, weaponIndex, AUTOFIRE_AMMO_COST);
+
+  // ── Silence system (autofire) ─────────────────────────────────────────────
+  // Autofire always counts as RoF2+, destroying any destroyedByRof2 silencers.
+  const silencedModsAF = installedMods.filter((m) => (m.silenceDV ?? 0) > 0);
+  if (silencedModsAF.length > 0) {
+    const silenceDVAF = Math.max(...silencedModsAF.map((m) => m.silenceDV));
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-volume-xmark"></i> ${game.i18n.format('CYBER_BLUE.Combat.SilencedShot', { dv: silenceDVAF })}</p></div>`,
+    });
+  }
+  for (const mod of installedMods) {
+    if (!mod._docId) continue;
+    if (mod.destroyedByRof2 || (mod.destroyedByTech && !!weapon.isTechWeapon)) {
+      await deleteActorItemWithPermission(attacker, mod._docId);
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-triangle-exclamation"></i> ${game.i18n.format('CYBER_BLUE.Combat.SilencerDestroyed', { weapon: item.name })}</p></div>`,
+      });
+    }
+  }
 
   const hit = resolvedDV === null || attackRoll.total >= resolvedDV;
   if (!hit) return;

@@ -1282,14 +1282,30 @@ async function _syncModEntries(catalogue) {
     const burstChanged = (sys.burstControlAmmoReduction ?? 0) !== (defSys.burstControlAmmoReduction ?? 0);
     const beginnerChanged = !!sys.beginnerFriendly !== !!defSys.beginnerFriendly;
     const vitalsChanged = (sys.targetVitalsPenaltyReduction ?? 0) !== (defSys.targetVitalsPenaltyReduction ?? 0);
+    const trajectoryChanged = !!sys.trajectoryCalculations !== !!defSys.trajectoryCalculations;
+    const closeRangeChanged = !!sys.closeRangeBonus !== !!defSys.closeRangeBonus;
+    const steadyChanged = !!sys.steady !== !!defSys.steady;
+    const handlingComputerChanged = !!sys.handlingComputer !== !!defSys.handlingComputer;
+    const calibrationChanged = !!sys.calibration !== !!defSys.calibration;
+    const recoilBonusChanged = (sys.recoilBonus ?? 0) !== (defSys.recoilBonus ?? 0);
+    const recoilAFOnlyChanged = !!sys.recoilAFOnly !== !!defSys.recoilAFOnly;
 
-    if (weaponChangesChanged || burstChanged || beginnerChanged || vitalsChanged) {
+    if (weaponChangesChanged || burstChanged || beginnerChanged || vitalsChanged ||
+        trajectoryChanged || closeRangeChanged || steadyChanged || handlingComputerChanged ||
+        calibrationChanged || recoilBonusChanged || recoilAFOnlyChanged) {
       updates.push({
         _id: doc.id,
         'system.weaponChanges': defSys.weaponChanges ?? [],
         'system.burstControlAmmoReduction': defSys.burstControlAmmoReduction ?? 0,
         'system.beginnerFriendly': !!defSys.beginnerFriendly,
         'system.targetVitalsPenaltyReduction': defSys.targetVitalsPenaltyReduction ?? 0,
+        'system.trajectoryCalculations': !!defSys.trajectoryCalculations,
+        'system.closeRangeBonus': !!defSys.closeRangeBonus,
+        'system.steady': !!defSys.steady,
+        'system.handlingComputer': !!defSys.handlingComputer,
+        'system.calibration': !!defSys.calibration,
+        'system.recoilBonus': defSys.recoilBonus ?? 0,
+        'system.recoilAFOnly': !!defSys.recoilAFOnly,
       });
     }
   }

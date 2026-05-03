@@ -417,6 +417,14 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         targetVitals: itemDoc.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false,
         jammed: !!itemDoc.getFlag('cyberpunk-blue', `jammed-${weaponIndex}`),
         canJam: (weapon.jamOnRoll ?? 0) > 0,
+        // Calibration: Hawk Eye scope installed → show calibrate button
+        hasCalibration: this.document.items.some(
+          (i) => i.type === 'mod' && i.system.modType === 'weaponMod' &&
+                 i.system.installedOnId === itemDoc.id &&
+                 Number(i.system.targetWeaponIndex) === weaponIndex &&
+                 i.system.calibration,
+        ),
+        calibrationActive: (itemDoc.getFlag('cyberpunk-blue', `calibration-${weaponIndex}`) ?? 0) > 0,
         autofireLabel: `${autofireTotal >= 0 ? '+' : ''}${autofireTotal}`,
         autofireTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + min(${rollContext.skillLabel} ${rollContext.usedRank}, Autofire ${autofireRank})`,
         skillSlug,
@@ -856,6 +864,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     this.element.querySelectorAll('[data-action="weapon-unjam"]').forEach((button) => {
       button.addEventListener('click', this._onWeaponUnjam.bind(this));
     });
+    this.element.querySelectorAll('[data-action="weapon-calibrate"]').forEach((button) => {
+      button.addEventListener('click', this._onWeaponCalibrate.bind(this));
+    });
 
     // Martial Arts
     this.element.querySelectorAll('[data-action="ma-attack"]').forEach((button) => {
@@ -956,6 +967,53 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       speaker: ChatMessage.getSpeaker({ actor: this.document }),
       content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-wrench"></i> ${game.i18n.format('CYBER_BLUE.Combat.WeaponUnjammed', { weapon: item.name })}</p></div>`,
     });
+  }
+
+  async _onWeaponCalibrate(event) {
+    event.preventDefault();
+    const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
+    if (Number.isNaN(weaponIndex) || weaponIndex < 0) return;
+    const item = this._getItemFromEvent(event);
+    if (!item) return;
+    const actor = this.document;
+
+    // If calibration is already active, cancel it
+    const existing = item.getFlag('cyberpunk-blue', `calibration-${weaponIndex}`) ?? 0;
+    if (existing > 0) {
+      await item.unsetFlag('cyberpunk-blue', `calibration-${weaponIndex}`);
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor }),
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bullseye"></i> ${game.i18n.localize('CYBER_BLUE.Combat.CalibrationCancelled')}</p></div>`,
+      });
+      return;
+    }
+
+    const intValue = actor.system?.stats?.int?.value ?? 0;
+    const saRank = actor.system?.skills?.shoulderArms?.rank ?? 0;
+    const formula = `1d10 + ${intValue} + ${saRank}`;
+    const roll = await new Roll(formula).evaluate();
+
+    const saLabel = CONFIG.CYBER_BLUE?.skills?.shoulderArms?.label ?? 'Shoulder Arms';
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.Calibrate')}: ${item.name}</h3><p>INT ${intValue} + ${saLabel} ${saRank} — DV 15</p></div>`,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
+
+    if (roll.total >= 15) {
+      // Bonus: min(+8, shoulderArmsRank × 2) — but at least 1 if rank > 0
+      const bonus = Math.max(1, Math.min(8, saRank * 2));
+      await item.setFlag('cyberpunk-blue', `calibration-${weaponIndex}`, bonus);
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor }),
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bullseye"></i> ${game.i18n.format('CYBER_BLUE.Combat.CalibrateSuccess', { n: bonus })}</p></div>`,
+      });
+    } else {
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor }),
+        content: `<div class="cyberpunk-blue chat-card"><p>${game.i18n.localize('CYBER_BLUE.Combat.CalibrateFail')}</p></div>`,
+      });
+    }
   }
 
   async _onMartialArtsAttack(event) {

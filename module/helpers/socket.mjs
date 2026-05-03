@@ -79,6 +79,13 @@ export function registerSocketHandlers() {
         await actor.createEmbeddedDocuments('ActiveEffect', [aeData]);
         break;
       }
+      case 'deleteActorItem': {
+        const { actorUuid, itemId } = message;
+        const actor = await fromUuid(actorUuid);
+        if (!actor) return;
+        await actor.deleteEmbeddedDocuments('Item', [itemId]);
+        break;
+      }
       default:
         console.warn(`Cyberpunk Blue | Unknown socket message type: ${message.type}`);
     }
@@ -173,6 +180,18 @@ export async function createActiveEffectWithPermission(actor, aeData) {
     await actor.createEmbeddedDocuments('ActiveEffect', [aeData]);
   } else {
     emitToGM('createActiveEffect', { actorUuid: actor.uuid, aeData });
+  }
+}
+
+/**
+ * Delete an embedded Item from an actor, delegating to the GM if needed.
+ * Used for silencer destruction (destroyedByTech / destroyedByRof2).
+ */
+export async function deleteActorItemWithPermission(actor, itemId) {
+  if (actor.isOwner || game.user.isGM) {
+    await actor.deleteEmbeddedDocuments('Item', [itemId]);
+  } else {
+    emitToGM('deleteActorItem', { actorUuid: actor.uuid, itemId });
   }
 }
 

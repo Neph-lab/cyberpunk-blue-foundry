@@ -214,6 +214,12 @@ function applyWeaponChange(weapon, change) {
  * @param {Actor}  [actor]      - The owning actor (item.parent in practice).
  * @returns {object[]}          - Array of mod system objects.
  */
+/**
+ * Returns plain-object representations of all installed weapon-mod system data
+ * for a specific weapon slot.  Each object includes a `_docId` field with the
+ * mod Item's Foundry id so callers can delete the mod if needed (e.g. silencer
+ * destroyed by Tech discharge or RoF2+).
+ */
 export function getInstalledWeaponMods(item, weaponIndex, actor) {
   if (!actor || !item?.id) return [];
   return actor.items
@@ -224,7 +230,7 @@ export function getInstalledWeaponMods(item, weaponIndex, actor) {
         modDoc.system.installedOnId === item.id &&
         Number(modDoc.system.targetWeaponIndex) === weaponIndex,
     )
-    .map((modDoc) => modDoc.system);
+    .map((modDoc) => Object.assign(modDoc.system.toObject?.() ?? { ...modDoc.system }, { _docId: modDoc.id }));
 }
 
 export function getEffectiveItemWeapons(itemLike, actor = null) {

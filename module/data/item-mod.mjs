@@ -81,6 +81,22 @@ export default class CyberBlueMod extends CyberBlueItemBase {
     // Target Vitals penalty reduction (Zhanshou): reduces the "target vitals" penalty by N.
     schema.targetVitalsPenaltyReduction = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
 
+    // ── Distance-conditional attack bonuses ────────────────────────────────────
+    // Trajectory Calculations: +1 attack vs targets >40m (Arasaka SO-21 Saika).
+    schema.trajectoryCalculations = new fields.BooleanField({ initial: false });
+    // Close Range Bonus: +1 attack vs targets ≤20m (Techtronika RC-7 Ifrit).
+    schema.closeRangeBonus = new fields.BooleanField({ initial: false });
+
+    // ── Movement-conditional attack bonuses ────────────────────────────────────
+    // Steady: +1 attack if user did not Move this turn.
+    schema.steady = new fields.BooleanField({ initial: false });
+    // Handling Computer: +1 attack if same target as last attack and no movement.
+    schema.handlingComputer = new fields.BooleanField({ initial: false });
+
+    // ── Calibration (Federated Arms Hawk Eye) ─────────────────────────────────
+    // DV15 INT+Shoulder Arms action: gain +8 or ×2 skill until fired/moved/acted.
+    schema.calibration = new fields.BooleanField({ initial: false });
+
     return schema;
   }
 }

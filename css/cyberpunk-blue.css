@@ -2477,6 +2477,30 @@ button, .cyberpunk-blue .button, a.button {
   color: #000;
 }
 
+/* ─── Weapon Table: calibration button ──────────────────────────────────────── */
+
+.cyberpunk-blue .weapon-calibrate-btn {
+  background: transparent;
+  border: 1px solid var(--cpb-accent);
+  color: var(--cpb-accent);
+  border-radius: 3px;
+  padding: 1px 4px;
+  cursor: pointer;
+  font-size: var(--font-size-11);
+  margin-left: 2px;
+}
+
+.cyberpunk-blue .weapon-calibrate-btn:hover {
+  background: var(--cpb-accent);
+  color: #000;
+}
+
+.cyberpunk-blue .weapon-calibrate-btn.calibration-active {
+  background: var(--cpb-accent);
+  color: #000;
+  font-weight: bold;
+}
+
 /* ─── Martial Arts ──────────────────────────────────────────────────────────── */
 
 .cyberpunk-blue .martial-arts-panel .section-header {
