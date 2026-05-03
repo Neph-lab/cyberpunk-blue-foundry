@@ -37,6 +37,7 @@ import { EQUIPMENT_CATALOGUE } from './data/equipment-catalogue.mjs';
 import { CYBERWARE_CATALOGUE } from './data/cyberware-catalogue.mjs';
 import { DRUG_CATALOGUE } from './data/drug-catalogue.mjs';
 import { PROGRAM_CATALOGUE } from './data/program-catalogue.mjs';
+import { AMMO_CATALOGUE } from './data/ammo-catalogue.mjs';
 import { registerSocketHandlers } from './helpers/socket.mjs';
 
 Hooks.once('init', function () {
@@ -681,6 +682,7 @@ Hooks.once('ready', async () => {
   await ensureCritInjuryTables();
   await migrateCostStrings();
   await ensureWeaponCatalogue();
+  await ensureAmmoCatalogue();
   await ensureEquipmentCatalogue();
   await ensureMacroCatalogue();
 
@@ -886,6 +888,7 @@ function _classifyForFolder(item) {
       'sniper': 'Sniper Scope',
     };
     const sys = item?.system ?? {};
+    if (sys.modType === 'computerMod') return { packId: 'cyberpunk-blue.weapon-mods', folderName: 'Computer Hardware' };
     if (sys.scopeType) return { packId: 'cyberpunk-blue.weapon-mods', folderName: map[sys.scopeType] };
     if (sys.silenceDV) return { packId: 'cyberpunk-blue.weapon-mods', folderName: 'Silencer' };
     if (sys.lostForce) return { packId: 'cyberpunk-blue.weapon-mods', folderName: 'Muzzle Break' };
@@ -1010,8 +1013,92 @@ async function ensureWeaponCatalogue() {
       console.log(`Cyberpunk Blue | Weapon catalogue imported: ${wCreated} weapons, ${mCreated} mods.`);
       ui.notifications.info(`Cyberpunk Blue: Weapon catalogue imported (${wCreated} weapons, ${mCreated} mods).`);
     }
+
+    // Sync any new mods that weren't present when the pack was first populated
+    // (e.g. computerMods added after the initial population)
+    await _syncMissingMods(MOD_CATALOGUE);
   } catch (err) {
     console.error('Cyberpunk Blue | Failed to import weapon catalogue:', err);
+  }
+}
+
+/** Add any catalogue mods that are missing from the weapon-mods pack by name. */
+async function _syncMissingMods(catalogue) {
+  const PACK_ID = 'cyberpunk-blue.weapon-mods';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) return;
+  await pack.getIndex({ fields: ['name', 'type'] });
+  const existingNames = new Set(pack.index.filter((e) => e.type === 'mod').map((e) => e.name));
+  const missing = catalogue.filter((it) => !existingNames.has(it.name));
+  if (missing.length === 0) return;
+
+  await pack.configure({ locked: false });
+  try {
+    // Group by folder
+    const byFolder = new Map();
+    for (const item of missing) {
+      const { folderName } = _classifyForFolder(item);
+      if (!byFolder.has(folderName)) byFolder.set(folderName, []);
+      byFolder.get(folderName).push(item);
+    }
+    let created = 0;
+    for (const [folderName, group] of byFolder.entries()) {
+      const folder = await _ensureFolderInPack(pack, folderName);
+      const cleaned = group.map((it) => {
+        const copy = foundry.utils.deepClone(it);
+        delete copy._id;
+        copy.folder = folder?.id ?? null;
+        return copy;
+      });
+      const docs = await Item.createDocuments(cleaned, { pack: PACK_ID });
+      created += docs.length;
+    }
+    if (created > 0) {
+      console.log(`Cyberpunk Blue | Added ${created} missing mods to weapon-mods pack.`);
+    }
+  } finally {
+    await pack.configure({ locked: true });
+  }
+}
+
+// ─── Ammo catalogue ───────────────────────────────────────────────────────────
+
+/**
+ * Ensure the basic ammo items exist in the weapons compendium.
+ * Unlike _populatePack, this runs even if the pack is already populated —
+ * it only creates items that don't already exist (matched by name).
+ */
+async function ensureAmmoCatalogue() {
+  if (!game.user.isGM) return;
+  const PACK_ID = 'cyberpunk-blue.weapons';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) return;
+
+  try {
+    await pack.getIndex({ fields: ['name', 'type', 'folder'] });
+    const existingNames = new Set(pack.index.filter((e) => e.type === 'ammo').map((e) => e.name));
+    const missing = AMMO_CATALOGUE.filter((it) => !existingNames.has(it.name));
+    if (missing.length === 0) return;
+
+    await pack.configure({ locked: false });
+    try {
+      const ammoFolder = await _ensureFolderInPack(pack, 'Ammo');
+      const cleaned = missing.map((it) => {
+        const copy = foundry.utils.deepClone(it);
+        delete copy._folder;
+        copy.folder = ammoFolder?.id ?? null;
+        return copy;
+      });
+      const docs = await Item.createDocuments(cleaned, { pack: PACK_ID });
+      console.log(`Cyberpunk Blue | Ammo catalogue: ${docs.length} items added.`);
+      if (docs.length > 0) {
+        ui.notifications.info(`Cyberpunk Blue: ${docs.length} basic ammo items added to the Weapons compendium.`);
+      }
+    } finally {
+      await pack.configure({ locked: true });
+    }
+  } catch (err) {
+    console.error('Cyberpunk Blue | Failed to sync ammo catalogue:', err);
   }
 }
 

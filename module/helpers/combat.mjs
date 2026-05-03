@@ -331,9 +331,9 @@ export function getWeaponTypeDefinition(type) {
 // Maps weapon type → the ammoTypes keys on an Ammo item that are compatible.
 // Shotguns accept both slug and shell so the player chooses.
 const WEAPON_AMMO_COMPATIBILITY = {
-  mediumPistol: ['pistol'],
-  heavyPistol: ['pistol'],
-  veryHeavyPistol: ['pistol'],
+  mediumPistol: ['mediumPistol'],
+  heavyPistol: ['heavyPistol'],
+  veryHeavyPistol: ['veryHeavyPistol'],
   smg: ['smg'],
   heavySmg: ['smg'],
   shotgun: ['shotgunSlug', 'shotgunShell'],

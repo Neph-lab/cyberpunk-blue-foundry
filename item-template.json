@@ -267,7 +267,7 @@
     }
   },
   {
-    "_comment": "AMMO — ammoTypes: pistol | smg | shotgunSlug | shotgunShell | assault | sniper | bow | grenade | rocket | flamethrower",
+    "_comment": "AMMO — ammoTypes: mediumPistol | heavyPistol | veryHeavyPistol | smg | shotgunSlug | shotgunShell | assault | sniper | bow | grenade | rocket | flamethrower",
     "name": "My Ammo",
     "type": "ammo",
     "system": {
@@ -276,7 +276,7 @@
       "note": "",
       "description": "<p>Ammo description here.</p>",
       "ammoTypes": {
-        "pistol": true
+        "mediumPistol": true
       }
     }
   },

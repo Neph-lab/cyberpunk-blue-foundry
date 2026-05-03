@@ -295,7 +295,9 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       && (!(context.isAbility || context.isGear) || canManageRestricted);
     context.showProgramExecutableNotesTab = context.isProgramExecutable && (this.document.isOwner || game.user.isGM);
     context.ammoTypeOptions = [
-      { value: 'pistol', label: 'Pistol' },
+      { value: 'mediumPistol', label: 'Medium Pistol' },
+      { value: 'heavyPistol', label: 'Heavy Pistol' },
+      { value: 'veryHeavyPistol', label: 'Very Heavy Pistol' },
       { value: 'smg', label: 'SMG' },
       { value: 'shotgunSlug', label: 'Shotgun Slug' },
       { value: 'shotgunShell', label: 'Shotgun Shell' },
