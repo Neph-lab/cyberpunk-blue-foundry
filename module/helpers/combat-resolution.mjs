@@ -6,6 +6,29 @@ import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './c
 import { resolveAfflictionAttack } from './affliction-attack.mjs';
 import { applyDamageWithPermission, rollCriticalInjuryWithPermission } from './socket.mjs';
 
+/** Count the number of d6s in a damage roll (using their face count, not total). */
+function countDamageDice(roll) {
+  let count = 0;
+  for (const term of roll.terms) {
+    if (term instanceof foundry.dice.terms.Die && term.faces === 6) {
+      count += term.number;
+    }
+  }
+  return count;
+}
+
+/** Resolve the name of the ammo loaded into a weapon slot, or '' if unknown. */
+async function getLoadedAmmoName(item, weaponIndex) {
+  const uuid = item.system.weapons?.[weaponIndex]?.ammoTypeUuid ?? '';
+  if (!uuid) return '';
+  try {
+    const ammoDoc = await fromUuid(uuid);
+    return ammoDoc?.name ?? '';
+  } catch {
+    return '';
+  }
+}
+
 function getTarget() {
   const token = game.user.targets.first() ?? null;
   return { token, actor: token?.actor ?? null };
@@ -289,20 +312,70 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const damageRoll = await new Roll(damageFormula).evaluate();
 
   const sp = targetSP !== null ? targetSP : null;
+  const damageDiceCount = countDamageDice(damageRoll);
+
+  // ── Ammo-based bonuses ─────────────────────────────────────────────────────
+  const loadedAmmoName = await getLoadedAmmoName(item, weaponIndex);
+  const ammoNameLower = loadedAmmoName.toLowerCase();
+  const isIncendiaryAmmo = ammoNameLower.includes('incendiary');
+  const isToxicAmmo = ammoNameLower.includes('toxic');
+
+  // ── Highlighted Vitals: roll extra die before crit detection ──────────────
+  const hasHighlightedVitals = installedMods.some((m) => m.highlightedVitals);
+  let highlightedVitalsAutoCrit = false;
+  let vitalsExtraRoll = null;
+  if (hasHighlightedVitals) {
+    vitalsExtraRoll = await new Roll('1d6').evaluate();
+    const anyDamageDie6 = damageRoll.terms.some(
+      (t) =>
+        t instanceof foundry.dice.terms.Die &&
+        t.faces === 6 &&
+        t.results.some((r) => r.active && r.result === 6),
+    );
+    if (vitalsExtraRoll.total === 6 && anyDamageDie6) {
+      highlightedVitalsAutoCrit = true;
+    }
+  }
 
   // ── Critical Injury detection ──────────────────────────────────────────────
   const { count: critDiceCount } = detectCriticalDice(damageRoll);
   // Penetration check uses the original roll (before any bonus) so the bonus
   // cannot self-validate the critical trigger.
   const penetratesWithoutBonus = sp === null ? damageRoll.total > 0 : damageRoll.total > sp;
-  const isCritical = critDiceCount >= 2 && penetratesWithoutBonus;
+  // Lost Force raises the crit threshold from 2 to 3 dice showing 6.
+  const hasLostForce = installedMods.some((m) => m.lostForce);
+  const critThreshold = hasLostForce ? 3 : 2;
+  // Highlighted Vitals can auto-trigger a crit regardless of the Lost Force threshold.
+  const isCritical = (highlightedVitalsAutoCrit || critDiceCount >= critThreshold) && penetratesWithoutBonus;
 
+  // ── Damage bonuses ─────────────────────────────────────────────────────────
   // Target Vitals: +5 damage if any damage gets through SP (independent of crit)
   const vitalsBonus = (targetVitals && penetratesWithoutBonus) ? 5 : 0;
   const critBonus = isCritical ? 5 : 0;
-  // Toxic Payload (Yanari MP, Hercules 3AX): +N damage on penetration
-  const payloadBonus = (penetratesWithoutBonus && weapon.payloadDmgBonus) ? Number(weapon.payloadDmgBonus) : 0;
-  const finalDamage = damageRoll.total + critBonus + vitalsBonus + payloadBonus;
+  // Payload: weapon's built-in Toxic Payload (Yanari MP, Hercules 3AX) OR ammo name
+  const weaponPayloadBonus = penetratesWithoutBonus ? (Number(weapon.payloadDmgBonus) || 0) : 0;
+  const ammoPayloadBonus = penetratesWithoutBonus
+    ? (isIncendiaryAmmo ? 2 : 0) + (!weapon.payloadDmgBonus && isToxicAmmo ? 2 : 0)
+    : 0;
+  const payloadBonus = weaponPayloadBonus + ammoPayloadBonus;
+  // Synergy brand: +1 (and +1 more if dice ≥ threshold) per matching mod
+  const weaponManufacturer = item.system?.manufacturer ?? '';
+  let synergyBonus = 0;
+  for (const mod of installedMods) {
+    if (mod.synergyBrand && mod.synergyBrand === weaponManufacturer) {
+      synergyBonus += 1;
+      if (mod.synergyDiceThreshold > 0 && damageDiceCount >= mod.synergyDiceThreshold) {
+        synergyBonus += 1;
+      }
+    }
+  }
+  // Silencer: -1 per damage die (applied last, after other bonuses)
+  const silencerDmgReduction = installedMods.some((m) => m.reduceDmgPerDie) ? damageDiceCount : 0;
+
+  const finalDamage = Math.max(
+    0,
+    damageRoll.total + critBonus + vitalsBonus + payloadBonus + synergyBonus - silencerDmgReduction,
+  );
 
   // Critical table: head when targeting vitals, body otherwise
   const tableType = targetVitals ? 'head' : 'body';
@@ -311,15 +384,22 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const ablatesArmor = sp !== null && finalDamage >= sp;
 
   const bonusNotes = [];
-  if (isCritical) bonusNotes.push(game.i18n.localize('CYBER_BLUE.CriticalInjury.CritBonus'));
+  if (isCritical) {
+    if (highlightedVitalsAutoCrit) bonusNotes.push(game.i18n.localize('CYBER_BLUE.Combat.HighlightedVitalsCrit'));
+    else bonusNotes.push(game.i18n.localize('CYBER_BLUE.CriticalInjury.CritBonus'));
+  }
   if (vitalsBonus) bonusNotes.push(game.i18n.localize('CYBER_BLUE.Combat.TargetVitalsBonus'));
   if (payloadBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.PayloadBonus', { n: payloadBonus }));
-  const totalBonus = critBonus + vitalsBonus + payloadBonus;
+  if (synergyBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.SynergyBonus', { n: synergyBonus }));
+  if (silencerDmgReduction) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.SilencerReduction', { n: silencerDmgReduction }));
+  if (vitalsExtraRoll) bonusNotes.push(`${game.i18n.localize('CYBER_BLUE.Combat.HighlightedVitalsRoll')}: [${vitalsExtraRoll.total}]${highlightedVitalsAutoCrit ? ' ★' : ''}`);
+  const totalBonus = critBonus + vitalsBonus + payloadBonus + synergyBonus - silencerDmgReduction;
+  const bonusDisplay = totalBonus > 0 ? ` (+${totalBonus})` : totalBonus < 0 ? ` (${totalBonus})` : '';
   const critLine = bonusNotes.length
     ? `<p class="crit-roll-note"><i class="fas fa-skull"></i> ${bonusNotes.join(' · ')}</p>`
     : '';
   const spLine = sp !== null
-    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}${totalBonus ? ` (+${totalBonus})` : ''}</p>`
+    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}${bonusDisplay}</p>`
     : '';
 
   const weaponLabel = (item.system.weapons?.length ?? 0) > 1
