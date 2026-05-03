@@ -553,7 +553,26 @@ async function findRollTable(tableType) {
  * @param {object} opts
  * @param {Actor}  [opts.attackerActor]
  */
-export async function rollCriticalInjury(targetActor, tableType = 'body', { attackerActor } = {}) {
+// ─── Crit weapon flag helpers ─────────────────────────────────────────────────
+
+/** Dismember↔Broken pairings for Slicing/Blunt weapons. */
+const DISMEMBER_UPGRADE = { 'broken-arm': 'dismembered-arm', 'broken-leg': 'dismembered-leg' };
+const DISMEMBER_DOWNGRADE = {
+  'dismembered-arm': 'broken-arm',
+  'dismembered-hand': 'broken-arm',
+  'dismembered-leg': 'broken-leg',
+};
+/** Crushing cascade: each key also triggers the value entry on the same table. */
+const CRUSHING_BODY_CASCADE = {
+  'collapsed-lung': 'broken-ribs',
+  'spinal-injury': 'broken-ribs',
+  'broken-ribs': 'collapsed-lung',
+};
+// Head cascade: any head injury triggers Concussion; Concussion triggers Cracked Skull.
+const CRUSHING_HEAD_CASCADE_TRIGGER = 'concussion';
+const CRUSHING_HEAD_CASCADE_ESCALATE = 'cracked-skull';
+
+export async function rollCriticalInjury(targetActor, tableType = 'body', { attackerActor, weaponFlags = {} } = {}) {
   const hardcodedTable = tableType === 'head' ? CRITICAL_HEAD_INJURY_TABLE : CRITICAL_INJURY_TABLE;
   const tableLabel = tableType === 'head'
     ? game.i18n.localize('CYBER_BLUE.CriticalInjury.Head.Title')
@@ -585,6 +604,66 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
     entry = hardcodedTable[total] ?? hardcodedTable[12];
     baseName = game.i18n.localize(entry.nameKey);
     description = game.i18n.localize(entry.descKey);
+  }
+
+  // ── Weapon crit modifications ──────────────────────────────────────────────
+  const weaponNotes = [];
+
+  // Slicing (Mono-Three, Katana): Broken Arm/Leg → roll 1d6; 2+ = Dismembered
+  if (weaponFlags.critSlicing && entry) {
+    const upgradeKey = DISMEMBER_UPGRADE[entry.key];
+    if (upgradeKey) {
+      const sliceRoll = await new Roll('1d6').evaluate();
+      const upgrades = sliceRoll.total >= 2;
+      weaponNotes.push(
+        `${game.i18n.localize('CYBER_BLUE.CriticalInjury.SlicingRoll')}: [${sliceRoll.total}]${upgrades ? ' ★' : ''}`,
+      );
+      if (upgrades) {
+        const upgraded = Object.values(hardcodedTable).find((e) => e.key === upgradeKey);
+        if (upgraded) {
+          entry = upgraded;
+          baseName = game.i18n.localize(entry.nameKey);
+          description = game.i18n.localize(entry.descKey);
+        }
+      }
+    }
+  }
+
+  // Blunt (Baseball Bat): downgrade dismember → Broken + note +5 damage
+  if (weaponFlags.critBlunt && entry) {
+    const downgradeKey = DISMEMBER_DOWNGRADE[entry.key];
+    if (downgradeKey) {
+      const downgraded = Object.values(hardcodedTable).find((e) => e.key === downgradeKey);
+      if (downgraded) {
+        entry = downgraded;
+        baseName = game.i18n.localize(entry.nameKey);
+        description = game.i18n.localize(entry.descKey);
+        weaponNotes.push(game.i18n.localize('CYBER_BLUE.CriticalInjury.BluntDismemberDowngrade'));
+      }
+    }
+  }
+
+  // Crushing (Sledgehammer): cascade — apply a secondary injury as well
+  let crushingCascadeEntry = null;
+  if (weaponFlags.critCrushing && entry) {
+    if (tableType === 'body') {
+      const cascadeKey = CRUSHING_BODY_CASCADE[entry.key];
+      if (cascadeKey) {
+        crushingCascadeEntry = Object.values(hardcodedTable).find((e) => e.key === cascadeKey) ?? null;
+      }
+    } else {
+      // Head table: any head injury also triggers Concussion; Concussion escalates to Cracked Skull
+      if (entry.key === CRUSHING_HEAD_CASCADE_TRIGGER) {
+        const headTable = CRITICAL_HEAD_INJURY_TABLE;
+        crushingCascadeEntry = Object.values(headTable).find((e) => e.key === CRUSHING_HEAD_CASCADE_ESCALATE) ?? null;
+      } else {
+        const headTable = CRITICAL_HEAD_INJURY_TABLE;
+        crushingCascadeEntry = Object.values(headTable).find((e) => e.key === CRUSHING_HEAD_CASCADE_TRIGGER) ?? null;
+      }
+    }
+    if (crushingCascadeEntry) {
+      weaponNotes.push(`${game.i18n.localize('CYBER_BLUE.CriticalInjury.CrushingCascade')}: ${game.i18n.localize(crushingCascadeEntry.nameKey)}`);
+    }
   }
 
   // ── Lateralization ──
@@ -641,6 +720,7 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
     surgeryRequired: entry?.surgeryRequired ?? false,
     surgeryDv: entry?.surgeryDv ?? null,
     actorId: targetActor.id, effectId: createdAE?.id ?? null,
+    weaponNotes,
   });
 
   await ChatMessage.create({
@@ -648,6 +728,57 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
     content,
     flags: { 'cyberpunk-blue': { criticalInjuryCard: true } },
   });
+
+  // ── Crushing cascade: apply secondary injury ───────────────────────────────
+  if (crushingCascadeEntry) {
+    const cascadeAeData = {
+      name: game.i18n.localize(crushingCascadeEntry.nameKey),
+      icon: 'icons/svg/bones.svg',
+      origin: targetActor.uuid,
+      disabled: false,
+      transfer: false,
+      system: { changes: crushingCascadeEntry.changes ?? [] },
+      flags: {
+        'cyberpunk-blue': {
+          [CRITICAL_INJURY_FLAG]: {
+            key: crushingCascadeEntry.key,
+            tableType,
+            mortal: crushingCascadeEntry.mortal ?? false,
+            descKey: crushingCascadeEntry.descKey ?? '',
+            side: null, cywareName: null, lateralize: null,
+            noQuickFix: crushingCascadeEntry.noQuickFix ?? false,
+            quickFixDv: crushingCascadeEntry.quickFixDv ?? null,
+            quickFixUsed: false,
+            treatmentDv: crushingCascadeEntry.treatmentDv ?? null,
+            surgeryRequired: crushingCascadeEntry.surgeryRequired ?? false,
+            surgeryDv: crushingCascadeEntry.surgeryDv ?? null,
+            evasionPrompt: crushingCascadeEntry.evasionPrompt ?? false,
+            stabilized: false,
+          },
+        },
+      },
+    };
+    const [cascadeAE] = await targetActor.createEmbeddedDocuments('ActiveEffect', [cascadeAeData]);
+    const cascadeContent = buildInjuryChatHtml({
+      tableLabel: `${tableLabel} (${game.i18n.localize('CYBER_BLUE.CriticalInjury.CrushingCascade')})`,
+      roll: '—', targetName: targetActor.name,
+      name: game.i18n.localize(crushingCascadeEntry.nameKey),
+      description: game.i18n.localize(crushingCascadeEntry.descKey),
+      mortal: crushingCascadeEntry.mortal ?? false,
+      noQuickFix: crushingCascadeEntry.noQuickFix ?? false,
+      quickFixDv: crushingCascadeEntry.quickFixDv ?? null,
+      treatmentDv: crushingCascadeEntry.treatmentDv ?? null,
+      surgeryRequired: crushingCascadeEntry.surgeryRequired ?? false,
+      surgeryDv: crushingCascadeEntry.surgeryDv ?? null,
+      actorId: targetActor.id, effectId: cascadeAE?.id ?? null,
+      weaponNotes: [],
+    });
+    await ChatMessage.create({
+      speaker,
+      content: cascadeContent,
+      flags: { 'cyberpunk-blue': { criticalInjuryCard: true } },
+    });
+  }
 }
 
 // ─── Chat HTML builder ────────────────────────────────────────────────────────
@@ -656,6 +787,7 @@ function buildInjuryChatHtml({
   tableLabel, roll, targetName, name, description,
   mortal, noQuickFix, quickFixDv, treatmentDv, surgeryRequired, surgeryDv,
   actorId, effectId,
+  weaponNotes = [],
 }) {
   const mortalBlock = mortal
     ? `<p class="crit-mortal-warning"><i class="fas fa-heart-pulse"></i> ${game.i18n.localize('CYBER_BLUE.CriticalInjury.MortalWound')}</p>`
@@ -687,6 +819,10 @@ function buildInjuryChatHtml({
        </button>`
     : '';
 
+  const weaponNotesBlock = weaponNotes.length
+    ? `<div class="crit-weapon-notes" style="font-size:0.85em;font-style:italic;margin-top:0.3rem;color:var(--cpb-accent,#e8b84b);">${weaponNotes.map((n) => `<span>⚔ ${n}</span>`).join(' &bull; ')}</div>`
+    : '';
+
   return `
     <div class="cyberpunk-blue chat-card critical-injury-card">
       <div class="critical-injury-header">
@@ -697,7 +833,7 @@ function buildInjuryChatHtml({
       <div class="critical-injury-roll">${game.i18n.format('CYBER_BLUE.CriticalInjury.RollResult', { roll })}</div>
       <div class="critical-injury-name">${name}</div>
       <div class="critical-injury-desc">${description}</div>
-      ${mortalBlock}${infoBlock}
+      ${mortalBlock}${weaponNotesBlock}${infoBlock}
       <div class="critical-injury-actions">${removeBtn}</div>
     </div>`;
 }

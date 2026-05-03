@@ -416,6 +416,28 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
       ${targetVitalsLine}${spLine}${critLine}
     </div>`;
 
+  // ── Weapon crit flags ─────────────────────────────────────────────────────
+  const weaponFlags = {
+    critSlicing: !!weapon.critSlicing,
+    critBlunt: !!weapon.critBlunt,
+    critCrushing: !!weapon.critCrushing,
+  };
+
+  // ── Stun mechanic (Stun Baton, Mámù): target at 0–(−10) HP → 1 HP unconscious ──
+  let effectiveFinalDamage = finalDamage;
+  if (weapon.critStun && targetActor) {
+    const targetHp = targetActor.system?.resources?.hp?.value ?? 0;
+    // netDamage is what would hit HP; check if it would reduce to between -10 and 0
+    if (netDamage > 0 && targetHp - netDamage < 0 && targetHp - netDamage >= -10) {
+      // Bring target to exactly 1 HP: hpLoss = targetHp - 1, so preSP = (targetHp - 1) + sp
+      effectiveFinalDamage = Math.max(0, (targetHp - 1) + (sp ?? 0));
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt"></i> <strong>${game.i18n.localize('CYBER_BLUE.Combat.StunEffect')}</strong> — ${targetActor.name} ${game.i18n.localize('CYBER_BLUE.Combat.StunKnockedOut')}</p></div>`,
+      });
+    }
+  }
+
   if (targetActor && (netDamage > 0 || ablatesArmor)) {
     const result = await confirmDamageDialog({
       targetActor, finalDamage, sp, netDamage, ablatesArmor, isCritical, critDiceCount,
@@ -426,9 +448,9 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
         flavor: damageFlavorHtml,
         rollMode: game.settings.get('core', 'rollMode'),
       });
-      await applyDamageWithPermission(targetActor, finalDamage);
+      await applyDamageWithPermission(targetActor, effectiveFinalDamage);
       if (isCritical) {
-        await rollCriticalInjuryWithPermission(targetActor, tableType, { attackerActor: attacker });
+        await rollCriticalInjuryWithPermission(targetActor, tableType, { attackerActor: attacker, weaponFlags });
       }
     }
   } else {

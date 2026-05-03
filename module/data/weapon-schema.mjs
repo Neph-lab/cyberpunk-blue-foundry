@@ -67,6 +67,16 @@ export function buildWeaponField() {
     // ── Toxic Payload bonus (Yanari MP, Hercules 3AX) ─────────────────────
     payloadDmgBonus: new fields.NumberField({ required: true, nullable: false, integer: true, initial: 0 }),
 
+    // ── Melee critical injury modifiers ──────────────────────────────────────
+    // critSlicing  (Mono-Three, Katana): Broken Arm/Leg → roll 1d6; 2+ = Dismembered.
+    // critBlunt    (Baseball Bat): no dismember; would-be dismember → Broken + 5 dmg.
+    // critCrushing (Sledgehammer): cascade secondary critical on certain body injuries.
+    // critStun     (Stun Baton, Mámù): target at 0–(−10) HP left at 1 HP unconscious.
+    critSlicing: new fields.BooleanField({ initial: false }),
+    critBlunt: new fields.BooleanField({ initial: false }),
+    critCrushing: new fields.BooleanField({ initial: false }),
+    critStun: new fields.BooleanField({ initial: false }),
+
     // ── Affliction ─────────────────────────────────────────────────────────
     // Used when damageType is 'affliction', 'affliction-cone', or
     // 'affliction-explosion'.  Damage is only rolled to check SP penetration;

@@ -26,12 +26,12 @@ export function registerSocketHandlers() {
         break;
       }
       case 'rollCriticalInjury': {
-        const { targetUuid, tableType, attackerUuid } = message;
+        const { targetUuid, tableType, attackerUuid, weaponFlags } = message;
         const { rollCriticalInjury } = await import('./critical-injury.mjs');
         const actor = await fromUuid(targetUuid);
         const attacker = attackerUuid ? await fromUuid(attackerUuid) : null;
         if (!actor) return;
-        await rollCriticalInjury(actor, tableType, { attackerActor: attacker });
+        await rollCriticalInjury(actor, tableType, { attackerActor: attacker, weaponFlags: weaponFlags ?? {} });
         break;
       }
       case 'applyForcedCriticalInjury': {
@@ -109,16 +109,22 @@ export async function applyDamageWithPermission(targetActor, finalDamage) {
 
 /**
  * Roll a critical injury on an actor, delegating to the GM if needed.
+ * @param {Actor}  targetActor
+ * @param {string} tableType   'body' | 'head'
+ * @param {object} opts
+ * @param {Actor}  [opts.attackerActor]
+ * @param {object} [opts.weaponFlags]  { critSlicing, critBlunt, critCrushing }
  */
-export async function rollCriticalInjuryWithPermission(targetActor, tableType, { attackerActor = null } = {}) {
+export async function rollCriticalInjuryWithPermission(targetActor, tableType, { attackerActor = null, weaponFlags = {} } = {}) {
   const { rollCriticalInjury } = await import('./critical-injury.mjs');
   if (targetActor.isOwner || game.user.isGM) {
-    await rollCriticalInjury(targetActor, tableType, { attackerActor });
+    await rollCriticalInjury(targetActor, tableType, { attackerActor, weaponFlags });
   } else {
     emitToGM('rollCriticalInjury', {
       targetUuid: targetActor.uuid,
       tableType,
       attackerUuid: attackerActor?.uuid ?? null,
+      weaponFlags,
     });
   }
 }

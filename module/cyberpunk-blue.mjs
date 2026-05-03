@@ -1336,8 +1336,13 @@ async function _syncWeaponEntries(catalogue) {
     const countChanged = currentWeapons.length !== catalogueWeapons.length;
     const typeChanged = (currentWeapons[0]?.damageType ?? '') !== (catalogueWeapons[0]?.damageType ?? '');
     const autofireDamageChanged = (currentWeapons[0]?.autofireDamage ?? '') !== (catalogueWeapons[0]?.autofireDamage ?? '');
+    const critFlagsChanged =
+      !!currentWeapons[0]?.critSlicing !== !!catalogueWeapons[0]?.critSlicing ||
+      !!currentWeapons[0]?.critBlunt !== !!catalogueWeapons[0]?.critBlunt ||
+      !!currentWeapons[0]?.critCrushing !== !!catalogueWeapons[0]?.critCrushing ||
+      !!currentWeapons[0]?.critStun !== !!catalogueWeapons[0]?.critStun;
 
-    if (countChanged || typeChanged || autofireDamageChanged) {
+    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged) {
       updates.push({ _id: doc.id, 'system.weapons': catalogueWeapons });
     }
   }
