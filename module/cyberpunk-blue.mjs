@@ -42,7 +42,7 @@ import { CYBERWARE_CATALOGUE } from './data/cyberware-catalogue.mjs';
 import { DRUG_CATALOGUE } from './data/drug-catalogue.mjs';
 import { PROGRAM_CATALOGUE } from './data/program-catalogue.mjs';
 import { AMMO_CATALOGUE } from './data/ammo-catalogue.mjs';
-import { registerSocketHandlers } from './helpers/socket.mjs';
+import { registerSocketHandlers, applyDamageWithPermission } from './helpers/socket.mjs';
 import { refreshAllRicochetLines, clearRicochetLine } from './helpers/ricochet-canvas.mjs';
 import { refreshTechChargeHighlights, clearTechChargeHighlights } from './helpers/tech-charge-canvas.mjs';
 import { clearWeaponCharge } from './helpers/tech-charge.mjs';
@@ -772,6 +772,49 @@ Hooks.on('combatTurn', async (combat, updateData) => {
           });
         }
       }
+    }
+  }
+
+  // ── Chomp Ammo detonation (KTech Terrier) ────────────────────────────────
+  // At the START of the attacker's NEXT turn, detonate any pending chomp flags:
+  // roll 1d6 and deal damage to every token within 2m of the stuck target.
+  const chompEntries = Object.entries(actor.flags?.['cyberpunk-blue'] ?? {})
+    .filter(([k]) => k.startsWith('chompPending-'));
+  for (const [key, value] of chompEntries) {
+    const { targetTokenId, setAtRound, setAtTurnIdx, attackerCombatantIdx } = value ?? {};
+    if (attackerCombatantIdx === undefined || attackerCombatantIdx < 0) continue;
+    // Detonate if this is the attacker's combatant slot AND we're past the round/turn when it was set.
+    if (newTurnIdx !== attackerCombatantIdx) continue;
+    if (!(roundNumber > setAtRound || (roundNumber === setAtRound && newTurnIdx > setAtTurnIdx))) continue;
+
+    await actor.unsetFlag('cyberpunk-blue', key);
+
+    const targetToken = canvas.tokens?.get(targetTokenId);
+    if (!targetToken) continue;
+
+    const chompRoll = await new Roll('1d6').evaluate();
+    await chompRoll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      flavor: `<div class="cyberpunk-blue chat-card"><h3><i class="fas fa-bone"></i> ${game.i18n.localize('CYBER_BLUE.Combat.ChompAmmoDetonate')}</h3><p>${game.i18n.format('CYBER_BLUE.Combat.ChompAmmoDmg', { target: targetToken.name, dmg: chompRoll.total })}</p></div>`,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
+
+    // Find all tokens within 2m of the target
+    const gridSize = canvas.grid?.size ?? 100;
+    const scene = canvas.scene;
+    const gridDistance = scene?.grid?.distance ?? 1;
+    const gridUnits = (scene?.grid?.units ?? '').toLowerCase().trim();
+    const metersPerUnit = ['m', 'meter', 'meters'].includes(gridUnits) ? gridDistance : 2;
+    const blastRadiusPx = (2 / metersPerUnit) * gridSize;
+    const tx = targetToken.document.x + (targetToken.document.width * gridSize) / 2;
+    const ty = targetToken.document.y + (targetToken.document.height * gridSize) / 2;
+
+    for (const token of canvas.tokens.objects?.children ?? []) {
+      if (!token.actor) continue;
+      const cx = token.document.x + (token.document.width * gridSize) / 2;
+      const cy = token.document.y + (token.document.height * gridSize) / 2;
+      if (Math.hypot(cx - tx, cy - ty) > blastRadiusPx) continue;
+      await applyDamageWithPermission(token.actor, chompRoll.total);
     }
   }
 });
@@ -1505,8 +1548,13 @@ async function _syncWeaponEntries(catalogue) {
         !!cur.halveSP !== !!cw.halveSP
       );
     });
+    // Batch 9: minimumAmmoToFire
+    const batch9FieldsChanged = catalogueWeapons.some((cw, i) => {
+      const cur = currentWeapons[i] ?? {};
+      return (cur.minimumAmmoToFire ?? 0) !== (cw.minimumAmmoToFire ?? 0);
+    });
 
-    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged) {
+    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged || batch9FieldsChanged) {
       updates.push({ _id: doc.id, 'system.weapons': catalogueWeapons });
     }
   }

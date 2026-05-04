@@ -548,7 +548,11 @@
       "ElectricChargeFailed": "{target} fails electric charge resistance (rolled {roll} vs DV {dv}) — taking 2d6 to HP!",
       "ElectricChargeDamage": "{target} takes {dmg} direct HP damage (electric).",
       "ElectricChargeDepleted": "{weapon}: electric charge battery depleted.",
-      "HomingGuidance": "{weapon} missed by ≤7 ({scatter}m scatter) — homing guidance active; rocket may still detonate near target (GM discretion)."
+      "HomingGuidance": "{weapon} missed by ≤7 ({scatter}m scatter) — homing guidance active; rocket may still detonate near target (GM discretion).",
+      "MinAmmoToFire": "{weapon} requires at least {min} ammo to fire (currently {current}).",
+      "ChompAmmoStuck": "Chomp ammo stuck to {target} — detonates at end of attacker's next turn.",
+      "ChompAmmoDetonate": "Chomp Ammo Detonation!",
+      "ChompAmmoDmg": "1d6 ({dmg}) damage to everyone within 2m of {target}."
     },
     "CriticalInjury": {
       "Title": "Critical Injuries",

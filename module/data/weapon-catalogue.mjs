@@ -238,7 +238,7 @@ const shotguns = [
     description: desc('Power Weapon. Poor Quality (jams on 1, but the shot still lands). BODY 10+ to wield without Torn Muscle critical on the attacker.') }),
   weaponItem({ name: 'Kang Tao L-69 Zhuo', manufacturer: 'Kang Tao', cost: 'VEX', imgPath: img(W_SHOTGUN, 'Kang Tao L-69 Zhuo.png'),
     weapons: [
-      sgShell({ damage: '4d6', magazine: 32, shots: 8, smart: true }),
+      sgShell({ damage: '4d6', magazine: 32, shots: 8, smart: true, minimumAmmoToFire: 8 }),
     ],
     description: desc('Smart Weapon. Shell-only: 4d6 in 8/8m cone; consumes 8 shells per attack; will not fire with fewer than 8 loaded. No slug mode. Muzzle cannot be modified.') }),
   weaponItem({ name: 'Rostovic DB-2 Satara', manufacturer: 'Rostovic', cost: 'EX', imgPath: img(W_SHOTGUN, 'Rostovic DB-2 Satara.png'),

@@ -166,6 +166,11 @@ export function buildWeaponField() {
     // target. Tracked as a combat flag on the attacker.
     chompAmmo: new fields.BooleanField({ initial: false }),
 
+    // ── Minimum Ammo To Fire (Kang Tao L-69 Zhuo) ────────────────────────────
+    // If > 0, the weapon refuses to fire when ammoCurrent < this value.
+    // Zhuo requires at least 8 shells loaded.
+    minimumAmmoToFire: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+
     // ── Affliction ─────────────────────────────────────────────────────────
     // Used when damageType is 'affliction', 'affliction-cone', or
     // 'affliction-explosion'.  Damage is only rolled to check SP penetration;

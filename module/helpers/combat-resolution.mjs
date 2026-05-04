@@ -97,6 +97,24 @@ async function consumeAmmo(item, weaponIndex, shots) {
   await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: Math.max(currentAmmo - shots, 0) }));
 }
 
+/** Set a pending chomp-ammo flag on the attacker for detonation on their next turn. */
+async function _setChompPending(attacker, targetToken) {
+  const round = game.combat?.round ?? 0;
+  const turnIdx = game.combat?.turn ?? 0;
+  const combatantIdx = game.combat?.combatants.contents.findIndex((c) => c.actorId === attacker.id) ?? -1;
+  const key = `chompPending-${Date.now()}`;
+  await attacker.setFlag('cyberpunk-blue', key, {
+    targetTokenId: targetToken.id,
+    setAtRound: round,
+    setAtTurnIdx: turnIdx,
+    attackerCombatantIdx: combatantIdx,
+  });
+  ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor: attacker }),
+    content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bone"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChompAmmoStuck', { target: targetToken.name })}</p></div>`,
+  });
+}
+
 export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const effectiveWeapons = item.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(item);
   const weapon = effectiveWeapons[weaponIndex];
@@ -123,6 +141,12 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     const ammoCurrent = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
     if (ammoCurrent <= 0) {
       ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.NoAmmo', { weapon: item.name }));
+      return;
+    }
+    // minimumAmmoToFire (Kang Tao L-69 Zhuo): refuses to fire below threshold
+    const minAmmo = weapon.minimumAmmoToFire ?? 0;
+    if (minAmmo > 0 && ammoCurrent < minAmmo) {
+      ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.MinAmmoToFire', { weapon: item.name, min: minAmmo, current: ammoCurrent }));
       return;
     }
   }
@@ -523,6 +547,11 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   }
 
   if (!hit) return;
+
+  // ── Chomp Ammo (KTech Terrier): stick ammo to target on SS hit ────────────
+  if ((weapon.chompAmmo ?? false) && targetToken) {
+    await _setChompPending(attacker, targetToken);
+  }
 
   // CS3 damage formula selection: use cs3FallbackDamage when ammo was short.
   const cs3WasShortAmmo = isCs3 && useFallbackAmmoWasCs3;
@@ -1045,7 +1074,18 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
   }
 
   const hit = resolvedDV === null || attackRoll.total >= resolvedDV;
-  if (!hit) return;
+  if (!hit) {
+    // ── Chomp Ammo: stick on autofire miss by ≤ 5 ─────────────────────────
+    if ((weapon.chompAmmo ?? false) && targetToken && resolvedDV !== null && (resolvedDV - attackRoll.total) <= 5) {
+      await _setChompPending(attacker, targetToken);
+    }
+    return;
+  }
+
+  // ── Chomp Ammo: stick on autofire hit ──────────────────────────────────
+  if ((weapon.chompAmmo ?? false) && targetToken) {
+    await _setChompPending(attacker, targetToken);
+  }
 
   // autofireDamage holds the per-bullet AF value when SS and AF damage differ.
   // Falls back to weapon.damage so non-split weapons (e.g. Helix) work unchanged.
