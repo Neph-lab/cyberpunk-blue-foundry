@@ -9,6 +9,7 @@ import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
 import { buildWeaponUpdate, getWeaponTypeDefinition, getWeaponAmmoTypes } from '../helpers/combat.mjs';
 import { getCombatAttackState } from '../helpers/combat-tracker.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack } from '../helpers/combat-resolution.mjs';
+import { startRicochetPlacement, clearRicochetPoint, refreshAllRicochetLines } from '../helpers/ricochet-canvas.mjs';
 import { CRITICAL_INJURY_FLAG } from '../helpers/critical-injury.mjs';
 import { AFFLICTION_EFFECT_FLAG } from '../helpers/affliction-attack.mjs';
 import { startInstructions, advanceInstructions, getInstructionContext } from '../helpers/instructions.mjs';
@@ -389,6 +390,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       const rofExhausted = sameWeapon && rofState.count >= rateOfFire;
       const rofLocked = rofState && !sameWeapon; // different weapon was used this turn
 
+      // BODY enforcement: disable buttons for hard-body weapons when BODY < requirement.
+      // Soft-body weapons (critOnBodyReq > 0, e.g. Carnage) are still allowed to fire.
+      const actorBodyVal = Number(this.document.system?.stats?.body?.value) || 0;
+      const minBodyVal = Number(itemDoc.system?.minBodyReq) || 0;
+      const bodyBlocked = minBodyVal > 0 && actorBodyVal < minBodyVal && (weapon.critOnBodyReq ?? 0) === 0;
+
       return {
         itemId: itemDoc.id,
         weaponIndex,
@@ -403,7 +410,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         attacksUsed: sameWeapon ? rofState.count : 0,
         rofExhausted,
         rofLocked,
-        attackDisabled: rofExhausted || rofLocked,
+        attackDisabled: rofExhausted || rofLocked || bodyBlocked,
         showsAmmo: definition.usesMagazine,
         ammoCurrent: ammo.current,
         magazine: ammo.magazine,
@@ -425,6 +432,10 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
                  i.system.calibration,
         ),
         calibrationActive: (itemDoc.getFlag('cyberpunk-blue', `calibration-${weaponIndex}`) ?? 0) > 0,
+        // Ricochet point: Power Weapons only
+        isPowerWeapon: weapon.isPowerWeapon ?? false,
+        ricochetActive: !!(this.document.getFlag?.('cyberpunk-blue', 'ricochetPoint')),
+        bodyBlocked,
         autofireLabel: `${autofireTotal >= 0 ? '+' : ''}${autofireTotal}`,
         autofireTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + min(${rollContext.skillLabel} ${rollContext.usedRank}, Autofire ${autofireRank})`,
         skillSlug,
@@ -867,6 +878,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     this.element.querySelectorAll('[data-action="weapon-calibrate"]').forEach((button) => {
       button.addEventListener('click', this._onWeaponCalibrate.bind(this));
     });
+    this.element.querySelectorAll('[data-action="weapon-ricochet"]').forEach((button) => {
+      button.addEventListener('click', this._onWeaponRicochet.bind(this));
+    });
 
     // Martial Arts
     this.element.querySelectorAll('[data-action="ma-attack"]').forEach((button) => {
@@ -1013,6 +1027,26 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         speaker: ChatMessage.getSpeaker({ actor }),
         content: `<div class="cyberpunk-blue chat-card"><p>${game.i18n.localize('CYBER_BLUE.Combat.CalibrateFail')}</p></div>`,
       });
+    }
+  }
+
+  /**
+   * Ricochet point button for Power Weapons.
+   * If a point is already set: clear it.
+   * Otherwise: enter placement mode and wait for canvas click.
+   */
+  async _onWeaponRicochet(event) {
+    event.preventDefault();
+    const actor = this.document;
+    const existing = actor.getFlag?.('cyberpunk-blue', 'ricochetPoint');
+    if (existing) {
+      await clearRicochetPoint(actor);
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor }),
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-circle-xmark"></i> ${game.i18n.format('CYBER_BLUE.Combat.RicochetCleared', { name: actor.name })}</p></div>`,
+      });
+    } else {
+      await startRicochetPlacement(actor);
     }
   }
 

@@ -67,6 +67,38 @@ export function buildWeaponField() {
     // ── Toxic Payload bonus (Yanari MP, Hercules 3AX) ─────────────────────
     payloadDmgBonus: new fields.NumberField({ required: true, nullable: false, integer: true, initial: 0 }),
 
+    // ── Targeted Shot / Aimed Shot ────────────────────────────────────────
+    // Extra damage dice rolled on a successful targeted-vitals hit; empty = none.
+    // The targetVitalsPenalty value represents the attack penalty for this mode.
+    // e.g. Liberty: penalty 2, bonus '1d6'; Unity: penalty 4, bonus '1d6';
+    //      Overture: penalty 4, bonus '2d6'.
+    targetedShotDamageDice: new fields.StringField({ required: true, blank: true, initial: '' }),
+
+    // ── Armor Piercing ────────────────────────────────────────────────────
+    // When this attack would ablate 1 SP, ablates 2 instead (Tactician slug).
+    armorPiercing: new fields.BooleanField({ initial: false }),
+
+    // ── Scatter ───────────────────────────────────────────────────────────
+    // Targets within 2m to either side of the main target take ½ damage
+    // (Brunswick AR single-shot mode).
+    scatter: new fields.BooleanField({ initial: false }),
+
+    // ── Shattered Projectiles ─────────────────────────────────────────────
+    // Roll damage even on a miss; if total > 15, deal 2d6 to every token
+    // within 2m of the target instead (Techtronika Metel VHP).
+    shatteredProjectiles: new fields.BooleanField({ initial: false }),
+
+    // ── Short-ammo fallback damage ────────────────────────────────────────
+    // Weapons that consume multiple shots per attack (shots > 1) but have
+    // fewer than that many left: fire all remaining and use this formula.
+    // '' means no fallback — weapon cannot fire if ammo < shots.
+    shortAmmoFallbackDamage: new fields.StringField({ required: true, blank: true, initial: '' }),
+
+    // ── Carnage BODY requirement ──────────────────────────────────────────
+    // When > 0: firing this mode while actor BODY < this value inflicts a
+    // Torn Muscle critical on the attacker rather than blocking the attack.
+    critOnBodyReq: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+
     // ── Melee critical injury modifiers ──────────────────────────────────────
     // critSlicing  (Mono-Three, Katana): Broken Arm/Leg → roll 1d6; 2+ = Dismembered.
     // critBlunt    (Baseball Bat): no dismember; would-be dismember → Broken + 5 dmg.

@@ -172,22 +172,22 @@ const pistols = [
     weapons: [entry({ ...VHP_BASE, excellent: true, power: true })],
     description: desc('Excellent Quality (+1 attack) and Power Weapon (+5 crit damage; ricochet at -4).') }),
   weaponItem({ name: 'Constitutional Arms Liberty', manufacturer: 'Constitutional Arms', cost: 'EX', imgPath: img(W_PISTOL, 'Constitutional Arms Liberty.png'),
-    weapons: [entry({ ...VHP_BASE, magazine: 12, power: true, targetVitalsPenalty: 6 })],
-    description: desc('Power Weapon. Targeted Shot: vital-area penalty reduced by 2.') }),
+    weapons: [entry({ ...VHP_BASE, magazine: 12, power: true, targetVitalsPenalty: 2, targetedShotDamageDice: '1d6' })],
+    description: desc('Power Weapon. Targeted Shot: Handgun-2 penalty; deals +1d6 damage when targeting vitals.') }),
   weaponItem({ name: 'Techtronika Metel', manufacturer: 'Techtronika', cost: 'EX', imgPath: img(W_PISTOL, 'Techtronika Metel.png'),
-    weapons: [entry({ ...VHP_BASE, magazine: 8, power: true, jamOnRoll: 1, jamFiresFirst: false })],
-    description: desc('Power Weapon. Cheap (jams on attack die = 1). Shattered Projectiles: roll damage even on miss; if total would exceed 15, deals 2d6 to everything within 2m of target instead.') }),
+    weapons: [entry({ ...VHP_BASE, magazine: 8, power: true, jamOnRoll: 1, jamFiresFirst: false, shatteredProjectiles: true })],
+    description: desc('Power Weapon. Cheap (jams on attack die = 1). Shattered Projectiles: roll damage even on miss; if total > 15, deals 2d6 to everything within 2m of target instead.') }),
   weaponItem({ name: 'Malorian Overture', manufacturer: 'Malorian Arms', cost: 'EX', imgPath: img(W_PISTOL, 'Malorian Overture.png'),
-    weapons: [entry({ ...VHP_BASE, magazine: 6, power: true })],
-    description: desc('Power Weapon. Aimed Shot: Handgun-5 to deal 5d6 instead of 4d6.') }),
+    weapons: [entry({ ...VHP_BASE, magazine: 6, power: true, targetVitalsPenalty: 4, targetedShotDamageDice: '2d6' })],
+    description: desc('Power Weapon. Aimed Shot: Handgun-4 penalty; deals +2d6 damage when targeting vitals.') }),
   weaponItem({ name: 'Tsunami Nue', manufacturer: 'Tsunami Arms', cost: 'EX', imgPath: img(W_PISTOL, 'Tsunami Nue.png'),
     weapons: [entry({ ...VHP_BASE, magazine: 8, power: true })],
     description: desc('Power Weapon.') }),
 
   // ── HP ──
   weaponItem({ name: 'Constitutional Arms Unity', manufacturer: 'Constitutional Arms', cost: 'EX', imgPath: img(W_PISTOL, 'Constitutional Arms Unity.png'),
-    weapons: [entry({ ...HP_BASE, magazine: 12, power: true })],
-    description: desc('Power Weapon. Aimed Shot: Handgun-4 to deal 4d6 instead of 3d6.') }),
+    weapons: [entry({ ...HP_BASE, magazine: 12, power: true, targetVitalsPenalty: 4, targetedShotDamageDice: '1d6' })],
+    description: desc('Power Weapon. Aimed Shot: Handgun-4 penalty; deals +1d6 damage when targeting vitals.') }),
   weaponItem({ name: 'Militech M-10AF Lexington', manufacturer: 'Militech', cost: 'EX', imgPath: img(W_PISTOL, 'Militech M-10AF Lexington.png'),
     weapons: [entry({ ...HP_BASE, magazine: 12, power: true })],
     description: desc('Power Weapon.') }),
@@ -232,10 +232,10 @@ const pistols = [
 const shotguns = [
   weaponItem({ name: 'Budget Arms Carnage', manufacturer: 'Budget Arms', cost: 'PR', minBody: 10, imgPath: img(W_SHOTGUN, 'Budget Arms Carnage.png'),
     weapons: [
-      sgSlug({ magazine: 5, power: true, jamOnRoll: 1, jamFiresFirst: true }),
+      sgSlug({ magazine: 5, power: true, jamOnRoll: 1, jamFiresFirst: true, critOnBodyReq: 10 }),
       sgShell({ magazine: 5, jamOnRoll: 1, jamFiresFirst: true }),
     ],
-    description: desc('Power Weapon. Poor Quality (jams on 1, but the shot still lands). BODY 10+ to wield without injury or you suffer a Torn Muscle critical.') }),
+    description: desc('Power Weapon. Poor Quality (jams on 1, but the shot still lands). BODY 10+ to wield without Torn Muscle critical on the attacker.') }),
   weaponItem({ name: 'Kang Tao L-69 Zhuo', manufacturer: 'Kang Tao', cost: 'VEX', imgPath: img(W_SHOTGUN, 'Kang Tao L-69 Zhuo.png'),
     weapons: [
       sgShell({ damage: '4d6', magazine: 32, shots: 8, smart: true }),
@@ -260,7 +260,7 @@ const shotguns = [
     description: desc('Power Weapon. Shell-only — no slug mode.') }),
   weaponItem({ name: 'Constitutional Arms M2038 Tactician', manufacturer: 'Constitutional Arms', cost: 'EX', imgPath: img(W_SHOTGUN, 'Constitutional Arms M2038 Tactician.png'),
     weapons: [
-      sgSlug({ magazine: 2, power: true }),
+      sgSlug({ magazine: 2, power: true, armorPiercing: true }),
       sgShell({ magazine: 2 }),
     ],
     description: desc('Power Weapon. Armor Piercing: when this attack would ablate 1 SP, ablates 2 instead.') }),
@@ -351,7 +351,7 @@ const ars = [
   weaponItem({ name: 'Militech AR-9 Brunswick', manufacturer: 'Militech', cost: 'EX', imgPath: img(W_ROOT, 'Militech AR-9 Brunswick.png'),
     weapons: [
       // Single shot: 4d6, 5 rounds/atk. Autofire: standard 2d6 ×4.
-      arAF({ damage: '4d6', shots: 5, power: true }),
+      arAF({ damage: '4d6', shots: 5, power: true, scatter: true, shortAmmoFallbackDamage: '3d6' }),
     ],
     description: desc('Power Weapon. Single shot: 4d6, 5 rounds/atk; if insufficient → fires all remaining at 3d6. Scatter: anything in 2m to either side of target takes ½ damage. Muzzle cannot be modified.') }),
   weaponItem({ name: 'Nokota D5 Copperhead', manufacturer: 'Nokota', cost: 'EX', imgPath: img(W_AR, 'Nokota D5 Copperhead.png'),
@@ -400,7 +400,7 @@ const snipers = [
   weaponItem({ name: 'Nokota Osprey', manufacturer: 'Nokota', cost: 'EX', imgPath: img(W_ROOT, 'Nokota Osprey.png'),
     weapons: [
       entry({ ...SR_BASE, power: true }),
-      entry({ ...SR_BASE, damage: '6d6', shots: 3, power: true }),
+      entry({ ...SR_BASE, damage: '6d6', shots: 3, power: true, shortAmmoFallbackDamage: '3d6' }),
     ],
     description: desc('Power Weapon. Burn: incendiary rounds deal +2 damage past SP. Burst: 6d6, 3 rounds/atk; if insufficient → fires all remaining at 3d6.') }),
   weaponItem({ name: 'Techtronika SPT32 Grad', manufacturer: 'Techtronika', cost: 'VEX', imgPath: img(W_SNIPER, 'Techtronika SPT32 Grad.png'),

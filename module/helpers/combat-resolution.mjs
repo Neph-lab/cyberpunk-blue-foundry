@@ -1,10 +1,10 @@
 import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
 import { getEffectiveItemWeapons, getInstalledWeaponMods } from './mods.mjs';
-import { resolveConeAttack, resolveExplosionAttack, resolveAfflictionConeAttack, resolveAfflictionExplosionAttack } from './cone-attack.mjs';
+import { resolveConeAttack, resolveExplosionAttack, resolveAfflictionConeAttack, resolveAfflictionExplosionAttack, resolveScatterEffect } from './cone-attack.mjs';
 import { recordCombatAttack } from './combat-tracker.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
 import { resolveAfflictionAttack } from './affliction-attack.mjs';
-import { applyDamageWithPermission, rollCriticalInjuryWithPermission, deleteActorItemWithPermission } from './socket.mjs';
+import { applyDamageWithPermission, rollCriticalInjuryWithPermission, deleteActorItemWithPermission, ablateArmorExtraWithPermission, applyForcedCriticalInjuryWithPermission } from './socket.mjs';
 
 /** Count the number of d6s in a damage roll (using their face count, not total). */
 function countDamageDice(roll) {
@@ -297,13 +297,15 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     return;
   }
 
-  // ── Minimum BODY check ────────────────────────────────────────────────────
+  // ── BODY requirement check ────────────────────────────────────────────────
+  const attackerBody = Number(attacker.system?.stats?.body?.value) || 0;
   const minBodyReq = Number(item.system?.minBodyReq) || 0;
-  if (minBodyReq > 0) {
-    const attackerBody = Number(attacker.system?.stats?.body?.value) || 0;
-    if (attackerBody < minBodyReq) {
-      ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.MinBodyReqWarning', { weapon: item.name, body: attackerBody, required: minBodyReq }));
-    }
+  const critOnBodyReq = Number(weapon.critOnBodyReq) || 0;
+  // Soft requirement (Carnage): attack allowed but Torn Muscle applied afterwards.
+  // Hard requirement (Hurricane, Helix, MA70, Defender): UI disables button; show warning.
+  if (minBodyReq > 0 && attackerBody < minBodyReq && critOnBodyReq === 0) {
+    ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.MinBodyReqWarning', { weapon: item.name, body: attackerBody, required: minBodyReq }));
+    return;
   }
 
   // ── Aggregate mod bonuses ─────────────────────────────────────────────────
@@ -324,6 +326,14 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     await item.unsetFlag('cyberpunk-blue', `calibration-${weaponIndex}`);
   }
 
+  // ── Ricochet point check ──────────────────────────────────────────────────
+  // Power Weapons can use a pre-set ricochet point (actor flag) to bounce
+  // shots around cover. Attack check takes -4 (-3 with Directed Recoil mod).
+  const ricochetPoint = (weapon.isPowerWeapon ?? false)
+    ? (attacker.getFlag?.('cyberpunk-blue', 'ricochetPoint') ?? null)
+    : null;
+  const isRicochet = !!ricochetPoint;
+
   // ── Weapon attack-roll modifier ────────────────────────────────────────────
   const targetVitals = item.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false;
   const rawVitalsPenalty = weapon.targetVitalsPenalty ?? 8;
@@ -341,6 +351,11 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   attackModifier += steadyActive ? 1 : 0;
   attackModifier += handlingComputerActive ? 1 : 0;
   attackModifier += calibrationBonus;
+  // Ricochet penalty: -4 normally, -3 with Directed Recoil mod
+  if (isRicochet) {
+    const hasDirectedRecoil = installedMods.some((m) => m.directedRecoil);
+    attackModifier += hasDirectedRecoil ? -3 : -4;
+  }
 
   const attackRoll = await attacker.rollSkill({ skillSlug, dv: resolvedDV, modifier: attackModifier });
 
@@ -369,9 +384,29 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     recordCombatAttack(attackerToken.document.id, item.id, weaponIndex);
   }
 
+  // ── Short-ammo fallback (Brunswick 4d6/5rnd, Osprey burst 6d6/3rnd) ──────
+  // When fewer rounds remain than the weapon needs but more than zero:
+  // fire all remaining using the fallback formula.
+  const shotsRequired = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
+  const ammoCurrent = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
+  let actualShots = shotsRequired;
+  let useFallbackDamage = false;
+  if (
+    shotsRequired > 1 &&
+    ammoCurrent > 0 &&
+    ammoCurrent < shotsRequired &&
+    weapon.shortAmmoFallbackDamage
+  ) {
+    actualShots = ammoCurrent; // consume all remaining
+    useFallbackDamage = true;
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-triangle-exclamation"></i> ${game.i18n.format('CYBER_BLUE.Combat.ShortAmmoFallback', { weapon: item.name, formula: weapon.shortAmmoFallbackDamage })}</p></div>`,
+    });
+  }
+
   // Consume ammo on attack (regardless of hit/miss)
-  const shots = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
-  await consumeAmmo(item, weaponIndex, shots);
+  await consumeAmmo(item, weaponIndex, actualShots);
 
   // ── Silence system ────────────────────────────────────────────────────────
   // Post a public chat message with the DV to hear the silenced shot.
@@ -387,7 +422,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // destroyedByTech: silencer destroyed when weapon is a Tech Weapon
   const isTechWeapon = !!weapon.isTechWeapon;
   // destroyedByRof2: silencer destroyed when weapon fires 2+ shots per trigger pull
-  const shotsPerAttack = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 1;
+  const shotsPerAttack = actualShots;
   for (const mod of installedMods) {
     if (!mod._docId) continue;
     const shouldDestroy = (mod.destroyedByTech && isTechWeapon) || (mod.destroyedByRof2 && shotsPerAttack >= 2);
@@ -401,10 +436,33 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   }
 
   const hit = resolvedDV === null || attackRoll.total >= resolvedDV;
+
+  // ── Shattered Projectiles (Techtronika Metel) — trigger on MISS ──────────
+  // Roll damage; if total > 15, post a 2d6 splash message for GM resolution.
+  if (!hit && (weapon.shatteredProjectiles ?? false)) {
+    const shatterRoll = await new Roll(weapon.damage ?? definition.damage ?? '1d6').evaluate();
+    if (shatterRoll.total > 15) {
+      const splashRoll = await new Roll('2d6').evaluate();
+      await shatterRoll.toMessage({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        flavor: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-burst"></i> ${game.i18n.localize('CYBER_BLUE.Combat.ShatteredProjectilesTrigger')}</p></div>`,
+        rollMode: game.settings.get('core', 'rollMode'),
+      });
+      await splashRoll.toMessage({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        flavor: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-burst"></i> ${game.i18n.localize('CYBER_BLUE.Combat.ShatteredProjectilesSplash')}</p></div>`,
+        rollMode: game.settings.get('core', 'rollMode'),
+      });
+    }
+    return;
+  }
+
   if (!hit) return;
 
-  const damageFormula = weapon.damage ?? definition.damage ?? '1d6';
-  const damageRoll = await new Roll(damageFormula).evaluate();
+  const baseDamageFormula = useFallbackDamage
+    ? (weapon.shortAmmoFallbackDamage ?? weapon.damage ?? definition.damage ?? '1d6')
+    : (weapon.damage ?? definition.damage ?? '1d6');
+  const damageRoll = await new Roll(baseDamageFormula).evaluate();
 
   const sp = targetSP !== null ? targetSP : null;
   const damageDiceCount = countDamageDice(damageRoll);
@@ -460,10 +518,38 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     }
   }
 
+  // ── Targeted Shot extra dice (Liberty, Unity, Overture) ───────────────────
+  // When targeting vitals with a weapon that has targetedShotDamageDice, roll
+  // the bonus dice and add them to damage (they go through SP normally).
+  let targetedShotBonus = 0;
+  let targetedShotRoll = null;
+  if (targetVitals && weapon.targetedShotDamageDice) {
+    targetedShotRoll = await new Roll(weapon.targetedShotDamageDice).evaluate();
+    targetedShotBonus = targetedShotRoll.total;
+  }
+
+  // ── Barrier Penetration (Tsunami Ketsuretsu) ──────────────────────────────
+  // Each damage die showing 5 or 6 adds 1 point of damage that bypasses SP.
+  let barrierPenBonus = 0;
+  if (installedMods.some((m) => m.barrierPenetration)) {
+    for (const term of damageRoll.terms) {
+      if (!(term instanceof foundry.dice.terms.Die && term.faces === 6)) continue;
+      for (const result of term.results) {
+        if (result.active && result.result >= 5) barrierPenBonus++;
+      }
+    }
+  }
+
+  // ── Improved Ricochet (Malorian Critical Ricochet) ────────────────────────
+  // +1 damage per base damage die when using a ricochet point.
+  const hasImprovedRicochet = isRicochet && installedMods.some((m) => m.improvedRicochet);
+  const improvedRicochetBonus = hasImprovedRicochet ? damageDiceCount : 0;
+
   // ── Damage bonuses ─────────────────────────────────────────────────────────
   // Target Vitals: +5 damage if any damage gets through SP (independent of crit)
   const vitalsBonus = (targetVitals && penetratesWithoutBonus) ? 5 : 0;
-  const critBonus = isCritical ? 5 : 0;
+  // Power Weapon standard: +5 damage on criticals (PW only).
+  const critBonus = isCritical && (weapon.isPowerWeapon ?? false) ? 5 : 0;
   // Payload: weapon's built-in Toxic Payload (Yanari MP, Hercules 3AX) OR ammo name
   const weaponPayloadBonus = penetratesWithoutBonus ? (Number(weapon.payloadDmgBonus) || 0) : 0;
   const ammoPayloadBonus = penetratesWithoutBonus
@@ -484,9 +570,10 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // Silencer: -1 per damage die (applied last, after other bonuses)
   const silencerDmgReduction = installedMods.some((m) => m.reduceDmgPerDie) ? damageDiceCount : 0;
 
+  // Base final damage (goes through SP as normal)
   const finalDamage = Math.max(
     0,
-    damageRoll.total + critBonus + vitalsBonus + payloadBonus + synergyBonus - silencerDmgReduction,
+    damageRoll.total + critBonus + vitalsBonus + targetedShotBonus + payloadBonus + synergyBonus + improvedRicochetBonus - silencerDmgReduction,
   );
 
   // Critical table: head when targeting vitals, body otherwise
@@ -495,23 +582,35 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const netDamage = sp !== null ? Math.max(finalDamage - sp, 0) : finalDamage;
   const ablatesArmor = sp !== null && finalDamage >= sp;
 
+  // Barrier Penetration: bonus points bypass SP entirely.
+  // Compute what preSP value to pass so that applyDamage (which deducts SP
+  // internally) delivers finalDamage through-SP + barrierPenBonus bypassing it.
+  const effectiveFinalDamagePreBarrier = finalDamage; // used for stun check
+  const barrierPenFinalDamage = barrierPenBonus > 0
+    ? (sp ?? 0) + Math.max(finalDamage - (sp ?? 0), 0) + barrierPenBonus
+    : finalDamage;
+
   const bonusNotes = [];
   if (isCritical) {
     if (highlightedVitalsAutoCrit) bonusNotes.push(game.i18n.localize('CYBER_BLUE.Combat.HighlightedVitalsCrit'));
     else bonusNotes.push(game.i18n.localize('CYBER_BLUE.CriticalInjury.CritBonus'));
   }
   if (vitalsBonus) bonusNotes.push(game.i18n.localize('CYBER_BLUE.Combat.TargetVitalsBonus'));
+  if (targetedShotBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.TargetedShotBonus', { n: targetedShotBonus, dice: weapon.targetedShotDamageDice }));
   if (payloadBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.PayloadBonus', { n: payloadBonus }));
   if (synergyBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.SynergyBonus', { n: synergyBonus }));
+  if (improvedRicochetBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.ImprovedRicochet', { n: improvedRicochetBonus }));
+  if (barrierPenBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.BarrierPenetration', { n: barrierPenBonus }));
   if (silencerDmgReduction) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.SilencerReduction', { n: silencerDmgReduction }));
   if (vitalsExtraRoll) bonusNotes.push(`${game.i18n.localize('CYBER_BLUE.Combat.HighlightedVitalsRoll')}: [${vitalsExtraRoll.total}]${highlightedVitalsAutoCrit ? ' ★' : ''}`);
-  const totalBonus = critBonus + vitalsBonus + payloadBonus + synergyBonus - silencerDmgReduction;
+  const totalBonus = critBonus + vitalsBonus + targetedShotBonus + payloadBonus + synergyBonus + improvedRicochetBonus - silencerDmgReduction;
   const bonusDisplay = totalBonus > 0 ? ` (+${totalBonus})` : totalBonus < 0 ? ` (${totalBonus})` : '';
+  const spLineAblate = ablatesArmor ? ` (SP ${(weapon.armorPiercing ?? false) ? '-2' : '-1'})` : '';
   const critLine = bonusNotes.length
     ? `<p class="crit-roll-note"><i class="fas fa-skull"></i> ${bonusNotes.join(' · ')}</p>`
     : '';
   const spLine = sp !== null
-    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}${bonusDisplay}</p>`
+    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${spLineAblate}${bonusDisplay}</p>`
     : '';
 
   const weaponLabel = (item.system.weapons?.length ?? 0) > 1
@@ -536,12 +635,10 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   };
 
   // ── Stun mechanic (Stun Baton, Mámù): target at 0–(−10) HP → 1 HP unconscious ──
-  let effectiveFinalDamage = finalDamage;
+  let effectiveFinalDamage = barrierPenFinalDamage;
   if (weapon.critStun && targetActor) {
     const targetHp = targetActor.system?.resources?.hp?.value ?? 0;
-    // netDamage is what would hit HP; check if it would reduce to between -10 and 0
     if (netDamage > 0 && targetHp - netDamage < 0 && targetHp - netDamage >= -10) {
-      // Bring target to exactly 1 HP: hpLoss = targetHp - 1, so preSP = (targetHp - 1) + sp
       effectiveFinalDamage = Math.max(0, (targetHp - 1) + (sp ?? 0));
       ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor: attacker }),
@@ -561,17 +658,34 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
         rollMode: game.settings.get('core', 'rollMode'),
       });
       await applyDamageWithPermission(targetActor, effectiveFinalDamage);
+      // Armor Piercing: ablate 1 extra SP (Tactician slug)
+      if ((weapon.armorPiercing ?? false) && ablatesArmor) {
+        await ablateArmorExtraWithPermission(targetActor);
+      }
       if (isCritical) {
         await rollCriticalInjuryWithPermission(targetActor, tableType, { attackerActor: attacker, weaponFlags });
       }
     }
   } else {
-    // No applicable damage (no target or zero damage) — still show the roll result
     await damageRoll.toMessage({
       speaker: ChatMessage.getSpeaker({ actor: attacker }),
       flavor: damageFlavorHtml,
       rollMode: game.settings.get('core', 'rollMode'),
     });
+  }
+
+  // ── Carnage BODY requirement — Torn Muscle on attacker ────────────────────
+  if (critOnBodyReq > 0 && attackerBody < critOnBodyReq) {
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-person-falling-burst"></i> ${game.i18n.format('CYBER_BLUE.Combat.CarnageCritOnBody', { name: attacker.name, required: critOnBodyReq, body: attackerBody })}</p></div>`,
+    });
+    await applyForcedCriticalInjuryWithPermission(attacker, 'tornMuscle', null);
+  }
+
+  // ── Scatter (Brunswick AR-9 single-shot) ─────────────────────────────────
+  if ((weapon.scatter ?? false) && attackerToken && targetToken) {
+    await resolveScatterEffect(attacker, attackerToken, targetToken, finalDamage, damageRoll, weaponLabel);
   }
 }
 
@@ -775,7 +889,8 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
   // Penetration check uses rawDamage (post-multiplier, pre-bonus)
   const penetratesWithoutBonus = sp === null ? rawDamage > 0 : rawDamage > sp;
   const isCritical = critDiceCount >= 2 && penetratesWithoutBonus;
-  const finalDamage = isCritical ? rawDamage + 5 : rawDamage;
+  // Power Weapon standard: +5 damage on criticals (PW only).
+  const finalDamage = (isCritical && (weapon.isPowerWeapon ?? false)) ? rawDamage + 5 : rawDamage;
 
   const netDamage = sp !== null ? Math.max(finalDamage - sp, 0) : finalDamage;
   const ablatesArmor = sp !== null && finalDamage >= sp;

@@ -279,6 +279,11 @@
                         <i class="fas fa-bullseye"></i>
                       </button>
                     {{/if}}
+                    {{#if weapon.isPowerWeapon}}
+                      <button type="button" class="weapon-ricochet-btn{{#if weapon.ricochetActive}} ricochet-active{{/if}}" data-action="weapon-ricochet" data-weapon-index="{{weapon.weaponIndex}}" title="{{localize 'CYBER_BLUE.Combat.RicochetHint'}}">
+                        <i class="fas fa-circle-dot"></i>
+                      </button>
+                    {{/if}}
                   </td>
                 </tr>
               {{/each}}

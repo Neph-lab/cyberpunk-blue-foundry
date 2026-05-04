@@ -611,6 +611,87 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
   showAreaEffectCone(attackerCenter.x, attackerCenter.y, spreadPx, halfDamagePx, halfAngleRad, confirmedAngle);
 }
 
+// ─── Scatter Effect (Brunswick AR-9) ────────────────────────────────────────
+// Automatically fires a narrow 10° cone along the attack trajectory; targets
+// within the cone (excluding the original target) take ½ the main damage roll.
+// coneHalfDamageDistance = 0 ⇒ all hits are half-damage (no full-damage zone).
+
+/**
+ * @param {Actor}  attacker
+ * @param {Token}  attackerToken     The attacker's active placeable token.
+ * @param {Token}  mainTargetToken   The original attack target (excluded from scatter).
+ * @param {number} baseDamage        Total of the main damage roll (pre-SP).
+ * @param {Roll}   damageRoll        The already-evaluated main damage roll (for crit detection).
+ * @param {string} weaponLabel       Display name shown in chat.
+ */
+export async function resolveScatterEffect(attacker, attackerToken, mainTargetToken, baseDamage, damageRoll, weaponLabel) {
+  if (!canvas?.tokens || !attackerToken || !mainTargetToken) return;
+
+  const pixelsPerMeter = getPixelsPerMeter();
+  const attackerCenter = getTokenCenter(attackerToken.document);
+  const targetCenter = getTokenCenter(mainTargetToken.document);
+
+  const dx = targetCenter.x - attackerCenter.x;
+  const dy = targetCenter.y - attackerCenter.y;
+  const distPx = Math.hypot(dx, dy);
+  if (distPx === 0) return;
+
+  const directionRad = Math.atan2(dy, dx);
+  const halfAngleRad = (10 * Math.PI / 180) / 2; // 5° each side
+  const spreadPx = distPx; // cone extends all the way to the target
+
+  // Find tokens in the scatter cone, excluding attacker and main target
+  const scatterTargets = [];
+  for (const token of canvas.tokens.objects?.children ?? []) {
+    if (token === attackerToken || token === mainTargetToken || !token.actor) continue;
+
+    const tc = getTokenCenter(token.document);
+    const tdx = tc.x - attackerCenter.x;
+    const tdy = tc.y - attackerCenter.y;
+    const dist = Math.hypot(tdx, tdy);
+
+    if (dist > spreadPx) continue;
+
+    // Angle check
+    const tokenAngle = Math.atan2(tdy, tdx);
+    let angleDiff = Math.abs(tokenAngle - directionRad);
+    if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
+    if (angleDiff > halfAngleRad) continue;
+
+    if (isBlockedByWalls(attackerCenter, tc)) continue;
+    scatterTargets.push(token.actor);
+  }
+
+  if (scatterTargets.length === 0) return;
+
+  const halfDamage = Math.ceil(baseDamage / 2);
+  const scatterFlavorHtml = `<div class="cyberpunk-blue chat-card"><h3><i class="fas fa-angles-right"></i> ${game.i18n.localize('CYBER_BLUE.Combat.ScatterEffect')}: ${weaponLabel}</h3><p>${game.i18n.format('CYBER_BLUE.Combat.ScatterTargets', { count: scatterTargets.length, damage: halfDamage })}</p></div>`;
+
+  ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor: attacker }),
+    content: scatterFlavorHtml,
+  });
+
+  for (const targetActor of scatterTargets) {
+    const sp = targetActor.system?.resources?.armor?.value ?? 0;
+    const netDamage = Math.max(halfDamage - sp, 0);
+    const ablatesArmor = halfDamage >= sp && sp > 0;
+
+    if (netDamage > 0 || ablatesArmor) {
+      const result = await confirmDamageDialog({
+        targetActor, finalDamage: halfDamage, sp, netDamage, ablatesArmor,
+        isCritical: false, critDiceCount: 0,
+      });
+      if (result?.confirmed) {
+        await applyDamageWithPermission(targetActor, halfDamage);
+      }
+    }
+  }
+
+  // Show scatter cone briefly
+  showAreaEffectCone(attackerCenter.x, attackerCenter.y, spreadPx, 0, halfAngleRad, directionRad);
+}
+
 // ─── Affliction Cone ────────────────────────────────────────────────────────
 
 export async function resolveAfflictionConeAttack(attacker, item, weaponIndex) {

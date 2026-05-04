@@ -86,6 +86,17 @@ export function registerSocketHandlers() {
         await actor.deleteEmbeddedDocuments('Item', [itemId]);
         break;
       }
+      case 'ablateArmorExtra': {
+        // Armor Piercing: ablate 1 additional SP point after normal damage application.
+        const { actorUuid } = message;
+        const actor = await fromUuid(actorUuid);
+        if (!actor) return;
+        const armor = actor.getActiveArmorItem?.();
+        if (!armor) return;
+        const currentSp = Math.max(Math.min(armor.system.armor?.currentSp ?? 0, armor.system.armor?.maxSp ?? 0), 0);
+        if (currentSp > 0) await armor.update({ 'system.armor.currentSp': currentSp - 1 });
+        break;
+      }
       default:
         console.warn(`Cyberpunk Blue | Unknown socket message type: ${message.type}`);
     }
@@ -192,6 +203,21 @@ export async function deleteActorItemWithPermission(actor, itemId) {
     await actor.deleteEmbeddedDocuments('Item', [itemId]);
   } else {
     emitToGM('deleteActorItem', { actorUuid: actor.uuid, itemId });
+  }
+}
+
+/**
+ * Armor Piercing: ablate 1 extra SP from the target's active armor,
+ * delegating to the GM if the current user lacks permission.
+ */
+export async function ablateArmorExtraWithPermission(targetActor) {
+  if (targetActor.isOwner || game.user.isGM) {
+    const armor = targetActor.getActiveArmorItem?.();
+    if (!armor) return;
+    const currentSp = Math.max(Math.min(armor.system.armor?.currentSp ?? 0, armor.system.armor?.maxSp ?? 0), 0);
+    if (currentSp > 0) await armor.update({ 'system.armor.currentSp': currentSp - 1 });
+  } else {
+    emitToGM('ablateArmorExtra', { actorUuid: targetActor.uuid });
   }
 }
 

@@ -97,6 +97,14 @@ export default class CyberBlueMod extends CyberBlueItemBase {
     // DV15 INT+Shoulder Arms action: gain +8 or ×2 skill until fired/moved/acted.
     schema.calibration = new fields.BooleanField({ initial: false });
 
+    // ── Barrier Penetration (Tsunami Ketsuretsu) ──────────────────────────────
+    // Each damage die showing 5 or 6 deals 1 extra point of damage bypassing SP.
+    schema.barrierPenetration = new fields.BooleanField({ initial: false });
+
+    // ── Improved Ricochet (Malorian Critical Ricochet) ────────────────────────
+    // A successful ricochet hit deals +1 damage per die of base weapon damage.
+    schema.improvedRicochet = new fields.BooleanField({ initial: false });
+
     return schema;
   }
 }

@@ -43,6 +43,7 @@ import { DRUG_CATALOGUE } from './data/drug-catalogue.mjs';
 import { PROGRAM_CATALOGUE } from './data/program-catalogue.mjs';
 import { AMMO_CATALOGUE } from './data/ammo-catalogue.mjs';
 import { registerSocketHandlers } from './helpers/socket.mjs';
+import { refreshAllRicochetLines, clearRicochetLine } from './helpers/ricochet-canvas.mjs';
 
 Hooks.once('init', function () {
   game.cyberpunkblue = {
@@ -693,6 +694,18 @@ Hooks.on('updateItem', syncLeaderTeams);
 Hooks.on('deleteItem', syncLeaderTeams);
 Hooks.on('updateActor', syncLeaderTeams);
 
+// ─── Ricochet canvas line hooks ───────────────────────────────────────────────
+// Redraw the ricochet trajectory line whenever the relevant state changes.
+Hooks.on('canvasReady', () => { try { refreshAllRicochetLines(); } catch { /* canvas not ready */ } });
+Hooks.on('targetToken', () => { try { refreshAllRicochetLines(); } catch { /* canvas not ready */ } });
+Hooks.on('updateActor', (actor, change) => {
+  if (change?.flags?.['cyberpunk-blue']?.ricochetPoint !== undefined ||
+      change?.flags?.['cyberpunk-blue']?.['-=ricochetPoint'] !== undefined) {
+    try { refreshAllRicochetLines(); } catch { /* canvas not ready */ }
+  }
+});
+Hooks.on('updateToken', () => { try { refreshAllRicochetLines(); } catch { /* canvas not ready */ } });
+
 Hooks.once('ready', async () => {
   // Register socket handlers for all users (handler itself checks isGM where needed)
   registerSocketHandlers();
@@ -1289,10 +1302,14 @@ async function _syncModEntries(catalogue) {
     const calibrationChanged = !!sys.calibration !== !!defSys.calibration;
     const recoilBonusChanged = (sys.recoilBonus ?? 0) !== (defSys.recoilBonus ?? 0);
     const recoilAFOnlyChanged = !!sys.recoilAFOnly !== !!defSys.recoilAFOnly;
+    // Batch 5 fields
+    const barrierPenChanged = !!sys.barrierPenetration !== !!defSys.barrierPenetration;
+    const improvedRicochetChanged = !!sys.improvedRicochet !== !!defSys.improvedRicochet;
 
     if (weaponChangesChanged || burstChanged || beginnerChanged || vitalsChanged ||
         trajectoryChanged || closeRangeChanged || steadyChanged || handlingComputerChanged ||
-        calibrationChanged || recoilBonusChanged || recoilAFOnlyChanged) {
+        calibrationChanged || recoilBonusChanged || recoilAFOnlyChanged ||
+        barrierPenChanged || improvedRicochetChanged) {
       updates.push({
         _id: doc.id,
         'system.weaponChanges': defSys.weaponChanges ?? [],
@@ -1306,6 +1323,8 @@ async function _syncModEntries(catalogue) {
         'system.calibration': !!defSys.calibration,
         'system.recoilBonus': defSys.recoilBonus ?? 0,
         'system.recoilAFOnly': !!defSys.recoilAFOnly,
+        'system.barrierPenetration': !!defSys.barrierPenetration,
+        'system.improvedRicochet': !!defSys.improvedRicochet,
       });
     }
   }
@@ -1358,7 +1377,21 @@ async function _syncWeaponEntries(catalogue) {
       !!currentWeapons[0]?.critCrushing !== !!catalogueWeapons[0]?.critCrushing ||
       !!currentWeapons[0]?.critStun !== !!catalogueWeapons[0]?.critStun;
 
-    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged) {
+    // Batch 5: new PW mechanic fields
+    const pwFieldsChanged = catalogueWeapons.some((cw, i) => {
+      const cur = currentWeapons[i] ?? {};
+      return (
+        (cur.targetedShotDamageDice ?? '') !== (cw.targetedShotDamageDice ?? '') ||
+        !!cur.armorPiercing !== !!(cw.armorPiercing) ||
+        !!cur.scatter !== !!(cw.scatter) ||
+        !!cur.shatteredProjectiles !== !!(cw.shatteredProjectiles) ||
+        (cur.shortAmmoFallbackDamage ?? '') !== (cw.shortAmmoFallbackDamage ?? '') ||
+        (cur.critOnBodyReq ?? 0) !== (cw.critOnBodyReq ?? 0) ||
+        (cur.targetVitalsPenalty ?? 8) !== (cw.targetVitalsPenalty ?? 8)
+      );
+    });
+
+    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged) {
       updates.push({ _id: doc.id, 'system.weapons': catalogueWeapons });
     }
   }
