@@ -548,8 +548,11 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // ── Damage bonuses ─────────────────────────────────────────────────────────
   // Target Vitals: +5 damage if any damage gets through SP (independent of crit)
   const vitalsBonus = (targetVitals && penetratesWithoutBonus) ? 5 : 0;
-  // Power Weapon standard: +5 damage on criticals (PW only).
-  const critBonus = isCritical && (weapon.isPowerWeapon ?? false) ? 5 : 0;
+  // Critical damage bonus:
+  // • All weapons:    +5 on crit  (+10 when targeting vitals)
+  // • Power Weapons: +10 on crit  (+20 when targeting vitals)
+  const critBonusBase = isCritical ? ((weapon.isPowerWeapon ?? false) ? 10 : 5) : 0;
+  const critBonus = targetVitals ? critBonusBase * 2 : critBonusBase;
   // Payload: weapon's built-in Toxic Payload (Yanari MP, Hercules 3AX) OR ammo name
   const weaponPayloadBonus = penetratesWithoutBonus ? (Number(weapon.payloadDmgBonus) || 0) : 0;
   const ammoPayloadBonus = penetratesWithoutBonus
@@ -889,8 +892,9 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
   // Penetration check uses rawDamage (post-multiplier, pre-bonus)
   const penetratesWithoutBonus = sp === null ? rawDamage > 0 : rawDamage > sp;
   const isCritical = critDiceCount >= 2 && penetratesWithoutBonus;
-  // Power Weapon standard: +5 damage on criticals (PW only).
-  const finalDamage = (isCritical && (weapon.isPowerWeapon ?? false)) ? rawDamage + 5 : rawDamage;
+  // Crit bonus: all weapons +5, PW +10. Autofire cannot target vitals so no doubling.
+  const critBonusAF = isCritical ? ((weapon.isPowerWeapon ?? false) ? 10 : 5) : 0;
+  const finalDamage = rawDamage + critBonusAF;
 
   const netDamage = sp !== null ? Math.max(finalDamage - sp, 0) : finalDamage;
   const ablatesArmor = sp !== null && finalDamage >= sp;
@@ -899,7 +903,7 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
     ? `<p class="crit-roll-note"><i class="fas fa-skull"></i> ${game.i18n.format('CYBER_BLUE.CriticalInjury.CritDetected', { count: critDiceCount })} ${game.i18n.localize('CYBER_BLUE.CriticalInjury.CritBonus')}</p>`
     : '';
   const spLine = sp !== null
-    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}${isCritical ? ` (+5)` : ''}</p>`
+    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}${isCritical ? ` (+${critBonusAF})` : ''}</p>`
     : '';
 
   const weaponLabel = (item.system.weapons?.length ?? 0) > 1 ? `${item.name} - ${definition.label}` : item.name;
