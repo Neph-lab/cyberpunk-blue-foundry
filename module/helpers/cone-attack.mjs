@@ -363,6 +363,13 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
       content: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.ExplosionScatter')}</h3>`
         + `<p>${game.i18n.format('CYBER_BLUE.Combat.ExplosionScatterDist', { dist: scatter })}</p></div>`,
     });
+    // ── Homing Guidance (Dojigiri RL smart): missed by ≤ 7 → guidance message ─
+    if ((weapon.isSmartWeapon ?? false) && resolvedDV !== null && (resolvedDV - attackRoll.total) <= 7) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-satellite-dish"></i> ${game.i18n.format('CYBER_BLUE.Combat.HomingGuidance', { weapon: item.name, scatter })}</p></div>`,
+      });
+    }
   }
 
   // Find tokens in blast radius

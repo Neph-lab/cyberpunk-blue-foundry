@@ -386,6 +386,20 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     // POQ: fall through, the shot still lands
   }
 
+  // ── Auto-fire-on-10 redirect (Kang Tao S9 Daishi Tang) ───────────────────
+  // On a single-shot (SS) attack: if the raw d10 result = 10 and the weapon has
+  // ≥ 10 rounds loaded, the shot is treated as autofire instead.
+  if (weapon.autoFireOn10 && d10Result === 10) {
+    const afAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
+    if (afAmmo >= 10) {
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-fire"></i> ${game.i18n.format('CYBER_BLUE.Combat.AutoFireOn10', { weapon: item.name })}</p></div>`,
+      });
+      return resolveAutofireAttack(attacker, item, weaponIndex);
+    }
+  }
+
   // ── Accidental Discharge (Rostovic RC-7 Strigoi mod) ─────────────────────
   // On a single-shot attack (rateOfFire=1 or the weapon fired exactly 1 shot),
   // if the raw d10 attack die result is odd: consume an extra round (if available)
@@ -524,7 +538,10 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // Burning Edge (Mono-Three): blade ignores any target SP < 11 (treat as 0).
   const hasBurningEdge = !!(weapon.burningEdge ?? false);
   const spAfterBurningEdge = rawSP !== null && hasBurningEdge && rawSP < 11 ? 0 : rawSP;
-  const sp    = spAfterBurningEdge !== null ? (isCharged ? Math.floor(spAfterBurningEdge / 2) : spAfterBurningEdge) : null;
+  // halveSP (Kendachi Shi Bayonet): treat target SP as Math.ceil(SP / 2).
+  const hasHalveSP = !!(weapon.halveSP ?? false);
+  const spAfterHalve = spAfterBurningEdge !== null && hasHalveSP ? Math.ceil(spAfterBurningEdge / 2) : spAfterBurningEdge;
+  const sp    = spAfterHalve !== null ? (isCharged ? Math.floor(spAfterHalve / 2) : spAfterHalve) : null;
   const damageDiceCount = countDamageDice(damageRoll);
 
   // ── Ammo-based bonuses ─────────────────────────────────────────────────────
@@ -750,6 +767,45 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
       }
       if (isCritical) {
         await rollCriticalInjuryWithPermission(targetActor, tableType, { attackerActor: attacker, weaponFlags });
+      }
+      // ── Electric Charge (Kendachi RA-5 Powered Knife) ──────────────────────
+      // On a hit that deals net damage, if the weapon has charges remaining:
+      // target must pass DV 15 TECH + Endurance or take 2d6 direct HP damage.
+      if ((weapon.electricCharge ?? false) && netDamage > 0) {
+        const chargeKey = `electricCharge-${weaponIndex}`;
+        const chargesRemaining = item.getFlag('cyberpunk-blue', chargeKey) ?? (weapon.electricChargeMax ?? 0);
+        if (chargesRemaining > 0) {
+          await item.setFlag('cyberpunk-blue', chargeKey, chargesRemaining - 1);
+          const targetTech = targetActor.system?.stats?.tech?.value ?? 0;
+          const targetEndurance = targetActor.system?.skills?.endurance?.level ?? 0;
+          const ecRoll = await new Roll('1d10 + @tech + @end', { tech: targetTech, end: targetEndurance }).evaluate();
+          if (ecRoll.total >= 15) {
+            await ecRoll.toMessage({
+              speaker: ChatMessage.getSpeaker({ actor: targetActor }),
+              flavor: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt"></i> ${game.i18n.format('CYBER_BLUE.Combat.ElectricChargeResisted', { target: targetActor.name, roll: ecRoll.total, dv: 15 })}</p></div>`,
+              rollMode: game.settings.get('core', 'rollMode'),
+            });
+          } else {
+            const shockRoll = await new Roll('2d6').evaluate();
+            await ecRoll.toMessage({
+              speaker: ChatMessage.getSpeaker({ actor: targetActor }),
+              flavor: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt"></i> ${game.i18n.format('CYBER_BLUE.Combat.ElectricChargeFailed', { target: targetActor.name, roll: ecRoll.total, dv: 15 })}</p></div>`,
+              rollMode: game.settings.get('core', 'rollMode'),
+            });
+            await shockRoll.toMessage({
+              speaker: ChatMessage.getSpeaker({ actor: targetActor }),
+              flavor: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt"></i> ${game.i18n.format('CYBER_BLUE.Combat.ElectricChargeDamage', { target: targetActor.name, dmg: shockRoll.total })}</p></div>`,
+              rollMode: game.settings.get('core', 'rollMode'),
+            });
+            await applyDamageWithPermission(targetActor, shockRoll.total);
+          }
+          if (chargesRemaining - 1 === 0) {
+            ChatMessage.create({
+              speaker: ChatMessage.getSpeaker({ actor: attacker }),
+              content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-battery-empty"></i> ${game.i18n.format('CYBER_BLUE.Combat.ElectricChargeDepleted', { weapon: item.name })}</p></div>`,
+            });
+          }
+        }
       }
     }
   } else {
@@ -1052,5 +1108,158 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
       flavor: autofireFlavorHtml,
       rollMode: game.settings.get('core', 'rollMode'),
     });
+  }
+}
+
+// ── Double Lock (Tsunami Kappa) ───────────────────────────────────────────────
+// Spend 4 ammo for a single attack roll vs both targets (must be ≤ 6m apart).
+// Roll once; apply the result — hit or miss — independently vs each target's DV.
+export async function resolveDoubleLockAttack(attacker, item, weaponIndex) {
+  const effectiveWeapons = item.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(item);
+  const weapon = effectiveWeapons[weaponIndex];
+  if (!weapon) return;
+
+  const AMMO_COST = 4;
+  const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
+  if (currentAmmo < AMMO_COST) {
+    ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.DoubleLockNotEnoughAmmo', { cost: AMMO_COST, ammo: currentAmmo }));
+    return;
+  }
+
+  // Gather targets (exactly 2 required)
+  const targets = [...game.user.targets];
+  if (targets.length !== 2) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.DoubleLockNeedTwoTargets'));
+    return;
+  }
+
+  const [tokenA, tokenB] = targets;
+  const actorA = tokenA.actor;
+  const actorB = tokenB.actor;
+
+  // Warn if targets are more than 6m apart
+  const gridSize = canvas.grid.size;
+  const axA = tokenA.document.x + (tokenA.document.width * gridSize) / 2;
+  const ayA = tokenA.document.y + (tokenA.document.height * gridSize) / 2;
+  const axB = tokenB.document.x + (tokenB.document.width * gridSize) / 2;
+  const ayB = tokenB.document.y + (tokenB.document.height * gridSize) / 2;
+  const targetDist = Math.hypot(axA - axB, ayA - ayB) / gridSize;
+  const gridDistance = canvas.scene.grid?.distance ?? 1;
+  const gridUnits = (canvas.scene.grid?.units ?? '').toLowerCase().trim();
+  const metersPerUnit = ['m', 'meter', 'meters'].includes(gridUnits) ? gridDistance : 2;
+  const targetDistMeters = targetDist * metersPerUnit;
+  if (targetDistMeters > 6) {
+    ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.DoubleLockTooFarApart', { dist: targetDistMeters.toFixed(1) }));
+    return;
+  }
+
+  const definition = getWeaponTypeDefinition(weapon.type);
+  const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill
+    : (item.system.weapons?.[weaponIndex]?.skill ?? weapon.skill);
+
+  // DV for each target from range table
+  const attackerToken = attacker.getActiveTokens()[0];
+  function distTo(tok) {
+    if (!attackerToken || !canvas?.scene || !canvas?.grid) return null;
+    const px = attackerToken.document.x + (attackerToken.document.width * gridSize) / 2;
+    const py = attackerToken.document.y + (attackerToken.document.height * gridSize) / 2;
+    const tx = tok.document.x + (tok.document.width * gridSize) / 2;
+    const ty = tok.document.y + (tok.document.height * gridSize) / 2;
+    return (Math.hypot(px - tx, py - ty) / gridSize) * metersPerUnit;
+  }
+
+  const distA = distTo(tokenA);
+  const distB = distTo(tokenB);
+  const dvA = distA !== null ? getDvForRange(definition, distA) : null;
+  const dvB = distB !== null ? getDvForRange(definition, distB) : null;
+
+  if (dvA === 0 || dvB === 0) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.OutOfRange'));
+    return;
+  }
+
+  // Check for jammed weapon
+  if (item.getFlag('cyberpunk-blue', `jammed-${weaponIndex}`)) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.WeaponJammed'));
+    return;
+  }
+
+  // Installed mod bonuses (non-AF recoil only)
+  const installedMods = getInstalledWeaponMods(item, weaponIndex, attacker);
+  const modRecoilBonus = installedMods.reduce((sum, m) => sum + (!m.recoilAFOnly ? (m.recoilBonus ?? 0) : 0), 0);
+
+  const spA = actorA ? (actorA.system?.resources?.armor?.value ?? 0) : null;
+  const spB = actorB ? (actorB.system?.resources?.armor?.value ?? 0) : null;
+
+  const dialogContent = `
+    <div class="cyberpunk-blue" style="padding:0.5rem;">
+      <p><strong>${game.i18n.localize('CYBER_BLUE.Combat.DoubleLock')}</strong> — ${game.i18n.format('CYBER_BLUE.Combat.DoubleLockAmmoCost', { cost: AMMO_COST })}</p>
+      <p>${actorA?.name ?? tokenA.name}${spA !== null ? ` (SP ${spA})` : ''}${dvA !== null ? ` — DV ${dvA}` : ''}</p>
+      <p>${actorB?.name ?? tokenB.name}${spB !== null ? ` (SP ${spB})` : ''}${dvB !== null ? ` — DV ${dvB}` : ''}</p>
+    </div>`;
+
+  let confirmed = false;
+  try {
+    confirmed = await new Promise((resolve) => {
+      const dialog = new foundry.applications.api.DialogV2({
+        window: { title: `${game.i18n.localize('CYBER_BLUE.Combat.DoubleLock')}: ${item.name}` },
+        content: dialogContent,
+        buttons: [
+          { action: 'roll', icon: 'fa-solid fa-dice-d10', label: game.i18n.localize('CYBER_BLUE.Combat.RollAttack'), default: true, callback: () => true },
+          { action: 'cancel', icon: 'fa-solid fa-xmark', label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Cancel'), callback: () => false },
+        ],
+        submit: resolve,
+      });
+      dialog.addEventListener('close', () => resolve(false), { once: true });
+      dialog.render(true);
+    });
+  } catch {
+    return;
+  }
+  if (!confirmed) return;
+
+  // Consume 4 ammo
+  await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: currentAmmo - AMMO_COST }));
+
+  // Roll once (use primary target DV — lower DV = easier = more favourable for single-roll)
+  const primaryDV = dvA !== null && dvB !== null ? Math.min(dvA, dvB) : (dvA ?? dvB);
+  const attackRoll = await attacker.rollSkill({ skillSlug, dv: primaryDV, modifier: modRecoilBonus });
+
+  // Determine hits
+  const hitA = dvA === null || attackRoll.total >= dvA;
+  const hitB = dvB === null || attackRoll.total >= dvB;
+
+  const summaryLines = [
+    `${actorA?.name ?? tokenA.name}: ${hitA ? `<strong>${game.i18n.localize('CYBER_BLUE.Combat.Hit')}</strong>` : game.i18n.localize('CYBER_BLUE.Combat.Miss')}`,
+    `${actorB?.name ?? tokenB.name}: ${hitB ? `<strong>${game.i18n.localize('CYBER_BLUE.Combat.Hit')}</strong>` : game.i18n.localize('CYBER_BLUE.Combat.Miss')}`,
+  ];
+  ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor: attacker }),
+    content: `<div class="cyberpunk-blue chat-card"><h3><i class="fas fa-crosshairs"></i> ${game.i18n.localize('CYBER_BLUE.Combat.DoubleLock')}</h3><p>${summaryLines.join('<br>')}</p></div>`,
+  });
+
+  if (!hitA && !hitB) return;
+
+  const baseDamageFormula = weapon.damage ?? definition.damage ?? '1d6';
+  const damageRoll = await new Roll(baseDamageFormula).evaluate();
+
+  // Apply to each target that was hit
+  for (const [hit, actor, sp] of [[hitA, actorA, spA], [hitB, actorB, spB]]) {
+    if (!hit || !actor) continue;
+    const netDmg = sp !== null ? Math.max(damageRoll.total - sp, 0) : damageRoll.total;
+    if (netDmg > 0) {
+      const result = await confirmDamageDialog({
+        targetActor: actor, finalDamage: damageRoll.total, sp, netDamage: netDmg,
+        ablatesArmor: sp !== null && damageRoll.total >= sp, isCritical: false, critDiceCount: 0,
+      });
+      if (result?.confirmed) {
+        await damageRoll.toMessage({
+          speaker: ChatMessage.getSpeaker({ actor: attacker }),
+          flavor: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-crosshairs"></i> ${game.i18n.format('CYBER_BLUE.Combat.DoubleLockDamage', { target: actor.name })}</p></div>`,
+          rollMode: game.settings.get('core', 'rollMode'),
+        });
+        await applyDamageWithPermission(actor, netDmg);
+      }
+    }
   }
 }

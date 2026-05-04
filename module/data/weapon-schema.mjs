@@ -137,6 +137,35 @@ export function buildWeaponField() {
     // Extra attack-roll modifier applied when the weapon is in a charged state.
     chargedAttackBonus: new fields.NumberField({ required: true, nullable: false, integer: true, initial: 0 }),
 
+    // ── Halve SP (Kendachi Shi Bayonet) ──────────────────────────────────────
+    // This weapon entry treats the target's effective SP as Math.ceil(SP / 2).
+    // Used for the injected bayonet weapon mode synthesised by mods.mjs.
+    halveSP: new fields.BooleanField({ initial: false }),
+
+    // ── Auto-fire-on-10 (Kang Tao S9 Daishi Tang) ────────────────────────────
+    // On a single-shot attack where the raw d10 result = 10 and the weapon has
+    // ≥ 10 rounds loaded, immediately redirect to autofire instead.
+    autoFireOn10: new fields.BooleanField({ initial: false }),
+
+    // ── Double Lock (Tsunami Kappa) ───────────────────────────────────────────
+    // Spend 4 ammo for a single attack against 2 targets within 6m of each other.
+    // Separate button in the attack column.
+    doubleLock: new fields.BooleanField({ initial: false }),
+
+    // ── Electric Charge (Kendachi RA-5 Powered Knife) ────────────────────────
+    // The knife carries a battery with electricChargeMax uses. When charges > 0
+    // and the weapon hits, the target must pass DV 15 TECH + Endurance or take
+    // 2d6 directly to HP. A direct hit on an uninsulated electrical device
+    // disables it (handled narratively). Charges tracked via item flags.
+    electricCharge: new fields.BooleanField({ initial: false }),
+    electricChargeMax: new fields.NumberField({ required: true, nullable: false, integer: true, initial: 0, min: 0 }),
+
+    // ── Chomp Ammo (KTech Terrier SMG) ───────────────────────────────────────
+    // On a hit (or autofire miss ≤ 5), the ammo sticks to the target; at the end
+    // of the attacker's next turn it deals 1d6 to everyone within 2m of the
+    // target. Tracked as a combat flag on the attacker.
+    chompAmmo: new fields.BooleanField({ initial: false }),
+
     // ── Affliction ─────────────────────────────────────────────────────────
     // Used when damageType is 'affliction', 'affliction-cone', or
     // 'affliction-explosion'.  Damage is only rolled to check SP penetration;

@@ -228,7 +228,11 @@ const attachments = [
     system: {},
     description: desc('Replaces grip. Hidden compartment: +2 to conceal anything in the grip. Note: weapons priced €$500+ suffer -1 attacks vs their default grip.') }),
   modItem({ name: 'Militech Type II Grip', manufacturer: 'Militech', cost: 'PR', imgPath: img(M_ROOT, 'Militech Type II Grip.png'),
-    system: { recoilBonus: 1, recoilAFOnly: true, steady: true },
+    system: { recoilBonus: 1, recoilAFOnly: true, steady: true,
+      weaponChanges: [
+        { id: '', key: 'hands',       mode: 'override', value: '2'     },
+        { id: '', key: 'concealable', mode: 'override', value: 'false' },
+      ] },
     description: desc('1-hand firearm only. Forward grip (now requires 2 hands). Improved Autofire: +1 autofire attacks. Steady: +1 attack if only fired once this turn.') }),
   modItem({ name: 'Militech SR Capacity', manufacturer: 'Militech', cost: 'PR', imgPath: img(M_ROOT, 'Militech SR Capacity.png'),
     system: { requiresTechWeapon: true, srCapacity: true },
@@ -259,7 +263,7 @@ const attachments = [
     system: { requiresSmartWeapon: true, targetVitalsPenaltyReduction: 1 },
     description: desc('Smart weapon only. Smart Targeting. Target Vitals: head/vital penalty reduced by 1; smart ammo using guidance reduces by 1 more and always targets vitals.') }),
   modItem({ name: 'Kendachi Shi Bayonet', manufacturer: 'Kendachi', cost: 'C', imgPath: img(M_ROOT, 'Kendachi bayonet.png'),
-    system: {},
+    system: { bayonet: true },
     description: desc('Any long weapon (not most pistols/SMGs). Melee weapon attached: ignores ½ SP. Bayonet stats: DMG 1d6, RoF 2.') }),
 ];
 

@@ -222,6 +222,11 @@
                         {{localize "CYBER_BLUE.Combat.Autofire"}} ({{weapon.autofireLabel}})
                       </button>
                     {{/if}}
+                    {{#if weapon.hasDoubleLock}}
+                      <button type="button" data-action="weapon-double-lock" data-weapon-index="{{weapon.weaponIndex}}" title="{{localize 'CYBER_BLUE.Combat.DoubleLockHint'}}" {{#unless weapon.doubleLockAmmoOk}}disabled{{/unless}} {{#if weapon.attackDisabled}}disabled{{/if}}>
+                        <i class="fas fa-crosshairs"></i> {{localize "CYBER_BLUE.Combat.DoubleLock"}}
+                      </button>
+                    {{/if}}
                   </td>
                   <td class="numeric-column target-vitals-cell">
                     {{#if weapon.isStandardDamage}}
@@ -288,6 +293,11 @@
                       <button type="button" class="weapon-charge-btn{{#if weapon.isCharged}} charge-active{{/if}}{{#if weapon.isChargeCooldown}} charge-cooldown{{/if}}" data-action="weapon-charge" data-weapon-index="{{weapon.weaponIndex}}" {{#if weapon.chargeDisabled}}disabled{{/if}} title="{{localize 'CYBER_BLUE.Combat.ChargeHint'}}">
                         <i class="fas fa-bolt-lightning"></i>
                       </button>
+                    {{/if}}
+                    {{#if weapon.hasElectricCharge}}
+                      <span class="electric-charge-indicator{{#if (eq weapon.electricChargeUses 0)}} depleted{{/if}}" title="{{localize 'CYBER_BLUE.Combat.ElectricChargeTitle'}}">
+                        <i class="fas fa-battery-{{#if (eq weapon.electricChargeUses 0)}}empty{{else}}full{{/if}}"></i> {{weapon.electricChargeUses}}/{{weapon.electricChargeMax}}
+                      </span>
                     {{/if}}
                   </td>
                 </tr>

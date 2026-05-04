@@ -215,7 +215,7 @@ const pistols = [
     weapons: [entry({ ...MP_BASE, magazine: 8, power: true })],
     description: desc('Power Weapon.') }),
   weaponItem({ name: 'Tsunami Kappa', manufacturer: 'Tsunami Arms', cost: 'EX', imgPath: img(W_SMG, 'Tsunami Kappa.png'),
-    weapons: [entry({ ...MP_BASE, smart: true })],
+    weapons: [entry({ ...MP_BASE, smart: true, doubleLock: true })],
     description: desc('Smart Weapon. Double Lock: spend 4 ammo for 1 attack against 2 targets within 6m of each other. Muzzle cannot be modified.') }),
   weaponItem({ name: 'Darra Polytechnic DS-1 Tenebra', manufacturer: 'Darra Polytechnic', cost: 'PR', imgPath: img(W_PISTOL, 'Darra Polychenic Tenebra.png'),
     weapons: [entry({ ...MP_BASE, silenceBuiltIn: true, silenceBuiltInDV: 8 })],
@@ -309,7 +309,7 @@ const smgs = [
     ],
     description: desc('Smart Weapon. Single Shot: 3d6, 2 rounds/atk; if insufficient → fires all remaining at 1d6. Autofire capped at ×2.') }),
   weaponItem({ name: 'KTech Terrier', manufacturer: 'KTech', cost: 'EX', imgPath: img(W_ROOT, 'KTech Terrier.png'),
-    weapons: [smgAF()],
+    weapons: [smgAF({ chompAmmo: true })],
     description: desc('KTech Chomp ammo: sticks to target on hit (or autofire miss by ≤5); deals 1d6 to everyone within 2m of the target at the end of the user\'s next turn.') }),
   weaponItem({ name: 'Hansen Arms HA-4 Grit', manufacturer: 'Hansen Arms', cost: 'PR', imgPath: img(W_SMG, 'Hansen Arms HA-4 Grit.png'),
     weapons: [smgAF()],
@@ -318,7 +318,7 @@ const smgs = [
     weapons: [smgAF({ power: true })],
     description: desc('Power Weapon.') }),
   weaponItem({ name: 'Kang Tao S9 Daishi Tang', manufacturer: 'Kang Tao', cost: 'EX', imgPath: img(W_SMG, 'Kang Tao Daishi-Tang.png'),
-    weapons: [smgAF({ smart: true })],
+    weapons: [smgAF({ smart: true, autoFireOn10: true })],
     description: desc('Smart Weapon. Single-shot rule: if attack die = 10 and the weapon has enough ammo, treat the shot as autofire instead.') }),
 ];
 
@@ -452,7 +452,7 @@ const vhmw = (overrides = {}) => entry({ type: 'veryHeavyMelee', damage: '4d6', 
 
 const melee = [
   weaponItem({ name: 'Kendachi RA-5 Powered Knife', manufacturer: 'Kendachi', cost: 'PR', imgPath: img(W_MELEE, 'Kendachi knife.png'),
-    weapons: [lmw()],
+    weapons: [lmw({ electricCharge: true, electricChargeMax: 10 })],
     description: desc('Light Melee, throwable. Electric Charge (battery: 10 uses, 15 min to charge): a target taking any damage must DV15 TECH+Endurance or take 2d6 directly to HP. A direct hit on an uninsulated electrical device disables it.') }),
   weaponItem({ name: 'Militech M2 Combat Knife', manufacturer: 'Militech', cost: 'C', imgPath: img(W_MELEE, 'militech combat knife.png'),
     weapons: [lmw()],

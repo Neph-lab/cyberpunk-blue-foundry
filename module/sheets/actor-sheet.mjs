@@ -8,7 +8,7 @@ import { normalizeGearState, getGearStateUpdateData } from '../helpers/gear.mjs'
 import { getEffectiveItemWeapons, getInstalledWeaponMods } from '../helpers/mods.mjs';
 import { buildWeaponUpdate, getWeaponTypeDefinition, getWeaponAmmoTypes } from '../helpers/combat.mjs';
 import { getCombatAttackState, getMovementUsed } from '../helpers/combat-tracker.mjs';
-import { resolveWeaponAttack, resolveAutofireAttack } from '../helpers/combat-resolution.mjs';
+import { resolveWeaponAttack, resolveAutofireAttack, resolveDoubleLockAttack } from '../helpers/combat-resolution.mjs';
 import { startRicochetPlacement, clearRicochetPoint, refreshAllRicochetLines } from '../helpers/ricochet-canvas.mjs';
 import { clearWeaponCharge } from '../helpers/tech-charge.mjs';
 import { CRITICAL_INJURY_FLAG } from '../helpers/critical-injury.mjs';
@@ -460,6 +460,15 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           value: slug,
           label: CONFIG.CYBER_BLUE.skills[slug]?.label ?? slug,
         })),
+        // ── Batch 8 weapon abilities ───────────────────────────────────────
+        hasDoubleLock: !!(weapon.doubleLock ?? false),
+        doubleLockAmmoOk: (weapon.doubleLock ?? false) && ammo.current >= 4,
+        hasElectricCharge: !!(weapon.electricCharge ?? false),
+        electricChargeUses: (weapon.electricCharge ?? false)
+          ? (itemDoc.getFlag('cyberpunk-blue', `electricCharge-${weaponIndex}`) ?? (weapon.electricChargeMax ?? 0))
+          : 0,
+        electricChargeMax: weapon.electricChargeMax ?? 0,
+        isBayonet: !!(weapon._isBayonet ?? false),
       };
     };
 
@@ -900,6 +909,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     });
     this.element.querySelectorAll('[data-action="weapon-charge"]').forEach((button) => {
       button.addEventListener('click', this._onWeaponCharge.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="weapon-double-lock"]').forEach((button) => {
+      button.addEventListener('click', this._onWeaponDoubleLock.bind(this));
     });
 
     // Martial Arts
@@ -1417,6 +1429,14 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       return;
     }
     await resolveAutofireAttack(this.document, item, weaponIndex);
+  }
+
+  async _onWeaponDoubleLock(event) {
+    event.preventDefault();
+    const item = this._getItemFromEvent(event);
+    const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
+    if (!item || Number.isNaN(weaponIndex) || weaponIndex < 0) return;
+    await resolveDoubleLockAttack(this.document, item, weaponIndex);
   }
 
   async _onWeaponDamage(event) {

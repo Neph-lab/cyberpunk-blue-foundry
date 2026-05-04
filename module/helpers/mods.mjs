@@ -261,6 +261,40 @@ export function getEffectiveItemWeapons(itemLike, actor = null) {
     }
   }
 
+  // ── Bayonet injection ────────────────────────────────────────────────────
+  // If any installed mod has bayonet:true, append a synthetic lightMelee entry
+  // (1d6, RoF 2, halveSP) so the actor sheet shows a bayonet attack row.
+  const hasBayonet =
+    (itemLike?.system?.embeddedMods ?? []).some(m => m.bayonet) ||
+    (actor && itemLike?.id && (actor.items ?? []).some(
+      d => d.type === 'mod' && d.system.modType === 'weaponMod' &&
+           d.system.installedOnId === itemLike.id && d.system.bayonet
+    ));
+  if (hasBayonet) {
+    weapons.push({
+      type: 'lightMelee', skill: 'meleeWeapons', damage: '1d6',
+      autofireDamage: '', rateOfFire: 2, magazine: 0, ammoCurrent: 0, shots: 0,
+      hands: 1, concealable: false, damageType: '', autofireMultiplier: 1,
+      autofireRangeTable: Array(8).fill(0), coneSpread: 0, coneAngle: 45,
+      coneHalfDamageDistance: 0, rangeTable: Array(8).fill(0), ammoTypeUuid: '',
+      isPowerWeapon: false, isSmartWeapon: false, isTechWeapon: false,
+      isExcellentQuality: false, chargeType: '', cs3: false, cs3FallbackDamage: '',
+      chargeKeepsRof: false, silenceBuiltIn: false, silenceBuiltInDV: 0,
+      jamOnRoll: 0, jamFiresFirst: false, shellDvModifier: 0, targetVitalsPenalty: 8,
+      payloadDmgBonus: 0, targetedShotDamageDice: '', armorPiercing: false,
+      scatter: false, shatteredProjectiles: false, shortAmmoFallbackDamage: '',
+      critOnBodyReq: 0, critSlicing: false, critBlunt: false, critCrushing: false,
+      critStun: false, vicious: false, heavyRecoil: false, shockwave: false,
+      burningEdge: false, chargedAttackBonus: 0,
+      halveSP: true,
+      autoFireOn10: false, doubleLock: false, electricCharge: false,
+      electricChargeMax: 0, chompAmmo: false,
+      afflictionPrimary: 'body', afflictionSkill: '', afflictionDv: 13,
+      afflictionEffectId: '',
+      _isBayonet: true,
+    });
+  }
+
   return weapons;
 }
 

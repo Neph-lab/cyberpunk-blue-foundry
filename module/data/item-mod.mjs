@@ -122,6 +122,12 @@ export default class CyberBlueMod extends CyberBlueItemBase {
     // the weapon consumes 2× ammo (if available) and deals +1 damage per die.
     schema.accidentalDischarge = new fields.BooleanField({ initial: false });
 
+    // ── Bayonet (Kendachi Shi Bayonet) ────────────────────────────────────────
+    // When this mod is installed on a weapon, getEffectiveItemWeapons injects a
+    // synthetic lightMelee weapon entry (1d6, RoF 2, halveSP: true) so the actor
+    // sheet shows a bayonet attack row.
+    schema.bayonet = new fields.BooleanField({ initial: false });
+
     return schema;
   }
 }
