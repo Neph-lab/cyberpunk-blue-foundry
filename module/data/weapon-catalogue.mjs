@@ -207,7 +207,7 @@ const pistols = [
     weapons: [entry({ ...HP_BASE, magazine: 12, smart: true })],
     description: desc('Smart Weapon. Experimental: alternate mode fires a tracker dart (1d6, ammo 2). ISA shots that miss by ≤5 vs a beacon-tagged target: roll 1d10+15 to redirect onto them.') }),
   weaponItem({ name: 'Sanroo Hello Cutie+', manufacturer: 'Sanroo', cost: 'VEX', imgPath: img(W_PISTOL, 'Sanroo-Hello-Cutie.png'),
-    weapons: [entry({ ...HP_BASE, magazine: 12, tech: true, chargeType: 'hold', cs3: true, cs3FallbackDamage: '2d6' })],
+    weapons: [entry({ ...HP_BASE, magazine: 12, tech: true, chargeType: 'hold', cs3: true, cs3FallbackDamage: '2d6', chargedAttackBonus: 2 })],
     description: desc('Tech Weapon (HOLD charge). Charged Shot 3. Stabilizers: +2 attacks while charged.') }),
 
   // ── MP ──
@@ -414,7 +414,7 @@ const snipers = [
     description: desc('Smart Weapon. Dart mode: silent smart dart, 4d6 + toxin payload. Replacement darts €$50 per 10.') }),
 
   weaponItem({ name: 'Rostovic Kolac', manufacturer: 'Rostovic', cost: 'EX', imgPath: img(W_ROOT, 'Rostovic Kolac.png'),
-    weapons: [entry({ ...PR_BASE, damage: '6d6', power: true })],
+    weapons: [entry({ ...PR_BASE, damage: '6d6', power: true, heavyRecoil: true })],
     description: desc('Power Weapon. Heavy Recoil: a user with BODY < 8 takes 1d6 directly to HP when firing.') }),
   weaponItem({ name: 'Militech M-179 Achilles', manufacturer: 'Militech', cost: 'EX', imgPath: img(W_ROOT, 'Militech M-179 Achilles.png'),
     weapons: [entry({ ...PR_BASE, tech: true, chargeType: 'hold', cs3: true, cs3FallbackDamage: '4d6' })],
@@ -430,7 +430,7 @@ const special = [
     weapons: [entry({ type: 'rocketLauncher', damage: '10d6', rateOfFire: 1, magazine: 1, shots: 1, hands: 2, rangeTable: R.rl, smart: true, damageType: 'explosion', coneSpread: 4, coneHalfDamageDistance: 4 })],
     description: desc('Smart Weapon. Explosive 4/10m. Homing Guidance: ISA rockets are homing — when the only moving target is 50+m away vs unmoving background, a miss of ≤7 means the rocket guides itself onto the target.') }),
   weaponItem({ name: 'Kang Tao TKI-20 Mámù', manufacturer: 'Kang Tao', cost: 'EX', imgPath: img(W_ROOT, 'Kang Tao Mámù.png'),
-    weapons: [entry({ type: 'mediumPistol', damage: '3d6', rateOfFire: 2, magazine: 12, hands: 1, concealable: true, rangeTable: R.pistol, shots: 1, critStun: true })],
+    weapons: [entry({ type: 'mediumPistol', damage: '3d6', rateOfFire: 2, magazine: 12, hands: 1, concealable: true, rangeTable: R.pistol, shots: 1, critStun: true, shockwave: true })],
     description: desc('Stun Gun. Shockwave: a standing target with BODY < 8 is pushed 2m away. Stun: target reduced to 0 HP becomes stable (criticals still trigger normally). Battery: no ammo slot — €$50 battery, 1h to recharge from empty.') }),
   weaponItem({ name: 'Sanroo Hotness', manufacturer: 'Sanroo', cost: 'EX', imgPath: img(W_ROOT, 'Sanroo hotness.png'),
     weapons: [entry({ type: 'flamethrower', damage: '4d6', rateOfFire: 1, magazine: 10, shots: 1, hands: 2, damageType: 'cone', coneSpread: 4, coneAngle: 53, coneHalfDamageDistance: 6 })],
@@ -466,7 +466,7 @@ const melee = [
     description: desc('Blunt: cannot cause dismembering criticals. A would-be dismembering crit becomes the Broken version instead and deals +5 bonus damage.') }),
 
   weaponItem({ name: 'Kendachi Mono-Three', manufacturer: 'Kendachi', cost: 'LUX', imgPath: img(W_MELEE, 'Kendachi Mono-Three.png'),
-    weapons: [hmw({ critSlicing: true })],
+    weapons: [hmw({ critSlicing: true, burningEdge: true })],
     description: desc('Slicing: on Broken Arm/Leg, roll 1d6 — 2+ becomes Dismembered. Burning Edge: register biometrics (Action to activate); while active the blade ignores any SP below 11.') }),
   weaponItem({ name: 'Katana', manufacturer: '', cost: 'EX', imgPath: img(W_MELEE, 'Katana.png'),
     weapons: [hmw({ critSlicing: true })],
@@ -479,7 +479,7 @@ const melee = [
     description: desc('Crushing: Collapsed Lung/Spinal Injury also causes Broken Ribs; would-be Broken Ribs also causes Collapsed Lung; any Critical Head Injury also causes Concussion; would-be Concussion also causes Cracked Skull.') }),
 
   weaponItem({ name: 'Budget Arms Cut-O-Matic', manufacturer: 'Budget Arms', cost: 'EX', imgPath: img(W_MELEE, 'Budget Arms Cut-o-Matic.png'),
-    weapons: [vhmw()],
+    weapons: [vhmw({ vicious: true })],
     description: desc('Vicious: while powered on, criticals deal +5 damage. Noisy: stealth impossible while on (toggle as part of another action — but not both same round). Unpowered: if off or out of CHOOH², deals only 3d6.') }),
 ];
 

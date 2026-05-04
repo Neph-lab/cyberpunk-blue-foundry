@@ -1378,12 +1378,15 @@ async function _syncModEntries(catalogue) {
     // Batch 6 fields
     const improvedChargeChanged = !!sys.improvedCharge !== !!defSys.improvedCharge;
     const srCapacityChanged     = !!sys.srCapacity !== !!defSys.srCapacity;
+    // Batch 7 fields
+    const accidentalDischargeChanged = !!sys.accidentalDischarge !== !!defSys.accidentalDischarge;
 
     if (weaponChangesChanged || burstChanged || beginnerChanged || vitalsChanged ||
         trajectoryChanged || closeRangeChanged || steadyChanged || handlingComputerChanged ||
         calibrationChanged || recoilBonusChanged || recoilAFOnlyChanged ||
         barrierPenChanged || improvedRicochetChanged ||
-        improvedChargeChanged || srCapacityChanged) {
+        improvedChargeChanged || srCapacityChanged ||
+        accidentalDischargeChanged) {
       updates.push({
         _id: doc.id,
         'system.weaponChanges': defSys.weaponChanges ?? [],
@@ -1401,6 +1404,7 @@ async function _syncModEntries(catalogue) {
         'system.improvedRicochet': !!defSys.improvedRicochet,
         'system.improvedCharge': !!defSys.improvedCharge,
         'system.srCapacity': !!defSys.srCapacity,
+        'system.accidentalDischarge': !!defSys.accidentalDischarge,
       });
     }
   }
@@ -1475,8 +1479,19 @@ async function _syncWeaponEntries(catalogue) {
         !!cur.chargeKeepsRof !== !!cw.chargeKeepsRof
       );
     });
+    // Batch 7: new weapon behaviour flags
+    const batch7FieldsChanged = catalogueWeapons.some((cw, i) => {
+      const cur = currentWeapons[i] ?? {};
+      return (
+        !!cur.vicious !== !!cw.vicious ||
+        !!cur.heavyRecoil !== !!cw.heavyRecoil ||
+        !!cur.shockwave !== !!cw.shockwave ||
+        !!cur.burningEdge !== !!cw.burningEdge ||
+        (cur.chargedAttackBonus ?? 0) !== (cw.chargedAttackBonus ?? 0)
+      );
+    });
 
-    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged) {
+    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged) {
       updates.push({ _id: doc.id, 'system.weapons': catalogueWeapons });
     }
   }

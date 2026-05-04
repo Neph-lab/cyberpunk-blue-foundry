@@ -227,6 +227,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     trajectoryBonus ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-ruler-combined"></i> ${game.i18n.localize('CYBER_BLUE.Combat.TrajectoryCalculations')}</p>` : '',
     closeRangeBonusVal ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-crosshairs"></i> ${game.i18n.localize('CYBER_BLUE.Combat.CloseRangeBonus')}</p>` : '',
     calibrationBonus > 0 ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-bullseye"></i> ${game.i18n.format('CYBER_BLUE.Combat.CalibrationActive', { n: calibrationBonus })}</p>` : '',
+    (isCharged && (weapon.chargedAttackBonus ?? 0) > 0) ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-bolt"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChargedAttackBonus', { n: weapon.chargedAttackBonus })}</p>` : '',
   ].filter(Boolean).join('');
 
   const dialogContent = `
@@ -356,6 +357,8 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   attackModifier += steadyActive ? 1 : 0;
   attackModifier += handlingComputerActive ? 1 : 0;
   attackModifier += calibrationBonus;
+  // Charged Attack Bonus (Sanroo Hello Cutie+ Stabilizers: +2 while charged)
+  if (isCharged) attackModifier += (weapon.chargedAttackBonus ?? 0);
   // Ricochet penalty: -4 normally, -3 with Directed Recoil mod
   if (isRicochet) {
     const hasDirectedRecoil = installedMods.some((m) => m.directedRecoil);
@@ -381,6 +384,26 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
       return;
     }
     // POQ: fall through, the shot still lands
+  }
+
+  // ── Accidental Discharge (Rostovic RC-7 Strigoi mod) ─────────────────────
+  // On a single-shot attack (rateOfFire=1 or the weapon fired exactly 1 shot),
+  // if the raw d10 attack die result is odd: consume an extra round (if available)
+  // and flag for +1 damage per die later.
+  const hasAccidentalDischarge = installedMods.some((m) => m.accidentalDischarge);
+  const isSingleShot = (weapon.rateOfFire ?? 1) <= 1;
+  let accidentalDischargeBonusDice = 0;
+  if (hasAccidentalDischarge && isSingleShot && d10Result !== null && (d10Result % 2 !== 0)) {
+    const currentAmmoAD = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
+    if (currentAmmoAD >= 2) {
+      // Consume extra round now (normal shot consumed below)
+      await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: currentAmmoAD - 1 }));
+      accidentalDischargeBonusDice = 1;
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt"></i> ${game.i18n.format('CYBER_BLUE.Combat.AccidentalDischarge', { weapon: item.name, die: d10Result })}</p></div>`,
+      });
+    }
   }
 
   // Record this attack for RoF tracking
@@ -498,7 +521,10 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
 
   // Charged: effective SP is halved (ignore ½ SP).
   const rawSP = targetSP !== null ? targetSP : null;
-  const sp    = rawSP !== null ? (isCharged ? Math.floor(rawSP / 2) : rawSP) : null;
+  // Burning Edge (Mono-Three): blade ignores any target SP < 11 (treat as 0).
+  const hasBurningEdge = !!(weapon.burningEdge ?? false);
+  const spAfterBurningEdge = rawSP !== null && hasBurningEdge && rawSP < 11 ? 0 : rawSP;
+  const sp    = spAfterBurningEdge !== null ? (isCharged ? Math.floor(spAfterBurningEdge / 2) : spAfterBurningEdge) : null;
   const damageDiceCount = countDamageDice(damageRoll);
 
   // ── Ammo-based bonuses ─────────────────────────────────────────────────────
@@ -506,6 +532,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const ammoNameLower = loadedAmmoName.toLowerCase();
   const isIncendiaryAmmo = ammoNameLower.includes('incendiary');
   const isToxicAmmo = ammoNameLower.includes('toxic');
+  const isExplosiveAmmo = ammoNameLower.includes('explosive');
 
   // ── Highlighted Vitals: roll extra die before crit detection ──────────────
   const hasHighlightedVitals = installedMods.some((m) => m.highlightedVitals);
@@ -585,13 +612,17 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // Critical damage bonus:
   // • All weapons:    +5 on crit  (+10 when targeting vitals)
   // • Power Weapons: +10 on crit  (+20 when targeting vitals)
+  // • Vicious (Cut-O-Matic): +5 extra on top of the normal crit bonus
   const critBonusBase = isCritical ? ((weapon.isPowerWeapon ?? false) ? 10 : 5) : 0;
-  const critBonus = targetVitals ? critBonusBase * 2 : critBonusBase;
+  const viciousBonus = (isCritical && (weapon.vicious ?? false)) ? 5 : 0;
+  const critBonus = (targetVitals ? critBonusBase * 2 : critBonusBase) + viciousBonus;
   // Payload: weapon's built-in Toxic Payload (Yanari MP, Hercules 3AX) OR ammo name
   const weaponPayloadBonus = penetratesWithoutBonus ? (Number(weapon.payloadDmgBonus) || 0) : 0;
-  const ammoPayloadBonus = penetratesWithoutBonus
-    ? (isIncendiaryAmmo ? 2 : 0) + (!weapon.payloadDmgBonus && isToxicAmmo ? 2 : 0)
-    : 0;
+  // Incendiary ammo: +2 on penetration. Explosive (Concussive MA70): +2 regardless.
+  // Toxic ammo: +2 on penetration (only when weapon has no built-in payload bonus).
+  const ammoPayloadBonus = (isIncendiaryAmmo && penetratesWithoutBonus ? 2 : 0)
+    + (isExplosiveAmmo ? 2 : 0)
+    + (!weapon.payloadDmgBonus && isToxicAmmo && penetratesWithoutBonus ? 2 : 0);
   const payloadBonus = weaponPayloadBonus + ammoPayloadBonus;
   // Synergy brand: +1 (and +1 more if dice ≥ threshold) per matching mod
   const weaponManufacturer = item.system?.manufacturer ?? '';
@@ -604,6 +635,12 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
       }
     }
   }
+  // Accidental Discharge (Strigoi): +1 bonus per damage die on odd SS attack die
+  const accidentalDischargeDmgBonus = accidentalDischargeBonusDice * damageDiceCount;
+  // SR Capacity (Militech SR Capacity mod): +2 electrical damage on charged TW
+  // hit that bypasses SP. Applies even if penetration was only due to charge ½ SP.
+  const hasSRCapacityMod = isCharged && installedMods.some((m) => m.srCapacity);
+  const srCapacityBonus = (hasSRCapacityMod && penetratesWithoutBonus) ? 2 : 0;
   // Silencer: -1 per damage die (applied last, after other bonuses)
   const silencerDmgReduction = installedMods.some((m) => m.reduceDmgPerDie) ? damageDiceCount : 0;
 
@@ -616,7 +653,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // Base final damage (goes through SP as normal)
   const finalDamage = Math.max(
     0,
-    damageRoll.total + critBonus + vitalsBonus + targetedShotBonus + payloadBonus + synergyBonus + improvedRicochetBonus - silencerDmgReduction - chargeWallReduction,
+    damageRoll.total + critBonus + vitalsBonus + targetedShotBonus + payloadBonus + synergyBonus + improvedRicochetBonus + accidentalDischargeDmgBonus + srCapacityBonus - silencerDmgReduction - chargeWallReduction,
   );
 
   // Critical table: head when targeting vitals, body otherwise
@@ -645,10 +682,14 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   if (synergyBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.SynergyBonus', { n: synergyBonus }));
   if (improvedRicochetBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.ImprovedRicochet', { n: improvedRicochetBonus }));
   if (barrierPenBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.BarrierPenetration', { n: barrierPenBonus }));
+  if (viciousBonus) bonusNotes.push(game.i18n.localize('CYBER_BLUE.Combat.ViciousBonus'));
+  if (accidentalDischargeDmgBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.AccidentalDischargeDmg', { n: accidentalDischargeDmgBonus }));
+  if (srCapacityBonus) bonusNotes.push(game.i18n.localize('CYBER_BLUE.Combat.SRCapacityBonus'));
+  if (hasBurningEdge && rawSP !== null && rawSP < 11) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.BurningEdge', { sp: rawSP }));
   if (silencerDmgReduction) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.SilencerReduction', { n: silencerDmgReduction }));
   if (chargeWallReduction) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.ChargeWallReduction', { walls: chargeWallCount, dmg: chargeWallReduction }));
   if (vitalsExtraRoll) bonusNotes.push(`${game.i18n.localize('CYBER_BLUE.Combat.HighlightedVitalsRoll')}: [${vitalsExtraRoll.total}]${highlightedVitalsAutoCrit ? ' ★' : ''}`);
-  const totalBonus = critBonus + vitalsBonus + targetedShotBonus + payloadBonus + synergyBonus + improvedRicochetBonus - silencerDmgReduction - chargeWallReduction;
+  const totalBonus = critBonus + vitalsBonus + targetedShotBonus + payloadBonus + synergyBonus + improvedRicochetBonus + accidentalDischargeDmgBonus + srCapacityBonus - silencerDmgReduction - chargeWallReduction;
   const bonusDisplay = totalBonus > 0 ? ` (+${totalBonus})` : totalBonus < 0 ? ` (${totalBonus})` : '';
   const spLineAblate = ablatesArmor ? ` (SP ${(weapon.armorPiercing ?? false) ? '-2' : '-1'})` : '';
   const critLine = bonusNotes.length
@@ -740,6 +781,28 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // ── Scatter (Brunswick AR-9 single-shot) ─────────────────────────────────
   if ((weapon.scatter ?? false) && attackerToken && targetToken) {
     await resolveScatterEffect(attacker, attackerToken, targetToken, finalDamage, damageRoll, weaponLabel);
+  }
+
+  // ── Shockwave (Kang Tao Mámù): BODY < 8 target pushed 2m ────────────────
+  if (hit && (weapon.shockwave ?? false) && targetActor) {
+    const targetBody = targetActor.system?.stats?.body?.value ?? 0;
+    if (targetBody < 8) {
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-wind"></i> <strong>${game.i18n.localize('CYBER_BLUE.Combat.Shockwave')}</strong> — ${game.i18n.format('CYBER_BLUE.Combat.ShockwavePush', { target: targetActor.name, dist: 2 })}</p></div>`,
+      });
+    }
+  }
+
+  // ── Heavy Recoil (Rostovic Kolac): attacker BODY < 8 takes 1d6 to HP ────
+  if ((weapon.heavyRecoil ?? false) && attackerBody < 8) {
+    const recoilRoll = await new Roll('1d6').evaluate();
+    await recoilRoll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.HeavyRecoil')}</h3><p>${game.i18n.format('CYBER_BLUE.Combat.HeavyRecoilDamage', { name: attacker.name, dmg: recoilRoll.total })}</p></div>`,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
+    await applyDamageWithPermission(attacker, recoilRoll.total);
   }
 }
 

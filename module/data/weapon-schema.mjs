@@ -115,6 +115,28 @@ export function buildWeaponField() {
     critCrushing: new fields.BooleanField({ initial: false }),
     critStun: new fields.BooleanField({ initial: false }),
 
+    // ── Vicious (Budget Arms Cut-O-Matic) ────────────────────────────────────
+    // While powered on, critical hits deal +5 extra damage on top of the
+    // standard critical bonus (i.e. +10 on a normal crit, +20 on vitals crit).
+    vicious: new fields.BooleanField({ initial: false }),
+
+    // ── Heavy Recoil (Rostovic Kolac PR) ─────────────────────────────────────
+    // Attacker with BODY < 8 takes 1d6 directly to HP after firing.
+    heavyRecoil: new fields.BooleanField({ initial: false }),
+
+    // ── Shockwave (Kang Tao Mámù stun gun) ───────────────────────────────────
+    // A standing target with BODY < 8 is pushed 2m away on a successful hit.
+    shockwave: new fields.BooleanField({ initial: false }),
+
+    // ── Burning Edge (Kendachi Mono-Three) ────────────────────────────────────
+    // Assume always active. When true, the weapon ignores any target SP < 11
+    // (effectiveSP = SP ≥ 11 ? SP : 0).
+    burningEdge: new fields.BooleanField({ initial: false }),
+
+    // ── Charged Attack Bonus (Sanroo Hello Cutie+) ───────────────────────────
+    // Extra attack-roll modifier applied when the weapon is in a charged state.
+    chargedAttackBonus: new fields.NumberField({ required: true, nullable: false, integer: true, initial: 0 }),
+
     // ── Affliction ─────────────────────────────────────────────────────────
     // Used when damageType is 'affliction', 'affliction-cone', or
     // 'affliction-explosion'.  Damage is only rolled to check SP penetration;

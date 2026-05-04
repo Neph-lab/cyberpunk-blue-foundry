@@ -522,7 +522,17 @@
       "ChooseComputerHint": "Select which computer to install this executable on:",
       "NoEligibleComputers": "No computers with available slots in inventory.",
       "ExecutableInstalled": "Installed \"{name}\" on {computer}.",
-      "ExecutableUninstalled": "Moved \"{name}\" to shards."
+      "ExecutableUninstalled": "Moved \"{name}\" to shards.",
+      "AccidentalDischarge": "Accidental Discharge! ({weapon}, die={die}) — extra round consumed, +1 dmg/die.",
+      "AccidentalDischargeDmg": "+{n} (Accidental Discharge)",
+      "ViciousBonus": "+5 (Vicious)",
+      "SRCapacityBonus": "+2 electrical (SR Capacity)",
+      "BurningEdge": "Burning Edge — SP {sp} ignored (< 11)",
+      "Shockwave": "Shockwave",
+      "ShockwavePush": "{target} (BODY < 8) is pushed {dist}m back.",
+      "HeavyRecoil": "Heavy Recoil",
+      "HeavyRecoilDamage": "{name} (BODY < 8) takes {dmg} recoil damage.",
+      "ChargedAttackBonus": "+{n} (Stabilizers, charged)"
     },
     "CriticalInjury": {
       "Title": "Critical Injuries",

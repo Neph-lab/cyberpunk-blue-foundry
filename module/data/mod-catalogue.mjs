@@ -197,7 +197,7 @@ const rifleMuzzleBreaks = [
     system: { blockedOnTech: true, lostForce: true, recoilBonus: 1, synergyBrand: 'Arasaka', synergyDiceThreshold: 4 },
     description: desc('AR/SMG muzzle break (not Tech). Lost Force. +1 attacks. Synergy: +1 dmg from Arasaka weapon; +1 more if ≥4 damage dice.') }),
   modItem({ name: 'Rostovic RC-7 Strigoi', manufacturer: 'Rostovic', cost: 'CO', imgPath: img(M_MUZZLE, 'Rostovic RC-7 Strigoi.png'),
-    system: { blockedOnTech: true, lostForce: true, recoilBonus: 1, recoilAFOnly: true },
+    system: { blockedOnTech: true, lostForce: true, recoilBonus: 1, recoilAFOnly: true, accidentalDischarge: true },
     description: desc('AR/SMG muzzle break (not Tech). Lost Force. +1 on autofire attacks only. Accidental Discharge: on a single shot with an odd attack die, the weapon uses 2× ammo (if available) and deals +1 damage per die.') }),
   modItem({ name: 'Nokota RC-7 Zaar', manufacturer: 'Nokota', cost: 'CO', imgPath: img(M_MUZZLE, 'Nokota RC-7 Zaar.png'),
     system: { blockedOnTech: true, lostForce: true, recoilBonus: 1, recoilAFOnly: true },

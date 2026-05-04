@@ -113,6 +113,15 @@ export default class CyberBlueMod extends CyberBlueItemBase {
     // Can still move at half-MOVE while charging (instead of MOVE 0 on turn 1).
     schema.srCapacity = new fields.BooleanField({ initial: false });
 
+    // ── SR Capacity damage bonus ──────────────────────────────────────────────
+    // srCapacity also grants +2 electrical damage on a charged TW hit that
+    // bypasses SP. Tracked via the same srCapacity boolean.
+
+    // ── Accidental Discharge (Rostovic RC-7 Strigoi) ─────────────────────────
+    // On a single-shot (SS) attack, if the raw d10 attack die result is odd,
+    // the weapon consumes 2× ammo (if available) and deals +1 damage per die.
+    schema.accidentalDischarge = new fields.BooleanField({ initial: false });
+
     return schema;
   }
 }
