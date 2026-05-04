@@ -5,6 +5,7 @@ import { recordCombatAttack } from './combat-tracker.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
 import { resolveAfflictionAttack } from './affliction-attack.mjs';
 import { applyDamageWithPermission, rollCriticalInjuryWithPermission, deleteActorItemWithPermission, ablateArmorExtraWithPermission, applyForcedCriticalInjuryWithPermission } from './socket.mjs';
+import { clearWeaponCharge, countWallsBetweenTokens } from './tech-charge.mjs';
 
 /** Count the number of d6s in a damage roll (using their face count, not total). */
 function countDamageDice(roll) {
@@ -113,7 +114,11 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill
     : (item.system.weapons?.[weaponIndex]?.skill ?? weapon.skill);
 
-  // Block attack if the magazine is empty
+  // ── Tech Weapon charge state ──────────────────────────────────────────────
+  const isCharged = !!(item.getFlag?.('cyberpunk-blue', `charged-${weaponIndex}`) ?? false);
+  const isCs3     = isCharged && (weapon.cs3 ?? false);
+
+  // Block attack if the magazine is empty (or not enough ammo for CS3)
   if (definition.usesMagazine) {
     const ammoCurrent = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
     if (ammoCurrent <= 0) {
@@ -384,14 +389,37 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     recordCombatAttack(attackerToken.document.id, item.id, weaponIndex);
   }
 
+  // ── CS3 (Charged Shot 3) ammo handling ────────────────────────────────────
+  // When charged and cs3, the weapon requires 3 shots per attack.
+  // If only 1–2 remain, fire all with the cs3FallbackDamage formula.
+  let cs3ShotsRequired = 0;
+  let useFallbackAmmoWasCs3 = false;
+  if (isCs3) {
+    cs3ShotsRequired = 3;
+    const cs3AmmoCurrent = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
+    if (cs3AmmoCurrent >= cs3ShotsRequired) {
+      // Normal CS3: consume 3 rounds
+    } else if (cs3AmmoCurrent > 0) {
+      // Short CS3: fire remaining rounds with fallback formula
+      cs3ShotsRequired = cs3AmmoCurrent;
+      useFallbackAmmoWasCs3 = true;
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-triangle-exclamation"></i> ${game.i18n.format('CYBER_BLUE.Combat.Cs3ShortAmmo', { weapon: item.name, formula: weapon.cs3FallbackDamage || weapon.damage })}</p></div>`,
+      });
+    }
+    // cs3ShotsRequired now holds how many rounds to consume
+  }
+
   // ── Short-ammo fallback (Brunswick 4d6/5rnd, Osprey burst 6d6/3rnd) ──────
   // When fewer rounds remain than the weapon needs but more than zero:
   // fire all remaining using the fallback formula.
   const shotsRequired = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
   const ammoCurrent = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
-  let actualShots = shotsRequired;
+  let actualShots = isCs3 ? cs3ShotsRequired : shotsRequired;
   let useFallbackDamage = false;
   if (
+    !isCs3 &&
     shotsRequired > 1 &&
     ammoCurrent > 0 &&
     ammoCurrent < shotsRequired &&
@@ -459,12 +487,18 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
 
   if (!hit) return;
 
-  const baseDamageFormula = useFallbackDamage
-    ? (weapon.shortAmmoFallbackDamage ?? weapon.damage ?? definition.damage ?? '1d6')
-    : (weapon.damage ?? definition.damage ?? '1d6');
+  // CS3 damage formula selection: use cs3FallbackDamage when ammo was short.
+  const cs3WasShortAmmo = isCs3 && useFallbackAmmoWasCs3;
+  const baseDamageFormula = cs3WasShortAmmo
+    ? (weapon.cs3FallbackDamage || weapon.damage || definition.damage || '1d6')
+    : useFallbackDamage
+      ? (weapon.shortAmmoFallbackDamage ?? weapon.damage ?? definition.damage ?? '1d6')
+      : (weapon.damage ?? definition.damage ?? '1d6');
   const damageRoll = await new Roll(baseDamageFormula).evaluate();
 
-  const sp = targetSP !== null ? targetSP : null;
+  // Charged: effective SP is halved (ignore ½ SP).
+  const rawSP = targetSP !== null ? targetSP : null;
+  const sp    = rawSP !== null ? (isCharged ? Math.floor(rawSP / 2) : rawSP) : null;
   const damageDiceCount = countDamageDice(damageRoll);
 
   // ── Ammo-based bonuses ─────────────────────────────────────────────────────
@@ -573,10 +607,16 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // Silencer: -1 per damage die (applied last, after other bonuses)
   const silencerDmgReduction = installedMods.some((m) => m.reduceDmgPerDie) ? damageDiceCount : 0;
 
+  // Charged TW: count wall intersections; each reduces damage by 10.
+  const chargeWallCount = isCharged
+    ? countWallsBetweenTokens(attackerToken, targetToken)
+    : 0;
+  const chargeWallReduction = chargeWallCount * 10;
+
   // Base final damage (goes through SP as normal)
   const finalDamage = Math.max(
     0,
-    damageRoll.total + critBonus + vitalsBonus + targetedShotBonus + payloadBonus + synergyBonus + improvedRicochetBonus - silencerDmgReduction,
+    damageRoll.total + critBonus + vitalsBonus + targetedShotBonus + payloadBonus + synergyBonus + improvedRicochetBonus - silencerDmgReduction - chargeWallReduction,
   );
 
   // Critical table: head when targeting vitals, body otherwise
@@ -594,6 +634,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     : finalDamage;
 
   const bonusNotes = [];
+  if (isCharged) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.ChargedShot', { sp: rawSP ?? 0, halfSp: sp ?? 0 }));
   if (isCritical) {
     if (highlightedVitalsAutoCrit) bonusNotes.push(game.i18n.localize('CYBER_BLUE.Combat.HighlightedVitalsCrit'));
     else bonusNotes.push(game.i18n.localize('CYBER_BLUE.CriticalInjury.CritBonus'));
@@ -605,8 +646,9 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   if (improvedRicochetBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.ImprovedRicochet', { n: improvedRicochetBonus }));
   if (barrierPenBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.BarrierPenetration', { n: barrierPenBonus }));
   if (silencerDmgReduction) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.SilencerReduction', { n: silencerDmgReduction }));
+  if (chargeWallReduction) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.ChargeWallReduction', { walls: chargeWallCount, dmg: chargeWallReduction }));
   if (vitalsExtraRoll) bonusNotes.push(`${game.i18n.localize('CYBER_BLUE.Combat.HighlightedVitalsRoll')}: [${vitalsExtraRoll.total}]${highlightedVitalsAutoCrit ? ' ★' : ''}`);
-  const totalBonus = critBonus + vitalsBonus + targetedShotBonus + payloadBonus + synergyBonus + improvedRicochetBonus - silencerDmgReduction;
+  const totalBonus = critBonus + vitalsBonus + targetedShotBonus + payloadBonus + synergyBonus + improvedRicochetBonus - silencerDmgReduction - chargeWallReduction;
   const bonusDisplay = totalBonus > 0 ? ` (+${totalBonus})` : totalBonus < 0 ? ` (${totalBonus})` : '';
   const spLineAblate = ablatesArmor ? ` (SP ${(weapon.armorPiercing ?? false) ? '-2' : '-1'})` : '';
   const critLine = bonusNotes.length
@@ -674,6 +716,15 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
       speaker: ChatMessage.getSpeaker({ actor: attacker }),
       flavor: damageFlavorHtml,
       rollMode: game.settings.get('core', 'rollMode'),
+    });
+  }
+
+  // ── Tech Weapon charge: clear charge on attack ───────────────────────────
+  if (isCharged) {
+    await clearWeaponCharge(attacker, item, weaponIndex, false);
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt-lightning"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChargeExpendedOnAttack', { weapon: item.name })}</p></div>`,
     });
   }
 

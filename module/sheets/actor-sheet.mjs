@@ -5,11 +5,12 @@ import { getBrandLogoPath } from '../helpers/branding.mjs';
 import { getEligiblePlatforms, getPlatformUsage, promptForCyberwarePlatform } from '../helpers/cyberware.mjs';
 import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs';
 import { normalizeGearState, getGearStateUpdateData } from '../helpers/gear.mjs';
-import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
+import { getEffectiveItemWeapons, getInstalledWeaponMods } from '../helpers/mods.mjs';
 import { buildWeaponUpdate, getWeaponTypeDefinition, getWeaponAmmoTypes } from '../helpers/combat.mjs';
-import { getCombatAttackState } from '../helpers/combat-tracker.mjs';
+import { getCombatAttackState, getMovementUsed } from '../helpers/combat-tracker.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack } from '../helpers/combat-resolution.mjs';
 import { startRicochetPlacement, clearRicochetPoint, refreshAllRicochetLines } from '../helpers/ricochet-canvas.mjs';
+import { clearWeaponCharge } from '../helpers/tech-charge.mjs';
 import { CRITICAL_INJURY_FLAG } from '../helpers/critical-injury.mjs';
 import { AFFLICTION_EFFECT_FLAG } from '../helpers/affliction-attack.mjs';
 import { startInstructions, advanceInstructions, getInstructionContext } from '../helpers/instructions.mjs';
@@ -436,6 +437,22 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         isPowerWeapon: weapon.isPowerWeapon ?? false,
         ricochetActive: !!(this.document.getFlag?.('cyberpunk-blue', 'ricochetPoint')),
         bodyBlocked,
+        // Tech Weapon charge state
+        isTechWeapon: weapon.isTechWeapon ?? false,
+        chargeType: weapon.chargeType ?? '',
+        isCharged: !!(itemDoc.getFlag('cyberpunk-blue', `charged-${weaponIndex}`)),
+        isChargeCooldown: !!(itemDoc.getFlag('cyberpunk-blue', `chargeCooldown-${weaponIndex}`)),
+        chargeDisabled: (() => {
+          if (!(weapon.isTechWeapon)) return false;
+          const isCharged    = !!(itemDoc.getFlag('cyberpunk-blue', `charged-${weaponIndex}`));
+          const isCooldown   = !!(itemDoc.getFlag('cyberpunk-blue', `chargeCooldown-${weaponIndex}`));
+          if (isCharged) return false; // charged → button cancels (always clickable)
+          if (isCooldown) return true; // cooldown → can't re-charge
+          // Block if the actor's token has already moved this turn.
+          const actorToken = this.document.getActiveTokens()[0];
+          const moved = actorToken ? getMovementUsed(actorToken.document?.id ?? '') > 0 : false;
+          return moved;
+        })(),
         autofireLabel: `${autofireTotal >= 0 ? '+' : ''}${autofireTotal}`,
         autofireTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + min(${rollContext.skillLabel} ${rollContext.usedRank}, Autofire ${autofireRank})`,
         skillSlug,
@@ -881,6 +898,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     this.element.querySelectorAll('[data-action="weapon-ricochet"]').forEach((button) => {
       button.addEventListener('click', this._onWeaponRicochet.bind(this));
     });
+    this.element.querySelectorAll('[data-action="weapon-charge"]').forEach((button) => {
+      button.addEventListener('click', this._onWeaponCharge.bind(this));
+    });
 
     // Martial Arts
     this.element.querySelectorAll('[data-action="ma-attack"]').forEach((button) => {
@@ -1048,6 +1068,84 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     } else {
       await startRicochetPlacement(actor);
     }
+  }
+
+  /**
+   * Tech Weapon charge button.
+   * If currently charged: manually cancel (set cooldown, remove MOVE AE).
+   * Otherwise: charge the weapon (apply MOVE AE, set flags).
+   */
+  async _onWeaponCharge(event) {
+    event.preventDefault();
+    const actor       = this.document;
+    const item        = this._getItemFromEvent(event);
+    if (!item) return;
+    const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
+    if (Number.isNaN(weaponIndex) || weaponIndex < 0) return;
+
+    const isCharged  = !!(item.getFlag('cyberpunk-blue', `charged-${weaponIndex}`));
+    const isCooldown = !!(item.getFlag('cyberpunk-blue', `chargeCooldown-${weaponIndex}`));
+
+    if (isCharged) {
+      // ── Manual cancel: end charge, set cooldown ──────────────────────────
+      await clearWeaponCharge(actor, item, weaponIndex, true /* setCooldown */);
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor }),
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt-lightning"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChargeCancelled', { weapon: item.name })}</p></div>`,
+      });
+      return;
+    }
+
+    if (isCooldown) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.ChargeOnCooldown'));
+      return;
+    }
+
+    // ── Check if actor has moved this turn ──────────────────────────────────
+    const actorToken = actor.getActiveTokens()[0];
+    const moved = actorToken ? getMovementUsed(actorToken.document?.id ?? '') > 0 : false;
+    if (moved) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.ChargeBlockedByMovement'));
+      return;
+    }
+
+    // ── Determine MOVE override value ────────────────────────────────────────
+    const installedMods    = getInstalledWeaponMods(item, weaponIndex, actor);
+    const hasImprovedCharge = installedMods.some((m) => m.improvedCharge);
+    const hasSRCapacity    = installedMods.some((m) => m.srCapacity);
+    const origMove         = Number(actor.system?.stats?.move?.value) || 0;
+    let aeValue;
+    if (hasImprovedCharge) {
+      aeValue = '1'; // may move 2 m (1 Move unit @ 2 m/unit)
+    } else if (hasSRCapacity) {
+      aeValue = String(Math.max(1, Math.ceil(origMove / 2)));
+    } else {
+      aeValue = '0'; // MOVE = 0 this turn
+    }
+
+    // ── Create Active Effect on actor ────────────────────────────────────────
+    const aeData = {
+      label: game.i18n.format('CYBER_BLUE.Combat.ChargeAELabel', { weapon: item.name }),
+      icon: 'icons/svg/lightning.svg',
+      changes: [{ key: 'system.stats.move.value', mode: 5, value: aeValue }],
+      flags: { 'cyberpunk-blue': { twCharge: true, weaponItemId: item.id, weaponIndex } },
+    };
+    const [ae] = await actor.createEmbeddedDocuments('ActiveEffect', [aeData]);
+
+    // ── Set item charge flags ────────────────────────────────────────────────
+    const currentRound = game.combat?.round ?? 0;
+    await item.setFlag('cyberpunk-blue', `charged-${weaponIndex}`,        true);
+    await item.setFlag('cyberpunk-blue', `chargeStartRound-${weaponIndex}`, currentRound);
+    await item.setFlag('cyberpunk-blue', `chargeOrigMove-${weaponIndex}`, origMove);
+    await item.setFlag('cyberpunk-blue', `chargeAeId-${weaponIndex}`,     ae.id);
+
+    const moveNote = aeValue === '0'
+      ? game.i18n.localize('CYBER_BLUE.Combat.ChargeMoveZero')
+      : game.i18n.format('CYBER_BLUE.Combat.ChargeMoveReduced', { move: aeValue });
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt-lightning"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChargeBegun', { weapon: item.name })} ${moveNote}</p></div>`,
+    });
   }
 
   async _onMartialArtsAttack(event) {

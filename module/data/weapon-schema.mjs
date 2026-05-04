@@ -47,6 +47,12 @@ export function buildWeaponField() {
     // 'keep' (most TW): charges without consuming Move; holds 60s/20rnd
     // 'hold' (Omaha-variant): requires sacrificing Move; lasts only that turn
     chargeType: new fields.StringField({ required: true, blank: true, initial: '' }),
+    // cs3: Charged Shot 3 — when charged, consumes 3 shots per attack.
+    // If 1–2 shots remain, fires all using cs3FallbackDamage (1 die fewer) instead.
+    cs3: new fields.BooleanField({ initial: false }),
+    cs3FallbackDamage: new fields.StringField({ required: true, blank: true, initial: '' }),
+    // chargeKeepsRof: don't force ROF1 while charged (Omaha HP: stays RoF2).
+    chargeKeepsRof: new fields.BooleanField({ initial: false }),
 
     // ── Built-in silencer (Tenebra, Yanari) ────────────────────────────────
     silenceBuiltIn: new fields.BooleanField({ initial: false }),

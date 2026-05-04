@@ -44,6 +44,8 @@ import { PROGRAM_CATALOGUE } from './data/program-catalogue.mjs';
 import { AMMO_CATALOGUE } from './data/ammo-catalogue.mjs';
 import { registerSocketHandlers } from './helpers/socket.mjs';
 import { refreshAllRicochetLines, clearRicochetLine } from './helpers/ricochet-canvas.mjs';
+import { refreshTechChargeHighlights, clearTechChargeHighlights } from './helpers/tech-charge-canvas.mjs';
+import { clearWeaponCharge } from './helpers/tech-charge.mjs';
 
 Hooks.once('init', function () {
   game.cyberpunkblue = {
@@ -706,6 +708,74 @@ Hooks.on('updateActor', (actor, change) => {
 });
 Hooks.on('updateToken', () => { try { refreshAllRicochetLines(); } catch { /* canvas not ready */ } });
 
+// ─── Tech Weapon charge canvas hooks ─────────────────────────────────────────
+// Highlight tokens within 15 m (thin-cover vision) while any TW is charged.
+Hooks.on('canvasReady', () => { try { refreshTechChargeHighlights(); } catch { } });
+Hooks.on('updateToken', () => { try { refreshTechChargeHighlights(); } catch { } });
+Hooks.on('updateItem', (item, change) => {
+  const flags = change?.flags?.['cyberpunk-blue'] ?? {};
+  const keys  = Object.keys(flags);
+  if (keys.some((k) => k.startsWith('charged-') || k.startsWith('-=charged'))) {
+    try { refreshTechChargeHighlights(); } catch { }
+  }
+});
+Hooks.on('deleteCombat', () => { try { clearTechChargeHighlights(); } catch { } });
+
+// ─── Tech Weapon charge: turn-start housekeeping (GM only) ───────────────────
+// Clears cooldown flags and transitions MOVE AE from 0→half on second+ turns.
+Hooks.on('combatTurn', async (combat, updateData) => {
+  if (!game.user.isGM) return;
+
+  const newTurnIdx  = updateData.turn  ?? 0;
+  const roundNumber = updateData.round ?? combat.round ?? 1;
+  const combatant   = combat.combatants.contents[newTurnIdx];
+  const actor       = combatant?.actor;
+  if (!actor) return;
+
+  for (const item of actor.items) {
+    const weapons = item.system?.weapons;
+    if (!weapons?.length) continue;
+
+    for (let wi = 0; wi < weapons.length; wi++) {
+      // Always clear charge cooldown at start of turn.
+      if (item.getFlag('cyberpunk-blue', `chargeCooldown-${wi}`)) {
+        await item.unsetFlag('cyberpunk-blue', `chargeCooldown-${wi}`);
+      }
+
+      if (!item.getFlag('cyberpunk-blue', `charged-${wi}`)) continue;
+
+      const startRound   = item.getFlag('cyberpunk-blue', `chargeStartRound-${wi}`) ?? roundNumber;
+      const roundsElapsed = roundNumber - startRound;
+
+      // Expire charge after 20 rounds.
+      if (roundsElapsed >= 20) {
+        await clearWeaponCharge(actor, item, wi, false);
+        ChatMessage.create({
+          speaker: ChatMessage.getSpeaker({ actor }),
+          content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt-lightning"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChargeExpired', { weapon: item.name })}</p></div>`,
+        });
+        continue;
+      }
+
+      // After first round: update AE for regular TW (0 → half MOVE).
+      // ImprovedCharge and SR Capacity already start at their ongoing value.
+      if (roundsElapsed >= 1) {
+        const aeId = item.getFlag('cyberpunk-blue', `chargeAeId-${wi}`);
+        const ae   = aeId ? actor.effects?.get(aeId) : null;
+        if (ae && ae.changes[0]?.value === '0') {
+          const origMove = item.getFlag('cyberpunk-blue', `chargeOrigMove-${wi}`) ?? 0;
+          const halfMove = String(Math.max(1, Math.ceil(origMove / 2)));
+          await ae.update({ changes: [{ key: 'system.stats.move.value', mode: 5, value: halfMove }] });
+          ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({ actor }),
+            content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt-lightning"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChargeMoveRestored', { weapon: item.name, move: halfMove })}</p></div>`,
+          });
+        }
+      }
+    }
+  }
+});
+
 Hooks.once('ready', async () => {
   // Register socket handlers for all users (handler itself checks isGM where needed)
   registerSocketHandlers();
@@ -1305,11 +1375,15 @@ async function _syncModEntries(catalogue) {
     // Batch 5 fields
     const barrierPenChanged = !!sys.barrierPenetration !== !!defSys.barrierPenetration;
     const improvedRicochetChanged = !!sys.improvedRicochet !== !!defSys.improvedRicochet;
+    // Batch 6 fields
+    const improvedChargeChanged = !!sys.improvedCharge !== !!defSys.improvedCharge;
+    const srCapacityChanged     = !!sys.srCapacity !== !!defSys.srCapacity;
 
     if (weaponChangesChanged || burstChanged || beginnerChanged || vitalsChanged ||
         trajectoryChanged || closeRangeChanged || steadyChanged || handlingComputerChanged ||
         calibrationChanged || recoilBonusChanged || recoilAFOnlyChanged ||
-        barrierPenChanged || improvedRicochetChanged) {
+        barrierPenChanged || improvedRicochetChanged ||
+        improvedChargeChanged || srCapacityChanged) {
       updates.push({
         _id: doc.id,
         'system.weaponChanges': defSys.weaponChanges ?? [],
@@ -1325,6 +1399,8 @@ async function _syncModEntries(catalogue) {
         'system.recoilAFOnly': !!defSys.recoilAFOnly,
         'system.barrierPenetration': !!defSys.barrierPenetration,
         'system.improvedRicochet': !!defSys.improvedRicochet,
+        'system.improvedCharge': !!defSys.improvedCharge,
+        'system.srCapacity': !!defSys.srCapacity,
       });
     }
   }
@@ -1390,8 +1466,17 @@ async function _syncWeaponEntries(catalogue) {
         (cur.targetVitalsPenalty ?? 8) !== (cw.targetVitalsPenalty ?? 8)
       );
     });
+    // Batch 6: TW charge mechanic fields
+    const twChargeFieldsChanged = catalogueWeapons.some((cw, i) => {
+      const cur = currentWeapons[i] ?? {};
+      return (
+        !!cur.cs3 !== !!cw.cs3 ||
+        (cur.cs3FallbackDamage ?? '') !== (cw.cs3FallbackDamage ?? '') ||
+        !!cur.chargeKeepsRof !== !!cw.chargeKeepsRof
+      );
+    });
 
-    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged) {
+    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged) {
       updates.push({ _id: doc.id, 'system.weapons': catalogueWeapons });
     }
   }

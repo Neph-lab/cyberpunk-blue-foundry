@@ -284,6 +284,11 @@
                         <i class="fas fa-circle-dot"></i>
                       </button>
                     {{/if}}
+                    {{#if weapon.isTechWeapon}}
+                      <button type="button" class="weapon-charge-btn{{#if weapon.isCharged}} charge-active{{/if}}{{#if weapon.isChargeCooldown}} charge-cooldown{{/if}}" data-action="weapon-charge" data-weapon-index="{{weapon.weaponIndex}}" {{#if weapon.chargeDisabled}}disabled{{/if}} title="{{localize 'CYBER_BLUE.Combat.ChargeHint'}}">
+                        <i class="fas fa-bolt-lightning"></i>
+                      </button>
+                    {{/if}}
                   </td>
                 </tr>
               {{/each}}

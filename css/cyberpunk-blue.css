@@ -2525,6 +2525,43 @@ button, .cyberpunk-blue .button, a.button {
   font-weight: bold;
 }
 
+/* ─── Tech Weapon Charge button ─────────────────────────────────────────────── */
+
+.cyberpunk-blue .weapon-charge-btn {
+  background: transparent;
+  border: 1px solid #00d4ff;
+  color: #00d4ff;
+  border-radius: 3px;
+  padding: 1px 4px;
+  cursor: pointer;
+  font-size: var(--font-size-11);
+  margin-left: 2px;
+}
+
+.cyberpunk-blue .weapon-charge-btn:hover {
+  background: #00d4ff;
+  color: #000;
+}
+
+.cyberpunk-blue .weapon-charge-btn.charge-active {
+  background: #00d4ff;
+  color: #000;
+  font-weight: bold;
+  box-shadow: 0 0 6px #00d4ff;
+}
+
+.cyberpunk-blue .weapon-charge-btn.charge-cooldown {
+  border-color: #ff9900;
+  color: #ff9900;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.cyberpunk-blue .weapon-charge-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* ─── Martial Arts ──────────────────────────────────────────────────────────── */
 
 .cyberpunk-blue .martial-arts-panel .section-header {

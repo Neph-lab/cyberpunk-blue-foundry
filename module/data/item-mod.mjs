@@ -105,6 +105,14 @@ export default class CyberBlueMod extends CyberBlueItemBase {
     // A successful ricochet hit deals +1 damage per die of base weapon damage.
     schema.improvedRicochet = new fields.BooleanField({ initial: false });
 
+    // ── Tech Weapon charge movement mods ─────────────────────────────────────
+    // improvedCharge (Tsunami Gaki, Nokota E305 Prospecta): TW sniper scopes.
+    // While charging or maintaining charge, MOVE becomes 1 (2m) instead of 0.
+    schema.improvedCharge = new fields.BooleanField({ initial: false });
+    // srCapacity (Militech SR Capacity): TW-only mod for SG/AR/PR/SR.
+    // Can still move at half-MOVE while charging (instead of MOVE 0 on turn 1).
+    schema.srCapacity = new fields.BooleanField({ initial: false });
+
     return schema;
   }
 }

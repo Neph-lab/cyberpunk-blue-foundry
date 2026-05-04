@@ -138,7 +138,7 @@ const longScopes = [
 
 const sniperScopes = [
   modItem({ name: 'Tsunami Gaki', manufacturer: 'Tsunami Arms', cost: 'EX', imgPath: img(M_SCOPES, 'Tsunami Gaki.png'),
-    system: { scopeType: 'sniper', requiresTechWeapon: true, rangeImprovementMeters: 20, rangeImprovementBidirectional: true },
+    system: { scopeType: 'sniper', requiresTechWeapon: true, improvedCharge: true, rangeImprovementMeters: 20, rangeImprovementBidirectional: true },
     description: desc('TW sniper rifle only. Improved Charge: while charging or maintaining charge, user may move up to 2m or MOVE (whichever is lower) as a Move action. Range Improvement: up to 20m closer or farther.') }),
   modItem({ name: 'Militech HPO Kanone Max Mk.77', manufacturer: 'Militech', cost: 'CO', imgPath: img(M_SCOPES, 'Militech HPO Kanone MAX Mk77.png'),
     system: { scopeType: 'sniper', blockedOnSmart: true, blockedOnTech: true, rangeImprovementMeters: 10, rangeImprovementBidirectional: true },
@@ -147,7 +147,7 @@ const sniperScopes = [
     system: { scopeType: 'sniper', blockedOnSmart: true, blockedOnTech: true, calibration: true },
     description: desc('SR only; not Smart or Tech. Calibration: Action DV15 INT+Shoulder Arms; on success, gain +8 attack OR double Shoulder Arms skill (whichever lower) until you fire, Move, or take another action.') }),
   modItem({ name: 'Nokota E305 Prospecta', manufacturer: 'Nokota', cost: 'PR', imgPath: img(M_SCOPES, 'Nokota E305 Prospecta.png'),
-    system: { scopeType: 'sniper', requiresTechWeapon: true, rangeImprovementMeters: 10, rangeImprovementBidirectional: true },
+    system: { scopeType: 'sniper', requiresTechWeapon: true, improvedCharge: true, rangeImprovementMeters: 10, rangeImprovementBidirectional: true },
     description: desc('TW sniper rifle only. Improved Charge: after the first round of charging, may move up to 2m or MOVE as a Move action. Range Improvement: up to 10m closer or farther.') }),
 ];
 
@@ -231,7 +231,7 @@ const attachments = [
     system: { recoilBonus: 1, recoilAFOnly: true, steady: true },
     description: desc('1-hand firearm only. Forward grip (now requires 2 hands). Improved Autofire: +1 autofire attacks. Steady: +1 attack if only fired once this turn.') }),
   modItem({ name: 'Militech SR Capacity', manufacturer: 'Militech', cost: 'PR', imgPath: img(M_ROOT, 'Militech SR Capacity.png'),
-    system: { requiresTechWeapon: true },
+    system: { requiresTechWeapon: true, srCapacity: true },
     description: desc('Tech weapon only (SG/AR/PR/SR). High-Capacity Battery: can still Move while charging (at half MOVE); a hit past SP deals +2 damage to HP (electrical). Cumbersome: -1 all attacks vs standard stock; cannot conceal.') }),
   modItem({ name: 'Tsunami Hakatome', manufacturer: 'Tsunami Arms', cost: 'EX', imgPath: img(M_ROOT, 'Tsunami Hakatome.png'),
     system: {
