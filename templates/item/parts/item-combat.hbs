@@ -211,6 +211,26 @@
                     <input type="radio" data-weapon-damage-type data-weapon-index="{{weapon.index}}" value="affliction-explosion" {{#if (eq weapon.damageType "affliction-explosion")}}checked{{/if}} />
                   </label>
                 </fieldset>
+
+                <fieldset class="weapon-class-group">
+                  <legend>{{localize "CYBER_BLUE.Sheet.Labels.WeaponClass"}}</legend>
+                  <label class="checkbox-label">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.WeaponClassNone"}}</span>
+                    <input type="radio" data-weapon-class data-weapon-index="{{weapon.index}}" value="none" {{#if (eq weapon.weaponClass "none")}}checked{{/if}} />
+                  </label>
+                  <label class="checkbox-label">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.WeaponClassPower"}}</span>
+                    <input type="radio" data-weapon-class data-weapon-index="{{weapon.index}}" value="power" {{#if (eq weapon.weaponClass "power")}}checked{{/if}} />
+                  </label>
+                  <label class="checkbox-label">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.WeaponClassSmart"}}</span>
+                    <input type="radio" data-weapon-class data-weapon-index="{{weapon.index}}" value="smart" {{#if (eq weapon.weaponClass "smart")}}checked{{/if}} />
+                  </label>
+                  <label class="checkbox-label">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.WeaponClassTech"}}</span>
+                    <input type="radio" data-weapon-class data-weapon-index="{{weapon.index}}" value="tech" {{#if (eq weapon.weaponClass "tech")}}checked{{/if}} />
+                  </label>
+                </fieldset>
               </div>
 
               {{#if (eq weapon.damageType "autofire")}}

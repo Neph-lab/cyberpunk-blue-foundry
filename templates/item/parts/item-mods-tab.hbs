@@ -18,7 +18,7 @@
         <div class="panel-header">
           <h3>{{mod.name}}</h3>
           <span class="state-chip">{{mod.typeLabel}}</span>
-          {{#if @root.canManageRestricted}}
+          {{#if @root.canEditAsOwner}}
             <button type="button" data-action="remove-embedded-mod" data-mod-id="{{mod.id}}" class="icon-btn danger" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
               <i class="fas fa-trash"></i>
             </button>

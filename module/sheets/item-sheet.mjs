@@ -366,6 +366,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
         definition,
         ammoTypeName,
         ammoTypeResolved,
+        weaponClass: weapon.isPowerWeapon ? 'power' : weapon.isSmartWeapon ? 'smart' : weapon.isTechWeapon ? 'tech' : 'none',
         displayMagazine: definition.usesMagazine ? `${Math.max(Math.min(Number(weapon.ammoCurrent) || 0, Number(weapon.magazine) || 0), 0)} / ${Math.max(Number(weapon.magazine) || 0, 0)}` : null,
         skillOptions: definition.skillOptions.map((skillSlug) => ({
           value: skillSlug,
@@ -402,7 +403,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
           importedEffects: (mod.importedEffects ?? []),
         })))
       : [];
-    context.showEmbeddedModsPanel = (context.isGear || context.isCyberware) && canManageRestricted;
+    context.showEmbeddedModsPanel = (context.isGear || context.isCyberware) && canEditAsOwner;
     context.showModsTab = context.showEmbeddedModsPanel;
     context.installedOnOptions = context.isMod && ownerActor
       ? ownerActor.items.filter((i) => ['gear', 'cyberware'].includes(i.type))
@@ -595,6 +596,9 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     });
     this.element.querySelectorAll('[data-weapon-damage-type]').forEach((input) => {
       input.addEventListener('change', this._onWeaponDamageTypeChange.bind(this));
+    });
+    this.element.querySelectorAll('[data-weapon-class]').forEach((input) => {
+      input.addEventListener('change', this._onWeaponClassChange.bind(this));
     });
     this.element.querySelectorAll('[data-cyberware-integration]').forEach((select) => {
       select.addEventListener('change', this._onCyberwareIntegrationChange.bind(this));
@@ -1036,6 +1040,20 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     }
     // Note: rangeTable is intentionally preserved for all damage types (explosion uses it for scatter DV)
     await this.document.update(buildWeaponUpdate(this.document, weaponIndex,changes));
+  }
+
+  async _onWeaponClassChange(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
+    if (Number.isNaN(weaponIndex) || weaponIndex < 0) return;
+    const cls = event.currentTarget.value ?? 'none';
+    await this.document.update(buildWeaponUpdate(this.document, weaponIndex, {
+      isPowerWeapon: cls === 'power',
+      isSmartWeapon: cls === 'smart',
+      isTechWeapon: cls === 'tech',
+    }));
   }
 
   async _onCyberwareIntegrationChange(event) {
