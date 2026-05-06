@@ -10,6 +10,25 @@ export class CyberBlueActor extends Actor {
 
     if (!this.system.resources?.armor) return;
 
+    if (this.type === 'mook') {
+      // Mooks: derive SP from the embedded armor item with the highest maxSp.
+      // If no armor items are present the data-model's stored/clamped value is kept as-is.
+      let bestItem = null;
+      let bestMaxSp = 0;
+      for (const item of this.items.contents) {
+        const maxSp = item.system?.armor?.maxSp ?? 0;
+        if (maxSp > bestMaxSp) { bestMaxSp = maxSp; bestItem = item; }
+      }
+      if (bestItem) {
+        this.system.resources.armor.value = Math.min(
+          Math.max(bestItem.system.armor?.currentSp ?? bestMaxSp, 0),
+          bestMaxSp,
+        );
+        this.system.resources.armor.max = bestMaxSp;
+      }
+      return;
+    }
+
     const activeArmor = this.getActiveArmorItem();
     const currentSp = activeArmor ? Math.max(Math.min(activeArmor.system.armor?.currentSp ?? 0, activeArmor.system.armor?.maxSp ?? 0), 0) : 0;
     const maxSp = activeArmor ? Math.max(activeArmor.system.armor?.maxSp ?? 0, 0) : 0;
@@ -125,6 +144,46 @@ export class CyberBlueActor extends Actor {
 
   async applyDamage(amount, { ignoreArmor = false } = {}) {
     const totalDamage = Math.max(Number(amount) || 0, 0);
+
+    // Mooks: use the derived armor value directly; no item-based "active armor" selection.
+    if (this.type === 'mook') {
+      const currentHp = this.system.resources.hp.value ?? 0;
+      const mookSp = ignoreArmor ? 0 : Math.max(this.system.resources.armor?.value ?? 0, 0);
+      const penetrated = totalDamage - mookSp;
+      const hpLoss = Math.max(penetrated, 0);
+      const shouldAblate = !ignoreArmor && mookSp > 0 && penetrated >= 0;
+      const updates = [];
+
+      if (hpLoss > 0) {
+        updates.push(this.update({ 'system.resources.hp.value': Math.max(currentHp - hpLoss, 0) }));
+      }
+      if (shouldAblate) {
+        // Ablate the best armor item (same source as prepareDerivedData) if present
+        let bestItem = null;
+        let bestMaxSp = 0;
+        for (const item of this.items.contents) {
+          const maxSp = item.system?.armor?.maxSp ?? 0;
+          if (maxSp > bestMaxSp) { bestMaxSp = maxSp; bestItem = item; }
+        }
+        if (bestItem) {
+          const itemCurSp = Math.min(bestItem.system?.armor?.currentSp ?? bestMaxSp, bestMaxSp);
+          updates.push(bestItem.update({ 'system.armor.currentSp': Math.max(itemCurSp - 1, 0) }));
+        } else {
+          updates.push(this.update({ 'system.resources.armor.value': Math.max(mookSp - 1, 0) }));
+        }
+      }
+
+      if (updates.length) await Promise.all(updates);
+      return {
+        totalDamage,
+        armorId: null,
+        armorName: null,
+        armorBlocked: Math.min(mookSp, totalDamage),
+        hpLoss,
+        ablatedArmor: shouldAblate ? 1 : 0,
+      };
+    }
+
     const activeArmor = ignoreArmor ? null : this.getActiveArmorItem();
     const currentHp = this.system.resources.hp.value ?? 0;
     const currentSp = activeArmor ? Math.max(Math.min(activeArmor.system.armor?.currentSp ?? 0, activeArmor.system.armor?.maxSp ?? 0), 0) : 0;
@@ -187,6 +246,26 @@ export class CyberBlueActor extends Actor {
   }
 
   getSkillRollContext(skillSlug, componentSlug = null) {
+    // Mooks: all skill checks use combatNumber as a flat bonus (no separate stat + rank).
+    if (this.type === 'mook') {
+      const combatNumber = this.system.combatNumber ?? 10;
+      const skillDef = this.getSkillDefinition(skillSlug);
+      const componentDef = componentSlug ? this.getComponentDefinition(componentSlug) : null;
+      const componentRank = componentSlug
+        ? (this.system.components?.find?.((c) => c.slug === componentSlug)?.rank ?? 0)
+        : null;
+      return {
+        skillLabel: skillDef?.label ?? skillSlug,
+        skillRank: 0,
+        statShortLabel: 'CN',
+        statValue: combatNumber,
+        statRollMod: 0,
+        componentLabel: componentDef?.label ?? componentSlug ?? null,
+        componentRank,
+        usedRank: 0,
+      };
+    }
+
     const skill = this.getSkillDefinition(skillSlug);
     if (!skill) {
       throw new Error(`Unknown skill slug "${skillSlug}"`);

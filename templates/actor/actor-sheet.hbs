@@ -169,6 +169,11 @@
             </div>
           </div>
         {{/if}}
+
+        <div class="sheet-panel stat-card money-card">
+          <span class="stat-short">€$</span>
+          <input type="text" data-action="update-money" value="{{system.money}}" placeholder="0" title="Eurobucks — arithmetic OK (e.g. 500-50)" style="width:5rem;text-align:right;" />
+        </div>
       </section>
 
       {{#if combatWeapons.length}}

@@ -40,6 +40,7 @@ export default class CyberBlueMook extends CyberBlueDataModel {
       ),
       description: new fields.HTMLField({ initial: '' }),
       notes: new fields.HTMLField({ initial: '' }),
+      money: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
     };
   }
 

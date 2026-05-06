@@ -945,6 +945,11 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       input.addEventListener('change', this._onExecutableFieldUpdate.bind(this));
     });
 
+    // Money field: supports arithmetic expressions (e.g. "500-50" → 450)
+    this.element.querySelectorAll('[data-action="update-money"]').forEach((input) => {
+      input.addEventListener('change', this._onUpdateMoney.bind(this));
+    });
+
     // Restore scroll positions after re-render
     if (this._savedScrolls?.length) {
       for (const { key, scrollTop } of this._savedScrolls) {
@@ -1845,5 +1850,29 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       : rawValue;
 
     await exeDoc.update({ [field]: value });
+  }
+
+  /**
+   * Money field change handler — evaluates simple arithmetic expressions before saving.
+   * e.g. "500-50" → 450, "1200+300" → 1500.
+   */
+  async _onUpdateMoney(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const raw = (event.currentTarget.value ?? '').trim();
+    let result = 0;
+    if (raw) {
+      // Strip everything except digits and basic arithmetic operators
+      const safe = raw.replace(/[^0-9+\-*/\s().]/g, '').trim();
+      try {
+        // eslint-disable-next-line no-new-func
+        const evaluated = Function('"use strict"; return (' + safe + ')')();
+        result = Number.isFinite(evaluated) ? Math.round(evaluated) : 0;
+      } catch {
+        result = parseInt(raw, 10) || 0;
+      }
+    }
+    result = Math.max(0, result);
+    await this.document.update({ 'system.money': result });
   }
 }

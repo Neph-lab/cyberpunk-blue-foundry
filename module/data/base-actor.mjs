@@ -61,6 +61,7 @@ export default class CyberBlueActorBase extends CyberBlueDataModel {
         personality: new fields.HTMLField({ initial: "" }),
         style: new fields.HTMLField({ initial: "" }),
       }),
+      money: new fields.NumberField({ required: true, nullable: false, integer: true, initial: 0, min: 0 }),
     };
   }
 

@@ -22,14 +22,18 @@
             <input type="number" name="system.resources.hp.max" value="{{system.resources.hp.max}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
           </div>
         </div>
-        <div class="header-stat" title="Stopping Power">
+        <div class="header-stat" title="Stopping Power (auto-derived from highest-SP armor item; set manually if no items)">
           <span class="stat-short">SP</span>
           <div class="resource-fields">
-            <input type="number" name="system.resources.armor.value" value="{{system.resources.armor.value}}" data-dtype="Number" />
+            <input type="number" name="system.resources.armor.value" value="{{system.resources.armor.value}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
             <span>/</span>
             <input type="number" name="system.resources.armor.max" value="{{system.resources.armor.max}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
           </div>
         </div>
+        <label class="header-stat" title="Eurobucks">
+          <span class="stat-short">€$</span>
+          <input type="text" data-action="update-money" value="{{system.money}}" placeholder="0" title="Eurobucks — arithmetic OK (e.g. 500-50)" style="width:5rem;text-align:right;" />
+        </label>
       </div>
     </div>
   </header>
@@ -117,6 +121,59 @@
           {{/each}}
         </div>
       </section>
+
+      {{#if combatWeapons.length}}
+        <section class="sheet-panel">
+          <div class="panel-header"><h2>Weapons</h2></div>
+          <table class="embedded-table">
+            <thead>
+              <tr>
+                <th>Weapon</th>
+                <th style="text-align:center;">Dmg</th>
+                <th style="text-align:center;">RoF</th>
+                <th style="text-align:center;">Ammo</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each combatWeapons as |w|}}
+                <tr>
+                  <td>{{w.label}}</td>
+                  <td style="text-align:center;">{{w.damage}}</td>
+                  <td style="text-align:center;">{{w.rof}}</td>
+                  <td style="text-align:center;">{{#if w.usesMagazine}}{{w.ammoCurrent}}/{{w.ammoMax}}{{else}}—{{/if}}</td>
+                  <td style="text-align:right;">
+                    {{#if ../isGM}}
+                      <button type="button" data-action="mook-weapon-attack" data-item-id="{{w.itemId}}" data-weapon-index="{{w.weaponIndex}}" title="Roll Attack">
+                        <i class="fas fa-dice-d10"></i>
+                      </button>
+                    {{/if}}
+                  </td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </section>
+      {{/if}}
+
+      {{#if martialArtsAttacks.length}}
+        <section class="sheet-panel">
+          <div class="panel-header"><h2>Martial Arts</h2></div>
+          <div class="skill-list">
+            {{#each martialArtsAttacks as |ma|}}
+              <div class="skill-row">
+                <span class="skill-label">{{ma.label}}</span>
+                <span style="flex:0 0 auto;min-width:3rem;text-align:center;">{{ma.damage}}</span>
+                {{#if ../isGM}}
+                  <button type="button" data-action="mook-ma-attack" data-component-slug="{{ma.slug}}" title="Roll Attack">
+                    <i class="fas fa-dice-d10"></i>
+                  </button>
+                {{/if}}
+              </div>
+            {{/each}}
+          </div>
+        </section>
+      {{/if}}
     </div>
 
     <div class="tab" data-group="primary" data-tab="items">
