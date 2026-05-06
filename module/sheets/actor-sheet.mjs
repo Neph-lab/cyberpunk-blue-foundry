@@ -1137,7 +1137,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
     // ── Create Active Effect on actor ────────────────────────────────────────
     const aeData = {
-      label: game.i18n.format('CYBER_BLUE.Combat.ChargeAELabel', { weapon: item.name }),
+      name: game.i18n.format('CYBER_BLUE.Combat.ChargeAELabel', { weapon: item.name }),
       icon: 'icons/svg/lightning.svg',
       changes: [{ key: 'system.stats.move.value', mode: 5, value: aeValue }],
       flags: { 'cyberpunk-blue': { twCharge: true, weaponItemId: item.id, weaponIndex } },

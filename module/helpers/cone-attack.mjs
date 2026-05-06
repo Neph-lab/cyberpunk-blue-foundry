@@ -22,8 +22,9 @@ function getTokenCenter(tokenDoc) {
 
 function isBlockedByWalls(origin, destination) {
   try {
+    const RayCtor = foundry.canvas?.geometry?.Ray ?? Ray;
     return canvas.walls.checkCollision(
-      new Ray({ x: origin.x, y: origin.y }, { x: destination.x, y: destination.y }),
+      new RayCtor({ x: origin.x, y: origin.y }, { x: destination.x, y: destination.y }),
       { type: 'move', mode: 'any' }
     );
   } catch {
@@ -303,6 +304,16 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
     return;
   }
 
+  // Upfront ammo check: weapon must have at least `shots` ammo to fire
+  const shotsRequiredExp = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
+  if (shotsRequiredExp > 0) {
+    const currentAmmoExp = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
+    if (currentAmmoExp < shotsRequiredExp) {
+      ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.NotEnoughAmmoForShots', { required: shotsRequiredExp, current: currentAmmoExp }));
+      return;
+    }
+  }
+
   const spread = weapon.coneSpread ?? 0;
   const halfDamageDistance = weapon.coneHalfDamageDistance ?? 0;
   if (spread <= 0) {
@@ -371,6 +382,9 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
       });
     }
   }
+
+  // Show persistent area graphic now that the explosion centre is finalised
+  showAreaEffectExplosion(explosionCenter.x, explosionCenter.y, spreadPx, halfDamagePx);
 
   // Find tokens in blast radius
   const targets = [];
@@ -458,8 +472,6 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
       rollMode: game.settings.get('core', 'rollMode'),
     });
   }
-  // Show persistent area graphic after all damage is resolved
-  showAreaEffectExplosion(explosionCenter.x, explosionCenter.y, spreadPx, halfDamagePx);
 }
 
 // ─── Cone attack ────────────────────────────────────────────────────────────
@@ -820,6 +832,16 @@ export async function resolveAfflictionExplosionAttack(attacker, item, weaponInd
     return;
   }
 
+  // Upfront ammo check: weapon must have at least `shots` ammo to fire
+  const shotsRequiredAffExp = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
+  if (shotsRequiredAffExp > 0) {
+    const currentAmmoAffExp = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
+    if (currentAmmoAffExp < shotsRequiredAffExp) {
+      ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.NotEnoughAmmoForShots', { required: shotsRequiredAffExp, current: currentAmmoAffExp }));
+      return;
+    }
+  }
+
   const spread = weapon.coneSpread ?? 0;
   const halfDamageDistance = weapon.coneHalfDamageDistance ?? 0;
   if (spread <= 0) {
@@ -877,6 +899,9 @@ export async function resolveAfflictionExplosionAttack(attacker, item, weaponInd
         + `<p>${game.i18n.format('CYBER_BLUE.Combat.ExplosionScatterDist', { dist: scatter })}</p></div>`,
     });
   }
+
+  // Show persistent area graphic now that the explosion centre is finalised
+  showAreaEffectExplosion(explosionCenter.x, explosionCenter.y, spreadPx, halfDamagePx);
 
   // Find tokens in blast radius
   const targets = [];

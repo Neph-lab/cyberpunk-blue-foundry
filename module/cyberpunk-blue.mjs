@@ -959,6 +959,12 @@ Hooks.on('preUpdateToken', (tokenDoc, changes, options, userId) => {
   if (!game.combat?.started) return;
   if (!('x' in changes) && !('y' in changes)) return;
 
+  // Capture old position here so updateToken can compute real distance moved.
+  // In Foundry V13 the document is already updated when updateToken fires,
+  // making tokenDoc._source.x the NEW position there.
+  options._cpbPreMoveX = tokenDoc.x;
+  options._cpbPreMoveY = tokenDoc.y;
+
   const activeTokenId = getActiveCombatantTokenId();
   const isGM = game.users.get(userId)?.isGM ?? false;
 
@@ -1013,14 +1019,16 @@ Hooks.on('preUpdateToken', (tokenDoc, changes, options, userId) => {
 
 // ── updateToken: record how far the active combatant actually moved ───────────
 
-Hooks.on('updateToken', (tokenDoc, changes, _options, _userId) => {
+Hooks.on('updateToken', (tokenDoc, changes, options, _userId) => {
   if (!game.combat?.started) return;
   if (!('x' in changes) && !('y' in changes)) return;
   if (tokenDoc.id !== getActiveCombatantTokenId()) return;
 
   const ppm = getPixelsPerMeterGlobal();
-  const oldX = tokenDoc._source?.x ?? tokenDoc.x;
-  const oldY = tokenDoc._source?.y ?? tokenDoc.y;
+  // Use the pre-move position captured in preUpdateToken; fall back to the
+  // changed-to position (resulting in 0 distance) rather than crashing.
+  const oldX = options._cpbPreMoveX ?? (changes.x ?? tokenDoc.x);
+  const oldY = options._cpbPreMoveY ?? (changes.y ?? tokenDoc.y);
   const meters = Math.hypot((changes.x ?? oldX) - oldX, (changes.y ?? oldY) - oldY) / ppm;
   recordMovement(tokenDoc.id, meters);
 
@@ -1030,17 +1038,29 @@ Hooks.on('updateToken', (tokenDoc, changes, _options, _userId) => {
 
 // ── Combat turn / round resets ────────────────────────────────────────────────
 
-Hooks.on('combatTurn', (combat) => {
+Hooks.on('combatTurn', (combat, updateData) => {
   const prev = combat.combatants.get(combat.previous?.combatantId);
   if (prev?.tokenId) resetTurnTracking(prev.tokenId);
-  const curr = combat.combatants.get(combat.current?.combatantId);
+  // Use updateData.turn index to reliably identify the incoming combatant even
+  // when combat.current hasn't settled yet in some Foundry versions.
+  const newTurnIdx = updateData?.turn ?? 0;
+  const curr = combat.combatants.contents[newTurnIdx]
+    ?? combat.combatants.get(combat.current?.combatantId);
   if (curr?.tokenId) resetTurnTracking(curr.tokenId);
   ui.combat?.render(false);
+  // Re-render open actor sheets so RoF buttons and movement bar refresh.
+  for (const actor of [prev?.actor, curr?.actor].filter(Boolean)) {
+    actor.sheet?.render(false);
+  }
 });
 
-Hooks.on('combatRound', () => {
+Hooks.on('combatRound', (combat) => {
   resetAllTracking();
   ui.combat?.render(false);
+  // Re-render all open sheets so RoF buttons refresh.
+  for (const combatant of combat.combatants.contents) {
+    combatant.actor?.sheet?.render(false);
+  }
 });
 
 Hooks.on('deleteCombat', () => {

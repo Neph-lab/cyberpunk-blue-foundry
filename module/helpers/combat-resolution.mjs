@@ -206,7 +206,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     || (isRanged && targetRflx >= 8)
   );
 
-  // Show manual DV input when no range table result is available
+  // Show manual DV input only for ranged weapons with no range table result
   const needsManualDV = rangeDV === null;
 
   const targetLine = targetActor
@@ -217,13 +217,17 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.Distance')}: <strong>${distanceMeters.toFixed(1)} m</strong>${rangeDV !== null ? ` — DV <strong>${rangeDV}</strong>` : ''}</p>`
     : '';
 
-  const dvInputLine = needsManualDV ? `
+  const dvInputLine = (needsManualDV && !isMelee) ? `
     <label style="display:flex;align-items:center;gap:0.5rem;">
       <span>${game.i18n.localize('CYBER_BLUE.Combat.DV')}:</span>
       <input type="number" id="attack-dv" value="" min="0" style="width:5rem;" placeholder="—" />
     </label>` : '';
 
-  const evasionLine = evasionEligible ? `
+  // Melee: evasion is always auto-rolled after dialog; show info note instead of checkbox.
+  const meleeEvasionNote = (isMelee && targetActor)
+    ? `<p><em><i class="fas fa-person-running"></i> ${game.i18n.localize('CYBER_BLUE.Combat.MeleeAutoEvasion')}</em></p>`
+    : '';
+  const evasionLine = (evasionEligible && !isMelee) ? `
     <label style="display:flex;align-items:center;gap:0.5rem;">
       <input type="checkbox" id="roll-evasion" checked />
       <span>${game.i18n.localize('CYBER_BLUE.Combat.RollTargetEvasion')}</span>
@@ -261,6 +265,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
       ${distanceBonusLines}
       <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem;">
         ${dvInputLine}
+        ${meleeEvasionNote}
         ${evasionLine}
         ${digitalLinkLine}
         ${steadyLine}
@@ -310,9 +315,16 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
 
   const { dv: rawDV, rollEvasion, digitalLinkActive, steadyActive, handlingComputerActive } = dvResult;
 
-  // Resolve final DV: evasion result vs range DV (take the higher)
+  // Resolve final DV.
+  // Melee: always auto-roll target evasion; evasion result IS the DV (no target = auto-hit).
+  // Ranged: use range-table DV, optionally raised by an evasion roll when eligible.
   let resolvedDV = null;
-  if (rollEvasion && targetActor) {
+  if (isMelee) {
+    if (targetActor) {
+      const evasionRoll = await rollTargetEvasion(targetActor);
+      resolvedDV = evasionRoll.total;
+    }
+  } else if (rollEvasion && targetActor) {
     const evasionRoll = await rollTargetEvasion(targetActor);
     resolvedDV = (rawDV !== null && Number.isFinite(rawDV))
       ? Math.max(evasionRoll.total, rawDV)

@@ -52,7 +52,8 @@ export function countWallsBetweenTokens(tokenA, tokenB) {
   try {
     const origin = { x: tokenA.center.x, y: tokenA.center.y };
     const dest   = { x: tokenB.center.x, y: tokenB.center.y };
-    const ray    = new Ray(origin, dest);
+    const RayCtor = foundry.canvas?.geometry?.Ray ?? Ray;
+    const ray    = new RayCtor(origin, dest);
     // mode:'all' returns every intersection; one entry per wall crossed.
     const hits   = canvas.walls.checkCollision(ray, { type: 'move', mode: 'all' });
     return Array.isArray(hits) ? hits.length : (hits ? 1 : 0);

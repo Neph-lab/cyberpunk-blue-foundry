@@ -231,9 +231,6 @@ export async function resolveMartialArtsAttack(attacker, componentSlug, {
   const resolvedSpMode = spMode ?? (HALF_SP_COMPONENTS.has(componentSlug) ? 'half' : 'normal');
   const sp = rawSP !== null ? effectiveSP(rawSP, resolvedSpMode) : null;
 
-  // Evasion eligible?
-  const evasionEligible = targetActor && dist !== null && dist <= 2 && targetRflx >= 8;
-
   // Target Vitals: -8 penalty
   const targetVitalsPenalty = targetVitals ? -(CONFIG.CYBER_BLUE?.targetVitalsPenalty ?? 8) : 0;
   const totalModifier = attackModifier + targetVitalsPenalty;
@@ -242,26 +239,23 @@ export async function resolveMartialArtsAttack(attacker, componentSlug, {
     ? ` (${CONFIG.CYBER_BLUE.components?.[componentSlug]?.label ?? componentSlug})` : '';
   const attackTitle = `Martial Arts${compLabel}`;
 
-  // Show attack dialog
+  // Show attack dialog — no DV input or evasion checkbox; evasion is auto-rolled afterwards.
   const targetLine = targetActor
     ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.Target')}: <strong>${targetActor.name}</strong>${sp !== null ? ` (SP ${sp}${rawSP !== sp ? `, raw ${rawSP}` : ''})` : ''}</p>` : '';
-  const evasionLine = evasionEligible
-    ? `<label style="display:flex;gap:.4rem;align-items:center;"><input type="checkbox" id="roll-evasion" checked /><span>${game.i18n.localize('CYBER_BLUE.Combat.RollTargetEvasion')}</span></label>` : '';
-  const dvLine = `<label style="display:flex;gap:.4rem;align-items:center;"><span>DV:</span><input type="number" id="attack-dv" value="" min="0" style="width:4rem;" placeholder="—" /></label>`;
+  const meleeEvasionNote = targetActor
+    ? `<p><em><i class="fas fa-person-running"></i> ${game.i18n.localize('CYBER_BLUE.Combat.MeleeAutoEvasion')}</em></p>`
+    : '';
 
   const dialogResult = await new Promise((resolve) => {
     const dialog = new foundry.applications.api.DialogV2({
       window: { title: `${game.i18n.localize('CYBER_BLUE.Combat.Attack')}: ${attackTitle}` },
-      content: `<div class="cyberpunk-blue" style="padding:.5rem;">${targetLine}<div style="display:flex;flex-direction:column;gap:.4rem;margin-top:.4rem;">${dvLine}${evasionLine}</div></div>`,
+      content: `<div class="cyberpunk-blue" style="padding:.5rem;">${targetLine}${meleeEvasionNote}</div>`,
       buttons: [
         {
           action: 'roll', icon: 'fa-solid fa-dice-d10',
           label: game.i18n.localize('CYBER_BLUE.Combat.RollAttack'),
           default: true,
-          callback: (_e, btn) => ({
-            dv: Number(btn.form?.elements['attack-dv']?.value) || null,
-            rollEvasion: btn.form?.elements['roll-evasion']?.checked ?? false,
-          }),
+          callback: () => ({}),
         },
         {
           action: 'cancel', icon: 'fa-solid fa-xmark',
@@ -276,9 +270,9 @@ export async function resolveMartialArtsAttack(attacker, componentSlug, {
   });
   if (!dialogResult) return;
 
-  // Evasion
-  let resolvedDV = dialogResult.dv;
-  if (dialogResult.rollEvasion && targetActor) {
+  // Evasion: always auto-roll; evasion result IS the DV (no target = no DV, auto-hit).
+  let resolvedDV = null;
+  if (targetActor) {
     const rflxMod = targetActor.system?.stats?.rflx?.rollMod ?? 0;
     const evasionRank = targetActor.system?.skills?.evasion?.rank ?? targetActor.system?.skills?.athletics?.rank ?? 0;
     const evasionFormula = `1d10 + ${targetRflx} + ${evasionRank}${rflxMod ? ` + ${rflxMod}` : ''}`;
@@ -288,7 +282,7 @@ export async function resolveMartialArtsAttack(attacker, componentSlug, {
       flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.EvasionRoll')}: ${targetActor.name}</h3></div>`,
       rollMode: game.settings.get('core', 'rollMode'),
     });
-    resolvedDV = resolvedDV !== null ? Math.max(evasionRoll.total, resolvedDV) : evasionRoll.total;
+    resolvedDV = evasionRoll.total;
   }
 
   // Attack roll
