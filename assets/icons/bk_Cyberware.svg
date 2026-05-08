@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 154 155" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-517,-346)">
+        <g id="bk_Cyberware" transform="matrix(4.166667,0,0,4.166667,517.389303,346.569736)">
+            <rect x="0" y="0" width="36.85" height="36.85" style="fill:none;"/>
+            <g transform="matrix(0.210705,0,0,0.210705,-143.16316,-34.147377)">
+                <path d="M772.186,163.57L838.672,201.955C841.947,203.846 843.965,207.341 843.965,211.122L843.965,287.894C843.965,291.675 841.947,295.17 838.672,297.06L772.186,335.446C768.911,337.337 764.876,337.337 761.601,335.446L695.115,297.06C691.84,295.17 689.823,291.675 689.823,287.894L689.823,211.122C689.823,207.341 691.84,203.846 695.115,201.955L761.601,163.57C764.876,161.679 768.911,161.679 772.186,163.57ZM766.894,172.736L700.407,211.122L700.407,287.894L766.894,326.28L833.38,287.894L833.38,211.122L766.894,172.736Z"/>
+            </g>
+        </g>
+    </g>
+</svg>

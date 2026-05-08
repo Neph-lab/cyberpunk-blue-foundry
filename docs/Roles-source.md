@@ -1,3 +1,9 @@
+Preliminary work: Abilities need to handle Instruction arrays just like cyberware and gear.
+Notes:
+* Multiples cybereyes or cyberlegs should be renamed so that one is left and one is right.
+* Multiples of Ammo should just be added as one and then set the quantity to that multiple.
+* Tables for Lifepath should be made into Foundry RollTables and packed into the Compendium. If some one adds a Role, make sure that Role's tables exists in a folder named for the Role in that world, otherwise add them from the Compendium. The Role sheet itself has  Lifepath tab where there is an area to link these various tables to let players open them and roll, should they want to.
+
 # Bandit
 Networker
 ## Description
@@ -7,6 +13,7 @@ A combination of their ability to handle the roughest part of society and the co
 Individuality and community are equally important to Bandits and without the former, you won’t get the latter. For a gang to be strong, everyone in it has to be as tough as possible and that’s how you’ll know that calling on the others gives you the best ruffians the streets can muster. Prove how badass you are and everyone else will try to prove themselves to you! Rule the streets and let everyone hear the roar if their toughest Bandit!
 > Ya strong ‘nuff to chrome up? Split some nerves?
 > ∆ Maelstrom recruiter
+
 ## Bandit Lifepath
 ### What kind of gang are you in?
 | 1d10 | Type of Gang |
@@ -124,8 +131,9 @@ Clothes:
  * Headwear
 
 Cyberware
+* Neuroport
 * Standard Cyberarm
- * Wolvers
+* Wolvers
 * Hidden Holster
 
 # Corpo
@@ -301,6 +309,7 @@ Clothes:
  * Jewelry
 
 Cyberware:
+* Neuroport
 * Tech Hair or Light Tattoo
 * Toxin Binders or Nasal Filters
 * Subdermal Display
@@ -318,7 +327,65 @@ If someone needs to get the heat off, you’ll hide them. You get people housing
 > ∆ Grease, Fixer
 
 ## Fixer Lifepath
+### What kind of fixer are you?
+| 1d10 | Type |
+| ---- | ---- |
+| 1 | Broker deals between rival gangs |
+| 2 | Procures atypical resources for an exclusive clientele |
+| 3 | Brokers Solo or Tech services as their agent |
+| 4 | Supplies a regular resource like food or medicine |
+| 5 | Procures illegal resources like street drugs or milspec weapons |
+| 6 | Supplies resources for Techs an Medtechs |
+| 7 | Operates in several successful Night Markets |
+| 8 | Broker use of heavy machinery or vehicles |
+| 9 | Deals in scavenged parts from abandoned areas |
+| 10 | An exclusive agent for a Media, Rocker, or a Nomad pack |
 
+### Got a business partner? If so, who?
+| 1d6 | Partner |
+| --- | ------- |
+| 1 | Family Member |
+| 2 | Old Friend |
+| 3 | Possible Romantic Partner |
+| 4 | Mentor |
+| 5 | Secret with gang connections |
+| 6 | Secret with corpo connections |
+
+### Who are your side-clients?
+| 1d6 | Clients |
+| --- | ------- |
+| 1 | Local Rockerboys or Medias who need gigs |
+| 2 | Local Bandits who also protect your work or home |
+| 3 | Corpos who use you for “black project” procurement work |
+| 4 | Local Solos or other combat types looking for work |
+| 5 | Local Nomads and Fixers who use you to set up deals |
+| 6 | Local politicos or Corpos who need information |
+
+### What's your "office" like?
+| 1d6 | Office |
+| --- | ------ |
+| 1 | You don’t have one; it’s all mobile |
+| 2 | A booth in a local bar |
+| 3 | It’s all Data Pool messages and dead drops |
+| 4 | Spare room in a warehouse, shop, or clinic |
+| 5 | An otherwise abandoned building |
+| 6 | The lobby of a cube hotel |
+
+### Who is gunning for you?
+| 1d6 | Enemy |
+| --- | ----- |
+| 1 | Bandits who want you to work with them exclusively |
+| 2 | Rival Fixers trying to steal your clients |
+| 3 | Corpos or Operatives who want you to work for them exclusively |
+| 4 | Enemy of a former client who wants to tie up loose ends — like you. |
+| 5 | Old client who thinks you screwed them over |
+| 6 | Rival Fixers trying to beat you out for resources |
+
+### Connection Questions
+Ask these questions to different players about their characters to build existing relationships.
+* What deal did I broker that saved the life of you or someone you love?
+* What problem of yours did I find a way to get rid of?
+* What do you hope I’ll eventually find for you?
 
 ## Fixer Role Ability
 ### General Description
@@ -365,184 +432,534 @@ Clothes:
  * Bottoms ×2
  * Top ×3
 
-Cyberware: Cyberaudio Suite (Voice Stress Analyzer or Amplified Hearing), Sub-Dermal Pocket (PSYCHE — temporary loss: 16; max reduced by 4)
+Cyberware:
+* Neuroport
+* Standard Cyberaudio Suite
+* Voice Stress Analyzer or Amplified Hearing
+* Sub-Dermal Pocket
 
 # Guide
  Sundry
+ ## Description
 In a world completely ruled by the material, you are the voice of the soul. There are, of course, droves of charlatans who will sell crystals, platitude posters, and tedious meditation BDs. There are so many corpos with too much money and more anxiety than sense. Few of them care about guiding their clients to anything but handing over their eddies. That’s where you differ.
+
 As a Guide, you have a sense of where the world is headed. Your predictions are hazy at best, but they might provide a much needed edge when it really matters. Maybe you read cards, seek truth through introspection, or perhaps drug fueled visions show you the path. There are many ways to access these abilities and every Guide has their own methods.
+
 In many ways, a Guide has to fight the way the world works. The vast majority of people only believe in fate in the most superficial of ways. You can give into that and coach through business jargon. You can speak to those who still seek meaning in religion and hope their desperation pays for your guidance. For those who can’t make up their mind about beliefs, there’s always that mix of neo-spirituality and materialistic pseudo-mysticism.
-Not all games are suitable for a Guide to be part of as they risk removing some of the tystopia that is Cyberpunk. If a character has this Role, it should highlight the worst part of the world by either showing how even spirituality is just a commodity, or by providing contrast. They can’t do the latter if there isn’t enough darkness for the dark future to be dystopian in.
-We shouldn’t fear change itself, but only who we might change into. Knowing one’s path is most important.
-∆ Misty Olszewski, Misty’s Esoterica
-Guide Role Ability
-The player of a Guide should have a deck consisting of the major arcana cards from a tarot deck. If you don’t have one, use ace (as 1) through 10 of spades from a regular deck to represeent the same number given for the tarot card. Use diamonds ace through knight to represent the tarot cards from 11 through 21. Add a joker for The Fool.
-At the start of each game session, shuffle your deck and draw as many cards as your Guide rank and place them  face up in front of you. This is your Reading. Once per session, you may spand one in-game hour in meditation  which allows you to shuffle all cards in your Reading into the deck and deal a new set of cards to replace them. You may meditate to replace your reading an extra time per session when you reach rank 5 and 10 in this Role, for a total of two and three meditation sessions respectively.
-Every card has a specific trigger for when it can be used and an effect it has if played. The GM is the final arbiter on if a situation matches the trigger close enough. If it does and you choose to play the card, you immediately draw a new card from the top of your deck to your reading, then the card you played has its effect, and finally it is shuffled into your deck. All players are allowed to know what the current cards in your Reading are and even use this meta-knowledge to choose their caracters’ actions. Your predictions are likely to come true this way.
-The player triggers he card, not the character, and often in response to something anyone in the team (meaning all player characters, including the Guide) does. The Guide character doesn’t need to be present, or even aware, unless the trigger specifies.
-Cyberware interferes with your humanity and therefore your Guide ability. When you deal a completely new reading at the start of a session or after meditating, before you deal any cards to your reading, remove one card from the deck for each full 5 your max (not current) PSYCHE has been lowred by cyberware. These paths are currently closed to you.
-Starting Gear
-Weapons and Armor: Heavy Pistol worth €$500, Heavy Melee Weapon or Bow or Crossbow worth €$100, Light Melee Weapon worth €$50, Smoke Grenade; Basic Heavy Pistol Ammunition ×30; Light Armorjack Body Armor (SP11), Light Armorjack Head Armor (SP11)
-Outfit: Duct Tape, Flashlight, Glowstick, Radio Scanner/Music Player, Video Camera
-Clothes: Bohemian (Hat, Shades, Jewelry ×2, Feet, Jacket, Top ×2, Bottom ×2)
-Cyberware: Bio-monitor, Light Tattoo, Shift Tacts, Skin-Weave (SP7), Subdermal Pocket, Tech Hair (PSYCHE — temporary loss: 10, max reduced by 3)
+
+Not all games are suitable for a Guide to be part of as they risk removing some of the dystopia that is Cyberpunk. If a character has this Role, it should highlight the worst part of the world by either showing how even spirituality is just a commodity, or by providing contrast. They can’t do the latter if there isn’t enough darkness for the dark future to be dystopian in.
+
+> ***We shouldn’t fear change itself, but only who we might change into. Knowing one’s path is most important.***
+> ∆ Misty Olszewski, Misty’s Esoterica
+
+## Guide Lifepath
+### What kind of guide are you?
+| 1d10 | Type |
+| ---- | ---- |
+| 1 | Self-Help Guru |
+| 2 | Cult Leader |
+| 3 | Priest |
+| 4 | Neo-Witch |
+| 5 | Spirit Medium |
+| 6 | Street Prophet |
+| 7 | Life Coach |
+| 8 | Monk |
+| 9 | Card-Reader |
+|10 | Psychic |
+
+### What's your divining space like?
+| 1d6 | Space |
+| --- | ----- |
+| 1 | Crystal balls, pseudo-mystical trinkets, and an overwhelming smell of incense. |
+| 2 | Ascetic in order to leave room for introspection and contemplation. No distractions. |
+| 3 | A ritual circle on the floor, drawn in blood. Occult symbols on the walls and disturbing chants from speakers. |
+| 4 | A simple office with candles to set the mood and help you get into the right head-space. |
+| 5 | A small temple with an altar and room for prayer or contemplation. |
+| 6 | A complete mess, cluttered with anything that could provide inspiration and paraphernalia for drugs that help you get into your head-space. |
+
+### Who are your usual clients?
+| 1d6 | Client |
+| --- | ------ |
+| 1 | Superstitious corpos that’ll try anything to get an edge over the competition. |
+| 2 | Superstitious Fixers who want you to bless their dealings. |
+| 3 | Faithful who seek advice and blessings. |
+| 4 | People who think that you’re a prophet. |
+| 5 | Bandits, Ninjas, and Solos who want good luck charms. |
+| 6 | Downloads of your advice from the Data Pool. |
+
+### Who's gunning for you?
+| 1d6 | Enemy |
+| --- | ----- |
+| 1 | A former client who blames you for their misfortune. |
+| 2 | A corpo who wants to buy you as their permanent lucky charm. |
+| 3 | Extremists who claim you’re an evil witch. |
+| 4 | A charlatan who sees you as competition. |
+| 5 | Supposed purists who want to expose you as fake. |
+| 6 | A mysterious stranger. |
+
+### Connection Questions
+Ask these questions to different players about their characters to build existing relationships.
+* What path or omen have I warned you about?
+* What prediction for you came true?
+* Why did you seek my spiritual guidance?
+
+## Guide Role Ability
+### General Description
+The player of a Guide should have a deck consisting of the major arcana cards from a tarot deck. At the start of each game session, shuffle your deck and draw as many cards as your Guide rank and place them  face up in front of you. This is your Reading. Once per session, you may spend one in-game hour in meditation which allows you to shuffle all cards in your Reading into the deck and deal a new set of cards to replace them. You may meditate to replace your reading an extra time per session when you reach rank 5 and 10 in this Role, for a total of two and three meditations per session respectively.
+
+Every card has a specific trigger for when it can be used and an effect it has if played. The GM is the final arbiter on if a situation matches the trigger close enough. If it does and you choose to play the card, you immediately draw a new card from the top of your deck to your Reading, then the card you played has its effect before it's shuffled into the deck. You're allowed to tell the other players what the current cards in your Reading are, and even use this meta-knowledge. Your predictions are likely to come true this way.
+
+You the player triggers he card, not the character, and often in response to something anyone in the team (meaning all player characters, including the Guide) does. The Guide character doesn’t need to be present, or even aware, unless the trigger specifies.
+
+Cyberware interferes with your humanity and therefore your Guide ability. When you draw a completely new reading, such as at the beginning of a session or after meditating, first remove one card from the deck for each full 10 your max (not current) PSYCHE is below 60. These paths are currently closed to you. When you draw a new reading in the same way, shuffle the removed cards into the deck before drawing new ones to put aside.
+
+### Ability Implementation.
+Notes for Claude: The Compendium needs to contain a Foundry Card Deck set up as the Tarot Deck described below. When a character gains the Guide Role a copy should be made of Tarot deck, named for the character. They have the right to draw from this deck and read the cards, but not edit the cards. They get a Hand (their Reading), a separate Hand for locked cards they can't use if their PSYCHE is too low, and a pile used for playing a card. The view for playing a card needs to be expanded to show the card's description before playing it. The each description should have three paragraphs: The meaning (in italics, nothing beyond what's in the cell in the table below), the trigger (with 'Trigger: ' in bold at the beginning), and the effect (similarly, add 'Effect: '). systems\cyberpunk-blue\assets\Tarot (corresponds to local D:\FoundryVTT\Data\systems\cyberpunk-blue\assets\Tarot) has the face of each card as a webp- image that starts with the car's number. CardBack.png is the back of every card.
+When the Guide plays a card, it end up in their pile, the deck is shuffled, a new card is drawn from the deck and added to their hand, and the cards in the pile are are returned to the deck.
+The Role ability area on the Character sheet has a button to view the Reading (hand) and to Meditate. The latter resets all cards to the deck, deals one card for each full 10 below 60 max PSYCHE is to the locked hand, and then deals a number of cards equal to the Guide's Role rank to their hand. The Guide can se their remaining uses as dots before the Meditation button. They have one use but gain another use at rank 5 (total of 2) and another at rank 10 (total of 3). The GM can always trigger this button for them.
+The implementation column below is for any actual effects that aren't handled narratively — including triggers. No trigger can activate unless the card is in the Guide's Reading and no effect happens unless they choose to play the card.
+
+The table, minus the Implementation column, should be added to the general Role ability section on the Item.
+
+| Card | Name | Meaning | Trigger | Effect | Implementation |
+| ---- | ---- | ------- | ------- | ------ | -------------- |
+| 0 | The Fool | Beginning a journey, no expectations. Uncertain outcomes. | A member of your team failed a check where they added less than 8 to their 1d10.| They get to re-roll, but must use the new result. | If the player has the card and any player failed a check with <8 added to the 1d10, offer the Guide to allow them to re-roll. The GM gets a dialog to move on in case the Guide doesn't choose. No need to track where bonuses came from, just the sum. |
+| 1 | The Magician | Connect the spiritual and profane. Wisdom and willpower. | A member of your team succeeded on a INT + Human Perception check. | Add +3 to the result of the first check to benefit from the insights.| When the trigger happens, offer the Guide to play the card. If they do, the player whose roll triggered it gets an Ability called 'Magician's Insight'. When used, it deletes itself after creating an AE that gives +3 to the next check and the AE is then removed. |
+| 2 | The High Priestess | Intuition that guides the hidden knowledge within. Secret understanding. | A member of your team makes a check to uncover something hidden. | Add +2 to the result. | Handled by the GM |
+| 3 | The Empress | Nurturing, creativity, bringing something new into the world. | You make a check aimed at making someone else look cool. | Add +2 to the result. | Handled by the GM. |
+| 4 | The Emperor | Stability and structure. Authority to the point of authoritarianism. | A member of your team loses a Facedown or fails a COOL + Endurance check. | They get to re-roll, but must use the new result. | Handled by the GM |
+| 5 | The Hierophant | Dogma, tradition, and conformity. A teacher and advisor urging commitment. | A member of your team makes a check with the help of instructions or a mentor. | Add +1 to the roll. | Handled by the GM |
+| 6 | The Lovers | Kinship and bonding, but also the duality between choices. Dualities and contradictions. | You’re facing two mutually exclusive choices. | The GM will tell you which choice is likely better from a perspective you specify. | Handled by the GM |
+| 7 | The Chariot | Triumph through ambition and always pushing ahead. | Someone in your team failed either an Endurance or a Drive check. | They get to re-roll, but must use the new result. | If a player fails these checks, offer the Guide to play this card to let them reroll if they choose. Offer the GM to dismiss the prompts in case there's no choice. |
+| 8 | Strength | Bravery and inner strength will conquer fear. Self-control and perseverance. ✓ Someone or something is frightening a member of your team. For the next hour, they may ignore their fears. | Handled by the GM |
+| 9 | The Hermit | Introspection in solitude. Wisdom through contemplation in isolation. | A member of your team is making an INT check while alone. | They roll the 1d10 for the check twice and use the higher result. | Handled by the GM |
+| 10 | Wheel of Fortune | Luck and fortune comes and goes and the only constant is change. | A member of the team caused problems by failing a check. | Don’t roll the 1d10 for the character’s next check — assume that it’s 8. | The Guide chooses a player owned Actor who gets an AE that will trigger on that Actor's next check, assuming 8 instead of rolling the 1d10. |
+| 11 | Justice | The law must see different sides to reach a balanced and just outcome. | Someone in your vicinity performs an obviously illegal action. | The next check (including attacks) by the one who broke the law has a -5 penalty. | Handled by the GM |
+| 12 | The Hanged Man | Let it go. Surrender and sacrifice is the path forward. Action through inaction. | A member of your team is injured and/or Fatigued. | They heal 5 HP and if they are Fatigued, they lose that condition. The Guide is now Fatigued. | When played, the Guide chooses a player controlled Actor who gets the benefits.
+| 13 | Death | A sudden and dramatic change. The end of one thing is the beginning of something new. | A member of your team becomes Mortally Wounded or suffers a Critical Injury. | They may take an immediate action, even outside their own turn. This can be to stabilize themselves. | When the trigger happens, offer the Guide to play the card (and give the GM a chance to skip). If they do, the wounded Actor immediately gets a turn but start with no movement unless they use their Action to move. Turn order returns to where it was after their turn. |
+| 14 | Temperance | A balanced middle-ground. Harmonious relationships. Tranquil perspectives. | A member of your team, or someone you see, is about to make a check. | Don’t roll the 1d10 for the check — assume the result is 6. | Handled by the GM |
+| 15 | The Devil | Addiction to the material and profane. Fame, fortune, and fornication at the cost of a soul. | A member of your team is indulging in sex, drugs, or another materialistic vice. | Any check they make within the next hour gains a +1 bonus. | When the Guide plays the card, they choose a player controlled Actor who gets an AE granting +1 on every check for an hour.
+| 16 | The Tower | Chaos and destruction. Order is buried below the ruins. Violence and pain.	| A member of your team deals damage. | The damage is increased by 1d6. | When a player's Actor deals damage, offer the Guide to play the card (and the GM to skip). If they do, the damage is increased by 1d6. This doesn't contribute to causing a Critical, but it happens before subtracting SP and may push the damage above it. |
+| 17 | The Star | Hope and creativity. It is motivation to look for something more. Something better. | A member of your team is making a Composition or Performance check. | Add +3 to the result. | When a player's Actor makes one of the checks, offer the Guide to play the card (and the GM to skip). If they do, add +3 to the check. |
+| 18 | The Moon | Illusions and deception. Surface appearance that hides something else. Dreams. | A member of your team is making a check to conceal a different action. | Add +2 to the result. | Handled by the GM |
+| 19 | The Sun | Success and joy heralds truth and happiness. Optimism and vitality. | A member of your team is about to make a check. | They use COOL as their Primary STAT instead of what was called for. | Handled by the GM |
+| 20 | Judgement | Resurrection and liberation. A renewal that will enable healing better self-worth. | A member of your team has made a check but not yet found out if they succeeded. | They may choose to re-roll the 1d10 for the check but must then use the new result. | Handled by the GM |
+| 21 | The World | Achievement and completion of a journey. A sense of togetherness with the whole. | Everyone in your team is gathered to plan ahead. | Define a specific expected check (e.g. Pick Lock to the side door, or Influence to seduce the guard). You’ll gain +3 to that one check if and when it happens. | Handled by the GM |
+
+## Starting Gear
+Weapons and Armor:
+* Constitutional Arms Unity
+* Stun Baton or Kendachi Ra-5 Powered Knife or Bow
+* Baseball Bat or Throwing Axe or Militech M2 Combat Knife
+* Smoke Grenade
+* Basic Heavy Pistol Ammunition ×50
+* Light Armorjack
+
+Outfit:
+* Duct Tape
+* Flashlight
+* Glowstick
+* Radio Scanner/Music Player
+* Video Camera
+* Chipware: Language or Chipware: Skill Chip
+* Chipware: Olfactory Boost or Chipware: Tactile Boost
+
+Clothes:
+* Entropism:
+ * Bottoms
+* Kitsch:
+ * Headwear
+ * Shades
+ * Jewelry ×2
+ * Footwear
+ * Jacket
+ * Top ×3
+ * Bottoms ×2
+
+Cyberware:
+* Neuroport
+* Light Tattoo
+* Shift Tacts or Tech Hair
+* Skin-Weave
+* Subdermal Pocket
 
 # Law
  Leader
+## Description
 There used to be a big City Force, but most of the Old Guard in NCPD have been thrown out on their own to keep what peace they can. The ones who remain work to keep people safe and make some kind of stand against chaos. Even if you’d rather just walk a beat, if you’re a professional Law of any stripe, you’re stuck carrying at least four high-caliber weapons, mostly full-auto, and wearing a Kevlar® vest. Even then, you’re still outgunned and outflanked. Half the gangs are cybered up to begin with: super speed, super reflexes, night vision, and embedded weapons.
+
 Half of the guys on The Street are freelance Corporate mercs who used to have jobs during the War; hired to enforce Corp armies disbanded by the New United States’ goon squads. Now they’re the goon squads and you’re trying to keep them under control too. Used to be the Corporate Cops had heavy weapons, full combat armor, Trauma Team backup, AV-4 assault vehicles, and gyrocopters with miniguns. But the nice, clean sectors full of new office buildings and fancy restaurants aren’t nearly as safe as they seem. Every night is a new firefight and another great opportunity for a messy death. Or you might draw a Psycho Squad berth and get the job of hunting down heavily armed and armored cyborgs who’ve flipped out. A cyberpsycho can walk through machine gun fire and not even feel it, so a lot of the Psycho Squad become a bit crazy themselves; they load up with boosted reflexes, get some monstrously huge guns, and go hunt the cyborgs solo. But you’re not that crazy. Yet.
+
 Of course, there are areas of the City where not even the Law dare go most of the time. The only reason any of them would willingly enter would be to save one of their own and then get the hell out as quickly as possible.
-Someone has to prevent civilians from taking a bullet in the latest gang war.
-∆ Officer Suri “Cavalry” Navarro, NCPD
-Law Lifepath
-What’s your position in the force?
 
-How wide is your jurisdiction?
+> ***Someone has to prevent civilians from taking a bullet in the latest gang war.***
+> ∆ Officer Suri “Cavalry” Navarro, NCPD
 
-How corrupt is your unit?
+## Law Lifepath
+### What’s your position in the force?
+| 1d6 | Position |
+| --- | -------- |
+| 1 | Guard |
+| 2 | Standard beat or patrol |
+| 3 | Criminal Investigation |
+| 4 | Special Weapons and Tactics |
+| 5 | Motor Patrol |
+| 6 | Internal Affairs |
 
-Who’s gunning for your unit?
+### Where is your jurisdiction?
+| 3d6 | Jurisdiction |
+| --- | ------------ |
+| 3 | Pacifica |
+| 4 | Open Highways and the Badlands |
+| 5 | Corporate Plaza |
+| 6 | Charter Hill |
+| 7 | Rancho Coronado |
+| 8 | Arroyo |
+| 9 | Little China |
+| 10 | Kabuki |
+| 11 | Northside Industrial District |
+| 12 | Vista del Rey |
+| 13 | The Glen |
+| 14 | Japantown |
+| 15 | Wellsprings |
+| 16 | Downtown |
+| 17 | North Oak |
+| 18 | Netwatch Liaison |
 
-Wh are your unit's major targets?
+### How corrupt is your unit?
+| 1d6 | Corruption |
+| --- | ---------- |
+| 1 | Fair, honest policing with strong ethical practices. |
+| 2 | Fair and honest policing, but hard on law-breakers. |
+| 3 | Will occasionally, but rarely, slip into unethical actions. |
+| 4 | Willing to bend any rules to get to the bad guys. |
+| 5 | Ruthless to control the Street, even breaking the law to, ostensiably, uphold it. |
+| 6 | Corrupt, taking bribes and engage in illegal and unethical business all the time. |
 
-Connection Qustions
+### Who’s gunning for your unit?
+| 1d6 | Enemy |
+| --- | ----- |
+| 1 | Friends of a criminal you helped put away. |
+| 2 | An escaped or released criminal who blames you. |
+| 3 | Police Accountability Group. |
+| 4 | Dirty Politicians. |
+| 5 | A powerful gang. |
+| 6 | Dirty cops whose plans you're in the way of. |
+
+### Who are your unit's major targets?
+| 1d6 | Target |
+| --- | ----- |
+| 1 | Organized Crime. |
+| 2 | Trafficking and kidnapping. |
+| 3 | Illicit trade. 1d6: 1: Drugs, 2: XBDs 3: Weapons 4: Counterfeit luxury items 5: Organs or Cyberware 6: Fenced stolen goods |
+| 4 | Burgulars and robbers. |
+| 5 | Illegal gambling. |
+| 6 | Street Criminals. |
+
+### Connection Qustions
 Ask these questions to different players about their characters to build existing relationships.
-»  What crime did I let you get away with and why?
-»  What enemy of yours did I take out?
-»  What crime did we fail to solve together?
-Law Role Ability
+* *What crime did I let you get away with and why?
+* What enemy of yours did I take out?
+* What crime did we fail to solve together?
+
+## Law Role Ability
+### General Description
 Being part of the Law means you can call for backup. Who to call in is up to you, choosing from those available to your rank or below. Of course, abusing this is a quick way to get on your boss’ bad side.
-When you call for backup, you may use your action to roll 1d10 under your Role ability rank. If you’re calling for a kind of backup that’s available to a lower ability rank, you may treat your rank as 1 higher for each step lower that could call in what you’re asking for.
-Once you’ve confirmed that backup is on its way, roll 1d6 for the number of turns before the backup arrives. If you roll a 6, it might take a while, but the backup that arrives is of the next higher type. If your rank is 10, you get two units responding instead of one.
-Backup Statistics
-Individuals in your backup use csimplified NPC stats:
-Combat #: This is added to the 1d10 for attacks, defense, and skills they can be assumed to be trained in.
-SP: The stopping power for both body and head.
-HP: Their number of hit points before going down.
-MOVE: Treated just like for PCs.
-BODY: The only primary stat that might be relevant on its own during combat.
-Law Ability Rank 1 and 2
-Corporate security. Four rent-a-cops, arriving on foot. They carry Heavy Pistols and have Kevlar® armor.
 
-Law Ability Rank 3 and 4
-Local beat cops. Four local cops on the beat arrive in two separate compact groundcars. They carry heavy pistols and are armored in Kevlar®.
+When you call for backup, you may use your action to roll 1d10 and add your Role ability rank against the DV for the backup you want to request. If you succeed, backup is on its way and as long as you're in a reasonably accessable location, will arrive in 1d6 rounds. If you roll a 6, it might take longer but the backup is of the next higher type. If your rank is 10, you get two units responding instead of one.
 
-Law Ability Rank 5, 6, and 7
-Precinct officers. Two local advanced duty officers arrive in a high performance groundcar. They are armed with heavy pistols and assault rifles and are wearing heavy armorjack.
+### Abilities
+Backup uses the NPC Mook sheet. When the Law unlocks a certain type, a copy of the Mook is made and the Law is given Observer permissions. The Law's Role ability area on their Character sheet gains a button to call in backup for each type they've unlocked, next to a link to view the sheet for that type (using the UUID for their copy). The button rolls 1d10 + Role rank (no Primary stat or Skill) against the DV given for that type. On a success, roll 1d6. Chat should write out a reply from Police Dispatch about how soon they'll be there (from "Officers already investigating; hang tight" on a 1, to "We have experts in the area, they'll get to you ASAP" on a 6). Each result, including Dispatch not having anyone nearby to help, should randomize between a handful of phrases so as to not feel stale too fast. Everything past this is handled by the GM.
 
-Law Ability Rank 8
-Precinct SWAT. An officer that’s an expert in dealing with the harshest parts of the city arrives on a superbike. They’re carrying a very heavy pistol, an assault rifle, and a grenade launcher. They’re wearing flak armor.
+| Unlock rank | Name | Description | NPC Mook stats |
+| ----------- | ---- | ----------- | -------------- |
+| 1 | Corporate security | Four rent-a-cops, arriving on foot. They carry Heavy Pistols and have Kevlar® armor. | DV to call: 7; CorpSec: CombatN 8, SP 7, MOVE 5, BODY 5; Gear: Militech M-10AF Lexington, Flashlight, Radio Communicator; Cyberware: Neuroport |
+| 3 | Beat cops | Four local cops on the beat arrive in two separate compact cars. They carry heavy pistols and are armored in Kevlar®. | DV to call: 9; Beat Cop: CombatN 10, SP 7, MOVE 5, BODY 5; Gear: Militech M-10AF Lexington, Flashlight, Handcuffs, Radio Communicator, Road Flare; Cyberware: Neuroport |
+| 5 | Precinct officers | Two local advanced duty officers arrive in a high performance car. They are armed with heavy pistols and assault rifles and are wearing heavy armorjack. | DV to call: 11; Police officer: CombatN 12, SP 13, BODY 5; Gear: Militech M-76E Omaha, Arasaka Nowaki, Flashlight, Handcuffs ×2, Radio Communicator, Road Flare ×2; Cyberware: Neuroport
+| 8 | SWAT | An officer that’s an expert in dealing with the harshest parts of the city arrives on a motorcycle. They’re carrying a very heavy pistol, an assault rifle, and a grenade launcher. They’re wearing flak armor. | DV to call: 14; SWAT Officer: CombatN 14, SP 15, MOVE 5, BODY 7; Gear: Arasaka JKE-X2 Kenshin, Militech M362s Ajax with Militech EFMO2 Boulder and Militech ClearVue Mk.8 mods, Stun Baton, Anti-Smog Breathing Mask, Handcuffs ×2, Radio Communicator, Road Flare ×2, Rope, Chipware: Pain Editor; Cyberware: Neuroport, Self-ICE, Kerenzikov, Cybereyes ×2, Wide-Spectrum Optics, Cyberarm, Subdermal Grip |
+| 9 | MaxTac | Two heavy-hitters from the cyberpsycho squad arrive in an AV-4. They’re carrying assault rifles and rocket launchers and are covered in Metalgear®. | DV to call: 16;  CombatN 15, SP 18, MOVE 4, BODY 8; Gear: Techtronica RT-46 Burya, Arasaka HJSH-18 Masamune, Arasaka Dojigiri Yatsuna, Chipware: Pain Editor; Cyberware: Neuroport, Self-ICE, Sandevistan, MultiOptic Mount, Standard Cybereye ×4, Anti-Dazzle, Image Enhance, Radiation Detector, Targeting Scope, TeleOptics, Wide-Spectrum Optics, Standard Cyberaudio Suite, Level Dampener, Standard Cyberarm ×2, Arasaka Daikon NT Mantis Blades ×2, Subdermal Grip, Nasal Filters |
+| 10 | International Special Agens | National law enforcement/Interpol/Netwatch. The serious heavy-hitters and specialists in their given fields. They travel in pairs and arrive on an AV-4. They'll stay after the fact and aid in the investigation. If the Law calls for backup connected to the same case in the future, the same officers will until the case is closed or they die in the line of duty. | No NPC Sheet as the situations vary too much and must be handled by the GM. |
 
-Law Role Ability Rank 9
-Max-Tac. Two heavy-hitters from the cyberpsycho squad arrive in an AV-4. They’re carrying assault rifles and rocket launchers and are covered in Metalgear®.
+### Law Starting Gear
+Weapons and Armor: 
+* Arasaka Nowaki or Constitutional Arms M2038 Tactician
+* Militech M-10AF Lexington
+* Basic Assault Rifle Ammunition ×50 or Basic Shotgun Shell Ammunition ×50 or Basic Slug Ammunition ×50
+* Basic Heavy Pistol Ammunition ×50
+* Bulletproof Shield or Smoke Grenade ×2
+* Light Armorjack
 
-Law Role Ability Rank 10
-National law enforcement/Interpol/Netwatch. The serious heavy-hitters and specialists in their given fields. They travel in pairs and arrive on an AV-4. They carry very heavy pistols and assault rifles, and wear light armorjack.
-Unlike other forms of backup, these will stay after the fact and aid in the investigation of the scene. If the Law character calls for backup connected to the same case in the future, the same officers will automatically respond until the case is closed or they die in the line of duty.
-The GM should allow these officers to use their combat number for any skill check that reasonably fall under their specialties.
+Outfit:
+* Flashlight
+* Handcuffs ×2
+* Radio Communicator
+* Road Flare ×10
 
-Law Starting Gear
-Weapons and Armor: Assault Rifle or Shotgun worth €$500, Heavy Pistol worth €$500, Basic Rifle Ammunition, Basic Shotgun Shell Ammunition, or Basic Slug Ammunition ×100, Basic Heavy Pistol Ammunition ×50, Bulletproof Shield or Smoke Grenade ×2; Light Armorjack Body Armor (SP11), Light Armorjack Head Armor (SP11)
-Outfit: Flashlight, Handcuffs ×2, Radio Communicator, Road Flare ×10
-Clothes: Generic Chic (Jacket, Bottoms ×2, Top ×3), Leisurewear (Footwear ×2, Jacket ×2, Bottoms ×2, Mirrorshades, Top ×2)
-Cyberware: Hidden Holster, Subdermal Pocket (PSYCHE loss: 10; Max reduced by 3)
+Clothes:
+* Entropism:
+ * Footwear ×2
+ * Jacket ×2
+ * Bottoms ×2
+ * Top ×2
+ * Shades
+* Kitsch:
+ * Jacket
+ * Bottoms ×2
+ * Top ×3
+
+Cyberware:
+* Neuroport
+* Hidden Holster
+* Subdermal Pocket
 
 # Media
  Networker
+## Description
 They’re bending the truth out there. And you’re going to stop them. Someone has to do it. The Corporations rule the world. They dump toxics, destabilize economies, and commit murder with equal impunity.
-You’ve got a vidlink and a press pass, and you’re not afraid to use them as a city-wide figure, seen nightly all over. It’s not always like the old days, when you had a major Mediacorp behind you; this time, you’ve gotta depend on your fans, your contacts, and your own reputation. But it’s harder for Corps to make you disappear these days. So when you dig down for the dirt and slime the corrupt officials and Corporate lapdogs try to cover up, you can dig deep. The next morning, you can put the details of their crimes all over the screamsheets and vidscreens.
-The bad guys have tried to kill you several times. That’s why you need backup, such as a crack Solo bodyguard and the top ‘Runners in the business digging through NET Architectures to back your stories. Stay ahead and you’ll change the world. Slack off and you'll be flatlined soon enough.
-I didn't become a journalist to smile for the camera with some Corpo on synthcoke — I bring the actual News!
-∆ "24/7", Reporter for 
-Never Blink News
 
-Connection Qustions
+You’ve got a vidlink and a press pass, and you’re not afraid to use them as a city-wide figure, seen nightly all over. It’s not always like the old days, when you had a major Mediacorp behind you; this time, you’ve gotta depend on your fans, your contacts, and your own reputation. But it’s harder for Corps to make you disappear these days. So when you dig down for the dirt and slime the corrupt officials and Corporate lapdogs try to cover up, you can dig deep. The next morning, you can put the details of their crimes all over the screamsheets and vidscreens.
+
+The bad guys have tried to kill you several times. That’s why you need backup, such as a crack Solo bodyguard and the top ‘Runners in the business digging through NET Architectures to back your stories. Stay ahead and you’ll change the world. Slack off and you'll be flatlined soon enough.
+
+>***I didn't become a journalist to smile for the camera with some Corpo on synthcoke — I bring the actual News!***
+>∆ "24/7", Reporter for Never Blink News
+
+## Media Lifepath
+### What kind of media are you?
+| 1d6 | Type |
+| --- | ---- |
+| 1 | Blogger |
+| 2 | Writer (Books) |
+| 3 | Videographer |
+| 4 | Documentarian |
+| 5 | Investigative Reporter |
+| 6 | Street Scribe |
+
+### How do your reach the public?
+| 1d6 | Type |
+| --- | ---- |
+| 1 | Monthly Magazine |
+| 2 | Blog |
+| 3 | Mainstream Vid Feed |
+| 4 | News Channel |
+| 5 | Radio broadcasts |
+| 6 | Screamsheets |
+| 7 | Radio broadcasts |
+
+### What do you report on?
+| 1d6 | Story |
+| --- | ----- |
+| 1 | Political Intrigue |
+| 2 | Ecological Impact |
+| 3 | Celebrity News |
+| 4 | Corporate Takedowns |
+| 5 | Editorials |
+| 6 | Propaganda |
+
+### How ethical are you?
+| 1d6 | Ethics |
+| --- | ------ |
+| 1 | Fair, honest reporting. Strong ethical practices. You only report the verifiable truth. |
+| 2 | Fair and honest reporting, but willing to go on hearsay and rumor if that’s that it takes. |
+| 3 | Will occasionally but rarely slip into ethical things. You have some standards. |
+| 4 | Willing to bend any rules to get the bad guys, but only the bad guys. |
+| 5 | Ruthless and determined to make it big, even if it means breaking the law. |
+| 6 | Totally corrupt, taking bribes and engage in illegal an unethical reporting all the time — your pen is for hire. |
+
+### Who's gunning for you?
+| 1d6 | Enemy |
+| --- | ----- |
+| 1 | A corpo or politico you exposed who wants revenge. |
+| 2 | Someone who was hurt by others after your reporting. |
+| 3 | An informant who blames your for being exposed. |
+| 4 | A Ninja or Solo hired to silence you. |
+| 5 | A conspiracy theorist convinced you're covering up the actual truth. |
+| 6 | Someone sending you secret threats. |
+
+### Connection Qustions
 Ask these questions to different players about their characters to build existing relationships.
-»  How did I make you out as the hero of a story?
-»  What enemy of yours did I expose?
-»  What dirt about you have I covered up?
-Media Role Ability
-Medias rely on their credibility to pick up on rumors, talk to informants, and spread their message. Every day, the GM decides what the most interesting rumor for you might be. They'll roll your Business, Government, or Streetwise, depending on what best suits the rumor, adding both the relevant Primary STAT and your rank as Media. This uses the Passive column in the table below.
-You may also go looking for rumors to see what you can pick up regarding a an event, a person, or similar. You choose the skill for this as you choose what sources to pull from. Compare with the active DV in the table.
-Rumors might well be untrue and are never the whole truth, but they’re a place to start.
-Reach Stats
-Your ability rank shows how far your influence goes. 
-Access: This is who you can somewhat easily get hold of by poking the right contacts.
-Audience: People in this group can largely be assumed to at least have heard about your pieces.
-Impact: This is the amount of change a scoop can reasonably facilitate.
-When you publish a story, 10% of your audience buys into your premise. This increases by an additional 5% of the audience for each Role ability rank. Add 5% for each verifiable, easily understood, fact up to a maximum bonus of 20%. Even the most credible Medias aren’t trusted by everyone.
-Role Ability Rank 1 and 2: Reach
-Access: Local honcho, gang lord, or the local neighborhood leadership
-Audience: Immediate neighborhood
-Impact: Change is small and incremental, but minor actors in the space might shift their ways
-Role Ability Rank 3 and 4: Reach
-Access: City gang honcho, minor politician, corp Corpo, well-known person in the neighborhood
-Audience: You’re a well-known contributor to the local screamsheet or Data Pool
-Impact: Your stories have a direct effect. Small-timers get arrested or thrown out of power, justice can be served.
-Role Ability Rank 5 and 6: Reach
-Access: Major city player, city politico, local celebrity
-Audience: City wide demographic; regular columnist or contributor to local screamsheets or TV
-Impact: Changes things across the city, with higher-level targets possibly being jailed or thrown out of power. Local laws might even be passed.
-Role Ability Rank 7 and 8: Reach
-Access: Local corp president, mayor or city manager, city celebrity
-Audience: State-wide, making you a minor celebrity in your own right
-Impact: Change might spread across multiple cities and mid-level corporations or governments might be thrown out of power. Laws affecting many people might get passed.
-Role Ability Rank 9: Reach
-Access: Divisional corp head, state politico, well-known celebrity
-Audience: Nation-wide, within your area of expertise
-Impact: Change can spread across the nation, possibly toppling large corporations or local governments. National laws might be created, abolished, or changed.
-Role Ability Rank 10: Reach
-Access: Major world leaders and corporation heads, world celebrities
-Audience: World-wide, making you both a celebrity and someone to leak information to
-Impact: Large-scale changes that affect millions.
-Media Starting Gear
-Weapons and Armor: Any Pistol worth €$500, appropriate Basic Pistol Ammunition ×50; Light Armorjack Body Armor (SP11), Light Armorjack Head Armor (SP11)
-Outfit: Audio Recorder, Binoculars, Disposable Cell Phone ×2 or Grapple Gun, Flashlight, Computer, Radio Scanner/Music Player, Scrambler/Descrambler, Video Camera
-Clothes: Generic Chic (Footwear, Bottoms, Top); Leisurewear (Jacket; Urban Flash: Mirrorshades)
-Cyberware: Cyberaudio Suite (Amplified Hearing or Voice Stress Analyzer), Light Tattoo (PSYCHE — temporary loss: 10; max reduced by: 3)
+* How did I make you out as the hero of a story?
+* What enemy of yours did I expose?
+* What dirt about you have I covered up?
+
+## Media Role Ability
+### General Description
+Medias rely on their credibility to pick up on rumors, talk to informants, and spread their message. Every day, the GM decides what the most interesting rumor for you might be. They'll roll your Business or Government (the full ranks without a Component), or Streetwise, depending on what best suits the rumor, adding your Media rank. They may use INT instead of COOL for Streetwise. This uses the Passive column in the table below.
+
+You may also go looking for rumors to see what you can pick up regarding a an event, a person, or similar. You choose the skill for this as you choose what sources to pull from. Compare with the active DV in the table. Rumors might well be untrue and are never the whole truth, but they’re a place to start.
+
+| Description | Passive DV | Active DV |
+| ----------- | ---------- | --------- |
+| **Vague rumor.** There’s only the bare minimum to go on. | 15 | 12 |
+| **Typical rumor.** Enough to know where to go next to investigate and the information might give a glimpse at the supposed truth. | 18 | 15 |
+| **Substantial rumor.** There’s also some concrete information that will help with an investigation, such as names, places, and times. | 21 | 18 |
+| **Detailed rumor.** There’s additional information that, if verified, makes it immediately relevant for publication. | 25 | 22 |
+
+Your ability rank also shows your increasing influence in some key areas.
+* **Access:** Using your contanct, you can get hold of these kinds of people to ask questions.
+**Audience:** People in this group can largely be assumed to at least have heard about your work.
+**Impact:** The amount of change a scoop can reasonably facilitate.
+
+When you publish a story, roughly 10% of your audience buys into your premise. This increases by an additional 5% of the audience for each Role ability rank. Add 5% for each verifiable, easily understood, fact up to a maximum bonus of 20%. Even the most credible Medias aren’t trusted by everyone.
+
+### Implementation of the Role ability
+The Character sheet's Role ability area should include two buttons, the second one of which is only visibible and available to GMs. The first is "Pick up rumours" and allows the the player to choose between Business, Government, and Streetwise. Don't apply any Components and the roll is 1d10 + INT (or Cool for Streetwise, if it's higher) + the chosen skill + Media rank. Repoer the result in chat, visible to the player and the GM, along with the corresponding description in the table for the highest active DV the roll reached. The second button offers the GM the same choice of skills and makes the roll for the Actor, with the result visible to the GM only. It uses the description for highest passive DV reached.
+
+Any Streetwise skill check uses INT instead of Cool as default if INT is higher.
+
+The rest is handled by the GM.
+
+### Abilities
+| Unlock rank | Name | Description |
+| ----------- | ---- | ----------- |
+| 1 | Aspiring Reporter | **Access:** Local honcho, gang lord, or the local neighborhood leadership<br>**Audience:** Your immediate neighborhood.<br>**Impact:** Change is small and incremental, but minor actors in the space might shift their ways. |
+| 3 | Journalist | **Access:** City gang honcho, minor politician, corp Corpo, well-known person in the neighborhood<br>**Audience:** You’re a well-known contributor to the local screamsheet or Data Pool.<br>**Impact:** Your stories have a direct effect. Small-timers get arrested or thrown out of power, justice can be served. |
+| 5 | Intrepid Investigator | **Access:** Major city player, city politico, local celebrity<br>**Audience:** City wide demographic; regular columnist or contributor to local screamsheets or TV.<br>**Impact:** Changes things across the city, with higher-level targets possibly being jailed or thrown out of power. Local laws might even be passed. |
+| 7 | Seasoned Journalist | **Access:** Local corp president, mayor or city manager, city celebrity<br>**Audience:** State-wide, making you a minor celebrity in your own right.<br>**Impact:** Change might spread across multiple cities and mid-level corporations or governments might be thrown out of power. Laws affecting many people might get passed. |
+| 9 | Senior Correspondent | **Access:** Divisional corp head, state politico, well-known celebrity<br>**Audience:** Continent-wide, within your area of expertise.<br>**Impact:** Change can spread across the nation, possibly toppling large corporations or local governments. National laws might be created, abolished, or changed. |
+| 10 | World Journalist | **Access:** Major world leaders and corporation heads, world celebrities<br>**Audience:** World-wide, making you both a celebrity and someone to leak information to.<br>**Impact:** Large-scale changes that affect millions. |
+
+## Media Starting Gear
+Weapons and Armor:
+* Constitutional Arms Unity
+* Basic Heavy Pistol Ammunition ×50
+* Light Armorjack
+
+Outfit:
+* Audio Recorder
+* Binoculars
+* Disposable Cell Phone ×2 or Grapple Gun
+* Flashlight
+* Laptop
+* Radio Scanner/Music Player
+* Scrambler/Descrambler
+* Video Camera
+
+Clothes:
+* Entropism:
+ * Jacket
+ * Footwear
+* Kitsch:
+ * Footwear
+ * Bottoms ×3
+ * Top ×3
+ * Shades
+ * Headwear
+
+Cyberware:
+* Neuroport
+* Standard Cyberaudio Suite
+* Amplified Hearing or Voice Stress Analyzer
+* Scrambler/Descrambler or Bug Detector
 
 # Medtech
  Specialist
+ ## Description
 You’re an artist, and the human body is your canvas. If you’re lucky, you got to attend one of the real med schools scattered around the wreck of the Old United States. And after the War, military hospitals were everywhere and the few doctors on the war front needed helping hands to hold down screaming patients and splice cyberware back together. So, maybe you learned that way.
+
 There’s always an old ripperdoc or two out there who perform street surgery of various levels of legality. Maybe one of those trained you. Maybe that’s where you are right now, patching up the wounded, mending up the sick, and keeping the locals alive. For love, commitment, or maybe a just a fat payday on the side.
+
 If you’re really lucky, you’ve scored a berth in the local Trauma Team franchise. Trauma Teams are groups of licensed paramedicals who patrol the city looking for patients. You operate from an AV-4 Urban Assault Vehicle, redesigned into an ambulance configuration, and armed with a belly-mounted minigun. It’s the best of the best—Trauma Team charges some heavy subscription fees to save its clients, and that translates into new medical toys, faster AV ambulances, and hefty salaries for the best surgeons around.
+
 It doesn’t matter how you got here. What matters is that you’re here, on The Street, doing the job. And you’d be doing it no matter what the reason. It’s what marks you as a Medtech.
-I don’t have initials after my name, but I can fix that arm. Or you lose it. Your choice.
-∆ Virgil “Redtail” Martinez
-Medtech Lifepath
-What kind of Medtech are you?
 
-If you have a partner, who?
+> ***I don’t have initials after my name, but I can fix that arm. Or you lose it. Your choice.***
+> ∆ Virgil “Redtail” Martinez
 
-What’s your workspace like?
+## Medtech Lifepath
+### What kind of Medtech are you?
+| 1d10 | Type |
+| ---- | ---- |
+| 1 | Surgeon |
+| 2 | General Practitioner |
+| 3 | Trauma Medic |
+| 4 | Psychiatrist |
+| 5 | Cyberpsycho Therapist |
+| 6 | Ripperdoc |
+| 7 | Cryosystems operator |
+| 8 | Pharmacist |
+| 9 | Bodysculptor |
+| 10 | Forensic Pathologist |
 
-Who are your main clients?
+### If you have a partner, who?
+| 1d6 | Partner |
+| --- | ------- |
+| 1 | Trauma Team group |
+| 2 | Old friend |
+| 3 | Possible romantic partner |
+| 4 | Family member |
+| 5 | Secret partner with mob/gang connections |
+| 6 | Secret partner with corporate connections |
 
-Where do you get your supplies?
+### What’s your workspace like?
+| 1d6 | Workspace |
+| --- | --------- |
+| 1 | Sterilized daily in the morning like clockwork. |
+| 2 | It’s not state-of-the-art anymore, but comfortable to you. |
+| 3 | Cryo equipment also keeps drinks cool. |
+| 4 | Everything possible is single use and stored compacted until needed. |
+| 5 | Not as clean as your patients would have hoped. |
+| 6 | Meticulously organized, sharpened, and sterilized. |
 
-Connection Qustions
+### Who are your main clients?
+| 1d6 | Clients |
+| --- | ------- |
+| 1 | Local fixers send you clients. |
+| 2 | Local Bandits who protect your work or home in exchange for medical help. |
+| 3 | Corporate Corpos and Operatives who use you for “black project” medical work. |
+| 4 | Solos and other combat types. |
+| 5 | Local Nomads and Fixers bring you wounded clients. |
+| 6 | Trauma Team paramedical work. |
+
+### Where do you get your supplies?
+| 1d6 | Type |
+| --- | ---- |
+| 1 | Scavenge stashes of supplies in abandoned city zones. |
+| 2 | Strip parts from bodies after firefights. |
+| 3 | Have a local Fixer bring you supplies in exchange for medical work. |
+| 4 | Corporate Corpos or Trauma Team keeps you supplied in exchange for your services. |
+| 5 | You have a backdoor into a few corporate or hospital warehouses. |
+| 6 | You hit the Night Markets and score deals whenever you can. |
+
+### Connection Qustions
 Ask these questions to different players about their characters to build existing relationships.
-»  When did I save your life?
-»  Who, close to you, did I fail to save?
-»  How did your cyberware dramatically malfunction and I had to replace it?
-Medtech Role Ability
-As a Medtech, you have access to specialties that allow you to perform tasks others can’t. When you gain a rank in the Medtech role ability, you also gain one rank each in two different specialties. This is the only way to increase these.
-The Medtech specialties can be used as Components with Medicine to understand and use medical equipment. Used with Electronics, they can be used for repairs of such equipment.
-Battle Medic
-When you stabilize someone, applying a quick fix to a critical injury, or any other regular use of the Medicine skill not governed by this Role ability, add your ranks in this specialty to your roll.
-Given ten minutes to care for someone’s wounds, you may heal them as many points as twice your ranks as Battle Medic. A person can only benefit from this healing once per day, but it is on top of other healing you can provide.
-Surgery
-Treatment of serious critical injuries require TECH + Medicine (Surgery) checks. It is also required to install any cyberware, do body-sculpting, and any other invasive procedure. Without a Medtech with this specialty, none of these things are possible.
-Pharmaceuticals
-A TECH + Medicine (Pharmaceuticals) check can be used to analyze pharmaceutical compounds and drugs.
-Each time you gain a rank in Pharmaceuticals, you learn how to synthesize one of the drugs listed here. Ingredients are €$100 (Premium) for a number of does equal to your rank in this specialty. Preparation of that many doses takes 1 hour and requires a DV15 TECH + Medicine (Pharmaceuticals) check, wasting materials on a failure. The batch you make can be any combination of the drugs you know.
-Applying a dose with an airhypo takes an Action. If the target is unwilling, you may make a BODY + Melee Weapon attack, administering the dose instead of dealing damage on a hit. Someone without at least one rank as a Medtech can’t administer pharmaceuticals correctly. The effect might be pointlessly weak, dangerously potent, or have weird interactions when handled by someone without training.
-Note that the medicine listed here is carefully calibrated for medical applications. It’s theoretically possible to use what you know to develop street drugs, but the details would have to be up to the GM.
-Cryosystem Operation
+* When did I save your life?
+* Who, close to you, did I fail to save?
+* How did your cyberware dramatically malfunction and I had to replace it?
+
+## Medtech Role Ability
+### General Description
+As a Medtech, you have access to specialties that allow you to perform tasks others can’t. When you gain a rank in the Medtech role ability, you also gain one rank each in two different specialties. This is the only way to increase these. Sometimes these specialties are used along the Medicine skill in a similar way to Components, where the lower of the skill and the ranks in the Specialty is added to the Primary Stat for the check.
+
+### Specialty: Battle Medic
+| Unlock rank | Name | Description | Implementation |
+| ----------- | ---- | ----------- | -------------- |
+| 1 | Emergency treatment | When you stabilize someone, applying a quick fix to a critical injury, or any other regular use of the Medicine skill not governed by this Role ability, add your ranks in this specialty to your roll. | Add specialty ranks to all non-Role Medicine checks. |
+| 1 | Patching up | Given ten minutes to care for someone’s wounds, you may heal them as many points as twice your ranks as Battle Medic. A person can only benefit from this healing once per day, but it is on top of other healing you can provide. | With at least 1 rank in Battle Medic a button is added to the Character sheets's Role Ability area for Patching up. Using it will offer the player a choice between all Actors with Tokens in the scene. The seleced Actor regains HP the Specialty rank×2. The button is diisabled until the GM has triggered the natural healing macro. |
+
+### Specialty: Surgery
+| Unlock rank | Name | Description | Implementation |
+| ----------- | ---- | ----------- | -------------- |
+| 1 | Surgeon | Treatment of serious critical injuries require TECH + Medicine (Surgery) checks. It is also required to install any cyberware, do body-sculpting, and any other invasive procedure. Without a Medtech with this specialty, none of these things are possible. | With at least 1 rank in Surgery, a button is added to the Character sheet's Role Ability area to Perform surgery. This rolls 1d10 + TECH + (the lower of Medicine skill ranks and ranks in the Surgery specialty) and gives the result in chat to the player and GM. The rest is handled by the GM. |
+
+### Specialty: Pharmaceuticals
+| Unlock rank | Name | Description | Implementation |
+| ----------- | ---- | ----------- | -------------- |
+| 1 | Compound analysis | A TECH + Medicine (Pharmaceuticals) check can be used to analyze pharmaceutical compounds and drugs. | With at least 1 rank in this Pharmaceuticals a button is added to the Character sheet's Role ability area to Analyze drug. That button rolls 1d10 + TECH + (the lower of Medicine skill ranks and Pharmaceuticals specialty ranks) and reports the result in chat to the player and the GM. |
+| 1 | Synthesize | Each time you gain a rank in Pharmaceuticals, you learn how to synthesize one of the drugs listed here. Ingredients are €$100 (Premium) for a number of doses equal to your rank in this specialty. Preparation takes 1 hour and requires a DV15 TECH + Medicine (Pharmaceuticals) check, wasting materials on a failure. The batch you make can be any combination of the drugs you know.<br>Applying a dose with an airhypo takes an Action. If the target is unwilling, you may make a BODY + Melee Weapon attack, administering the dose instead of dealing damage on a hit. Someone without at least one rank as a Medtech can’t administer pharmaceuticals correctly. The effect might be pointlessly weak, dangerously potent, or have weird interactions when handled by someone without training. Administering more of a drug before it's safe makes the target Fatigued. More than that is dangerous. | The Medtech gets to pick one drug to learn from the list below for each Pharmaceuticals rank they have. The Role Ability area gets a button to Produce Pharmaceuticals. When clicked, it brings up a dialog where the player can see the name and description for all drugs the have learned as well as as inputs for how many of each they want to make. These inputs are number fields with a + and a - button. The total selected can't be more than Pharmaceuticals rank and once the limit is reached, all + buttons are disabled (though can be unlocked again by reducing something to reallocate the choices). Make the DV 15 check and if successful, the ones produced are added as list-items in the Role Abilities area with their name, description, quantity, and a button to use. The button allows the player to choose any Actor who has a Token in the Scene to be the target. Multiple applications and time limits are managed by the GM. |
+
+The drugs to choose from:
+| Name | Description | Implementation |
+| ---- | ----------- | -------------- |
+| Antibiotic | Natural healing gives an extra 3 HP every day for the next week. They can only safely benefit from one antibiotic at a time. | Apply an AE that adds 3 to any healing from the GM triggering natural healing. It has 7 uses before it disappears. |
+| Anti-Psychosis | Restores 1d6 PSYCHE. A person can only safely benefit from one dose/week. | Restore 1d6 PSYCHE |
+| 
+
+### Cryosystem Operation
 A cryosystem requires a successful TECH + Medicine (Cryosystem Operation) check as an Action before it puts an enclosed body in stasis. The DV is 13 for a pump or 15 for a tank. Either allows for surgery without a risk of worsening conditions while the stasis lasts. A pump can function for a week it can maintain stasis while a tank lasts for as long as it has power. A tank also allow for complete body modification surgery. Only a Medtech with at least one rank in this specialty can hope to operate a cryosystem.
 At certain ranks, the Medtech gains access to equipment for free. While, it’s owned by the government, a corp (like Trauma Team); the Medtech is resposible for refuelling, any damage, or the like. It's othwise at the Medtech's disposal. This is a perk of being licenced and well connected. The number of pumps and tanks you have are listed in the table. Each increase in number of pumps also comes with a free recharge for all of them. After rank 3, crytanks can be placed in any suitable room the Medtech desires rather than an organisations own facility.
 
-Medtech Starting Gear
+## Medtech Starting Gear
 Weapons and Armor: Shotgun or Assault Rifle worth €$500, Basic Shotgun Shells ×100 or Basic Rifle Ammunition ×100, Incendiary Shotgun Shells ×10 or Incendiary Rifle Ammunition ×10, Smoke Grenade ×2; Light Armorjack Body Armor (SP11), Light Armorjack Head Armor (SP11), Bulletproof Shield
 Outfit: Airhypo, Handcuffs, Flashlight, Glow Paint, Medtech Bag
 Clothes: Kitsch (Jacket ×3; Leisurewear: Footwear, Bottoms ×3, Top ×5)
