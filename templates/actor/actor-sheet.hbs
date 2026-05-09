@@ -844,6 +844,51 @@
             {{/if}}
           </section>
         {{/each}}
+
+        {{#if drugItems.length}}
+          <section class="sheet-panel drugs-panel">
+            <div class="panel-header panel-actions">
+              <span>{{localize "TYPES.Item.drug"}}</span>
+              <button type="button" data-action="create-item" data-item-type="drug" title="{{localize "CYBER_BLUE.Sheet.Buttons.AddDrug"}}">
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+            <div class="embedded-list drug-list">
+              <div class="embedded-header embedded-row drug-row">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Name"}}</span>
+                <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Quantity"}}</span>
+                <span>{{localize "CYBER_BLUE.Instructions.Use"}}</span>
+                <span class="numeric-column">Controls</span>
+              </div>
+              <div class="embedded-entries">
+                {{#each drugItems as |item|}}
+                  <div class="embedded-row drug-row" data-item-id="{{item.id}}">
+                    <button type="button" class="item-name-link embedded-name" data-action="edit-item">
+                      <img src="{{item.img}}" alt="{{item.name}}" />
+                      <span>{{item.name}}</span>
+                    </button>
+                    <input class="numeric-column" type="number" value="{{item.system.quantity}}" min="0" data-action="update-item-field" data-field-path="system.quantity" data-dtype="Number" />
+                    <div class="instruction-cell">
+                      {{#if item.hasInstructions}}
+                        {{#if item.instructionActive}}
+                          <button type="button" data-action="advance-instructions" title="{{item.instructionNextLabel}}"><i class="fas fa-forward-step"></i></button>
+                        {{else if item.canStart}}
+                          <button type="button" data-action="start-instructions" title="{{item.instructionNextLabel}}">{{localize "CYBER_BLUE.Instructions.Use"}}</button>
+                        {{else}}
+                          <span class="hint">{{localize "CYBER_BLUE.Instructions.EmptyQuantity"}}</span>
+                        {{/if}}
+                      {{/if}}
+                    </div>
+                    <div class="embedded-controls">
+                      <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>
+                      <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}"><i class="fas fa-trash"></i></button>
+                    </div>
+                  </div>
+                {{/each}}
+              </div>
+            </div>
+          </section>
+        {{/if}}
       </section>
     </div>
 

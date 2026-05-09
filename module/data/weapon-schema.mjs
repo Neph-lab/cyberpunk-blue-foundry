@@ -209,5 +209,19 @@ export function buildInstructionStepField() {
     // When true, the check auto-fails if the actor doesn't have the component at all
     // (i.e. componentRank === null). Used for role-gated specialties like Cryotech.
     requiresComponent: new fields.BooleanField({ initial: false }),
+    // Message step — post HTML content to chat and auto-advance
+    message:           new fields.StringField({ required: true, blank: true, initial: '' }),
+    whisperGm:         new fields.BooleanField({ initial: false }),
+    // Flow control
+    // failIndex: on a failed check, jump to this step index instead of ending the sequence.
+    // -1 = end the sequence on failure (classic behaviour).
+    failIndex:         new fields.NumberField({ required: true, nullable: false, integer: true, initial: -1 }),
+    // terminates: after this step auto-advances, end the sequence immediately.
+    terminates:        new fields.BooleanField({ initial: false }),
+    // Effect step extras
+    // effectName: look up the AE by name instead of by id (for catalogue items).
+    effectName:        new fields.StringField({ required: true, blank: true, initial: '' }),
+    // permanent: apply the AE without snapshotting; never revert it.
+    permanent:         new fields.BooleanField({ initial: false }),
   });
 }

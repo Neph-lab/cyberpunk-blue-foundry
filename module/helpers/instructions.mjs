@@ -1,43 +1,52 @@
 /**
- * Instruction sequence execution for Gear and Cyberware items.
+ * Instruction sequence execution for Gear, Cyberware, and Drug items.
  *
- * An instruction sequence is an ordered array of steps on the item's data.
- * Each step is either:
+ * Step types:
+ *   type='effect'  — Enables/disables a named AE on the item.  Pauses (shows the
+ *                    "⏭" button) unless `permanent` is set, in which case the AE is
+ *                    applied and execution continues automatically without reverting.
  *
- *   type='effect'  — Temporarily applies an enabled/disabled state to a named
- *                    ActiveEffect on the item for one phase.  The AE reverts to
- *                    its previous state when the phase ends (next step starts or
- *                    sequence ends).  Execution PAUSES here; the actor-sheet
- *                    "⏭" button advances to the next phase.
+ *   type='check'   — Rolls 1d10 + Primary Stat + Skill (lower of Skill and Component
+ *                    if both set) vs DV.  Auto-advances on success.  On failure,
+ *                    jumps to `failIndex` if set (≥ 0), otherwise ends the sequence.
  *
- *   type='check'   — Rolls 1d10 + Primary Stat + Skill (lower of Skill and
- *                    Component if both set) vs DV.  The progress flag determines
- *                    whether rolling ≥ DV advances or ends the sequence.
- *                    Execution continues automatically (no button click needed).
+ *   type='message' — Posts `message` HTML to chat (optionally whispered to GM).
+ *                    Auto-advances.  If `terminates` is set, ends the sequence after.
+ *
+ *   type='pause'   — Pauses execution with no AE change; the "⏭" button resumes.
+ *
+ * Effect steps: `effectId` takes priority over `effectName`.  Use `effectName` for
+ * catalogue items whose AE _ids are not known at authoring time.
  *
  * Public API:
  *   startInstructions(item, actor)   — kick off the sequence from step 0
- *   advanceInstructions(item, actor) — called when the actor sheet "⏭" is clicked
+ *   advanceInstructions(item, actor) — called when the "⏭" button is clicked
+ *   getInstructionContext(itemData)  — context object for the actor sheet
  */
 
 export const INSTRUCTION_SNAPSHOT_FLAG = 'instructionAeSnapshot';
 
-// ─── Public API ──────────────────────────────────────────────────────────────
+// ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
  * Start the instruction sequence for an item.
- * Reduces Gear quantity by 1 when instructionReduceQuantity is set.
- * No-ops if no steps are defined or sequence is already active.
+ * Reduces quantity by 1 when instructionReduceQuantity is set; warns and no-ops
+ * if quantity is already 0.
+ * No-ops if no steps are defined or the sequence is already active.
  */
 export async function startInstructions(item, actor) {
   const steps = item.system?.instructions ?? [];
   if (!steps.length) return;
   if (item.system?.instructionActive) return;
 
-  // Gear: reduce quantity by 1 (floor 0, never delete)
-  if (item.type === 'gear' && item.system.instructionReduceQuantity) {
-    const newQty = Math.max((item.system.quantity ?? 1) - 1, 0);
-    await item.update({ 'system.quantity': newQty });
+  // Reduce quantity by 1 if configured (works for gear, drug, or any item type)
+  if (item.system.instructionReduceQuantity) {
+    const qty = Number(item.system.quantity) ?? 0;
+    if (qty <= 0) {
+      ui.notifications.warn(`${item.name}: ${game.i18n.localize('CYBER_BLUE.Instructions.EmptyQuantity')}`);
+      return;
+    }
+    await item.update({ 'system.quantity': Math.max(qty - 1, 0) });
   }
 
   await item.update({ 'system.instructionActive': true, 'system.instructionStep': -1 });
@@ -47,16 +56,20 @@ export async function startInstructions(item, actor) {
 /**
  * Advance from the current step to the next.
  * Called when the actor-sheet "⏭" button is clicked.
- * Reverts any active AE step, then runs from step+1 (or ends the sequence).
+ * Reverts any non-permanent AE step, then runs from step+1 (or ends the sequence).
  */
 export async function advanceInstructions(item, actor) {
   if (!item.system?.instructionActive) return;
   const steps = item.system?.instructions ?? [];
   const currentStep = item.system?.instructionStep ?? -1;
 
-  // Revert AE state if current step was an effect step
-  if (currentStep >= 0 && steps[currentStep]?.type === 'effect') {
-    await _revertAeSnapshot(item);
+  // Revert AE state only if the current step was a non-permanent effect step
+  if (currentStep >= 0) {
+    const step = steps[currentStep];
+    if (step?.type === 'effect' && !step.permanent) {
+      await _revertAeSnapshot(item);
+    }
+    // pause and permanent-effect steps have nothing to revert
   }
 
   const nextIndex = currentStep + 1;
@@ -71,7 +84,7 @@ export async function advanceInstructions(item, actor) {
 
 /**
  * Execute from startIndex onwards.
- * Loops through check steps automatically; pauses on effect steps.
+ * Loops through auto-advancing steps; pauses on effect/pause steps.
  */
 async function _runFrom(item, actor, startIndex) {
   const steps = item.system?.instructions ?? [];
@@ -81,8 +94,26 @@ async function _runFrom(item, actor, startIndex) {
     const step = steps[i];
 
     if (step.type === 'effect') {
-      // Apply AE state and pause — the button click will advance
-      await _applyAeStep(item, step);
+      if (step.permanent) {
+        // Apply AE permanently — no snapshot, auto-advance (never reverted)
+        await _applyPermanentAeStep(item, step);
+        await item.update({ 'system.instructionStep': i });
+        if (step.terminates) {
+          await _endInstructions(item, false);
+          return;
+        }
+        i++;
+        continue;
+      } else {
+        // Apply AE and pause — the "⏭" button will advance
+        await _applyAeStep(item, step);
+        await item.update({ 'system.instructionStep': i });
+        return;
+      }
+    }
+
+    if (step.type === 'pause') {
+      // No AE change — just pause; "⏭" button resumes
       await item.update({ 'system.instructionStep': i });
       return;
     }
@@ -91,12 +122,33 @@ async function _runFrom(item, actor, startIndex) {
       const result = await _rollCheckStep(item, step, actor);
       await item.update({ 'system.instructionStep': i });
       if (result.advances) {
+        if (step.terminates) {
+          await _endInstructions(item);
+          return;
+        }
         i++;
         continue;
       } else {
+        // Check failed — jump to failIndex, or end if none set
+        const failIndex = step.failIndex ?? -1;
+        if (failIndex >= 0 && failIndex < steps.length) {
+          i = failIndex;
+          continue;
+        }
         await _endInstructions(item);
         return;
       }
+    }
+
+    if (step.type === 'message') {
+      await _postMessageStep(item, step, actor);
+      await item.update({ 'system.instructionStep': i });
+      if (step.terminates) {
+        await _endInstructions(item);
+        return;
+      }
+      i++;
+      continue;
     }
 
     i++; // Unknown step type — skip
@@ -106,15 +158,51 @@ async function _runFrom(item, actor, startIndex) {
   await _endInstructions(item);
 }
 
-/** Apply the AE state for an effect step and snapshot the previous state. */
-async function _applyAeStep(item, step) {
-  if (!step.effectId) return;
-  const effect = item.effects.get(step.effectId);
-  if (!effect) return;
+/**
+ * Resolve the AE for a step by effectId (priority) or effectName.
+ */
+function _resolveStepEffect(item, step) {
+  if (step.effectId) return item.effects.get(step.effectId) ?? null;
+  if (step.effectName) return item.effects.find((e) => e.name === step.effectName) ?? null;
+  return null;
+}
 
+/**
+ * Apply the AE state for an effect step and snapshot the previous state so it
+ * can be reverted when the step ends.
+ */
+async function _applyAeStep(item, step) {
+  const effect = _resolveStepEffect(item, step);
+  if (!effect) return;
   const snapshot = [{ id: effect.id, wasDisabled: effect.disabled }];
   await item.setFlag('cyberpunk-blue', INSTRUCTION_SNAPSHOT_FLAG, JSON.stringify(snapshot));
   await effect.update({ disabled: !step.effectEnabled });
+}
+
+/**
+ * Apply an AE permanently — no snapshot, never reverted automatically.
+ * Used for addiction penalties and other long-term consequences.
+ */
+async function _applyPermanentAeStep(item, step) {
+  const effect = _resolveStepEffect(item, step);
+  if (!effect) return;
+  await effect.update({ disabled: !step.effectEnabled });
+}
+
+/**
+ * Post a message step's HTML content to chat, optionally whispering to GM.
+ */
+async function _postMessageStep(item, step, actor) {
+  const content = step.message ?? '';
+  if (!content) return;
+  const msgData = {
+    content: `<div class="cyberpunk-blue chat-card">${content}</div>`,
+    speaker: ChatMessage.getSpeaker({ actor }),
+  };
+  if (step.whisperGm) {
+    msgData.whisper = ChatMessage.getWhisperRecipients('GM');
+  }
+  await ChatMessage.create(msgData);
 }
 
 /** Restore AE states from the snapshot stored in flags. */
@@ -131,12 +219,18 @@ async function _revertAeSnapshot(item) {
   await item.unsetFlag('cyberpunk-blue', INSTRUCTION_SNAPSHOT_FLAG);
 }
 
-/** End the sequence: revert any active AE step and clear active state. */
-async function _endInstructions(item) {
-  const currentStep = item.system?.instructionStep ?? -1;
-  const steps = item.system?.instructions ?? [];
-  if (currentStep >= 0 && steps[currentStep]?.type === 'effect') {
-    await _revertAeSnapshot(item);
+/**
+ * End the sequence: revert any non-permanent active AE step and clear active state.
+ * @param {boolean} [revert=true] — pass false when a permanent step just fired
+ */
+async function _endInstructions(item, revert = true) {
+  if (revert) {
+    const currentStep = item.system?.instructionStep ?? -1;
+    const steps = item.system?.instructions ?? [];
+    const step = currentStep >= 0 ? steps[currentStep] : null;
+    if (step?.type === 'effect' && !step.permanent) {
+      await _revertAeSnapshot(item);
+    }
   }
   await item.update({ 'system.instructionActive': false, 'system.instructionStep': -1 });
 }
@@ -147,26 +241,26 @@ async function _rollCheckStep(item, step, actor) {
   const skillSlug     = step.skill || '';
   const componentSlug = step.component || '';
   const dv            = step.dv ?? 13;
-  const progress      = step.progress ?? true; // true = roll≥DV advances
+  const progress      = step.progress ?? true; // true = roll ≥ DV advances
 
-  const statValue    = actor.system?.stats?.[statSlug]?.value ?? 0;
-  const statRollMod  = actor.system?.stats?.[statSlug]?.rollMod ?? 0;
-  const skillRank    = skillSlug ? (actor.system?.skills?.[skillSlug]?.rank ?? 0) : 0;
+  const statValue     = actor.system?.stats?.[statSlug]?.value ?? 0;
+  const statRollMod   = actor.system?.stats?.[statSlug]?.rollMod ?? 0;
+  const skillRank     = skillSlug ? (actor.system?.skills?.[skillSlug]?.rank ?? 0) : 0;
   const componentRank = componentSlug ? (actor.system?.components?.[componentSlug]?.rank ?? null) : null;
 
   // Auto-fail: requiresComponent is true and the actor doesn't have the component at all.
   if (step.requiresComponent && componentSlug && componentRank === null) {
-    const stepName = step.name || game.i18n.localize('CYBER_BLUE.Instructions.Check');
+    const stepName  = step.name || game.i18n.localize('CYBER_BLUE.Instructions.Check');
     const compLabel = CONFIG.CYBER_BLUE.components?.[componentSlug]?.label ?? componentSlug;
     await ChatMessage.create({
-      speaker:  ChatMessage.getSpeaker({ actor }),
-      content:  `<div class="cyberpunk-blue chat-card"><h3>${stepName}: ${item.name}</h3><p>${game.i18n.format('CYBER_BLUE.Instructions.CheckRequiresComponent', { component: compLabel })}</p><p><strong>${game.i18n.localize('CYBER_BLUE.Instructions.CheckEnds')}</strong></p></div>`,
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `<div class="cyberpunk-blue chat-card"><h3>${stepName}: ${item.name}</h3><p>${game.i18n.format('CYBER_BLUE.Instructions.CheckRequiresComponent', { component: compLabel })}</p><p><strong>${game.i18n.localize('CYBER_BLUE.Instructions.CheckFails')}</strong></p></div>`,
     });
     return { advances: false };
   }
 
   const effectiveSkill = componentRank !== null ? Math.min(skillRank, componentRank) : skillRank;
-  const flatBonus    = statValue + effectiveSkill + (statRollMod || 0);
+  const flatBonus      = statValue + effectiveSkill + (statRollMod || 0);
 
   const roll = await new Roll(`1d10 + ${flatBonus}`).evaluate();
 
@@ -176,18 +270,23 @@ async function _rollCheckStep(item, step, actor) {
 
   const bonusParts = [
     `${statLabel} ${statValue}`,
-    skillLabel ? `${skillLabel} ${skillRank}` : null,
+    skillLabel   ? `${skillLabel} ${skillRank}`         : null,
     componentLabel ? `(${componentLabel} ${componentRank})` : null,
-    statRollMod ? `Mod ${statRollMod}` : null,
+    statRollMod  ? `Mod ${statRollMod}`                 : null,
   ].filter(Boolean).join(' + ');
 
-  const advances   = progress ? (roll.total >= dv) : (roll.total < dv);
-  const resultKey  = advances ? 'CYBER_BLUE.Instructions.CheckAdvances' : 'CYBER_BLUE.Instructions.CheckEnds';
-  const stepName   = step.name || game.i18n.localize('CYBER_BLUE.Instructions.Check');
+  const advances  = progress ? (roll.total >= dv) : (roll.total < dv);
+  // Use CheckFails when there's a failIndex jump (sequence continues), CheckEnds when it stops.
+  const resultKey = advances
+    ? 'CYBER_BLUE.Instructions.CheckAdvances'
+    : ((step.failIndex ?? -1) >= 0
+        ? 'CYBER_BLUE.Instructions.CheckFails'
+        : 'CYBER_BLUE.Instructions.CheckEnds');
+  const stepName  = step.name || game.i18n.localize('CYBER_BLUE.Instructions.Check');
 
   await roll.toMessage({
-    speaker:  ChatMessage.getSpeaker({ actor }),
-    flavor:   `
+    speaker: ChatMessage.getSpeaker({ actor }),
+    flavor: `
       <div class="cyberpunk-blue chat-card">
         <h3>${stepName}: ${item.name}</h3>
         <p>${bonusParts} vs DV <strong>${dv}</strong></p>
@@ -199,18 +298,23 @@ async function _rollCheckStep(item, step, actor) {
   return { advances };
 }
 
-// ─── Context helper (used by actor-sheet.mjs) ────────────────────────────────
+// ─── Context helper (used by actor-sheet.mjs) ─────────────────────────────────
 
 /**
  * Compute the instruction display context for an item in the actor sheet.
- * Returns { hasInstructions, instructionActive, instructionNextLabel }.
+ * Returns fields consumed by the instruction button area in HBS templates.
  */
 export function getInstructionContext(itemData) {
   const steps = itemData.system?.instructions ?? [];
-  if (!steps.length) return { hasInstructions: false, instructionActive: false, instructionNextLabel: '' };
+  if (!steps.length) {
+    return { hasInstructions: false, instructionActive: false, instructionNextLabel: '', canStart: false, quantityEmpty: false };
+  }
 
-  const active      = itemData.system?.instructionActive ?? false;
-  const currentStep = itemData.system?.instructionStep ?? -1;
+  const active        = itemData.system?.instructionActive ?? false;
+  const currentStep   = itemData.system?.instructionStep ?? -1;
+  const quantity      = itemData.system?.quantity ?? null;
+  const quantityEmpty = quantity !== null && Number(quantity) <= 0;
+  const canStart      = !active && !quantityEmpty;
 
   let nextLabel;
   if (!active) {
@@ -225,5 +329,5 @@ export function getInstructionContext(itemData) {
     }
   }
 
-  return { hasInstructions: true, instructionActive: active, instructionNextLabel: nextLabel };
+  return { hasInstructions: true, instructionActive: active, instructionNextLabel: nextLabel, canStart, quantityEmpty };
 }

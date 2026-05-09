@@ -8,7 +8,7 @@
     </button>
   </div>
 
-  {{#if isGear}}
+  {{#if showReduceQuantityCheckbox}}
     <label class="checkbox-label">
       <input type="checkbox" name="system.instructionReduceQuantity" {{checked system.instructionReduceQuantity}} />
       <span>{{localize "CYBER_BLUE.Instructions.ReduceQuantity"}}</span>
@@ -46,10 +46,25 @@
           <label>
             <span>{{localize "CYBER_BLUE.Instructions.StepType"}}</span>
             <select name="system.instructions.{{step.index}}.type">
-              <option value="check" {{#if (eq step.type "check")}}selected{{/if}}>{{localize "CYBER_BLUE.Instructions.TypeCheck"}}</option>
-              <option value="effect" {{#if (eq step.type "effect")}}selected{{/if}}>{{localize "CYBER_BLUE.Instructions.TypeEffect"}}</option>
+              <option value="check"   {{#if (eq step.type "check")}}selected{{/if}}>{{localize "CYBER_BLUE.Instructions.TypeCheck"}}</option>
+              <option value="effect"  {{#if (eq step.type "effect")}}selected{{/if}}>{{localize "CYBER_BLUE.Instructions.TypeEffect"}}</option>
+              <option value="message" {{#if (eq step.type "message")}}selected{{/if}}>{{localize "CYBER_BLUE.Instructions.TypeMessage"}}</option>
+              <option value="pause"   {{#if (eq step.type "pause")}}selected{{/if}}>{{localize "CYBER_BLUE.Instructions.TypePause"}}</option>
             </select>
           </label>
+          {{!-- terminates and permanent are shared flow flags shown for applicable types --}}
+          {{#if (eq step.type "message")}}
+            <label class="checkbox-label">
+              <input type="checkbox" name="system.instructions.{{step.index}}.terminates" {{checked step.terminates}} />
+              <span>{{localize "CYBER_BLUE.Instructions.Terminates"}}</span>
+            </label>
+          {{/if}}
+          {{#if (eq step.type "check")}}
+            <label class="checkbox-label">
+              <input type="checkbox" name="system.instructions.{{step.index}}.terminates" {{checked step.terminates}} />
+              <span>{{localize "CYBER_BLUE.Instructions.Terminates"}}</span>
+            </label>
+          {{/if}}
         </div>
 
         {{!-- Effect step fields --}}
@@ -64,9 +79,37 @@
                 {{/each}}
               </select>
             </label>
+            <label>
+              <span>{{localize "CYBER_BLUE.Instructions.EffectName"}}</span>
+              <input type="text" name="system.instructions.{{step.index}}.effectName" value="{{step.effectName}}" placeholder="{{localize "CYBER_BLUE.Instructions.EffectNameHint"}}" />
+            </label>
             <label class="checkbox-label">
               <input type="checkbox" name="system.instructions.{{step.index}}.effectEnabled" {{checked step.effectEnabled}} />
               <span>{{localize "CYBER_BLUE.Instructions.EffectEnabled"}}</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="system.instructions.{{step.index}}.permanent" {{checked step.permanent}} />
+              <span>{{localize "CYBER_BLUE.Instructions.Permanent"}}</span>
+            </label>
+            {{#if step.permanent}}
+              <label class="checkbox-label">
+                <input type="checkbox" name="system.instructions.{{step.index}}.terminates" {{checked step.terminates}} />
+                <span>{{localize "CYBER_BLUE.Instructions.Terminates"}}</span>
+              </label>
+            {{/if}}
+          </div>
+        {{/if}}
+
+        {{!-- Message step fields --}}
+        {{#if (eq step.type "message")}}
+          <div class="item-meta-row">
+            <label style="flex: 1 1 100%">
+              <span>{{localize "CYBER_BLUE.Instructions.MessageContent"}}</span>
+              <textarea name="system.instructions.{{step.index}}.message" rows="3">{{step.message}}</textarea>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="system.instructions.{{step.index}}.whisperGm" {{checked step.whisperGm}} />
+              <span>{{localize "CYBER_BLUE.Instructions.WhisperGm"}}</span>
             </label>
           </div>
         {{/if}}
@@ -105,6 +148,10 @@
             <label class="compact-field">
               <span>{{localize "CYBER_BLUE.Instructions.DV"}}</span>
               <input type="number" name="system.instructions.{{step.index}}.dv" value="{{step.dv}}" data-dtype="Number" min="0" />
+            </label>
+            <label class="compact-field">
+              <span>{{localize "CYBER_BLUE.Instructions.FailIndex"}}</span>
+              <input type="number" name="system.instructions.{{step.index}}.failIndex" value="{{step.failIndex}}" data-dtype="Number" />
             </label>
             <label class="checkbox-label">
               <input type="checkbox" name="system.instructions.{{step.index}}.progress" {{checked step.progress}} />

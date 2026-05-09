@@ -53,6 +53,7 @@
         "Installed": "Installed",
         "Equipped": "Equipped",
         "Carried": "Carried",
+        "Name": "Name",
         "Quantity": "Quantity",
         "Manufacturer": "Manufacturer",
         "Armor": "Armor",
@@ -159,6 +160,7 @@
         "AddAbility": "Add Ability",
         "AddCyberware": "Add Cyberware",
         "AddGear": "Add Gear",
+        "AddDrug": "Add Drug",
         "AddComponent": "Add Component",
         "AddMod": "Add Mod",
         "AddWeapon": "Add Weapon",
@@ -750,7 +752,18 @@
       "Use": "Use",
       "Activate": "Activate",
       "RequiresComponent": "Auto-fail if component absent",
-      "CheckRequiresComponent": "Requires {component} — automatic failure."
+      "CheckRequiresComponent": "Requires {component} — automatic failure.",
+      "CheckFails": "Failure.",
+      "EmptyQuantity": "Out of stock",
+      "TypeMessage": "Message",
+      "TypePause": "Pause",
+      "MessageContent": "Message content",
+      "WhisperGm": "Whisper to GM",
+      "FailIndex": "Jump to step on fail",
+      "Permanent": "Permanent (no revert)",
+      "Terminates": "End sequence after this step",
+      "EffectName": "Effect name",
+      "EffectNameHint": "e.g. Boost - Usage"
     }
   },
   "TYPES": {

@@ -362,6 +362,11 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       const item = embeddedItems.find((entry) => entry.id === itemDoc.id) ?? itemDoc.toPlainObject();
       return { ...item };
     });
+    const drugDocs = embeddedItemDocuments.filter((item) => item.type === 'drug');
+    context.drugItems = drugDocs.map((itemDoc) => {
+      const item = embeddedItems.find((entry) => entry.id === itemDoc.id) ?? itemDoc.toPlainObject();
+      return { ...item, ...getInstructionContext(item) };
+    });
     const combatWeaponEntries = [];
     // RoF tracking: look up this actor's turn state from the combatant flag
     const actorToken = this.document.getActiveTokens()[0];

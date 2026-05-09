@@ -103,8 +103,9 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     if (context.isGear) {
       itemData.system.state = normalizeGearState(itemData.system);
     }
-    context.showAdvancedTab = (context.isCyberware || context.isGear)
-      && (itemData.system.isArmor || itemData.system.isWeapon || itemData.system.isComputer || canManageRestricted);
+    context.showAdvancedTab = ((context.isCyberware || context.isGear)
+      && (itemData.system.isArmor || itemData.system.isWeapon || itemData.system.isComputer || canManageRestricted))
+      || (context.isDrug && canManageRestricted);
     context.showWeaponSection = itemData.system.isWeapon || canManageRestricted;
     context.showCyberwareDetailsTab = context.isCyberware;
     context.enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(itemData.system.description, {
@@ -255,7 +256,8 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       .sort((a, b) => a.label.localeCompare(b.label));
 
     // ── Instruction sequence context (GM-only Advanced tab) ────────────────
-    if ((context.isGear || context.isCyberware) && canManageRestricted) {
+    context.showReduceQuantityCheckbox = context.isGear || context.isDrug;
+    if ((context.isGear || context.isCyberware || context.isDrug) && canManageRestricted) {
       // All non-mod effects on this item are available as instruction step targets
       context.instructionEffectOptions = this.document.effects
         .filter((e) => !e.getFlag('cyberpunk-blue', 'modId'))

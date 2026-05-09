@@ -207,6 +207,10 @@
               <span>{{localize "CYBER_BLUE.Drug.Duration"}}</span>
               <input type="text" name="system.duration" value="{{system.duration}}" />
             </label>
+            <label class="compact-field">
+              <span>{{localize "CYBER_BLUE.Sheet.Labels.Quantity"}}</span>
+              <input type="number" name="system.quantity" value="{{system.quantity}}" data-dtype="Number" min="0" />
+            </label>
           </div>
         {{else}}
           <div class="item-meta-row">
@@ -367,6 +371,9 @@
       <a class="item" data-tab="description">{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</a>
       <a class="item" data-tab="details">{{localize "CYBER_BLUE.Sheet.Tabs.Details"}}</a>
       <a class="item" data-tab="notes">{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
+      {{#if showAdvancedTab}}
+        <a class="item" data-tab="advanced">{{localize "CYBER_BLUE.Sheet.Tabs.Advanced"}}</a>
+      {{/if}}
     </nav>
     <section class="sheet-body">
       <div class="tab active" data-group="primary" data-tab="description">
@@ -381,12 +388,6 @@
         </section>
       </div>
       <div class="tab" data-group="primary" data-tab="details">
-        <div class="item-meta-row">
-          <label class="cost-field">
-            <span>{{localize "CYBER_BLUE.Sheet.Labels.Cost"}}</span>
-            <input type="text" name="system.cost" value="{{system.cost}}" list="cyber-blue-cost-ladder" />
-          </label>
-        </div>
         {{> "systems/cyberpunk-blue/templates/item/parts/item-drug-details.hbs"}}
       </div>
       <div class="tab" data-group="primary" data-tab="notes">
@@ -400,6 +401,16 @@
           {{/if}}
         </section>
       </div>
+      {{#if showAdvancedTab}}
+        <div class="tab" data-group="primary" data-tab="advanced">
+          {{> "systems/cyberpunk-blue/templates/item/parts/item-instructions.hbs"}}
+          {{#if canManageRestricted}}
+            <section class="sheet-panel">
+              {{> "systems/cyberpunk-blue/templates/item/parts/item-effects.hbs"}}
+            </section>
+          {{/if}}
+        </div>
+      {{/if}}
     </section>
   {{else}}
     {{#if isCyberware}}
