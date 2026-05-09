@@ -7,7 +7,7 @@ import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs'
 import { normalizeGearState, getGearStateUpdateData } from '../helpers/gear.mjs';
 import { getEffectiveItemWeapons, getInstalledWeaponMods } from '../helpers/mods.mjs';
 import { buildWeaponUpdate, getWeaponTypeDefinition, getWeaponAmmoTypes } from '../helpers/combat.mjs';
-import { getCombatAttackState, getMovementUsed } from '../helpers/combat-tracker.mjs';
+import { getTurnState } from '../helpers/combat-tracker.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack, resolveDoubleLockAttack } from '../helpers/combat-resolution.mjs';
 import { startRicochetPlacement, clearRicochetPoint, refreshAllRicochetLines } from '../helpers/ricochet-canvas.mjs';
 import { clearWeaponCharge } from '../helpers/tech-charge.mjs';
@@ -363,11 +363,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       return { ...item };
     });
     const combatWeaponEntries = [];
-    // RoF tracking: look up what this actor's token has attacked with this turn
+    // RoF tracking: look up this actor's turn state from the combatant flag
     const actorToken = this.document.getActiveTokens()[0];
-    const rofState = actorToken && game.combat?.started
-      ? getCombatAttackState(actorToken.document.id)
+    const combatant = game.combat?.started
+      ? game.combat.combatants.find((c) => c.actorId === this.document.id)
       : null;
+    const turnState = combatant ? getTurnState(combatant) : null;
 
     const buildWeaponEntry = (itemDoc, weaponIndex, weapon, modDots) => {
       const definition = getWeaponTypeDefinition(weapon.type);
@@ -387,9 +388,11 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
       // RoF locking: in combat, can only attack with ONE weapon type per turn,
       // and only up to rateOfFire times with that weapon.
-      const sameWeapon = rofState && rofState.itemId === itemDoc.id && rofState.weaponIndex === weaponIndex;
-      const rofExhausted = sameWeapon && rofState.count >= rateOfFire;
-      const rofLocked = rofState && !sameWeapon; // different weapon was used this turn
+      const key = `${itemDoc.id}::${weaponIndex}`;
+      const rofEntry = turnState?.rofAttacks?.[key] ?? null;
+      const sameWeapon = rofEntry !== null;
+      const rofExhausted = sameWeapon && rofEntry.used >= rateOfFire;
+      const rofLocked = !!(turnState?.actionUsed) && !sameWeapon; // action used by different weapon/action
 
       // BODY enforcement: disable buttons for hard-body weapons when BODY < requirement.
       // Soft-body weapons (critOnBodyReq > 0, e.g. Carnage) are still allowed to fire.
@@ -408,7 +411,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         concealable: weapon.concealable ?? definition.concealable,
         modDots,
         rateOfFire,
-        attacksUsed: sameWeapon ? rofState.count : 0,
+        attacksUsed: rofEntry?.used ?? 0,
         rofExhausted,
         rofLocked,
         attackDisabled: rofExhausted || rofLocked || bodyBlocked,
@@ -448,9 +451,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           const isCooldown   = !!(itemDoc.getFlag('cyberpunk-blue', `chargeCooldown-${weaponIndex}`));
           if (isCharged) return false; // charged → button cancels (always clickable)
           if (isCooldown) return true; // cooldown → can't re-charge
-          // Block if the actor's token has already moved this turn.
-          const actorToken = this.document.getActiveTokens()[0];
-          const moved = actorToken ? getMovementUsed(actorToken.document?.id ?? '') > 0 : false;
+          // Block if the actor has already moved this turn.
+          const moved = (turnState?.movementUsed ?? 0) > 0;
           return moved;
         })(),
         autofireLabel: `${autofireTotal >= 0 ? '+' : ''}${autofireTotal}`,
@@ -1120,7 +1122,11 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
     // ── Check if actor has moved this turn ──────────────────────────────────
     const actorToken = actor.getActiveTokens()[0];
-    const moved = actorToken ? getMovementUsed(actorToken.document?.id ?? '') > 0 : false;
+    const chargeCombatant = game.combat?.started
+      ? game.combat.combatants.find((c) => c.actorId === actor.id)
+      : null;
+    const chargeTurnState = chargeCombatant ? getTurnState(chargeCombatant) : null;
+    const moved = (chargeTurnState?.movementUsed ?? 0) > 0;
     if (moved) {
       ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.ChargeBlockedByMovement'));
       return;

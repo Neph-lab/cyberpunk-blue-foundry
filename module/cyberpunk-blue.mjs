@@ -19,18 +19,17 @@ import { syncActorLeaderRoles } from './helpers/roles.mjs';
 import { CyberBlueJsonImportDialog, CyberBlueMacroCreator, CyberBlueWeaponImportDialog } from './helpers/gm-tools.mjs';
 import { CharacterCreationWizard } from './helpers/character-creation.mjs';
 import {
+  getActiveCombatant,
+  getCombatantForToken,
+  getTurnState,
+  getMovementBudget,
+  resetTurnState,
+  addMovementCost,
+  grantSprint,
   recordCombatAttack,
-  getCombatAttackState,
-  combatAttackTracker,
-  recordMovement,
-  getMovementUsed,
-  combatMovementTracker,
-  combatActionTracker,
-  getActionState,
-  markMainActionUsed,
-  grantActionMove,
-  resetTurnTracking,
-  resetAllTracking,
+  markActionUsed,
+  unlockNetActions,
+  consumeNetAction,
 } from './helpers/combat-tracker.mjs';
 import * as models from './data/_module.mjs';
 import { CRITICAL_INJURY_FLAG, buildCritBodyTableData, buildCritHeadTableData } from './helpers/critical-injury.mjs';
@@ -921,56 +920,16 @@ Hooks.on('createActor', (actor) => {
 
 // ─── Combat: movement enforcement & action tracking ──────────────────────────
 
-function getPixelsPerMeterGlobal() {
-  const gridSize = canvas?.grid?.size ?? 100;
-  const gridDistance = canvas?.scene?.grid?.distance ?? 2;
-  const gridUnits = (canvas?.scene?.grid?.units ?? '').toLowerCase().trim();
-  const metersPerUnit = ['m', 'meter', 'meters'].includes(gridUnits) ? gridDistance : 2;
-  return gridSize / metersPerUnit;
-}
+// ── preMoveToken: enforce turn restriction + budget (cancel on exceed) ────────
 
-function getActiveCombatantTokenId() {
-  return game.combat?.combatants.get(game.combat?.current?.combatantId)?.tokenId ?? null;
-}
-
-/** Total movement budget in meters for a token this turn (base + any Sprint grant). */
-function getMovementBudget(tokenId, actor) {
-  const moveValue = Math.max(Number(actor?.system?.stats?.move?.value) || 0, 0);
-  const baseBudget = moveValue * 2;
-  const actionState = getActionState(tokenId);
-  return baseBudget + (actionState.extraMoveMeters ?? 0);
-}
-
-/**
- * Snap pixel coordinates to the nearest grid vertex.
- * Falls back to rounding to grid-size multiples when the Foundry API isn't available.
- */
-function snapToGrid(x, y) {
-  const gridSize = canvas?.grid?.size ?? 100;
-  if (typeof canvas?.grid?.getSnappedPoint === 'function') {
-    return canvas.grid.getSnappedPoint({ x, y });
-  }
-  return { x: Math.round(x / gridSize) * gridSize, y: Math.round(y / gridSize) * gridSize };
-}
-
-// ── preUpdateToken: enforce turn restriction + budget (with truncation) ───────
-
-Hooks.on('preUpdateToken', (tokenDoc, changes, options, userId) => {
+Hooks.on('preMoveToken', (tokenDoc, movement) => {
   if (!game.combat?.started) return;
-  if (!('x' in changes) && !('y' in changes)) return;
 
-  // Capture old position here so updateToken can compute real distance moved.
-  // In Foundry V13 the document is already updated when updateToken fires,
-  // making tokenDoc._source.x the NEW position there.
-  options._cpbPreMoveX = tokenDoc.x;
-  options._cpbPreMoveY = tokenDoc.y;
-
-  const activeTokenId = getActiveCombatantTokenId();
-  const isGM = game.users.get(userId)?.isGM ?? false;
+  const activeCombatant = getActiveCombatant();
 
   // ── Out-of-turn movement ──────────────────────────────────────────────────
-  if (tokenDoc.id !== activeTokenId) {
-    if (isGM) return; // GMs may reposition tokens freely
+  if (tokenDoc.id !== activeCombatant?.tokenId) {
+    if (game.user.isGM) return; // GMs may reposition tokens freely
     ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.MovementOutsideTurn'));
     return false;
   }
@@ -979,58 +938,43 @@ Hooks.on('preUpdateToken', (tokenDoc, changes, options, userId) => {
   const actor = tokenDoc.actor;
   if (!actor) return;
 
-  const budget = getMovementBudget(tokenDoc.id, actor);
+  const budget = getMovementBudget(activeCombatant, actor);
   if (budget <= 0) return; // no move stat — don't interfere
 
-  const used = getMovementUsed(tokenDoc.id);
+  const state = getTurnState(activeCombatant);
+  const used = state.movementUsed ?? 0;
   const remaining = Math.max(budget - used, 0);
-  const ppm = getPixelsPerMeterGlobal();
-
-  const destX = changes.x ?? tokenDoc.x;
-  const destY = changes.y ?? tokenDoc.y;
-  const dx = destX - tokenDoc.x;
-  const dy = destY - tokenDoc.y;
-  const proposedMeters = Math.hypot(dx, dy) / ppm;
-
-  if (proposedMeters <= 0.01) return; // negligible move — allow
 
   if (remaining < 0.01) {
-    // Budget fully exhausted — block entirely
-    ui.notifications.warn(
-      game.i18n.format('CYBER_BLUE.Combat.MovementExhausted', { max: budget })
-    );
+    ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.MovementExhausted', { max: budget }));
     return false;
   }
 
-  if (used + proposedMeters > budget + 0.01) {
-    // Partial budget left — truncate movement along the same vector
-    const allowedPixels = remaining * ppm;
-    const totalPixels = Math.hypot(dx, dy);
-    const fraction = allowedPixels / totalPixels;
-    const snapped = snapToGrid(tokenDoc.x + dx * fraction, tokenDoc.y + dy * fraction);
-    changes.x = snapped.x;
-    changes.y = snapped.y;
+  // Measure terrain-adjusted cost of the proposed move
+  const proposedCost = tokenDoc.object?.measureMovementPath(movement.waypoints)?.cost ?? 0;
+  if (proposedCost <= 0.01) return; // negligible — allow
+
+  if (used + proposedCost > budget + 0.01) {
     ui.notifications.warn(
-      game.i18n.format('CYBER_BLUE.Combat.MovementTruncated', { remaining: remaining.toFixed(1) })
+      game.i18n.format('CYBER_BLUE.Combat.MovementExceeded', { remaining: remaining.toFixed(1) })
     );
-    // Allow the update to proceed with the truncated coordinates
+    return false;
   }
 });
 
-// ── updateToken: record how far the active combatant actually moved ───────────
+// ── moveToken: record actual terrain-adjusted cost for the active combatant ───
 
-Hooks.on('updateToken', (tokenDoc, changes, options, _userId) => {
+Hooks.on('moveToken', (tokenDoc, movement, userId) => {
   if (!game.combat?.started) return;
-  if (!('x' in changes) && !('y' in changes)) return;
-  if (tokenDoc.id !== getActiveCombatantTokenId()) return;
+  if (game.user.id !== userId) return; // only the initiating client writes
 
-  const ppm = getPixelsPerMeterGlobal();
-  // Use the pre-move position captured in preUpdateToken; fall back to the
-  // changed-to position (resulting in 0 distance) rather than crashing.
-  const oldX = options._cpbPreMoveX ?? (changes.x ?? tokenDoc.x);
-  const oldY = options._cpbPreMoveY ?? (changes.y ?? tokenDoc.y);
-  const meters = Math.hypot((changes.x ?? oldX) - oldX, (changes.y ?? oldY) - oldY) / ppm;
-  recordMovement(tokenDoc.id, meters);
+  const combatant = getCombatantForToken(tokenDoc.id);
+  if (!combatant) return;
+
+  const cost = movement.passed?.cost ?? 0;
+  if (!(cost > 0)) return;
+
+  addMovementCost(combatant, cost);
 
   // Refresh the combat tracker panel so the movement bar updates in real-time
   ui.combat?.render(false);
@@ -1038,15 +982,16 @@ Hooks.on('updateToken', (tokenDoc, changes, options, _userId) => {
 
 // ── Combat turn / round resets ────────────────────────────────────────────────
 
-Hooks.on('combatTurn', (combat, updateData) => {
+Hooks.on('combatTurn', async (combat, updateData) => {
+  if (!game.user.isGM) return; // only GM writes flag resets
   const prev = combat.combatants.get(combat.previous?.combatantId);
-  if (prev?.tokenId) resetTurnTracking(prev.tokenId);
+  if (prev) await resetTurnState(prev);
   // Use updateData.turn index to reliably identify the incoming combatant even
   // when combat.current hasn't settled yet in some Foundry versions.
   const newTurnIdx = updateData?.turn ?? 0;
   const curr = combat.combatants.contents[newTurnIdx]
     ?? combat.combatants.get(combat.current?.combatantId);
-  if (curr?.tokenId) resetTurnTracking(curr.tokenId);
+  if (curr) await resetTurnState(curr);
   ui.combat?.render(false);
   // Re-render open actor sheets so RoF buttons and movement bar refresh.
   for (const actor of [prev?.actor, curr?.actor].filter(Boolean)) {
@@ -1054,17 +999,16 @@ Hooks.on('combatTurn', (combat, updateData) => {
   }
 });
 
-Hooks.on('combatRound', (combat) => {
-  resetAllTracking();
+Hooks.on('combatRound', async (combat) => {
+  if (!game.user.isGM) return; // only GM writes flag resets
+  for (const combatant of combat.combatants.contents) {
+    await resetTurnState(combatant);
+  }
   ui.combat?.render(false);
   // Re-render all open sheets so RoF buttons refresh.
   for (const combatant of combat.combatants.contents) {
     combatant.actor?.sheet?.render(false);
   }
-});
-
-Hooks.on('deleteCombat', () => {
-  resetAllTracking();
 });
 
 // ── Combat tracker panel: movement + action display ───────────────────────────
@@ -1079,27 +1023,23 @@ Hooks.on('renderCombatTracker', (app, htmlArg, _data) => {
   // Remove any previous panel so re-renders don't duplicate it
   root.querySelectorAll('.cyber-blue-combat-panel').forEach((el) => el.remove());
 
-  const activeTokenId = getActiveCombatantTokenId();
-  if (!activeTokenId) return;
+  const activeCombatant = getActiveCombatant();
+  if (!activeCombatant) return;
 
-  const activeCombatant = game.combat.combatants.find((c) => c.tokenId === activeTokenId);
-  const actor = activeCombatant?.actor;
+  const actor = activeCombatant.actor;
   if (!actor) return;
 
   const moveValue = Math.max(Number(actor.system?.stats?.move?.value) || 0, 0);
-  const budget = getMovementBudget(activeTokenId, actor);
-  const used = getMovementUsed(activeTokenId);
+  const state = getTurnState(activeCombatant);
+  const budget = getMovementBudget(activeCombatant, actor);
+  const used = state.movementUsed ?? 0;
   const remaining = Math.max(budget - used, 0);
   const pct = budget > 0 ? Math.min(100, (remaining / budget) * 100) : 0;
 
-  const actionState = getActionState(activeTokenId);
-  const attackMade = combatAttackTracker.has(activeTokenId);
-  const actionUsed = actionState.mainActionUsed || attackMade;
+  const actionUsed = state.actionUsed;
 
-  // Show Sprint button to: the GM (always), or the user who owns the active combatant
-  const actionFree = !actionUsed && !actionState.actionMoveGranted;
-  const ownsActiveCombatant = activeCombatant.isOwner;
-  const canSprint = actionFree && ownsActiveCombatant;
+  // Show Sprint button to the user who owns the active combatant (and GM)
+  const canSprint = !actionUsed && activeCombatant.isOwner;
 
   const sprintMeters = moveValue * 2;
   const sprintLabel = game.i18n.format('CYBER_BLUE.Combat.Panel.Sprint', { meters: sprintMeters });
@@ -1130,8 +1070,8 @@ Hooks.on('renderCombatTracker', (app, htmlArg, _data) => {
   `;
 
   // Wire up Sprint button
-  panel.querySelector('.cyber-blue-sprint-btn')?.addEventListener('click', () => {
-    grantActionMove(activeTokenId, sprintMeters);
+  panel.querySelector('.cyber-blue-sprint-btn')?.addEventListener('click', async () => {
+    await grantSprint(activeCombatant, sprintMeters);
     ui.combat?.render(false);
     ui.notifications.info(
       game.i18n.format('CYBER_BLUE.Combat.Panel.SprintGranted', { meters: sprintMeters })
@@ -1788,7 +1728,7 @@ Hooks.on('renderChatMessageHTML', (message, html) => {
 });
 
 // Re-export tracker helpers for external use (e.g., actor sheet context)
-export { getCombatAttackState, recordCombatAttack };
+export { getTurnState, recordCombatAttack, getActiveCombatant, getCombatantForToken };
 
 // ─── Auto-create characters for new players ───────────────────────────────────
 

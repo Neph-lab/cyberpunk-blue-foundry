@@ -506,7 +506,7 @@
       "MovementLimitReached": "Movement limit reached ({remaining}m remaining of {max}m).",
       "MovementOutsideTurn": "Not your turn — token movement is locked during encounters.",
       "MovementExhausted": "No movement remaining this turn (budget: {max}m).",
-      "MovementTruncated": "Movement capped — only {remaining}m left. Token stopped at furthest reachable point.",
+      "MovementExceeded": "Not enough movement remaining ({remaining}m left) — move cancelled.",
       "Panel": {
         "Move": "Move",
         "Action": "Action",

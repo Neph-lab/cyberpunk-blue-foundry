@@ -459,7 +459,11 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // Record this attack for RoF tracking
   const attackerToken = attacker.getActiveTokens()[0];
   if (attackerToken && game.combat?.started) {
-    recordCombatAttack(attackerToken.document.id, item.id, weaponIndex);
+    const attackerCombatant = game.combat.combatants.find((c) => c.tokenId === attackerToken.id);
+    if (attackerCombatant) {
+      const rof = Math.max(Number(weapon.rateOfFire) || 1, 1);
+      await recordCombatAttack(attackerCombatant, item.id, weaponIndex, rof);
+    }
   }
 
   // ── CS3 (Charged Shot 3) ammo handling ────────────────────────────────────

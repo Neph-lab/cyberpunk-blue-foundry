@@ -1,89 +1,174 @@
 /**
- * Per-turn combat state tracker.
+ * Per-turn combat state tracker — Combatant flag-based.
  *
- * Tracks which weapon each combatant has attacked with this turn and how many times,
- * enabling Rate-of-Fire enforcement. Also tracks movement used per token so the
- * preUpdateToken hook can enforce the 2×MOVE limit.
+ * All turn state is stored in a Foundry Combatant flag so it persists across
+ * page reloads and is synced to every connected client via the document socket.
  *
- * Data lives in-memory (Maps) — intentionally ephemeral; a page reload or scene
- * change effectively starts a fresh turn, which is acceptable behaviour.
+ * Flag path: cyberpunk-blue → turnState
+ *
+ * Structure:
+ * {
+ *   movementUsed:    number,   // cost-adjusted meters consumed this turn
+ *   movementBonus:   number,   // extra meters granted by Sprint
+ *   actionUsed:      boolean,  // true once the Action is committed to any use
+ *   actionSprint:    boolean,  // true if Action was spent on Sprint
+ *   rofAttacks:      object,   // keyed `${itemId}::${weaponIndex}` → { rof, used }
+ *   netActionsTotal: number,   // NET actions unlocked this turn
+ *   netActionsUsed:  number,   // NET actions consumed this turn
+ * }
+ *
+ * Write discipline: flag writes are gated so only one client writes per event.
+ *   - movementCost:      the user who initiated the move (moveToken hook userId)
+ *   - turn/round resets: GM only (combatTurn / combatRound hooks)
+ *   - sprint / attack:   the owning player or GM (direct button/action handler)
  */
 
-// tokenId → { itemId, weaponIndex, count }
-export const combatAttackTracker = new Map();
+const FLAG_SCOPE = 'cyberpunk-blue';
+const TURN_STATE_KEY = 'turnState';
 
-/**
- * Record that the given token made an attack with a specific item+weapon.
- * Returns the new attack count for that weapon this turn.
- */
-export function recordCombatAttack(tokenId, itemId, weaponIndex) {
-  const existing = combatAttackTracker.get(tokenId);
-  if (existing && existing.itemId === itemId && existing.weaponIndex === weaponIndex) {
-    existing.count += 1;
-    return existing.count;
-  }
-  combatAttackTracker.set(tokenId, { itemId, weaponIndex, count: 1 });
-  return 1;
+export const DEFAULT_TURN_STATE = Object.freeze({
+  movementUsed:    0,
+  movementBonus:   0,
+  actionUsed:      false,
+  actionSprint:    false,
+  rofAttacks:      {},
+  netActionsTotal: 0,
+  netActionsUsed:  0,
+});
+
+// ── Read helpers ──────────────────────────────────────────────────────────────
+
+/** Find the active combatant in the current combat. */
+export function getActiveCombatant() {
+  return game.combat?.combatants.get(game.combat?.current?.combatantId) ?? null;
 }
 
-/**
- * Returns the current attack state for a token, or null if no attack was made.
- * Shape: { itemId, weaponIndex, count }
- */
-export function getCombatAttackState(tokenId) {
-  return combatAttackTracker.get(tokenId) ?? null;
-}
-
-// tokenId → meters moved this turn
-export const combatMovementTracker = new Map();
-
-export function recordMovement(tokenId, meters) {
-  const prev = combatMovementTracker.get(tokenId) ?? 0;
-  combatMovementTracker.set(tokenId, prev + meters);
-  return prev + meters;
-}
-
-export function getMovementUsed(tokenId) {
-  return combatMovementTracker.get(tokenId) ?? 0;
-}
-
-// ── Action state ──────────────────────────────────────────────────────────────
-// tokenId → { mainActionUsed: bool, actionMoveGranted: bool, extraMoveMeters: number }
-// "mainAction" is the single action available per turn.  It is consumed by any
-// attack (detected via combatAttackTracker) OR by activating Sprint.
-export const combatActionTracker = new Map();
-
-export function getActionState(tokenId) {
-  return combatActionTracker.get(tokenId)
-    ?? { mainActionUsed: false, actionMoveGranted: false, extraMoveMeters: 0 };
-}
-
-export function markMainActionUsed(tokenId) {
-  const prev = getActionState(tokenId);
-  combatActionTracker.set(tokenId, { ...prev, mainActionUsed: true });
+/** Find the combatant whose token matches tokenId in the current combat. */
+export function getCombatantForToken(tokenId) {
+  return game.combat?.combatants.find((c) => c.tokenId === tokenId) ?? null;
 }
 
 /**
- * Spend the main action to grant extra movement this turn.
- * @param {string} tokenId
- * @param {number} extraMeters — additional meters to add to movement budget
+ * Read the turn state for a combatant, merging with defaults so all fields
+ * are always present even if the flag was written by an older version.
+ * This is a synchronous read from the already-fetched document flags.
  */
-export function grantActionMove(tokenId, extraMeters) {
-  combatActionTracker.set(tokenId, {
-    mainActionUsed: true,
-    actionMoveGranted: true,
-    extraMoveMeters: extraMeters,
+export function getTurnState(combatant) {
+  const saved = combatant?.getFlag(FLAG_SCOPE, TURN_STATE_KEY);
+  if (!saved) return { ...DEFAULT_TURN_STATE, rofAttacks: {} };
+  return {
+    ...DEFAULT_TURN_STATE,
+    ...saved,
+    rofAttacks: { ...(saved.rofAttacks ?? {}) },
+  };
+}
+
+/**
+ * Total movement budget in meters for a combatant this turn.
+ * Base = MOVE stat × 2.  Sprint adds movementBonus from the flag.
+ */
+export function getMovementBudget(combatant, actor) {
+  const moveValue = Math.max(Number(actor?.system?.stats?.move?.value) || 0, 0);
+  const state = getTurnState(combatant);
+  return moveValue * 2 + (state.movementBonus ?? 0);
+}
+
+// ── Write helpers ─────────────────────────────────────────────────────────────
+
+/** Overwrite the full turn state for a combatant. */
+export async function setTurnState(combatant, state) {
+  if (!combatant) return;
+  return combatant.setFlag(FLAG_SCOPE, TURN_STATE_KEY, state);
+}
+
+/** Reset a combatant's turn state to defaults (call at turn start/end). */
+export async function resetTurnState(combatant) {
+  if (!combatant) return;
+  return combatant.setFlag(FLAG_SCOPE, TURN_STATE_KEY, { ...DEFAULT_TURN_STATE, rofAttacks: {} });
+}
+
+/**
+ * Add cost-adjusted meters to movementUsed.
+ * Call from the moveToken hook on the initiating client only.
+ */
+export async function addMovementCost(combatant, cost) {
+  if (!combatant || !(cost > 0)) return;
+  const state = getTurnState(combatant);
+  return setTurnState(combatant, {
+    ...state,
+    movementUsed: (state.movementUsed ?? 0) + cost,
   });
 }
 
-export function resetTurnTracking(tokenId) {
-  combatAttackTracker.delete(tokenId);
-  combatMovementTracker.delete(tokenId);
-  combatActionTracker.delete(tokenId);
+/**
+ * Spend the Action on Sprint, granting extra movement meters this turn.
+ */
+export async function grantSprint(combatant, extraMeters) {
+  if (!combatant) return;
+  const state = getTurnState(combatant);
+  return setTurnState(combatant, {
+    ...state,
+    actionUsed:    true,
+    actionSprint:  true,
+    movementBonus: extraMeters,
+  });
 }
 
-export function resetAllTracking() {
-  combatAttackTracker.clear();
-  combatMovementTracker.clear();
-  combatActionTracker.clear();
+/**
+ * Record an attack with a specific item+weapon and mark the Action as used.
+ * rof — the weapon's Rate of Fire (max attacks per Action with this weapon).
+ * Returns the new used-count for this weapon slot.
+ */
+export async function recordCombatAttack(combatant, itemId, weaponIndex, rof) {
+  if (!combatant) return 1;
+  const state = getTurnState(combatant);
+  const key = `${itemId}::${weaponIndex}`;
+  const existing = state.rofAttacks[key];
+  const entry = existing
+    ? { rof: Math.max(existing.rof, rof ?? 1), used: existing.used + 1 }
+    : { rof: rof ?? 1, used: 1 };
+  await setTurnState(combatant, {
+    ...state,
+    actionUsed:  true,
+    rofAttacks:  { ...state.rofAttacks, [key]: entry },
+  });
+  return entry.used;
+}
+
+/**
+ * Mark the Action as used without recording a specific weapon attack.
+ * Use for non-attack actions that consume the Action slot.
+ */
+export async function markActionUsed(combatant) {
+  if (!combatant) return;
+  const state = getTurnState(combatant);
+  if (state.actionUsed) return;
+  return setTurnState(combatant, { ...state, actionUsed: true });
+}
+
+/**
+ * Unlock a number of NET actions by spending the main Action.
+ */
+export async function unlockNetActions(combatant, count) {
+  if (!combatant || !(count > 0)) return;
+  const state = getTurnState(combatant);
+  return setTurnState(combatant, {
+    ...state,
+    actionUsed:      true,
+    netActionsTotal: count,
+    netActionsUsed:  0,
+  });
+}
+
+/**
+ * Consume one NET action.
+ */
+export async function consumeNetAction(combatant) {
+  if (!combatant) return;
+  const state = getTurnState(combatant);
+  if (state.netActionsUsed >= state.netActionsTotal) return;
+  return setTurnState(combatant, {
+    ...state,
+    netActionsUsed: state.netActionsUsed + 1,
+  });
 }
