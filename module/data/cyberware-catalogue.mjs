@@ -28,6 +28,27 @@ const COST = {
 
 const h = (text) => `<p>${text}</p>`;
 
+// ── AE helpers ─────────────────────────────────────────────────────────────
+const ae      = (name, changes) => ({ name, disabled: false, transfer: true, changes });
+const aeOff   = (name, changes) => ({ name, disabled: true,  transfer: true, changes });
+const reminder = (name)         => ({ name, disabled: false, transfer: true, changes: [] });
+const stat    = (slug, val) => ({ key: `system.stats.${slug}.value`,    mode: 2, value: String(val) });
+const statOvr = (slug, val) => ({ key: `system.stats.${slug}.value`,    mode: 5, value: String(val) });
+const statMod = (slug, val) => ({ key: `system.stats.${slug}.rollMod`,  mode: 2, value: String(val) });
+const skill   = (slug, val) => ({ key: `system.skills.${slug}.rank`,    mode: 2, value: String(val) });
+const comp    = (slug, val) => ({ key: `system.components.${slug}.rank`, mode: 2, value: String(val) });
+
+// ── Instruction step helpers ───────────────────────────────────────────────
+const S = {
+  message: (content, { name = 'Message', terminates = false, whisperGm = false } = {}) => ({
+    type: 'message', name, message: content, terminates, whisperGm,
+  }),
+  pause: (name = 'Pause') => ({ type: 'pause', name }),
+  effect: ({ name = 'Effect', effectName = '', effectEnabled = true, permanent = false, terminates = false } = {}) => ({
+    type: 'effect', name, effectName, effectEnabled, permanent, terminates,
+  }),
+};
+
 const CW_ASSET = 'systems/cyberpunk-blue/assets/items/cyberware';
 
 /**
@@ -59,6 +80,7 @@ function cw({
   psycheLoss = '', facilities, installationCost, installationDv,
   useCyberneticsComponent = false, multipleInstalls = false,
   isArmor = false, maxSp = 0, description = '', img = '',
+  effects = [], instructions = [],
 }) {
   const c = COST[cost] ?? cost;
   return {
@@ -66,6 +88,7 @@ function cw({
     name,
     type: 'cyberware',
     img,
+    effects,
     system: {
       manufacturer,
       cost: c,
@@ -90,6 +113,9 @@ function cw({
       parentCyberwareId: null,
       description: description ? h(description) : '',
       notes: '',
+      instructions,
+      instructionActive: false,
+      instructionStep: -1,
     },
   };
 }
@@ -156,6 +182,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'PR', facilities: 'hospital', installationCost: 'EX', installationDv: 17,
     psycheLoss: '4d6',
     description: 'Speedware. +1 to Initiative, vehicle Swerve checks, and Evasion. Only one speedware may be installed at a time.',
+    effects: [ae('Speedware: +1 Initiative, Evasion, Swerve', [statMod('rflx', 1)])],
   }),
   cw({
     name: 'Sandevistan',
@@ -164,6 +191,12 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'hospital', installationCost: 'VEX', installationDv: 20,
     psycheLoss: '4d6',
     description: 'Speedware and COS replacement. Activated as an Action, lasts 10 minutes: +3 Initiative, +3 Evasion, +3 Martial Arts, +3 Melee Weapons (Drive and Sleight-of-Hand at GM discretion). Using it again within 1 hour deals 3d6 HP damage before the effect applies. Only one speedware and one COS may be installed at a time.',
+    effects: [aeOff('Sandevistan Active', [statMod('rflx', 3), skill('evasion', 3), skill('martialArts', 3), skill('meleeWeapons', 3)])],
+    instructions: [
+      S.message('<p><strong>Sandevistan activated</strong> — +3 Initiative, Evasion, Martial Arts, and Melee Weapons for 10 minutes.</p><p><em>Warning: reactivating within 1 hour deals 3d6 HP damage first.</em></p>', { name: 'Activate' }),
+      S.effect({ name: 'Apply Sandevistan AE', effectName: 'Sandevistan Active' }),
+      S.message('<p>Sandevistan deactivated.</p>', { name: 'Deactivate', terminates: true }),
+    ],
   }),
 
   // ── Cyberoptics ───────────────────────────────────────────────────────────
@@ -207,6 +240,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'mall', installationCost: 'CO', installationDv: 17,
     useCyberneticsComponent: true, psycheLoss: '1d6',
     description: 'PAIRED (must be installed in both eyes). +2 to sight-based Perception checks.',
+    effects: [reminder('Sight Perception +2 (situational)')],
   }),
   cw({
     name: 'MicroOptics',
@@ -239,6 +273,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '1d6',
     description: '‡ Illegal without a permit. +1 to Aimed attacks. Does not stack; only one scope benefit applies at a time.',
+    effects: [reminder('Aimed Attack +1 (situational, non-stacking)')],
   }),
   cw({
     name: 'TeleOptics',
@@ -247,6 +282,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '1d6',
     description: 'Detailed vision up to 800m. +1 to attack rolls at ranges greater than 50m (does not apply to Autofire).',
+    effects: [reminder('Attack +1 at range > 50m (situational, not Autofire)')],
   }),
   cw({
     name: 'Virtuality',
@@ -282,6 +318,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 15,
     psycheLoss: '1d6',
     description: '+2 to hearing-based Perception checks.',
+    effects: [reminder('Hearing Perception +2 (situational)')],
   }),
   cw({
     name: 'Bug Detector (Cyberaudio)',
@@ -338,6 +375,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 12,
     psycheLoss: '1d6',
     description: '+2 to Human Perception and +1 to Influence.',
+    effects: [ae('Human Perception +2, Influence +1', [skill('humanPerc', 2), skill('influence', 1)])],
   }),
 
   // ── Cyberarms ─────────────────────────────────────────────────────────────
@@ -406,6 +444,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 15,
     useCyberneticsComponent: true, psycheLoss: '2d6',
     description: 'Performs most medical tests. +2 to Medicine checks.',
+    effects: [ae('Medicine +2', [skill('medicine', 2)])],
   }),
   cw({
     name: 'Monowire',
@@ -462,6 +501,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     useCyberneticsComponent: true, psycheLoss: '2d6',
     description: '+2 to Electronics and Mechanics checks (hardware only).',
+    effects: [ae('Electronics +2, Mechanics +2 (hardware)', [skill('electronics', 2), skill('mechanics', 2)])],
   }),
   cw({
     name: 'Tool Hand',
@@ -529,6 +569,12 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 15,
     useCyberneticsComponent: true, psycheLoss: '1d6',
     description: 'PAIRED (must be installed in both legs/feet). Inline skates that extend and retract at will. Movement distance +6m per turn (not MOVE stat).',
+    effects: [aeOff('Skate Foot Active (+6m movement)', [stat('move', 3)])],
+    instructions: [
+      S.message('<p><strong>Skate Foot deployed</strong> — movement distance +6m per turn.</p>', { name: 'Deploy' }),
+      S.effect({ name: 'Apply Movement AE', effectName: 'Skate Foot Active (+6m movement)' }),
+      S.message('<p>Skate Foot retracted.</p>', { name: 'Retract', terminates: true }),
+    ],
   }),
   cw({
     name: 'Talon Foot',
@@ -588,6 +634,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'hospital', installationCost: 'EX', installationDv: 20,
     psycheLoss: '4d6', multipleInstalls: true,
     description: 'BODY +2 (cannot push BODY past 10 through this cyberware). IP cost to improve BODY is calculated as if this bonus did not exist. Can be installed multiple times.',
+    effects: [ae('BODY +2 (max 10 from this cyberware)', [stat('body', 2)])],
   }),
   cw({
     name: 'Independent Air Supply',
@@ -620,6 +667,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'CO', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '1d6/2',
     description: '+2 to Endurance checks to resist blood-borne toxins and drugs. Does not stack.',
+    effects: [ae('Endurance +2 vs blood-borne toxins/drugs', [skill('endurance', 2)])],
   }),
   cw({
     name: 'Vampyres',
@@ -639,6 +687,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '1d6',
     description: 'Voice synthesizer. +2 to Acting and Music (singing). With a voice-analysis shard: an Acting roll lets you perfectly imitate someone\'s voice.',
+    effects: [ae('Acting +2, Music +2', [skill('acting', 2), comp('music', 2)])],
   }),
   cw({
     name: 'Chem-Skin',
@@ -760,6 +809,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'LUX', facilities: 'hospital', installationCost: 'EX', installationDv: 22,
     psycheLoss: '4d6',
     description: 'Prerequisite: BODY 8+, two Grafted Muscle & Bone Lace implants. BODY becomes 14 (cannot be further improved with IP).',
+    effects: [ae('BODY becomes 14', [statOvr('body', 14)])],
   }),
   cw({
     name: 'Implanted Linear Frame Sigma',
@@ -768,6 +818,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'VEX', facilities: 'hospital', installationCost: 'EX', installationDv: 20,
     psycheLoss: '4d6',
     description: 'Prerequisite: BODY 6+, one Grafted Muscle & Bone Lace implant. BODY becomes 12 (cannot be further improved with IP).',
+    effects: [ae('BODY becomes 12', [statOvr('body', 12)])],
   }),
   cw({
     name: 'MultiOptic Mount',
