@@ -1,12 +1,33 @@
 import { getEligiblePlatforms, promptForCyberwarePlatform } from '../helpers/cyberware.mjs';
 import { normalizeGearState } from '../helpers/gear.mjs';
-import { applyFirstRoleSetup } from '../helpers/roles.mjs';
+import { applyFirstRoleSetup, normalizeRoleSystemData } from '../helpers/roles.mjs';
 
 export class CyberBlueActor extends Actor {
   static SERIOUS_WOUND_FLAG = 'autoSeriousWound';
 
   prepareDerivedData() {
     super.prepareDerivedData();
+
+    // Compute netActionsTotal from role items (on top of any AE-applied base).
+    // Netrunner: +1 + ceil(rank/3). Operative Infiltration ≥ 5: +1.
+    // AEs (e.g. Runner-speed) add to the schema-default 0 before this runs,
+    // so role contributions stack cleanly on top.
+    if (this.type === 'character' || this.type === 'npc') {
+      for (const item of (this.items?.contents ?? [])) {
+        if (item.type !== 'role') continue;
+        const rs = normalizeRoleSystemData(item.system ?? {});
+        const rank = Number(rs.rank) || 0;
+        if (rank < 1) continue;
+        if (item.name === 'Netrunner') {
+          this.system.netActionsTotal += 1 + Math.ceil(rank / 3);
+        }
+        if (item.name === 'Operative') {
+          const infiltSpec = (rs.specialties ?? [])
+            .find((s) => s.name === 'Infiltration' && Number(s.rank) >= 5);
+          if (infiltSpec) this.system.netActionsTotal += 1;
+        }
+      }
+    }
 
     if (!this.system.resources?.armor) return;
 

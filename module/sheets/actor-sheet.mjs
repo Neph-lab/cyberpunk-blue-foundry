@@ -7,7 +7,7 @@ import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs'
 import { normalizeGearState, getGearStateUpdateData } from '../helpers/gear.mjs';
 import { getEffectiveItemWeapons, getInstalledWeaponMods } from '../helpers/mods.mjs';
 import { buildWeaponUpdate, getWeaponTypeDefinition, getWeaponAmmoTypes } from '../helpers/combat.mjs';
-import { getTurnState, consumeNetAction } from '../helpers/combat-tracker.mjs';
+import { getTurnState, consumeNetAction, unlockNetActions } from '../helpers/combat-tracker.mjs';
 import {
   getNetConnection, isNetConnected, getPrimaryCyberdeck,
   getAccessPointsInRange, getCyberdeckRam,
@@ -526,7 +526,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       // ── Role-specific mechanics context ────────────────────────────────
       const roleMechanics = {};
       if (role.name === 'Netrunner' && roleRank >= 1) {
-        roleMechanics.netActionsTotal = 1 + Math.ceil(roleRank / 3);
+        // Read from the data model so AE bonuses (Runner-speed +1) are included.
+        roleMechanics.netActionsTotal = this.document.system.netActionsTotal ?? 0;
       }
       if (role.name === 'Bandit' && roleRank >= 1) {
         const maxUses = 1 + Math.floor(roleRank / 3);
@@ -1978,7 +1979,13 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     await connectToArchitecture(actor, chosenAp);
 
     const combatant = game.combat?.combatants.find((c) => c.actor?.id === actor.id);
-    if (combatant) await consumeNetAction(combatant);
+    if (combatant) {
+      // Seed the turn's NET action budget from the actor's data-model value
+      // (includes role rank + Operative Infiltration + AE bonuses like Runner-speed).
+      const netTotal = actor.system.netActionsTotal ?? 0;
+      if (netTotal > 0) await unlockNetActions(combatant, netTotal);
+      await consumeNetAction(combatant);
+    }
   }
 
   async _onNetDisconnect(event) {

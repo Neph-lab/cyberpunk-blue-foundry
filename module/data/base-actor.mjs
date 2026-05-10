@@ -62,6 +62,9 @@ export default class CyberBlueActorBase extends CyberBlueDataModel {
         style: new fields.HTMLField({ initial: "" }),
       }),
       money: new fields.NumberField({ required: true, nullable: false, integer: true, initial: 0, min: 0 }),
+      // Total NET actions available per turn. Derived in prepareDerivedData from roles;
+      // AEs (Runner-speed: +1) can add to it via the standard 'add' mode.
+      netActionsTotal: new fields.NumberField({ required: true, nullable: false, integer: true, initial: 0, min: 0 }),
     };
   }
 
