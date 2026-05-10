@@ -569,6 +569,8 @@
       "CritDetected": "{count} sixes rolled — Critical Hit! (+5 damage)",
       "CritBonus": "(+5 damage applied)",
       "SlicingRoll": "Slicing Die",
+      "MonowirePick": "Monowire: Pick Critical Injury",
+      "MonowirePickHint": "Roll twice — pick the preferred result.",
       "BluntDismemberDowngrade": "Blunt — Dismember downgraded to Broken (+5 damage)",
       "CrushingCascade": "Crushing Cascade",
       "InjuryLocation": "Injury Location",

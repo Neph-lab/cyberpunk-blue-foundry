@@ -555,6 +555,36 @@ async function findRollTable(tableType) {
  */
 // ─── Crit weapon flag helpers ─────────────────────────────────────────────────
 
+/**
+ * Draw a second crit result from either the roll table or the hardcoded table.
+ * Used by critDoublePick (Monowire).
+ */
+async function _drawSecondCritResult(rollTable, hardcodedTable) {
+  if (rollTable) {
+    const drawResult = await rollTable.draw({ displayChat: false });
+    const total = drawResult.roll.total;
+    const tableResult = drawResult.results[0];
+    const critKey = tableResult?.getFlag('cyberpunk-blue', 'critKey');
+    const e = critKey
+      ? Object.values(hardcodedTable).find((x) => x.key === critKey)
+      : (hardcodedTable[total] ?? hardcodedTable[12]);
+    return {
+      entry:       e ?? null,
+      baseName:    e ? game.i18n.localize(e.nameKey) : (tableResult?.text || String(total)),
+      description: e ? game.i18n.localize(e.descKey) : '',
+    };
+  } else {
+    const roll = await new Roll('2d6').evaluate();
+    const total = roll.total;
+    const e = hardcodedTable[total] ?? hardcodedTable[12];
+    return {
+      entry:       e,
+      baseName:    game.i18n.localize(e.nameKey),
+      description: game.i18n.localize(e.descKey),
+    };
+  }
+}
+
 /** Dismember↔Broken pairings for Slicing/Blunt weapons. */
 const DISMEMBER_UPGRADE = { 'broken-arm': 'dismembered-arm', 'broken-leg': 'dismembered-leg' };
 const DISMEMBER_DOWNGRADE = {
@@ -608,6 +638,42 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
 
   // ── Weapon crit modifications ──────────────────────────────────────────────
   const weaponNotes = [];
+
+  // Monowire: roll twice, attacker picks preferred result
+  if (weaponFlags.critDoublePick && entry) {
+    const second = await _drawSecondCritResult(rollTable, hardcodedTable);
+    if (second.entry && second.entry.key !== entry.key) {
+      const pickedFirst = await new Promise((resolve) => {
+        new Dialog({
+          title: game.i18n.localize('CYBER_BLUE.CriticalInjury.MonowirePick'),
+          content: `<div class="cyberpunk-blue chat-card">
+            <p>${game.i18n.localize('CYBER_BLUE.CriticalInjury.MonowirePickHint')}</p>
+            <div style="display:flex;gap:0.75em;margin-top:0.5em">
+              <div style="flex:1;padding:0.5em;border:1px solid var(--color-border-light-tertiary);border-radius:4px">
+                <strong>${baseName}</strong>
+                <p style="font-size:0.9em;margin-top:0.25em">${description}</p>
+              </div>
+              <div style="flex:1;padding:0.5em;border:1px solid var(--color-border-light-tertiary);border-radius:4px">
+                <strong>${second.baseName}</strong>
+                <p style="font-size:0.9em;margin-top:0.25em">${second.description}</p>
+              </div>
+            </div>
+          </div>`,
+          buttons: {
+            first:  { label: baseName,        callback: () => resolve(true)  },
+            second: { label: second.baseName,  callback: () => resolve(false) },
+          },
+          default: 'first',
+          close: () => resolve(true),
+        }).render(true);
+      });
+      if (!pickedFirst) {
+        entry       = second.entry;
+        baseName    = second.baseName;
+        description = second.description;
+      }
+    }
+  }
 
   // Slicing (Mono-Three, Katana): Broken Arm/Leg → roll 1d6; 2+ = Dismembered
   if (weaponFlags.critSlicing && entry) {

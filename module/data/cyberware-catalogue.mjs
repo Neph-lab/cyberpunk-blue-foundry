@@ -79,7 +79,8 @@ function cw({
   integration = 'standalone', slotsUsed = 0, slotsProvided = 0,
   psycheLoss = '', facilities, installationCost, installationDv,
   useCyberneticsComponent = false, multipleInstalls = false,
-  isArmor = false, maxSp = 0, description = '', img = '',
+  isArmor = false, maxSp = 0, isWeapon = false, weapons = [],
+  description = '', img = '',
   effects = [], instructions = [],
 }) {
   const c = COST[cost] ?? cost;
@@ -104,11 +105,11 @@ function cw({
       useCyberneticsComponent,
       multipleInstalls,
       isArmor,
-      isWeapon: false,
+      isWeapon,
       isComputer: false,
       minBodyReq: 0,
       armor: { maxSp, currentSp: maxSp },
-      weapons: [],
+      weapons,
       installed: false,
       parentCyberwareId: null,
       description: description ? h(description) : '',
@@ -435,6 +436,19 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     useCyberneticsComponent: true, psycheLoss: '3d6',
     img: `${CW_ASSET}/arasaka mantis blades.png`,
+    isWeapon: true,
+    weapons: [
+      // Single blade (default attack — one blade, RoF 2)
+      {
+        type: 'heavyMelee', damage: '3d6', rateOfFire: 2, hands: 1,
+        concealable: true, isExcellentQuality: true,
+      },
+      // Combined strike — both blades attack the same target; all dice at once (RoF 1)
+      {
+        type: 'heavyMelee', damage: '6d6', rateOfFire: 1, hands: 2,
+        concealable: true, isExcellentQuality: true,
+      },
+    ],
     description: '‡ Illegal without a permit. Excellent Quality Heavy Melee Weapon concealed in the forearm. Free to draw and stow. The hand is unavailable while the blades are deployed. When two Mantis Blades both attack the same target in a single Attack action, roll all damage dice at once (increasing Critical Injury probability).',
   }),
   cw({
@@ -452,6 +466,11 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 1,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '2d6',
+    isWeapon: true,
+    weapons: [{
+      type: 'heavyMelee', damage: '3d6', rateOfFire: 2, hands: 1,
+      concealable: true, critDoublePick: true,
+    }],
     description: '‡ Illegal without a permit. Mono-filament whip housed in the hand or forearm. 1-handed melee weapon: 3d6 damage, RoF 2, no mod slots, 6m range. On a Critical Injury, roll the table twice and pick the preferred result.',
   }),
   cw({

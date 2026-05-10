@@ -110,10 +110,12 @@ export function buildWeaponField() {
     // critBlunt    (Baseball Bat): no dismember; would-be dismember → Broken + 5 dmg.
     // critCrushing (Sledgehammer): cascade secondary critical on certain body injuries.
     // critStun     (Stun Baton, Mámù): target at 0–(−10) HP left at 1 HP unconscious.
+    // critDoublePick (Monowire): roll the crit table twice; attacker picks preferred result.
     critSlicing: new fields.BooleanField({ initial: false }),
     critBlunt: new fields.BooleanField({ initial: false }),
     critCrushing: new fields.BooleanField({ initial: false }),
     critStun: new fields.BooleanField({ initial: false }),
+    critDoublePick: new fields.BooleanField({ initial: false }),
 
     // ── Vicious (Budget Arms Cut-O-Matic) ────────────────────────────────────
     // While powered on, critical hits deal +5 extra damage on top of the
