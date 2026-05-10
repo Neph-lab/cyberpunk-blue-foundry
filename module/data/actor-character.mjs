@@ -9,6 +9,9 @@ export default class CyberBlueCharacter extends CyberBlueActorBase {
       new fields.SchemaField({
         active: new fields.BooleanField({ initial: false }),
         rank: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+        // AE target: system.skills.<slug>.bonus or system.components.<slug>.bonus
+        // Use this for cyberware/gear/tactic bonuses — never modify rank via AE.
+        bonus: new fields.NumberField({ ...requiredInteger, initial: 0 }),
       });
 
     schema.skills = new fields.SchemaField(

@@ -85,7 +85,8 @@ Hooks.once('init', function () {
 
   CONFIG.CYBER_BLUE = CYBER_BLUE;
   CONFIG.Combat.initiative = {
-    formula: '1d10 + @stats.rflx.value',
+    // Include rollMod so AEs (Seriously Wounded, Kerenzikov, tactic bonuses) affect initiative.
+    formula: '1d10 + @stats.rflx.value + @stats.rflx.rollMod',
     decimals: 0,
   };
 

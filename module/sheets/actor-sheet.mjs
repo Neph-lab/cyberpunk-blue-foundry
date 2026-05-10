@@ -513,7 +513,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     context.combatWeapons = combatWeaponEntries;
 
     // Martial Arts context (attacks + special moves for Overview tab)
-    const maContext = buildMartialArtsContext(this.document, rofState);
+    const maContext = buildMartialArtsContext(this.document, turnState);
     context.martialArtsAttacks = maContext.martialArtsAttacks;
     context.martialArtsSpecialMoves = maContext.martialArtsSpecialMoves;
 
@@ -1223,8 +1223,13 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     }
 
     const intValue = actor.system?.stats?.int?.value ?? 0;
+    const intRollMod = actor.system?.stats?.int?.rollMod ?? 0;
     const saRank = actor.system?.skills?.shoulderArms?.rank ?? 0;
-    const formula = `1d10 + ${intValue} + ${saRank}`;
+    const saBonus = actor.system?.skills?.shoulderArms?.bonus ?? 0;
+    const calibrateTerms = [intValue, saRank];
+    if (intRollMod) calibrateTerms.push(intRollMod);
+    if (saBonus) calibrateTerms.push(saBonus);
+    const formula = ['1d10', ...calibrateTerms.map((t) => (t >= 0 ? `+ ${t}` : `- ${Math.abs(t)}`))].join(' ');
     const roll = await new Roll(formula).evaluate();
 
     const saLabel = CONFIG.CYBER_BLUE?.skills?.shoulderArms?.label ?? 'Shoulder Arms';
@@ -2150,7 +2155,13 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     if (result !== 'roll' || !skill) return;
 
     const skillRank = system.skills?.[skill]?.rank ?? 0;
-    const formula = `1d10 + ${statVal} + ${skillRank} + ${rank}`;
+    const skillBonus = system.skills?.[skill]?.bonus ?? 0;
+    const chosenStatSlug = (statLabel === 'COOL') ? 'cool' : 'int';
+    const statRollMod = system.stats?.[chosenStatSlug]?.rollMod ?? 0;
+    const mediaTerms = [statVal, skillRank, rank];
+    if (statRollMod) mediaTerms.push(statRollMod);
+    if (skillBonus) mediaTerms.push(skillBonus);
+    const formula = ['1d10', ...mediaTerms.map((t) => (t >= 0 ? `+ ${t}` : `- ${Math.abs(t)}`))].join(' ');
     const roll = await new Roll(formula).evaluate();
     const success = Number.isFinite(dv) ? roll.total >= dv : null;
     const dvText = Number.isFinite(dv) ? ` vs DV ${dv}` : '';
@@ -2199,7 +2210,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     if (result !== 'roll' || !skill) return;
 
     const skillRank = system.skills?.[skill]?.rank ?? 0;
-    const formula = `1d10 + ${coolVal} + ${skillRank} + ${rank}`;
+    const skillBonus = system.skills?.[skill]?.bonus ?? 0;
+    const coolRollMod = system.stats?.cool?.rollMod ?? 0;
+    const rockerTerms = [coolVal, skillRank, rank];
+    if (coolRollMod) rockerTerms.push(coolRollMod);
+    if (skillBonus) rockerTerms.push(skillBonus);
+    const formula = ['1d10', ...rockerTerms.map((t) => (t >= 0 ? `+ ${t}` : `- ${Math.abs(t)}`))].join(' ');
     const roll = await new Roll(formula).evaluate();
     await roll.toMessage({
       speaker: ChatMessage.getSpeaker({ actor }),
@@ -2316,10 +2332,14 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     const surgRank = Number(surgSpec?.rank) || 0;
     const system = actor.system;
     const techVal = system.stats?.tech?.value ?? 0;
+    const techRollMod = system.stats?.tech?.rollMod ?? 0;
     const medRank = system.skills?.medicine?.rank ?? 0;
+    const medBonus = system.skills?.medicine?.bonus ?? 0;
     const usedRank = Math.min(medRank, surgRank);
-
-    const formula = `1d10 + ${techVal} + ${usedRank}`;
+    const surgTerms = [techVal, usedRank];
+    if (techRollMod) surgTerms.push(techRollMod);
+    if (medBonus) surgTerms.push(medBonus);
+    const formula = ['1d10', ...surgTerms.map((t) => (t >= 0 ? `+ ${t}` : `- ${Math.abs(t)}`))].join(' ');
     const roll = await new Roll(formula).evaluate();
     await roll.toMessage({
       speaker: ChatMessage.getSpeaker({ actor }),
@@ -2341,10 +2361,14 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     const cryoRank = Number(cryoSpec?.rank) || 0;
     const system = actor.system;
     const techVal = system.stats?.tech?.value ?? 0;
+    const techRollMod = system.stats?.tech?.rollMod ?? 0;
     const medRank = system.skills?.medicine?.rank ?? 0;
+    const medBonus = system.skills?.medicine?.bonus ?? 0;
     const dv = parseInt(event.currentTarget.dataset.dv, 10) || 13;
-
-    const formula = `1d10 + ${techVal} + ${Math.min(medRank, cryoRank)}`;
+    const cryoTerms = [techVal, Math.min(medRank, cryoRank)];
+    if (techRollMod) cryoTerms.push(techRollMod);
+    if (medBonus) cryoTerms.push(medBonus);
+    const formula = ['1d10', ...cryoTerms.map((t) => (t >= 0 ? `+ ${t}` : `- ${Math.abs(t)}`))].join(' ');
     const roll = await new Roll(formula).evaluate();
     const success = roll.total >= dv;
     await roll.toMessage({
@@ -2393,7 +2417,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     if (result !== 'roll' || !skill) return;
 
     const skillRank = system.skills?.[skill]?.rank ?? 0;
-    const formula = `1d10 + ${techVal} + ${skillRank} + ${specRank}`;
+    const skillBonus = system.skills?.[skill]?.bonus ?? 0;
+    const techRollMod = system.stats?.tech?.rollMod ?? 0;
+    const techieTerms = [techVal, skillRank, specRank];
+    if (techRollMod) techieTerms.push(techRollMod);
+    if (skillBonus) techieTerms.push(skillBonus);
+    const formula = ['1d10', ...techieTerms.map((t) => (t >= 0 ? `+ ${t}` : `- ${Math.abs(t)}`))].join(' ');
     const roll = await new Roll(formula).evaluate();
     await roll.toMessage({
       speaker: ChatMessage.getSpeaker({ actor }),

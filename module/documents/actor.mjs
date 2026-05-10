@@ -275,16 +275,19 @@ export class CyberBlueActor extends Actor {
     const statValue = this.system.stats[skill.stat]?.value ?? 0;
     const statRollMod = this.system.stats[skill.stat]?.rollMod ?? 0;
     const skillRank = this.system.skills[skillSlug]?.rank ?? 0;
+    const skillBonus = this.system.skills[skillSlug]?.bonus ?? 0;
 
     if (!componentSlug) {
       return {
         skillLabel: skill.label,
         skillRank,
+        skillBonus,
         statShortLabel: stat?.shortLabel ?? skill.stat.toUpperCase(),
         statValue,
         statRollMod,
         componentLabel: null,
         componentRank: null,
+        componentBonus: 0,
         usedRank: skillRank,
       };
     }
@@ -295,15 +298,18 @@ export class CyberBlueActor extends Actor {
     }
 
     const componentRank = this.system.components[componentSlug]?.rank ?? 0;
+    const componentBonus = this.system.components[componentSlug]?.bonus ?? 0;
 
     return {
       skillLabel: skill.label,
       skillRank,
+      skillBonus,
       statShortLabel: stat?.shortLabel ?? skill.stat.toUpperCase(),
       statValue,
       statRollMod,
       componentLabel: component.label,
       componentRank,
+      componentBonus,
       usedRank: Math.min(skillRank, componentRank),
     };
   }
@@ -314,6 +320,12 @@ export class CyberBlueActor extends Actor {
 
     if (context.statRollMod) {
       terms.push(context.statRollMod);
+    }
+
+    // AE-sourced skill/component bonuses (from cyberware, tactics, etc.)
+    const totalBonus = (context.skillBonus ?? 0) + (context.componentBonus ?? 0);
+    if (totalBonus) {
+      terms.push(totalBonus);
     }
 
     if (modifier) {
@@ -329,9 +341,10 @@ export class CyberBlueActor extends Actor {
     const hasDv = Number.isFinite(dv);
     const success = hasDv ? roll.total >= dv : null;
     const statModifierText = context.statRollMod ? ` ${context.statRollMod >= 0 ? '+' : '-'} stat mod ${Math.abs(context.statRollMod)}` : '';
+    const bonusText = totalBonus ? ` ${totalBonus >= 0 ? '+' : '-'} bonus ${Math.abs(totalBonus)}` : '';
     const modifierText = modifier ? ` + modifier ${modifier}` : '';
     const componentText = componentSlug
-      ? `<p><strong>${context.componentLabel}</strong> rank ${context.componentRank}. ${game.i18n.localize("CYBER_BLUE.Sheet.Roll.UsesLowerRank")}</p>`
+      ? `<p><strong>${context.componentLabel}</strong> rank ${context.componentRank}${context.componentBonus ? ` (+${context.componentBonus} bonus)` : ''}. ${game.i18n.localize("CYBER_BLUE.Sheet.Roll.UsesLowerRank")}</p>`
       : '';
     const dvText = hasDv
       ? `<p>${game.i18n.format("CYBER_BLUE.Sheet.Roll.AgainstDv", { dv })}: <strong>${success ? game.i18n.localize("CYBER_BLUE.Sheet.Roll.Success") : game.i18n.localize("CYBER_BLUE.Sheet.Roll.Failure")}</strong></p>`
@@ -342,7 +355,7 @@ export class CyberBlueActor extends Actor {
         <h3>${componentSlug
           ? game.i18n.localize("CYBER_BLUE.Sheet.Roll.Component")
           : game.i18n.localize("CYBER_BLUE.Sheet.Roll.Standard")}</h3>
-        <p><strong>${context.skillLabel}</strong> using <strong>${context.statShortLabel}</strong> (${context.statValue}) + rank ${context.usedRank}${statModifierText}${modifierText}</p>
+        <p><strong>${context.skillLabel}</strong> using <strong>${context.statShortLabel}</strong> (${context.statValue}) + rank ${context.usedRank}${statModifierText}${bonusText}${modifierText}</p>
         ${componentText}
         ${dvText}
       </div>

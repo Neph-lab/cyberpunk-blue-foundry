@@ -64,8 +64,9 @@ export async function rollAfflictionDefense(targetActor, weapon, resistBonus = 0
   const statValue = targetActor.system?.stats?.[statSlug]?.value ?? 0;
   const statRollMod = targetActor.system?.stats?.[statSlug]?.rollMod ?? 0;
   const skillRank = skillSlug ? (targetActor.system?.skills?.[skillSlug]?.rank ?? 0) : 0;
+  const skillBonus = skillSlug ? (targetActor.system?.skills?.[skillSlug]?.bonus ?? 0) : 0;
 
-  const flatBonus = statValue + skillRank + (statRollMod ?? 0) + resistBonus;
+  const flatBonus = statValue + skillRank + (statRollMod ?? 0) + skillBonus + resistBonus;
   const formula = `1d10 + ${flatBonus}`;
   const roll = await new Roll(formula).evaluate();
 
@@ -75,6 +76,7 @@ export async function rollAfflictionDefense(targetActor, weapon, resistBonus = 0
     `${statLabel} ${statValue}`,
     skillLabel ? `${skillLabel} ${skillRank}` : null,
     statRollMod ? `Mod ${statRollMod}` : null,
+    skillBonus ? `Bonus ${skillBonus}` : null,
     resistBonus ? `+${resistBonus} (${game.i18n.localize('CYBER_BLUE.Combat.AfflictionOuterZone')})` : null,
   ].filter(Boolean).join(' + ');
 
@@ -256,7 +258,12 @@ export async function resolveAfflictionAttack(attacker, item, weaponIndex) {
     const rflxMod = targetActor.system?.stats?.rflx?.rollMod ?? 0;
     const evasionRank = targetActor.system?.skills?.evasion?.rank
       ?? targetActor.system?.skills?.athletics?.rank ?? 0;
-    const formula = `1d10 + ${rflx} + ${evasionRank}${rflxMod ? ` + ${rflxMod}` : ''}`;
+    const evasionBonus = targetActor.system?.skills?.evasion?.bonus
+      ?? targetActor.system?.skills?.athletics?.bonus ?? 0;
+    const formulaParts = [`1d10 + ${rflx} + ${evasionRank}`];
+    if (rflxMod) formulaParts.push(`${rflxMod}`);
+    if (evasionBonus) formulaParts.push(`${evasionBonus}`);
+    const formula = formulaParts.join(' + ');
     const evasionRoll = await new Roll(formula).evaluate();
     await evasionRoll.toMessage({
       speaker: ChatMessage.getSpeaker({ actor: targetActor }),
