@@ -207,6 +207,14 @@
       "path": "packs/macros",
       "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
       "flags": {}
+    },
+    {
+      "name": "roles",
+      "label": "Roles",
+      "type": "Item",
+      "path": "packs/roles",
+      "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
+      "flags": {}
     }
   ],
   "initiative": "1d10 + @stats.rflx.value",

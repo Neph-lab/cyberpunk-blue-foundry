@@ -41,6 +41,7 @@ import { CYBERWARE_CATALOGUE } from './data/cyberware-catalogue.mjs';
 import { DRUG_CATALOGUE } from './data/drug-catalogue.mjs';
 import { PROGRAM_CATALOGUE } from './data/program-catalogue.mjs';
 import { AMMO_CATALOGUE } from './data/ammo-catalogue.mjs';
+import { ROLE_CATALOGUE } from './data/role-catalogue.mjs';
 import { registerSocketHandlers, applyDamageWithPermission } from './helpers/socket.mjs';
 import { refreshAllRicochetLines, clearRicochetLine } from './helpers/ricochet-canvas.mjs';
 import { refreshTechChargeHighlights, clearTechChargeHighlights } from './helpers/tech-charge-canvas.mjs';
@@ -916,6 +917,7 @@ Hooks.once('ready', async () => {
   await ensureWeaponCatalogue();
   await ensureAmmoCatalogue();
   await ensureEquipmentCatalogue();
+  await ensureRoleCatalogue();
   await ensureMacroCatalogue();
 
   const seen = new Set();
@@ -1659,6 +1661,42 @@ async function ensureAmmoCatalogue() {
 // ─── Equipment catalogue ──────────────────────────────────────────────────────
 
 /**
+ * Ensure armor items from the gear catalogue are present in the gear pack.
+ * Runs even when the pack is already populated (adds only missing items by name).
+ */
+async function _ensureArmorInGearPack(gearItems) {
+  const PACK_ID = 'cyberpunk-blue.gear';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) return;
+
+  const armorItems = gearItems.filter((it) => it.system?.isArmor);
+  if (armorItems.length === 0) return;
+
+  await pack.getIndex({ fields: ['name', 'type'] });
+  const existingNames = new Set(pack.index.map((e) => e.name));
+  const missing = armorItems.filter((it) => !existingNames.has(it.name));
+  if (missing.length === 0) return;
+
+  await pack.configure({ locked: false });
+  try {
+    const folder = await _ensureFolderInPack(pack, 'Body Armor');
+    const cleaned = missing.map((it) => {
+      const copy = foundry.utils.deepClone(it);
+      delete copy._id;
+      delete copy._folder;
+      copy.folder = folder?.id ?? null;
+      return copy;
+    });
+    const docs = await Item.createDocuments(cleaned, { pack: PACK_ID });
+    if (docs.length > 0) {
+      console.log(`Cyberpunk Blue | Added ${docs.length} armor item(s) to gear pack.`);
+    }
+  } finally {
+    await pack.configure({ locked: true });
+  }
+}
+
+/**
  * Synchronise the `system.weapons` and `system.isWeapon` fields of existing
  * cyberware items in the cyberware compendium against the current catalogue.
  * Runs on every GM load so changes like Monowire / Mantis Blades weapons
@@ -1775,6 +1813,9 @@ async function ensureEquipmentCatalogue() {
     // Sync weapon data on already-populated cyberware pack entries
     await _syncCyberwareEntries(CYBERWARE_CATALOGUE);
 
+    // Add armor items that may have been missing in earlier versions
+    await _ensureArmorInGearPack(gearItems);
+
     const total = gCreated + cyCreated + dCreated + pCreated;
     if (total > 0) {
       console.log(`Cyberpunk Blue | Equipment catalogue imported: ${gCreated} gear, ${cyCreated} cyberware, ${dCreated} drugs, ${pCreated} programs.`);
@@ -1782,6 +1823,98 @@ async function ensureEquipmentCatalogue() {
     }
   } catch (err) {
     console.error('Cyberpunk Blue | Failed to import equipment catalogue:', err);
+  }
+}
+
+// ─── Role catalogue ───────────────────────────────────────────────────────────
+
+async function ensureRoleCatalogue() {
+  if (!game.user.isGM) return;
+  const PACK_ID = 'cyberpunk-blue.roles';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) {
+    console.warn('Cyberpunk Blue | Roles compendium not found — skipping auto-populate.');
+    return;
+  }
+  await pack.getIndex();
+  if (pack.index.size > 0) {
+    // Sync any updated fields (category, abilityOverview, abilitySections, etc.)
+    await _syncRoleEntries();
+    return;
+  }
+
+  console.log('Cyberpunk Blue | Populating roles compendium…');
+  const byFolder = new Map();
+  for (const item of ROLE_CATALOGUE) {
+    const folderName = item._folder ?? 'Roles';
+    if (!byFolder.has(folderName)) byFolder.set(folderName, []);
+    byFolder.get(folderName).push(item);
+  }
+
+  let created = 0;
+  await pack.configure({ locked: false });
+  try {
+    for (const [folderName, group] of byFolder.entries()) {
+      const folder = await _ensureFolderInPack(pack, folderName);
+      const cleaned = group.map((it) => {
+        const copy = foundry.utils.deepClone(it);
+        delete copy._id;
+        delete copy._folder;
+        copy.folder = folder?.id ?? null;
+        return copy;
+      });
+      const docs = await Item.createDocuments(cleaned, { pack: PACK_ID });
+      created += docs.length;
+    }
+    console.log(`Cyberpunk Blue | Roles compendium populated: ${created} roles.`);
+    if (created > 0) ui.notifications.info(`Cyberpunk Blue: Roles catalogue imported (${created} roles).`);
+  } catch (err) {
+    console.error('Cyberpunk Blue | Failed to populate roles compendium:', err);
+  } finally {
+    await pack.configure({ locked: true });
+  }
+}
+
+async function _syncRoleEntries() {
+  const PACK_ID = 'cyberpunk-blue.roles';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) return;
+
+  // Build lookup by name from the catalogue
+  const byName = new Map(ROLE_CATALOGUE.map((r) => [r.name, r]));
+
+  await pack.getIndex({ fields: ['name'] });
+  const toUpdate = [];
+
+  for (const entry of pack.index) {
+    const catalogueEntry = byName.get(entry.name);
+    if (!catalogueEntry) continue;
+
+    // Fields that may change between versions (everything except rank / actor state)
+    toUpdate.push({
+      _id: entry._id,
+      img: catalogueEntry.img,
+      'system.category':        catalogueEntry.system.category,
+      'system.description':     catalogueEntry.system.description,
+      'system.abilityOverview': catalogueEntry.system.abilityOverview,
+      'system.abilitySections': catalogueEntry.system.abilitySections,
+      'system.lifepathLinks':   catalogueEntry.system.lifepathLinks,
+      'system.lifepathQuestions': catalogueEntry.system.lifepathQuestions,
+      'system.leaderFeatures':  catalogueEntry.system.leaderFeatures,
+      'system.proteanFoci':     catalogueEntry.system.proteanFoci,
+      'system.specialties':     catalogueEntry.system.specialties,
+      'system.notes':           catalogueEntry.system.notes,
+    });
+  }
+
+  if (toUpdate.length === 0) return;
+
+  await pack.configure({ locked: false });
+  try {
+    await Item.updateDocuments(toUpdate, { pack: PACK_ID });
+    console.log(`Cyberpunk Blue | Role entries synced: ${toUpdate.length} roles updated.`);
+  } finally {
+    await pack.configure({ locked: true });
   }
 }
 

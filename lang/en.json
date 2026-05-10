@@ -279,7 +279,28 @@
       "ConfirmChoices": "Confirm",
       "ChooseSummary": "Choose {count}",
       "ReceiveAll": "Receive all",
-      "PopulateReference": "Populate from UUID"
+      "PopulateReference": "Populate from UUID",
+      "Netrunner": {
+        "NetActions": "NET Actions"
+      },
+      "Bandit": {
+        "Tough": "Tough",
+        "ToughDepleted": "No Tough uses remaining. Rest to recover.",
+        "ToughUsed": "Tough used — {remaining} of {max} uses remaining.",
+        "ToughReset": "Tough uses reset to {max}.",
+        "ToughResetTitle": "Reset Tough uses (after rest)",
+        "Suppression": "Bandit Suppression"
+      },
+      "Media": {
+        "PickUpRumours": "Pick Up Rumours",
+        "RumourSkill": "Skill",
+        "RumourPassive": "Passive",
+        "RumourActive": "Active"
+      },
+      "Rocker": {
+        "Rock": "Rock",
+        "PerformSkill": "Performance Skill"
+      }
     },
     "Effect": {
       "Source": "Source",

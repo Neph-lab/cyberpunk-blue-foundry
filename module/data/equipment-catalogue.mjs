@@ -628,4 +628,18 @@ export const EQUIPMENT_CATALOGUE = [
     description: 'Architecture Hardware add-on. Provides a wired and wireless (10m; each toggled independently via circuitboard) connection to a node.',
   }),
   // Coolant, Insulation, and Memory Upgrade are computerMod items — see mod-catalogue.mjs
+
+  // ── Body Armor ─────────────────────────────────────────────────────────────
+  gear({
+    name: 'Light Armorjack',
+    folder: 'Body Armor', cost: 'PR',
+    isArmor: true, maxSp: 11,
+    description: 'Kevlar® and plastics woven into reinforced fabric fibers that can be part of, or under, clothes.',
+  }),
+  gear({
+    name: 'Light Bodyweight Suit',
+    folder: 'Body Armor', cost: 'EX',
+    isArmor: true, maxSp: 9,
+    description: 'Skin-tight suit able to connect to a netrunning chair. Blocks programs from setting the wearer on fire. Reduces damage from Black ICE by 1.',
+  }),
 ];

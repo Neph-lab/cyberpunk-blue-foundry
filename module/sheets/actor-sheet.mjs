@@ -523,12 +523,35 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       const sections = getVisibleRoleAbilitySections(roleSystem, roleRank)
         .filter((section) => section.content);
 
+      // ── Role-specific mechanics context ────────────────────────────────
+      const roleMechanics = {};
+      if (role.name === 'Netrunner' && roleRank >= 1) {
+        roleMechanics.netActionsTotal = 1 + Math.ceil(roleRank / 3);
+      }
+      if (role.name === 'Bandit' && roleRank >= 1) {
+        const maxUses = 1 + Math.floor(roleRank / 3);
+        const usesRemaining = this.document.getFlag('cyberpunk-blue', 'toughUsesRemaining') ?? maxUses;
+        roleMechanics.toughMaxUses = maxUses;
+        roleMechanics.toughUsesRemaining = Math.min(usesRemaining, maxUses);
+        roleMechanics.toughDepleted = roleMechanics.toughUsesRemaining <= 0;
+      }
+      if (role.name === 'Media' && roleRank >= 1) {
+        roleMechanics.canPickUpRumours = true;
+        roleMechanics.rumourActiveDv  = 12 + 2 * Math.max(0, roleRank - 1);
+        roleMechanics.rumourPassiveDv = 10;
+      }
+      if (role.name === 'Rocker' && roleRank >= 1) {
+        roleMechanics.canRock = true;
+      }
+
       const base = {
         roleId: role.id,
         roleName: role.name,
         kind: roleSystem.category,
         categoryLabel: getRoleCategoryLabel(roleSystem.category),
         sections,
+        roleMechanics,
+        hasMechanics: Object.keys(roleMechanics).length > 0,
       };
 
       if (roleSystem.category === 'protean') {
@@ -602,6 +625,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       if (feature.kind === 'protean' && feature.foci?.length) return true;
       if (feature.kind === 'leader' && feature.leaderFeatures?.length) return true;
       if (feature.kind === 'specialist' && feature.specialties?.length) return true;
+      if (feature.hasMechanics) return true;
       return false;
     });
     context.enrichedRoleOverviewFeatures = await Promise.all(context.roleOverviewFeatures.map(async (feature) => ({
@@ -668,9 +692,10 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       });
     }
 
+    // The Netrunner role (category: sundry, name: 'Netrunner') unlocks the NET tab.
     const networkerRole = context.roles.find((role) => {
       const rs = normalizeRoleSystemData(role.system);
-      return rs.category === 'networker' && (Number(rs.rank) || 0) >= 1;
+      return role.name === 'Netrunner' && (Number(rs.rank) || 0) >= 1;
     });
     const networkerRoleSystem = networkerRole ? normalizeRoleSystemData(networkerRole.system) : null;
     const networkerRank = Number(networkerRoleSystem?.rank) || 0;
@@ -1021,6 +1046,20 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     });
     this.element.querySelectorAll('[data-action="net-quickhack-upload"]').forEach((button) => {
       button.addEventListener('click', this._onQuickhackUpload.bind(this));
+    });
+
+    // ── Role-specific mechanics ────────────────────────────────────────────
+    this.element.querySelectorAll('[data-action="role-bandit-tough"]').forEach((button) => {
+      button.addEventListener('click', this._onBanditTough.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="role-bandit-tough-reset"]').forEach((button) => {
+      button.addEventListener('click', this._onBanditToughReset.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="role-media-rumour"]').forEach((button) => {
+      button.addEventListener('click', this._onMediaRumour.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="role-rocker-rock"]').forEach((button) => {
+      button.addEventListener('click', this._onRockerRock.bind(this));
     });
 
     // Money field: supports arithmetic expressions (e.g. "500-50" → 450)
@@ -1951,6 +1990,157 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
     const combatant = game.combat?.combatants.find((c) => c.actor?.id === actor.id);
     if (combatant) await consumeNetAction(combatant);
+  }
+
+  // ── Role ability mechanics ─────────────────────────────────────────────────
+
+  async _onBanditTough(event) {
+    event.preventDefault();
+    const actor = this.document;
+    const banditRole = actor.items.find((i) => i.type === 'role' && i.name === 'Bandit');
+    if (!banditRole) return;
+    const rank = Number(banditRole.system.rank) || 0;
+    const maxUses = 1 + Math.floor(rank / 3);
+    const current = actor.getFlag('cyberpunk-blue', 'toughUsesRemaining') ?? maxUses;
+    if (current <= 0) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Role.Bandit.ToughDepleted'));
+      return;
+    }
+    await actor.setFlag('cyberpunk-blue', 'toughUsesRemaining', current - 1);
+    // Heal 1 HP
+    const hp = actor.system.resources.hp;
+    const maxHp = hp.max ?? hp.value ?? 0;
+    const newHp = Math.min((hp.value ?? 0) + 1, maxHp);
+    await actor.update({ 'system.resources.hp.value': newHp });
+    // Apply suppression AE
+    await actor.createEmbeddedDocuments('ActiveEffect', [{
+      name: game.i18n.localize('CYBER_BLUE.Role.Bandit.Suppression'),
+      icon: 'icons/svg/shield.svg',
+      origin: actor.uuid,
+      disabled: false,
+      transfer: false,
+      duration: { rounds: 1 },
+      changes: [],
+      flags: { 'cyberpunk-blue': { conditionId: 'bandit-suppression' } },
+    }]);
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `<div class="cyberpunk-blue chat-card">
+        <h3>${game.i18n.localize('CYBER_BLUE.Role.Bandit.Tough')}</h3>
+        <p>${game.i18n.format('CYBER_BLUE.Role.Bandit.ToughUsed', { remaining: current - 1, max: maxUses })}</p>
+        <p>+1 HP, Suppression applied for 1 round.</p>
+      </div>`,
+    });
+  }
+
+  async _onBanditToughReset(event) {
+    event.preventDefault();
+    const actor = this.document;
+    const banditRole = actor.items.find((i) => i.type === 'role' && i.name === 'Bandit');
+    if (!banditRole) return;
+    const rank = Number(banditRole.system.rank) || 0;
+    const maxUses = 1 + Math.floor(rank / 3);
+    await actor.setFlag('cyberpunk-blue', 'toughUsesRemaining', maxUses);
+    ui.notifications.info(game.i18n.format('CYBER_BLUE.Role.Bandit.ToughReset', { max: maxUses }));
+  }
+
+  async _onMediaRumour(event) {
+    event.preventDefault();
+    const actor = this.document;
+    const mediaRole = actor.items.find((i) => i.type === 'role' && i.name === 'Media');
+    if (!mediaRole) return;
+    const rank = Number(mediaRole.system.rank) || 0;
+    const activeDv  = 12 + 2 * Math.max(0, rank - 1);
+    const passiveDv = 10;
+    const isDv = event.currentTarget.dataset.dvType === 'active' ? activeDv : passiveDv;
+
+    // Pick the best available skill: business, government, or streetwise
+    const RUMOUR_SKILLS = ['business', 'government', 'streetwise'];
+    const system = actor.system;
+    const intVal  = system.stats?.int?.value  ?? 0;
+    const coolVal = system.stats?.cool?.value ?? 0;
+    const statVal = Math.max(intVal, coolVal);
+    const statLabel = statVal === coolVal && coolVal > intVal ? 'COOL' : 'INT';
+
+    // Show dialog for skill selection
+    const skillOptions = RUMOUR_SKILLS.map((slug) => {
+      const skillRank = system.skills?.[slug]?.rank ?? 0;
+      return `<option value="${slug}">${slug.charAt(0).toUpperCase() + slug.slice(1)} (rank ${skillRank})</option>`;
+    }).join('');
+
+    const { promise, resolve } = Promise.withResolvers();
+    const dialog = new foundry.applications.api.DialogV2({
+      window: { title: game.i18n.localize('CYBER_BLUE.Role.Media.PickUpRumours') },
+      content: `<div class="form-group"><label>${game.i18n.localize('CYBER_BLUE.Role.Media.RumourSkill')}</label><select name="skill">${skillOptions}</select></div>`,
+      buttons: [
+        { action: 'roll', label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Roll'), icon: 'fa-solid fa-dice-d10', default: true },
+        { action: 'cancel', label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Cancel'), icon: 'fa-solid fa-times' },
+      ],
+      submit: (result, event2, form) => resolve({ result, skill: form?.querySelector('[name="skill"]')?.value }),
+    });
+    dialog.addEventListener('close', () => resolve({ result: 'cancel' }), { once: true });
+    dialog.render(true);
+    const { result, skill } = await promise;
+    if (result !== 'roll' || !skill) return;
+
+    const skillRank = system.skills?.[skill]?.rank ?? 0;
+    const formula = `1d10 + ${statVal} + ${skillRank} + ${rank}`;
+    const roll = await new Roll(formula).evaluate();
+    const success = roll.total >= isDv;
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      rollMode: game.settings.get('core', 'rollMode'),
+      flavor: `<div class="cyberpunk-blue chat-card">
+        <h3>${game.i18n.localize('CYBER_BLUE.Role.Media.PickUpRumours')}</h3>
+        <p><strong>${skill.charAt(0).toUpperCase() + skill.slice(1)}</strong> + ${statLabel} (${statVal}) + Media rank ${rank} vs DV ${isDv}</p>
+        <p><strong>${success ? game.i18n.localize('CYBER_BLUE.Sheet.Roll.Success') : game.i18n.localize('CYBER_BLUE.Sheet.Roll.Failure')}</strong></p>
+      </div>`,
+    });
+  }
+
+  async _onRockerRock(event) {
+    event.preventDefault();
+    const actor = this.document;
+    const rockerRole = actor.items.find((i) => i.type === 'role' && i.name === 'Rocker');
+    if (!rockerRole) return;
+    const rank = Number(rockerRole.system.rank) || 0;
+    const system = actor.system;
+    const coolVal = system.stats?.cool?.value ?? 0;
+
+    // Performance skills: performance, persuasion, or any acting/art skill
+    const PERF_SKILLS = ['performance', 'persuasion', 'acting', 'musicianship'];
+    const available = PERF_SKILLS.filter((slug) => (system.skills?.[slug]?.rank ?? 0) > 0);
+    const skillOptions = (available.length ? available : PERF_SKILLS).map((slug) => {
+      const skillRank = system.skills?.[slug]?.rank ?? 0;
+      return `<option value="${slug}">${slug.charAt(0).toUpperCase() + slug.slice(1)} (rank ${skillRank})</option>`;
+    }).join('');
+
+    const { promise, resolve } = Promise.withResolvers();
+    const dialog = new foundry.applications.api.DialogV2({
+      window: { title: game.i18n.localize('CYBER_BLUE.Role.Rocker.Rock') },
+      content: `<div class="form-group"><label>${game.i18n.localize('CYBER_BLUE.Role.Rocker.PerformSkill')}</label><select name="skill">${skillOptions}</select></div>`,
+      buttons: [
+        { action: 'roll', label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Roll'), icon: 'fa-solid fa-dice-d10', default: true },
+        { action: 'cancel', label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Cancel'), icon: 'fa-solid fa-times' },
+      ],
+      submit: (result, event2, form) => resolve({ result, skill: form?.querySelector('[name="skill"]')?.value }),
+    });
+    dialog.addEventListener('close', () => resolve({ result: 'cancel' }), { once: true });
+    dialog.render(true);
+    const { result, skill } = await promise;
+    if (result !== 'roll' || !skill) return;
+
+    const skillRank = system.skills?.[skill]?.rank ?? 0;
+    const formula = `1d10 + ${coolVal} + ${skillRank} + ${rank}`;
+    const roll = await new Roll(formula).evaluate();
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      rollMode: game.settings.get('core', 'rollMode'),
+      flavor: `<div class="cyberpunk-blue chat-card">
+        <h3>${game.i18n.localize('CYBER_BLUE.Role.Rocker.Rock')}</h3>
+        <p><strong>${skill.charAt(0).toUpperCase() + skill.slice(1)}</strong> (rank ${skillRank}) + COOL (${coolVal}) + Rocker rank ${rank}</p>
+      </div>`,
+    });
   }
 
   async _onExecutableInstall(event) {

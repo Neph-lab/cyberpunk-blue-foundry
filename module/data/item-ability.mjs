@@ -1,4 +1,5 @@
 import CyberBlueItemBase from "./base-item.mjs";
+import { buildInstructionStepField } from "./weapon-schema.mjs";
 
 export default class CyberBlueAbility extends CyberBlueItemBase {
   static defineSchema() {
@@ -15,6 +16,11 @@ export default class CyberBlueAbility extends CyberBlueItemBase {
       initial: null,
       min: 0,
     });
+
+    // ── Instruction sequence (same as cyberware / gear) ───────────────────────
+    schema.instructions = new fields.ArrayField(buildInstructionStepField(), { initial: [] });
+    schema.instructionActive = new fields.BooleanField({ initial: false });
+    schema.instructionStep = new fields.NumberField({ required: true, nullable: false, integer: true, initial: -1 });
 
     return schema;
   }

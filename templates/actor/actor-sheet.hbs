@@ -401,6 +401,59 @@
                   {{/each}}
                 </div>
               {{/if}}
+
+              {{!-- ── Role-specific mechanics ── --}}
+              {{#if feature.hasMechanics}}
+                <div class="role-mechanics-panel">
+                  {{!-- Netrunner: NET Actions --}}
+                  {{#if feature.roleMechanics.netActionsTotal}}
+                    <div class="role-mechanic-row role-net-actions">
+                      <span class="role-mechanic-label">{{localize "CYBER_BLUE.Role.Netrunner.NetActions"}}</span>
+                      <span class="role-mechanic-value">{{feature.roleMechanics.netActionsTotal}}</span>
+                    </div>
+                  {{/if}}
+
+                  {{!-- Bandit: Tough --}}
+                  {{#if feature.roleMechanics.toughMaxUses}}
+                    <div class="role-mechanic-row role-tough-row">
+                      <button type="button" data-action="role-bandit-tough" class="role-action-btn {{#if feature.roleMechanics.toughDepleted}}is-depleted{{/if}}" {{#if feature.roleMechanics.toughDepleted}}disabled{{/if}}>
+                        <i class="fas fa-fist-raised"></i>
+                        {{localize "CYBER_BLUE.Role.Bandit.Tough"}}
+                      </button>
+                      <span class="role-mechanic-uses">{{feature.roleMechanics.toughUsesRemaining}} / {{feature.roleMechanics.toughMaxUses}}</span>
+                      <button type="button" data-action="role-bandit-tough-reset" class="role-action-btn role-reset-btn" title="{{localize "CYBER_BLUE.Role.Bandit.ToughResetTitle"}}">
+                        <i class="fas fa-redo"></i>
+                      </button>
+                    </div>
+                  {{/if}}
+
+                  {{!-- Media: Rumour pickup --}}
+                  {{#if feature.roleMechanics.canPickUpRumours}}
+                    <div class="role-mechanic-row role-rumour-row">
+                      <span class="role-mechanic-label">{{localize "CYBER_BLUE.Role.Media.PickUpRumours"}}</span>
+                      <button type="button" data-action="role-media-rumour" data-dv-type="passive" class="role-action-btn" title="DV {{feature.roleMechanics.rumourPassiveDv}}">
+                        <i class="fas fa-ear-listen"></i>
+                        {{localize "CYBER_BLUE.Role.Media.RumourPassive"}} (DV {{feature.roleMechanics.rumourPassiveDv}})
+                      </button>
+                      <button type="button" data-action="role-media-rumour" data-dv-type="active" class="role-action-btn" title="DV {{feature.roleMechanics.rumourActiveDv}}">
+                        <i class="fas fa-newspaper"></i>
+                        {{localize "CYBER_BLUE.Role.Media.RumourActive"}} (DV {{feature.roleMechanics.rumourActiveDv}})
+                      </button>
+                    </div>
+                  {{/if}}
+
+                  {{!-- Rocker: Rock --}}
+                  {{#if feature.roleMechanics.canRock}}
+                    <div class="role-mechanic-row role-rock-row">
+                      <button type="button" data-action="role-rocker-rock" class="role-action-btn">
+                        <i class="fas fa-guitar"></i>
+                        {{localize "CYBER_BLUE.Role.Rocker.Rock"}}
+                      </button>
+                    </div>
+                  {{/if}}
+                </div>
+              {{/if}}
+
             </section>
           {{/each}}
         </section>
