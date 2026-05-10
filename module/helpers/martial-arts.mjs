@@ -879,9 +879,11 @@ export function buildMartialArtsContext(actor, rofState) {
     const compLabel = compSlug
       ? (CONFIG.CYBER_BLUE.components?.[compSlug]?.label ?? compSlug) : null;
     const maKey = `ma-${idx}`;
-    const sameAttack = rofState && rofState.itemId === actor.id && rofState.weaponIndex === maKey;
-    const rofExhausted = sameAttack && rofState.count >= 2;
-    const rofLocked = rofState && !sameAttack;
+    const rofKey = `${actor.id}::${maKey}`;
+    const rofEntry = rofState?.rofAttacks?.[rofKey] ?? null;
+    const sameAttack = rofEntry !== null;
+    const rofExhausted = sameAttack && rofEntry.used >= 2;
+    const rofLocked = !!(rofState?.actionUsed) && !sameAttack;
     const targetVitals = actor.getFlag('cyberpunk-blue', `ma-targetVitals-${idx}`) ?? false;
 
     martialArtsAttacks.push({
