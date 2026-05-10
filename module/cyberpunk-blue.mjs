@@ -31,6 +31,8 @@ import {
   markActionUsed,
   unlockNetActions,
   consumeNetAction,
+  markSpotWeaknessUsed,
+  markDamageDeflectionUsed,
 } from './helpers/combat-tracker.mjs';
 import * as models from './data/_module.mjs';
 import { CRITICAL_INJURY_FLAG, buildCritBodyTableData, buildCritHeadTableData } from './helpers/critical-injury.mjs';
@@ -2011,7 +2013,7 @@ Hooks.on('renderChatMessageHTML', (message, html) => {
 });
 
 // Re-export tracker helpers for external use (e.g., actor sheet context)
-export { getTurnState, recordCombatAttack, getActiveCombatant, getCombatantForToken };
+export { getTurnState, recordCombatAttack, getActiveCombatant, getCombatantForToken, markSpotWeaknessUsed, markDamageDeflectionUsed };
 
 // ─── Auto-create characters for new players ───────────────────────────────────
 

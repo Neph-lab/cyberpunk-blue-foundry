@@ -1,7 +1,12 @@
 import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
 import { getEffectiveItemWeapons, getInstalledWeaponMods } from './mods.mjs';
 import { resolveConeAttack, resolveExplosionAttack, resolveAfflictionConeAttack, resolveAfflictionExplosionAttack, resolveScatterEffect } from './cone-attack.mjs';
-import { recordCombatAttack } from './combat-tracker.mjs';
+import {
+  recordCombatAttack,
+  getTurnState,
+  markSpotWeaknessUsed,
+  markDamageDeflectionUsed,
+} from './combat-tracker.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
 import { resolveAfflictionAttack } from './affliction-attack.mjs';
 import { applyDamageWithPermission, rollCriticalInjuryWithPermission, deleteActorItemWithPermission, ablateArmorExtraWithPermission, applyForcedCriticalInjuryWithPermission } from './socket.mjs';
@@ -113,6 +118,33 @@ async function _setChompPending(attacker, targetToken) {
     speaker: ChatMessage.getSpeaker({ actor: attacker }),
     content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bone"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChompAmmoStuck', { target: targetToken.name })}</p></div>`,
   });
+}
+
+/**
+ * Return the first truthy value (or max numeric value) of a system flag key
+ * across all *active* (non-disabled) AEs on an actor.  Returns null if no
+ * active AE has the flag set.
+ *
+ * Used for tactic AEs (soloSpotWeakness, ninjaWeakSpot, soloDamageDeflection,
+ * soloFumbleRecovery) which carry their effect purely via a flag, not a change.
+ *
+ * @param {Actor}  actor
+ * @param {string} flagKey — flag key within the 'cyberpunk-blue' scope
+ * @returns {*} max numeric value across matching AEs, or true if non-numeric, or null
+ */
+function getActiveAEFlag(actor, flagKey) {
+  let result = null;
+  for (const effect of actor.effects ?? []) {
+    if (effect.disabled) continue;
+    const val = effect.getFlag('cyberpunk-blue', flagKey);
+    if (val === undefined || val === null || val === false) continue;
+    if (typeof val === 'number') {
+      result = result === null ? val : Math.max(result, val);
+    } else {
+      result = val; // boolean true or string
+    }
+  }
+  return result;
 }
 
 export async function resolveWeaponAttack(attacker, item, weaponIndex) {
@@ -408,6 +440,21 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // from JAM (shot is lost).
   const d10Term = attackRoll.terms?.find((t) => t instanceof foundry.dice.terms.Die && t.faces === 10);
   const d10Result = d10Term?.results?.[0]?.result ?? null;
+
+  // ── Solo Fumble Recovery: auto-post a re-roll when d10=1 ─────────────────
+  // If the attacker has an active AE with flags.cyberpunk-blue.soloFumbleRecovery,
+  // and the raw attack die is 1, immediately roll a fresh 1d10 and post it to
+  // chat so the player can use the better result.  No dialog needed — the
+  // roll is visible and the player/GM uses it if beneficial.
+  if (d10Result === 1 && getActiveAEFlag(attacker, 'soloFumbleRecovery')) {
+    const recoveryRoll = await new Roll('1d10').evaluate();
+    await recoveryRoll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      flavor: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-rotate-right"></i> <strong>Solo Fumble Recovery</strong> — d10 was 1; use this re-roll if it improves the result.</p></div>`,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
+  }
+
   const jammed = (weapon.jamOnRoll ?? 0) > 0 && d10Result !== null && d10Result <= weapon.jamOnRoll;
   if (jammed) {
     await item.setFlag('cyberpunk-blue', `jammed-${weaponIndex}`, true);
@@ -458,12 +505,12 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
 
   // Record this attack for RoF tracking
   const attackerToken = attacker.getActiveTokens()[0];
-  if (attackerToken && game.combat?.started) {
-    const attackerCombatant = game.combat.combatants.find((c) => c.tokenId === attackerToken.id);
-    if (attackerCombatant) {
-      const rof = Math.max(Number(weapon.rateOfFire) || 1, 1);
-      await recordCombatAttack(attackerCombatant, item.id, weaponIndex, rof);
-    }
+  const attackerCombatant = (attackerToken && game.combat?.started)
+    ? (game.combat.combatants.find((c) => c.tokenId === attackerToken.id) ?? null)
+    : null;
+  if (attackerCombatant) {
+    const rof = Math.max(Number(weapon.rateOfFire) || 1, 1);
+    await recordCombatAttack(attackerCombatant, item.id, weaponIndex, rof);
   }
 
   // ── CS3 (Charged Shot 3) ammo handling ────────────────────────────────────
@@ -569,6 +616,28 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     await _setChompPending(attacker, targetToken);
   }
 
+  // ── Solo Spot Weakness / Ninja Weak-Spot: SP bypass on first hit ──────────
+  // If the attacker has an active AE with flags.cyberpunk-blue.soloSpotWeakness
+  // or flags.cyberpunk-blue.ninjaWeakSpot, AND the combatant hasn't used it yet
+  // this turn, the first hit of the turn treats the target's SP as 0.
+  let spBypassActive = false;
+  if (attackerCombatant && targetActor) {
+    const ats = getTurnState(attackerCombatant);
+    if (!ats.spotWeaknessUsed) {
+      const hasSpotWeakness = getActiveAEFlag(attacker, 'soloSpotWeakness');
+      const hasNinjaWeakSpot = getActiveAEFlag(attacker, 'ninjaWeakSpot');
+      if (hasSpotWeakness || hasNinjaWeakSpot) {
+        spBypassActive = true;
+        await markSpotWeaknessUsed(attackerCombatant);
+        const tacticLabel = hasSpotWeakness ? 'Solo Spot Weakness' : 'Ninja Weak-Spot';
+        ChatMessage.create({
+          speaker: ChatMessage.getSpeaker({ actor: attacker }),
+          content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bullseye"></i> <strong>${tacticLabel}</strong> — target SP bypassed for this hit.</p></div>`,
+        });
+      }
+    }
+  }
+
   // CS3 damage formula selection: use cs3FallbackDamage when ammo was short.
   const cs3WasShortAmmo = isCs3 && useFallbackAmmoWasCs3;
   const baseDamageFormula = cs3WasShortAmmo
@@ -580,12 +649,16 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
 
   // Charged: effective SP is halved (ignore ½ SP).
   const rawSP = targetSP !== null ? targetSP : null;
+  // Spot Weakness / Ninja Weak-Spot: treat SP as 0 for this hit.
   // Burning Edge (Mono-Three): blade ignores any target SP < 11 (treat as 0).
   const hasBurningEdge = !!(weapon.burningEdge ?? false);
-  const spAfterBurningEdge = rawSP !== null && hasBurningEdge && rawSP < 11 ? 0 : rawSP;
+  const spAfterBurningEdge = spBypassActive ? 0
+    : (rawSP !== null && hasBurningEdge && rawSP < 11 ? 0 : rawSP);
   // halveSP (Kendachi Shi Bayonet): treat target SP as Math.ceil(SP / 2).
   const hasHalveSP = !!(weapon.halveSP ?? false);
-  const spAfterHalve = spAfterBurningEdge !== null && hasHalveSP ? Math.ceil(spAfterBurningEdge / 2) : spAfterBurningEdge;
+  const spAfterHalve = (!spBypassActive && spAfterBurningEdge !== null && hasHalveSP)
+    ? Math.ceil(spAfterBurningEdge / 2)
+    : spAfterBurningEdge;
   const sp    = spAfterHalve !== null ? (isCharged ? Math.floor(spAfterHalve / 2) : spAfterHalve) : null;
   const damageDiceCount = countDamageDice(damageRoll);
 
@@ -805,7 +878,31 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
         flavor: damageFlavorHtml,
         rollMode: game.settings.get('core', 'rollMode'),
       });
-      await applyDamageWithPermission(targetActor, effectiveFinalDamage);
+
+      // ── Solo Damage Deflection: reduce first damage received this turn ───
+      // If the target has an active AE with flags.cyberpunk-blue.soloDamageDeflection
+      // (numeric value = reduction amount), and their combatant hasn't used it
+      // this turn, reduce effectiveFinalDamage by that amount (minimum 0).
+      let actualDamage = effectiveFinalDamage;
+      const defenderCombatant = targetActor
+        ? (game.combat?.combatants.find((c) => c.actor?.id === targetActor.id) ?? null)
+        : null;
+      if (defenderCombatant) {
+        const dts = getTurnState(defenderCombatant);
+        if (!dts.damageDeflectionUsed) {
+          const deflection = getActiveAEFlag(targetActor, 'soloDamageDeflection');
+          if (deflection > 0) {
+            actualDamage = Math.max(0, effectiveFinalDamage - deflection);
+            await markDamageDeflectionUsed(defenderCombatant);
+            ChatMessage.create({
+              speaker: ChatMessage.getSpeaker({ actor: targetActor }),
+              content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-shield-halved"></i> <strong>Solo Damage Deflection</strong> — ${deflection} damage deflected (${effectiveFinalDamage} → ${actualDamage}).</p></div>`,
+            });
+          }
+        }
+      }
+
+      await applyDamageWithPermission(targetActor, actualDamage);
       // Armor Piercing: ablate 1 extra SP (Tactician slug)
       if ((weapon.armorPiercing ?? false) && ablatesArmor) {
         await ablateArmorExtraWithPermission(targetActor);

@@ -27,13 +27,16 @@ const FLAG_SCOPE = 'cyberpunk-blue';
 const TURN_STATE_KEY = 'turnState';
 
 export const DEFAULT_TURN_STATE = Object.freeze({
-  movementUsed:    0,
-  movementBonus:   0,
-  actionUsed:      false,
-  actionSprint:    false,
-  rofAttacks:      {},
-  netActionsTotal: 0,
-  netActionsUsed:  0,
+  movementUsed:          0,
+  movementBonus:         0,
+  actionUsed:            false,
+  actionSprint:          false,
+  rofAttacks:            {},
+  netActionsTotal:       0,
+  netActionsUsed:        0,
+  // Tactic per-round usage flags (reset with the turn state each new round/turn)
+  spotWeaknessUsed:      false,  // Solo Spot Weakness / Ninja Weak-Spot first-hit SP bypass
+  damageDeflectionUsed:  false,  // Solo Damage Deflection first-damage reduction
 });
 
 // ── Read helpers ──────────────────────────────────────────────────────────────
@@ -158,6 +161,28 @@ export async function unlockNetActions(combatant, count) {
     netActionsTotal: count,
     netActionsUsed:  0,
   });
+}
+
+/**
+ * Mark the attacker's Spot Weakness / Ninja Weak-Spot as used this turn.
+ * Called when the first-hit SP bypass fires in combat resolution.
+ */
+export async function markSpotWeaknessUsed(combatant) {
+  if (!combatant) return;
+  const state = getTurnState(combatant);
+  if (state.spotWeaknessUsed) return;
+  return setTurnState(combatant, { ...state, spotWeaknessUsed: true });
+}
+
+/**
+ * Mark the defender's Damage Deflection as used this turn.
+ * Called when the first-damage reduction fires in combat resolution.
+ */
+export async function markDamageDeflectionUsed(combatant) {
+  if (!combatant) return;
+  const state = getTurnState(combatant);
+  if (state.damageDeflectionUsed) return;
+  return setTurnState(combatant, { ...state, damageDeflectionUsed: true });
 }
 
 /**
