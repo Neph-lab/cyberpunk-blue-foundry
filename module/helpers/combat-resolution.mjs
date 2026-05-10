@@ -283,11 +283,16 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
       <span>${game.i18n.localize('CYBER_BLUE.Combat.HandlingComputerBonus')}</span>
     </label>` : '';
 
+  // TeleOptics eligibility is evaluated here (before modifier assembly) for the dialog.
+  const hasTeleOptics = getActiveAEFlag(attacker, 'teleOptics');
+  const teleOpticsBonusPreview = (hasTeleOptics && distanceMeters !== null && distanceMeters > 50) ? 1 : 0;
+
   const distanceBonusLines = [
     trajectoryBonus ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-ruler-combined"></i> ${game.i18n.localize('CYBER_BLUE.Combat.TrajectoryCalculations')}</p>` : '',
     closeRangeBonusVal ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-crosshairs"></i> ${game.i18n.localize('CYBER_BLUE.Combat.CloseRangeBonus')}</p>` : '',
     calibrationBonus > 0 ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-bullseye"></i> ${game.i18n.format('CYBER_BLUE.Combat.CalibrationActive', { n: calibrationBonus })}</p>` : '',
     (isCharged && (weapon.chargedAttackBonus ?? 0) > 0) ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-bolt"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChargedAttackBonus', { n: weapon.chargedAttackBonus })}</p>` : '',
+    teleOpticsBonusPreview > 0 ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-eye"></i> TeleOptics +1 (range &gt;50m)</p>` : '',
   ].filter(Boolean).join('');
 
   const dialogContent = `
@@ -432,6 +437,10 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     const hasDirectedRecoil = installedMods.some((m) => m.directedRecoil);
     attackModifier += hasDirectedRecoil ? -3 : -4;
   }
+
+  // ── TeleOptics cyberware: +1 attack vs targets beyond 50m (not Autofire) ──
+  // teleOpticsBonusPreview was computed before the dialog (same value); reuse it.
+  attackModifier += teleOpticsBonusPreview;
 
   const attackRoll = await attacker.rollSkill({ skillSlug, dv: resolvedDV, modifier: attackModifier });
 
