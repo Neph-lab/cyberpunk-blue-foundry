@@ -537,11 +537,62 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       }
       if (role.name === 'Media' && roleRank >= 1) {
         roleMechanics.canPickUpRumours = true;
-        roleMechanics.rumourActiveDv  = 12 + 2 * Math.max(0, roleRank - 1);
-        roleMechanics.rumourPassiveDv = 10;
+        // DV tiers: vague/typical/substantial/detailed
+        roleMechanics.rumourDvs = [
+          { label: 'CYBER_BLUE.Role.Media.RumourVague',       passiveDv: 15, activeDv: 12 },
+          { label: 'CYBER_BLUE.Role.Media.RumourTypical',     passiveDv: 18, activeDv: 15 },
+          { label: 'CYBER_BLUE.Role.Media.RumourSubstantial', passiveDv: 21, activeDv: 18 },
+          { label: 'CYBER_BLUE.Role.Media.RumourDetailed',    passiveDv: 25, activeDv: 22 },
+        ];
       }
       if (role.name === 'Rocker' && roleRank >= 1) {
         roleMechanics.canRock = true;
+      }
+      if (role.name === 'Law' && roleRank >= 1) {
+        const backupTypes = (roleSystem.leaderFeatures ?? [])
+          .filter((f) => roleRank >= (Number(f.unlockRank) || 1))
+          .map((f) => {
+            const dvMatch = (f.description ?? '').match(/DV (\d+)/);
+            return {
+              id: f.id,
+              name: f.name,
+              dv: dvMatch ? parseInt(dvMatch[1], 10) : 10,
+            };
+          });
+        if (backupTypes.length > 0) {
+          roleMechanics.backupTypes = backupTypes;
+          roleMechanics.lawRank = roleRank;
+        }
+      }
+      if (role.name === 'Medtech' && roleRank >= 1) {
+        const battleSpec = (roleSystem.specialties ?? []).find((s) => s.name === 'Battle Medic' && s.rank >= 1);
+        const surgSpec   = (roleSystem.specialties ?? []).find((s) => s.name === 'Surgery' && s.rank >= 1);
+        const cryoSpec   = (roleSystem.specialties ?? []).find((s) => s.name === 'Cryosystem Operation' && s.rank >= 1);
+        if (battleSpec) {
+          roleMechanics.canPatchUp = true;
+          roleMechanics.patchUpMaxHp = (Number(battleSpec.rank) || 1) * 2;
+        }
+        if (surgSpec) {
+          roleMechanics.canSurgery = true;
+          roleMechanics.surgeryRank = Number(surgSpec.rank) || 1;
+        }
+        if (cryoSpec) {
+          roleMechanics.canCryo = true;
+        }
+      }
+      if (role.name === 'Techie' && roleRank >= 1) {
+        const techieRolls = [];
+        const fieldSpec   = (roleSystem.specialties ?? []).find((s) => s.name === 'Field Expertise' && s.rank >= 1);
+        const fabSpec     = (roleSystem.specialties ?? []).find((s) => s.name === 'Fabrication Expertise' && s.rank >= 1);
+        const upgSpec     = (roleSystem.specialties ?? []).find((s) => s.name === 'Upgrade Expertise' && s.rank >= 1);
+        const invSpec     = (roleSystem.specialties ?? []).find((s) => s.name === 'Invention Expertise' && s.rank >= 1);
+        if (fieldSpec) techieRolls.push({ type: 'field',       name: 'CYBER_BLUE.Role.Techie.Field',       rank: Number(fieldSpec.rank) || 1 });
+        if (fabSpec)   techieRolls.push({ type: 'fabrication', name: 'CYBER_BLUE.Role.Techie.Fabrication', rank: Number(fabSpec.rank)   || 1 });
+        if (upgSpec)   techieRolls.push({ type: 'upgrade',     name: 'CYBER_BLUE.Role.Techie.Upgrade',     rank: Number(upgSpec.rank)   || 1 });
+        if (invSpec)   techieRolls.push({ type: 'invention',   name: 'CYBER_BLUE.Role.Techie.Invention',   rank: Number(invSpec.rank)   || 1 });
+        if (techieRolls.length > 0) {
+          roleMechanics.techieRolls = techieRolls;
+        }
       }
 
       const base = {
@@ -589,7 +640,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
             name: member.name,
             img: member.img || member.prototypeToken?.texture?.src || Actor.DEFAULT_ICON,
           })),
-        })).filter((feature) => feature.members.length || feature.selectedUuids?.length);
+        })).filter((feature) => feature.members.length || feature.selectedUuids?.length || feature.description);
         return { ...base, leaderFeatures };
       }
 
@@ -1060,6 +1111,21 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     });
     this.element.querySelectorAll('[data-action="role-rocker-rock"]').forEach((button) => {
       button.addEventListener('click', this._onRockerRock.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="role-law-backup"]').forEach((button) => {
+      button.addEventListener('click', this._onLawBackup.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="role-medtech-patchup"]').forEach((button) => {
+      button.addEventListener('click', this._onMedtechPatchUp.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="role-medtech-surgery"]').forEach((button) => {
+      button.addEventListener('click', this._onMedtechSurgery.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="role-medtech-cryo"]').forEach((button) => {
+      button.addEventListener('click', this._onMedtechCryo.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="role-techie-roll"]').forEach((button) => {
+      button.addEventListener('click', this._onTechieRoll.bind(this));
     });
 
     // Money field: supports arithmetic expressions (e.g. "500-50" → 450)
@@ -2050,9 +2116,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     const mediaRole = actor.items.find((i) => i.type === 'role' && i.name === 'Media');
     if (!mediaRole) return;
     const rank = Number(mediaRole.system.rank) || 0;
-    const activeDv  = 12 + 2 * Math.max(0, rank - 1);
-    const passiveDv = 10;
-    const isDv = event.currentTarget.dataset.dvType === 'active' ? activeDv : passiveDv;
+    const dvType = event.currentTarget.dataset.dvType; // 'active' or 'passive'
+    const dv = parseInt(event.currentTarget.dataset.dv, 10);
+    const tierName = event.currentTarget.dataset.tierName ?? '';
 
     // Pick the best available skill: business, government, or streetwise
     const RUMOUR_SKILLS = ['business', 'government', 'streetwise'];
@@ -2086,14 +2152,16 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     const skillRank = system.skills?.[skill]?.rank ?? 0;
     const formula = `1d10 + ${statVal} + ${skillRank} + ${rank}`;
     const roll = await new Roll(formula).evaluate();
-    const success = roll.total >= isDv;
+    const success = Number.isFinite(dv) ? roll.total >= dv : null;
+    const dvText = Number.isFinite(dv) ? ` vs DV ${dv}` : '';
+    const resultText = success === null ? '' : `<p><strong>${success ? game.i18n.localize('CYBER_BLUE.Sheet.Roll.Success') : game.i18n.localize('CYBER_BLUE.Sheet.Roll.Failure')}</strong></p>`;
     await roll.toMessage({
       speaker: ChatMessage.getSpeaker({ actor }),
       rollMode: game.settings.get('core', 'rollMode'),
       flavor: `<div class="cyberpunk-blue chat-card">
-        <h3>${game.i18n.localize('CYBER_BLUE.Role.Media.PickUpRumours')}</h3>
-        <p><strong>${skill.charAt(0).toUpperCase() + skill.slice(1)}</strong> + ${statLabel} (${statVal}) + Media rank ${rank} vs DV ${isDv}</p>
-        <p><strong>${success ? game.i18n.localize('CYBER_BLUE.Sheet.Roll.Success') : game.i18n.localize('CYBER_BLUE.Sheet.Roll.Failure')}</strong></p>
+        <h3>${game.i18n.localize('CYBER_BLUE.Role.Media.PickUpRumours')}${tierName ? ' — ' + tierName : ''}</h3>
+        <p><strong>${skill.charAt(0).toUpperCase() + skill.slice(1)}</strong> + ${statLabel} (${statVal}) + Media rank ${rank}${dvText}</p>
+        ${resultText}
       </div>`,
     });
   }
@@ -2139,6 +2207,200 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       flavor: `<div class="cyberpunk-blue chat-card">
         <h3>${game.i18n.localize('CYBER_BLUE.Role.Rocker.Rock')}</h3>
         <p><strong>${skill.charAt(0).toUpperCase() + skill.slice(1)}</strong> (rank ${skillRank}) + COOL (${coolVal}) + Rocker rank ${rank}</p>
+      </div>`,
+    });
+  }
+
+  async _onLawBackup(event) {
+    event.preventDefault();
+    const actor = this.document;
+    const lawRole = actor.items.find((i) => i.type === 'role' && i.name === 'Law');
+    if (!lawRole) return;
+    const rank = Number(lawRole.system.rank) || 0;
+    const backupType = event.currentTarget.dataset.backupType;
+    const dv = parseInt(event.currentTarget.dataset.dv, 10);
+    if (!backupType || !Number.isFinite(dv)) return;
+
+    const formula = `1d10 + ${rank}`;
+    const roll = await new Roll(formula).evaluate();
+    const success = roll.total >= dv;
+
+    let arrivalMsg = '';
+    if (success) {
+      const arrivalRoll = await new Roll('1d6').evaluate();
+      arrivalMsg = game.i18n.format('CYBER_BLUE.Role.Law.BackupArrives', { rounds: arrivalRoll.total });
+      // Also show arrival roll in the same message
+      await arrivalRoll.toMessage({
+        speaker: ChatMessage.getSpeaker({ actor }),
+        flavor: `<div class="cyberpunk-blue chat-card"><p>${game.i18n.localize('CYBER_BLUE.Role.Law.ArrivalRoll')}</p></div>`,
+        rollMode: 'blindroll',
+      });
+    }
+
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      rollMode: game.settings.get('core', 'rollMode'),
+      flavor: `<div class="cyberpunk-blue chat-card">
+        <h3>${game.i18n.localize('CYBER_BLUE.Role.Law.CallBackup')}: ${backupType}</h3>
+        <p>1d10 + Law rank ${rank} vs DV ${dv}</p>
+        <p><strong>${success ? game.i18n.localize('CYBER_BLUE.Sheet.Roll.Success') : game.i18n.localize('CYBER_BLUE.Sheet.Roll.Failure')}</strong>${success ? ' — ' + arrivalMsg : ''}</p>
+      </div>`,
+    });
+  }
+
+  async _onMedtechPatchUp(event) {
+    event.preventDefault();
+    const actor = this.document;
+    const medRole = actor.items.find((i) => i.type === 'role' && i.name === 'Medtech');
+    if (!medRole) return;
+    const medSystem = normalizeRoleSystemData(medRole.system);
+    const battleSpec = (medSystem.specialties ?? []).find((s) => s.name === 'Battle Medic');
+    const battleRank = Number(battleSpec?.rank) || 0;
+    const maxHeal = battleRank * 2;
+    if (maxHeal <= 0) return;
+
+    // Build target picker: all actors the user can see
+    const candidates = game.actors.contents
+      .filter((a) => ['character', 'npc'].includes(a.type) && a.testUserPermission(game.user, 'OBSERVER'))
+      .map((a) => `<option value="${a.id}">${a.name} (HP: ${a.system.resources?.hp?.value ?? '?'}/${a.system.resources?.hp?.max ?? '?'})</option>`)
+      .join('');
+
+    const { promise, resolve } = Promise.withResolvers();
+    const dialog = new foundry.applications.api.DialogV2({
+      window: { title: game.i18n.localize('CYBER_BLUE.Role.Medtech.PatchUp') },
+      content: `<div class="form-group">
+        <label>${game.i18n.localize('CYBER_BLUE.Role.Medtech.PatchUpTarget')}</label>
+        <select name="actorId">${candidates}</select>
+      </div>
+      <div class="form-group">
+        <label>${game.i18n.localize('CYBER_BLUE.Role.Medtech.PatchUpAmount')} (max ${maxHeal})</label>
+        <input type="number" name="amount" value="${maxHeal}" min="1" max="${maxHeal}" />
+      </div>`,
+      buttons: [
+        { action: 'apply', label: game.i18n.localize('CYBER_BLUE.Role.Medtech.Apply'), icon: 'fa-solid fa-heart-pulse', default: true },
+        { action: 'cancel', label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Cancel'), icon: 'fa-solid fa-times' },
+      ],
+      submit: (result, event2, form) => resolve({
+        result,
+        actorId: form?.querySelector('[name="actorId"]')?.value,
+        amount: Math.min(parseInt(form?.querySelector('[name="amount"]')?.value ?? maxHeal, 10), maxHeal),
+      }),
+    });
+    dialog.addEventListener('close', () => resolve({ result: 'cancel' }), { once: true });
+    dialog.render(true);
+
+    const { result, actorId, amount } = await promise;
+    if (result !== 'apply' || !actorId || !(amount > 0)) return;
+
+    const targetActor = game.actors.get(actorId);
+    if (!targetActor) return;
+    const hp = targetActor.system.resources.hp;
+    const newHp = Math.min((hp.value ?? 0) + amount, hp.max ?? hp.value ?? 0);
+    await targetActor.update({ 'system.resources.hp.value': newHp });
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `<div class="cyberpunk-blue chat-card">
+        <h3>${game.i18n.localize('CYBER_BLUE.Role.Medtech.PatchUp')}</h3>
+        <p>${game.i18n.format('CYBER_BLUE.Role.Medtech.PatchUpApplied', { amount, target: targetActor.name, newHp })}</p>
+      </div>`,
+    });
+  }
+
+  async _onMedtechSurgery(event) {
+    event.preventDefault();
+    const actor = this.document;
+    const medRole = actor.items.find((i) => i.type === 'role' && i.name === 'Medtech');
+    if (!medRole) return;
+    const medSystem = normalizeRoleSystemData(medRole.system);
+    const surgSpec = (medSystem.specialties ?? []).find((s) => s.name === 'Surgery');
+    const surgRank = Number(surgSpec?.rank) || 0;
+    const system = actor.system;
+    const techVal = system.stats?.tech?.value ?? 0;
+    const medRank = system.skills?.medicine?.rank ?? 0;
+    const usedRank = Math.min(medRank, surgRank);
+
+    const formula = `1d10 + ${techVal} + ${usedRank}`;
+    const roll = await new Roll(formula).evaluate();
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      rollMode: game.settings.get('core', 'rollMode'),
+      flavor: `<div class="cyberpunk-blue chat-card">
+        <h3>${game.i18n.localize('CYBER_BLUE.Role.Medtech.Surgery')}</h3>
+        <p>1d10 + TECH (${techVal}) + min(Medicine ${medRank}, Surgery ${surgRank}) = + ${usedRank}</p>
+      </div>`,
+    });
+  }
+
+  async _onMedtechCryo(event) {
+    event.preventDefault();
+    const actor = this.document;
+    const medRole = actor.items.find((i) => i.type === 'role' && i.name === 'Medtech');
+    if (!medRole) return;
+    const medSystem = normalizeRoleSystemData(medRole.system);
+    const cryoSpec = (medSystem.specialties ?? []).find((s) => s.name === 'Cryosystem Operation');
+    const cryoRank = Number(cryoSpec?.rank) || 0;
+    const system = actor.system;
+    const techVal = system.stats?.tech?.value ?? 0;
+    const medRank = system.skills?.medicine?.rank ?? 0;
+    const dv = parseInt(event.currentTarget.dataset.dv, 10) || 13;
+
+    const formula = `1d10 + ${techVal} + ${Math.min(medRank, cryoRank)}`;
+    const roll = await new Roll(formula).evaluate();
+    const success = roll.total >= dv;
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      rollMode: game.settings.get('core', 'rollMode'),
+      flavor: `<div class="cyberpunk-blue chat-card">
+        <h3>${game.i18n.localize('CYBER_BLUE.Role.Medtech.CryoUse')}</h3>
+        <p>1d10 + TECH (${techVal}) + min(Medicine ${medRank}, Cryosystem ${cryoRank}) vs DV ${dv}</p>
+        <p><strong>${success ? game.i18n.localize('CYBER_BLUE.Sheet.Roll.Success') : game.i18n.localize('CYBER_BLUE.Sheet.Roll.Failure')}</strong></p>
+      </div>`,
+    });
+  }
+
+  async _onTechieRoll(event) {
+    event.preventDefault();
+    const actor = this.document;
+    const techRole = actor.items.find((i) => i.type === 'role' && i.name === 'Techie');
+    if (!techRole) return;
+    const techRoleSystem = normalizeRoleSystemData(techRole.system);
+    const rollType = event.currentTarget.dataset.rollType;
+    const specRank = parseInt(event.currentTarget.dataset.specRank, 10) || 0;
+    const system = actor.system;
+    const techVal = system.stats?.tech?.value ?? 0;
+
+    // Pick appropriate skill: electronics or mechanics
+    const elecRank = system.skills?.electronics?.rank ?? 0;
+    const mechRank = system.skills?.mechanics?.rank ?? 0;
+    const skillOptions = [
+      `<option value="electronics">Electronics (rank ${elecRank})</option>`,
+      `<option value="mechanics">Mechanics (rank ${mechRank})</option>`,
+    ].join('');
+
+    const { promise, resolve } = Promise.withResolvers();
+    const dialog = new foundry.applications.api.DialogV2({
+      window: { title: game.i18n.localize(`CYBER_BLUE.Role.Techie.${rollType.charAt(0).toUpperCase() + rollType.slice(1)}`) },
+      content: `<div class="form-group"><label>${game.i18n.localize('CYBER_BLUE.Role.Techie.Skill')}</label><select name="skill">${skillOptions}</select></div>`,
+      buttons: [
+        { action: 'roll', label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Roll'), icon: 'fa-solid fa-dice-d10', default: true },
+        { action: 'cancel', label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Cancel'), icon: 'fa-solid fa-times' },
+      ],
+      submit: (result, event2, form) => resolve({ result, skill: form?.querySelector('[name="skill"]')?.value }),
+    });
+    dialog.addEventListener('close', () => resolve({ result: 'cancel' }), { once: true });
+    dialog.render(true);
+    const { result, skill } = await promise;
+    if (result !== 'roll' || !skill) return;
+
+    const skillRank = system.skills?.[skill]?.rank ?? 0;
+    const formula = `1d10 + ${techVal} + ${skillRank} + ${specRank}`;
+    const roll = await new Roll(formula).evaluate();
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      rollMode: game.settings.get('core', 'rollMode'),
+      flavor: `<div class="cyberpunk-blue chat-card">
+        <h3>${game.i18n.localize(`CYBER_BLUE.Role.Techie.${rollType.charAt(0).toUpperCase() + rollType.slice(1)}`)}</h3>
+        <p>1d10 + TECH (${techVal}) + ${skill} (${skillRank}) + spec rank (${specRank})</p>
       </div>`,
     });
   }

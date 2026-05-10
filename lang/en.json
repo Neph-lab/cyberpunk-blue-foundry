@@ -295,11 +295,38 @@
         "PickUpRumours": "Pick Up Rumours",
         "RumourSkill": "Skill",
         "RumourPassive": "Passive",
-        "RumourActive": "Active"
+        "RumourActive": "Active",
+        "RumourVague": "Vague",
+        "RumourTypical": "Typical",
+        "RumourSubstantial": "Substantial",
+        "RumourDetailed": "Detailed"
       },
       "Rocker": {
         "Rock": "Rock",
         "PerformSkill": "Performance Skill"
+      },
+      "Law": {
+        "CallBackup": "Call Backup",
+        "BackupArrives": "Backup arrives in {rounds} round(s).",
+        "ArrivalRoll": "Backup arrival time"
+      },
+      "Medtech": {
+        "PatchUp": "Patch Up",
+        "PatchUpTarget": "Target",
+        "PatchUpAmount": "HP to Heal",
+        "PatchUpApplied": "+{amount} HP to {target} (now {newHp} HP).",
+        "Apply": "Apply",
+        "Surgery": "Surgery",
+        "CryoUse": "Cryosystem Use",
+        "CryoPump": "Cryopump",
+        "CryoTank": "Cryotank"
+      },
+      "Techie": {
+        "Field": "Field Repair",
+        "Fabrication": "Fabricate",
+        "Upgrade": "Upgrade",
+        "Invention": "Invent",
+        "Skill": "Skill"
       }
     },
     "Effect": {

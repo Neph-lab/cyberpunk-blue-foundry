@@ -431,14 +431,19 @@
                   {{#if feature.roleMechanics.canPickUpRumours}}
                     <div class="role-mechanic-row role-rumour-row">
                       <span class="role-mechanic-label">{{localize "CYBER_BLUE.Role.Media.PickUpRumours"}}</span>
-                      <button type="button" data-action="role-media-rumour" data-dv-type="passive" class="role-action-btn" title="DV {{feature.roleMechanics.rumourPassiveDv}}">
-                        <i class="fas fa-ear-listen"></i>
-                        {{localize "CYBER_BLUE.Role.Media.RumourPassive"}} (DV {{feature.roleMechanics.rumourPassiveDv}})
-                      </button>
-                      <button type="button" data-action="role-media-rumour" data-dv-type="active" class="role-action-btn" title="DV {{feature.roleMechanics.rumourActiveDv}}">
-                        <i class="fas fa-newspaper"></i>
-                        {{localize "CYBER_BLUE.Role.Media.RumourActive"}} (DV {{feature.roleMechanics.rumourActiveDv}})
-                      </button>
+                      <div class="role-rumour-tiers">
+                        {{#each feature.roleMechanics.rumourDvs as |tier|}}
+                          <div class="role-rumour-tier">
+                            <span class="role-mechanic-label">{{localize tier.label}}</span>
+                            <button type="button" data-action="role-media-rumour" data-dv-type="passive" data-dv="{{tier.passiveDv}}" data-tier-name="{{localize tier.label}}" class="role-action-btn role-action-btn-sm">
+                              <i class="fas fa-ear-listen"></i> P{{tier.passiveDv}}
+                            </button>
+                            <button type="button" data-action="role-media-rumour" data-dv-type="active" data-dv="{{tier.activeDv}}" data-tier-name="{{localize tier.label}}" class="role-action-btn role-action-btn-sm">
+                              <i class="fas fa-newspaper"></i> A{{tier.activeDv}}
+                            </button>
+                          </div>
+                        {{/each}}
+                      </div>
                     </div>
                   {{/if}}
 
@@ -449,6 +454,63 @@
                         <i class="fas fa-guitar"></i>
                         {{localize "CYBER_BLUE.Role.Rocker.Rock"}}
                       </button>
+                    </div>
+                  {{/if}}
+
+                  {{!-- Law: Call Backup --}}
+                  {{#if feature.roleMechanics.backupTypes}}
+                    <div class="role-mechanic-row role-backup-row">
+                      <span class="role-mechanic-label">{{localize "CYBER_BLUE.Role.Law.CallBackup"}}</span>
+                      <div class="role-backup-buttons">
+                        {{#each feature.roleMechanics.backupTypes as |bt|}}
+                          <button type="button" data-action="role-law-backup" data-backup-type="{{bt.name}}" data-dv="{{bt.dv}}" class="role-action-btn">
+                            <i class="fas fa-siren"></i>
+                            {{bt.name}} (DV {{bt.dv}})
+                          </button>
+                        {{/each}}
+                      </div>
+                    </div>
+                  {{/if}}
+
+                  {{!-- Medtech: Patch Up / Surgery / Cryo --}}
+                  {{#if feature.roleMechanics.canPatchUp}}
+                    <div class="role-mechanic-row role-medtech-row">
+                      <button type="button" data-action="role-medtech-patchup" class="role-action-btn">
+                        <i class="fas fa-kit-medical"></i>
+                        {{localize "CYBER_BLUE.Role.Medtech.PatchUp"}} (max {{feature.roleMechanics.patchUpMaxHp}} HP)
+                      </button>
+                    </div>
+                  {{/if}}
+                  {{#if feature.roleMechanics.canSurgery}}
+                    <div class="role-mechanic-row role-medtech-row">
+                      <button type="button" data-action="role-medtech-surgery" class="role-action-btn">
+                        <i class="fas fa-scalpel"></i>
+                        {{localize "CYBER_BLUE.Role.Medtech.Surgery"}}
+                      </button>
+                    </div>
+                  {{/if}}
+                  {{#if feature.roleMechanics.canCryo}}
+                    <div class="role-mechanic-row role-medtech-row">
+                      <button type="button" data-action="role-medtech-cryo" data-dv="13" class="role-action-btn">
+                        <i class="fas fa-snowflake"></i>
+                        {{localize "CYBER_BLUE.Role.Medtech.CryoPump"}} (DV 13)
+                      </button>
+                      <button type="button" data-action="role-medtech-cryo" data-dv="15" class="role-action-btn">
+                        <i class="fas fa-snowflake"></i>
+                        {{localize "CYBER_BLUE.Role.Medtech.CryoTank"}} (DV 15)
+                      </button>
+                    </div>
+                  {{/if}}
+
+                  {{!-- Techie: Specialty rolls --}}
+                  {{#if feature.roleMechanics.techieRolls}}
+                    <div class="role-mechanic-row role-techie-row">
+                      {{#each feature.roleMechanics.techieRolls as |tr|}}
+                        <button type="button" data-action="role-techie-roll" data-roll-type="{{tr.type}}" data-spec-rank="{{tr.rank}}" class="role-action-btn">
+                          <i class="fas fa-wrench"></i>
+                          {{localize tr.name}} (rank {{tr.rank}})
+                        </button>
+                      {{/each}}
                     </div>
                   {{/if}}
                 </div>

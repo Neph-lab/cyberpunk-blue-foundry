@@ -1,8 +1,10 @@
 Preliminary work: Abilities need to handle Instruction arrays just like cyberware and gear.
 Notes:
 * Multiples cybereyes or cyberlegs should be renamed so that one is left and one is right.
-* Multiples of Ammo should just be added as one and then set the quantity to that multiple.
+* Multiples of Ammo should just be added as one and then set the Quantity.
 * Tables for Lifepath should be made into Foundry RollTables and packed into the Compendium. If some one adds a Role, make sure that Role's tables exists in a folder named for the Role in that world, otherwise add them from the Compendium. The Role sheet itself has  Lifepath tab where there is an area to link these various tables to let players open them and roll, should they want to.
+* Light Armorjack should be added as armor to the Compendium. It Costs €$100 (Premium), is Armor that provides 11 SP, and has the following Description: "Kevlar® and plastics woven into reinforced fabric fibers that can be part of, or under, clothes."
+* Light Bodyweight Suit should be added as armor to the Compendium. It costs €$500 (Expensive), is Armor that provides 9 SP, reduces damage from Black ICE Programs by  1, has an AE reminder that the wearer can't catch fire from Programs, and has the following Description: "Skin-tight suit able to connect to a netrunning chair. Blocks programs from setting the wearer on fire. Reduces damage from Black ICE by 1."
 
 # Bandit
 Networker
@@ -283,7 +285,7 @@ Gear: Constitutional Arms Unity, Basic Heavy Pistol Ammo ×50, Light Armorjack, 
 Skills: Demolitions (2), Drive (1), Education (2), Electronics (6), Evasion (2), Handgun (4), Mechanics (6), Perception (3), Pick Lock (1)
 Components: Basic Tech (6), Cybernetics (1), Land Vehicles (1), Security (3), Weapontech (5)
 Cyberware: Standard Cyberarm, Tool Hand, Standard Cyberaudio Suite, Level Dampener, Bug Detector
-Gear: Militech M-10AF Lexington, Basic Heavy Pistol Ammunition ×50, Light Armorjack
+Gear: Militech M-10AF Lexington, Basic Heavy Pistol Ammo ×50, Light Armorjack
 
 ## Corpo Starting Gear
 Weapons and Armor:
@@ -552,7 +554,7 @@ Weapons and Armor:
 * Stun Baton or Kendachi Ra-5 Powered Knife or Bow
 * Baseball Bat or Throwing Axe or Militech M2 Combat Knife
 * Smoke Grenade
-* Basic Heavy Pistol Ammunition ×50
+* Basic Heavy Pistol Ammo ×50
 * Light Armorjack
 
 Outfit:
@@ -684,8 +686,8 @@ Backup uses the NPC Mook sheet. When the Law unlocks a certain type, a copy of t
 Weapons and Armor: 
 * Arasaka Nowaki or Constitutional Arms M2038 Tactician
 * Militech M-10AF Lexington
-* Basic Assault Rifle Ammunition ×50 or Basic Shotgun Shell Ammunition ×50 or Basic Slug Ammunition ×50
-* Basic Heavy Pistol Ammunition ×50
+* Basic Assault Rifle Ammo ×50 or Basic Shotgun Shell Ammo ×50 or Basic Slug Ammo ×50
+* Basic Heavy Pistol Ammo ×50
 * Bulletproof Shield or Smoke Grenade ×2
 * Light Armorjack
 
@@ -822,7 +824,7 @@ The rest is handled by the GM.
 ## Media Starting Gear
 Weapons and Armor:
 * Constitutional Arms Unity
-* Basic Heavy Pistol Ammunition ×50
+* Basic Heavy Pistol Ammo ×50
 * Light Armorjack
 
 Outfit:
@@ -946,308 +948,822 @@ As a Medtech, you have access to specialties that allow you to perform tasks oth
 | Unlock rank | Name | Description | Implementation |
 | ----------- | ---- | ----------- | -------------- |
 | 1 | Compound analysis | A TECH + Medicine (Pharmaceuticals) check can be used to analyze pharmaceutical compounds and drugs. | With at least 1 rank in this Pharmaceuticals a button is added to the Character sheet's Role ability area to Analyze drug. That button rolls 1d10 + TECH + (the lower of Medicine skill ranks and Pharmaceuticals specialty ranks) and reports the result in chat to the player and the GM. |
-| 1 | Synthesize | Each time you gain a rank in Pharmaceuticals, you learn how to synthesize one of the drugs listed here. Ingredients are €$100 (Premium) for a number of doses equal to your rank in this specialty. Preparation takes 1 hour and requires a DV15 TECH + Medicine (Pharmaceuticals) check, wasting materials on a failure. The batch you make can be any combination of the drugs you know.<br>Applying a dose with an airhypo takes an Action. If the target is unwilling, you may make a BODY + Melee Weapon attack, administering the dose instead of dealing damage on a hit. Someone without at least one rank as a Medtech can’t administer pharmaceuticals correctly. The effect might be pointlessly weak, dangerously potent, or have weird interactions when handled by someone without training. Administering more of a drug before it's safe makes the target Fatigued. More than that is dangerous. | The Medtech gets to pick one drug to learn from the list below for each Pharmaceuticals rank they have. The Role Ability area gets a button to Produce Pharmaceuticals. When clicked, it brings up a dialog where the player can see the name and description for all drugs the have learned as well as as inputs for how many of each they want to make. These inputs are number fields with a + and a - button. The total selected can't be more than Pharmaceuticals rank and once the limit is reached, all + buttons are disabled (though can be unlocked again by reducing something to reallocate the choices). Make the DV 15 check and if successful, the ones produced are added as list-items in the Role Abilities area with their name, description, quantity, and a button to use. The button allows the player to choose any Actor who has a Token in the Scene to be the target. Multiple applications and time limits are managed by the GM. |
+| 1 | Synthesize | Each time you gain a rank in Pharmaceuticals, you learn how to synthesize one of the drugs listed here. Ingredients are €$100 (Premium) for a number of doses equal to your rank in this specialty. Preparation takes 1 hour and requires a DV15 TECH + Medicine (Pharmaceuticals) check, wasting materials on a failure. The batch you make can be any combination of the drugs you know.<br>Applying a dose with an airhypo takes an Action. If the target is unwilling, you may make a BODY + Melee Weapon attack, administering the dose instead of dealing damage on a hit. Someone without at least one rank as a Medtech can’t administer pharmaceuticals correctly. The effect might be pointlessly weak, dangerously potent, or have weird interactions when handled by someone without training. Administering more of a drug before it's safe makes the target Fatigued. More than that is dangerous. | The Medtech gets to pick one drug to learn from the list below for each Pharmaceuticals rank they have. The Role Ability area gets a button to Produce Pharmaceuticals. When clicked, it brings up a dialog where the player can see the name and description for all drugs the have learned as well as as inputs for how many of each they want to make. These inputs are number fields with a + and a - button. The total selected can't be more than Pharmaceuticals rank and once the limit is reached, all + buttons are disabled (though can be unlocked again by reducing something to reallocate the choices). Make the DV 15 check and if successful, the ones produced are added as list-items in the Role Abilities area with their name, description, quantity, and a button to use. The button allows the player to choose any Actor who has a Token in the Scene to be the target. Any rolls are made at time of use wo determine the result. Multiple applications and time limits are managed by the GM. |
 
 The drugs to choose from:
 | Name | Description | Implementation |
 | ---- | ----------- | -------------- |
 | Antibiotic | Natural healing gives an extra 3 HP every day for the next week. They can only safely benefit from one antibiotic at a time. | Apply an AE that adds 3 to any healing from the GM triggering natural healing. It has 7 uses before it disappears. |
 | Anti-Psychosis | Restores 1d6 PSYCHE. A person can only safely benefit from one dose/week. | Restore 1d6 PSYCHE |
-| 
+| Myelin Strengthener | The target’s neural pathways gain better insulation, increasing their RFLX by 1 for the next 2d6 hours. A person can only benefit from one dose/day. | Create an AE with the boost. The description in char should include the duration. |
+| Rapidetox | The target is immediately purged of any drug, poison, or intoxicant as if they body had broken it down in seconds. | Unless there is a easy way to determine which AEs this refers to, the GM will handle this. |
+| Roids | The target’s muscle fibers are strengthened on a nano-level, increasing their BODY by 1 for the next 2d6 hours. A person can only benefit from one dose/day. | Create an AE to represent the effects. |
+| Runner­speed | If the target can perform NET actions, they are able to perform an additional NET action per round for the next hour. | Create the correct AE. The GM handles the rest. |
+| Speedheal | A target who isn’t Mortally Wounded immediately heals Hit Points equal to their BODY. A person can only benefit from one Speedheal use/day. | Provide the heal, the GM handles the rest. |
+| Stim | For an hour, the target ignores all penalties from being Seriously Wounded and up to 1 HP per round of damage from the consequences of Critical Injuries. A person can only benefit from one Stim use/day. | Surpress Seriously Wounded with an AE. GM will handle the rest. |
+| Surge | The need for sleep is effectively paused in the target for the next 24 hours. A person can only benefit from one Surge use/week. | Create an AE that's only descriptive. |
+| Torpor | After their a few minutes, the target Falls unconscious for 2d6 hours and it takes a DV15 Medicine check to detect any vital signs. You also produce an antidote to instantly wake the target as an action. | Apply the Unconcious Condition AE as well as an AE to describe this. |
 
 ### Cryosystem Operation
-A cryosystem requires a successful TECH + Medicine (Cryosystem Operation) check as an Action before it puts an enclosed body in stasis. The DV is 13 for a pump or 15 for a tank. Either allows for surgery without a risk of worsening conditions while the stasis lasts. A pump can function for a week it can maintain stasis while a tank lasts for as long as it has power. A tank also allow for complete body modification surgery. Only a Medtech with at least one rank in this specialty can hope to operate a cryosystem.
-At certain ranks, the Medtech gains access to equipment for free. While, it’s owned by the government, a corp (like Trauma Team); the Medtech is resposible for refuelling, any damage, or the like. It's othwise at the Medtech's disposal. This is a perk of being licenced and well connected. The number of pumps and tanks you have are listed in the table. Each increase in number of pumps also comes with a free recharge for all of them. After rank 3, crytanks can be placed in any suitable room the Medtech desires rather than an organisations own facility.
+| Unlock Rank | Name | Description | Implementation |
+| ----------- | ---- | ----------- | -------------- |
+| 1 | Cryosystem Use | A cryosystem requires a successful Medicine (Cryosystem Operation) check as an Action to put an enclosed body in stasis. The check is DV 13 for a pump, 15 for a tank. Either allows for surgery on the patient without a risk. A pump can maintain stasis for up to a week, while a tank lasts for as long as it has power. A tank also allow for complete body modification surgery. | The Role Ability area on the character gets two new buttons: One to operate a Cryobag (DV 13) and one to operate a Cryotank (DV 15) using Medicine and the specialty as Component-like. The GM will handle the details. |
+| 1 | Crypump | As a licenced cryotech, a corp, the government, or someone else has made sure you have access to a cryobag. | Add a cryobag from the Compandium to the Actor. |
+| 2 | Cryotank | You gain access to a cryotank. It's owned by the government or a corp (like Trauma Team) but available for use. The Medtech is resposible for refuelling, any damage, or the like.This is a perk of being licenced and well connected. | Narrative only |
+| 3 | Free Placement | If you prefer, the cryotank can be placed in a different suitable location of choice. | Narrative only |
+| 4 | Cryopunp Upgrade | You gain access to a second cryopump and a refill for each. | Add a cryopump from the Compendiun to the Actor. |
+| 5 | Cryotank Expansion | You gain access to two more cryotanks to place where you direct. | Narrative only. |
+| 6 | Field Cryopump Pack | You are gratned a third cryopump along with a refill for all three. | Add another cryopump. |
+| 7 | Cryogenic Lab | The space you've set up now have a full 6 cryotanks to use. | Narrative only. |
+| 10 | Cryotech Expert | You have four cryopumps along with a refill for each. Getting mroe of them is likely not difficult. And if you can provide a reason, there's surely a sponsor who will provide you with however many cryotanks you need. | Add another cryopump. The rest is narrative. |
 
 ## Medtech Starting Gear
-Weapons and Armor: Shotgun or Assault Rifle worth €$500, Basic Shotgun Shells ×100 or Basic Rifle Ammunition ×100, Incendiary Shotgun Shells ×10 or Incendiary Rifle Ammunition ×10, Smoke Grenade ×2; Light Armorjack Body Armor (SP11), Light Armorjack Head Armor (SP11), Bulletproof Shield
-Outfit: Airhypo, Handcuffs, Flashlight, Glow Paint, Medtech Bag
-Clothes: Kitsch (Jacket ×3; Leisurewear: Footwear, Bottoms ×3, Top ×5)
-Cyberware: Biomonitor, Cybereye (Teleoptics), Nasal Filters or Toxin Binders (PSYCHE loss: 12; max reduced by: 4)
+Weapons and Armor:
+* Rostovic DB-4 Palica or Militech M251s Ajax
+* Basic Shotgun Shells ×100 or Basic Rifle Ammo ×100
+* Incendiary Shotgun Shells ×10 or Incendiary Rifle Ammo ×10
+* Smoke Grenade ×2
+* Light Armorjack
+* Bulletproof Shield
+
+Outfit:
+* Airhypo
+* Handcuffs
+* Flashlight
+* Glow Paint
+* Medtech Bag
+
+Clothes:
+* Kitsch:
+ * Jacket ×3
+ * Bottoms
+ * Top ×3
+ * Shades
+* Entropism:
+ * Footwear
+ * Bottoms ×2
+ * Top ×2
+
+Cyberware:
+* Neuroport
+* Cybereye
+* Teleoptics
+* Microoptics
+* Nasal Filters or Toxin Binders
 
 # Netrunner
  Sundry
+## Description
 You’re a brain-burning computer hacker & master of the Post-NET cyberverse. Maybe your parents bought you an old Kirama LPD-12 cyberdeck with Zetatech 526 optical goggles when you were too young for interface plugs, and your life was changed. Maybe you used REFRAME-G1s meta-programming to crack into the school district’s system and change your grades. As a teenager, you might have shifted enough funds out of unprotected Trans United Bank accounts to finance your first neural interface plugs.
+
 You could have high and fast with the other gods of the NET: Bartmoss, Magnificent Curtis, and the rest. Then the 4th Corp War blew the Old NET apart. The R.A.B.I.D.S made NET travel a suicide run; the Nodes were fragmented or corrupted. But there are still places to run. You just had to go there and jack in the hard way. You traded in sitting on the couch for a Bodyweight combat bodysuit and Virtuality 5 interface goggles to mesh NET with Meatspace.
 The systems you cracked are smaller, but even deadlier. Now, you’re really part of a team, with Solos to cover your back, Medtechs to restart your heart if the ICE gets you, and Techs to help you hot-wire your cyberdeck for more speed and software deployment. As an electronic wraith, you slip into mainframes: stealing, trading, and selling their deepest secrets.
+
 Of course, the deadliest parts cyberspace is still out there in the remnants of the old NET. Others might think it’s all safe behind the Blackwall, but you know that it’s only a matter of time before the AI and ghosts of Soulkiller that live there break free.
-Do spiders spin webs? It’s time to catch flies.
-∆ Spider Murphy
 
+> ***Do spiders spin webs? It’s time to catch flies.***
+> ∆ Spider Murphy
 
+## Netrunner Lifepath
+### What kind of Netrunner are you?
+| 1d6 | Type |
+| --- | ---- |
+| 1 | Freelancer who will hack for hire. |
+| 2 | Corporate runner, hacking for The Man. |
+| 3 | Hacktivist interested in cracking systems and exposing bad guys. |
+| 4 | You just like to crack systems for the fun of it. |
+| 5 | Part of a regular team of freelancers. |
+| 6 | Hack for a Media, politico, or Lawman who hires you as needed. |
 
+### If you work with a partner, who?
+| 1d6 | Partner |
+| --- | ------- |
+| 1 | Family member. |
+| 2 | Old friend. |
+| 3 | Possible romantic partner. |
+| 4 | Secret parter who might be a rogue AI. Might. |
+| 5 | Secret partner with mob/gang connections. |
+| 6 | Secret partner with Corporate connections. |
 
-Who are some of your other clients?
+### What's your workspace like?
+| 1d6 | Workspace |
+| --- | --------- |
+| 1 | There are screens everywhere. |
+| 2 | It looks better in Virtuality, you swear. |
+| 3 | It’s a filthy bed covered in wires. |
+| 4 | Corporate, modular, and utilitarian. |
+| 5 | Minimalist, clean, and organized. |
+| 6 | It’s taken over your entire living space. |
 
-Where do you get your programs?
+### Who are some of your other clients?
+| 1d6 | Clients |
+| --- | ------- |
+| 1 | Local fixers who sends you clients. |
+| 2 | Local gangers who also protect your work area while you sweep for NET threats. |
+| 3 | Corporate Corpos who use you for “black project” work. |
+| 4 | Local Solos or other combat types who use you to keep their personal systems secure. |
+| 5 | Local Nomads and Fixers who use you to keep their personal systems secure. |
+| 6 | You work for yourself and whatever you can find on the NET. |
 
-Who’s gunning for you?
+### Where do you get your programs?
+| 1d6 | Source |
+| --- | ------ |
+| 1 | Dig around in old abandoned city zones. |
+| 2 | Steal them from other Netrunners you brain-burn. |
+| 3 | Have a local Fixer supply programs in exchange for hack work. |
+| 4 | Corporate Corpos supply programs in exchange for work. |
+| 5 | You have backdoors into a few Corporate warehouses. |
+| 6 | You hit the Night Markets and score programs whenever you can. |
 
-Netrunner Role Ability
-A Netrunner uses a cyberdeck to access networks to interface with the architecture directly with their brain. They can use their action in meatspace to perform a number of NET actions determined by their role ability rank.
-Virtuality goggles, or cybereyes with Virtuality installed, allows a Netrunner to view the interface around them, projected directly onto their optics. This is much more convenient and subtle, but they still need to maintain a connection as per usual.
+### Who’s gunning for you?
+| 1d6 | Enemy |
+| --- | ----- |
+| 1 | You think it might be a rogue AI or a NET ghost. Either way, it’s bad news. |
+| 2 | Rival Netrunners who just don’t like you. |
+| 3 | Corporates who want you to work for them exclusively. |
+| 4 | Law who considers you an illegal “black hat” and wants to arrest you. |
+| 5 | Old client who thinks you screwed them over. |
+| 6 | Fixer or another client who wants you exclusively. |
 
-Each NET action can be one of several described in the Netrunning section on .
-Netrunner Starting Gear
-Weapons: A Pistol worth €$500, appropriate Pistol Ammunition ×30, Light Armorjack Body Armor (SP11), Light Armorjack Head Armor (SP11)
-Outfit: Cyberdeck (7 slots); Programs: Armor, Sword, See Ya or Eraser, Sword or Vrizzbolt, Sword or Worm
-Clothes: Generic Chic (Top ×2), Leasure­wear (Footwear ×2, Jewelry, Bottoms ×2), Urban Flash (Jacket)
-Cyberware: Cybereyes ×2 (Virtuality), Shift Tacts (PSYCHE loss: 14)
+### Connection Qustions
+Ask these questions to different players about their characters to build existing relationships.
+* Why did I break into a corp subnet for you?
+* What’s in the file I keep secure for you in my deck?
+* What info have you asked me to look for?
+
+## Netrunner Role Ability
+### General Description
+A Netrunner uses a cyberdeck to access networks architecture directly with their brain. As their regular Action, they can instead perform a number of NET Actions within networks. What you can do inside the networks is described in the Netrunning rules. The number of NET Actions you have access to per one regular action depends on your Netrunner Role rank.
+| Role rank | 1-3 | 4-6 | 7-9 | 10 |
+| NET Actions | 2 | 3 | 4 | 5 |
+
+### Implementation
+Netrunners have NET Actions = 1 + round_up(Rank/3). This number should be shown on the Role ability area on the character sheet. The rest is handled by the Netrunning rules.
+
+## Netrunner Starting Gear
+Weapons:
+* Militech Ticon
+* Basic Heavy Pistol Ammo ×50
+* Light Bodyweight Suit
+
+Outfit:
+* Standard Cyberdeck
+* Glow Paint
+* Programs:
+  * Armor
+  * Sword
+  * See Ya or Eraser
+  * Sword or Vrizzbolt
+  * Sword or Worm
+
+Clothes:
+* Kitsch
+ * Top ×2
+ * Footwear ×2
+ * Jewelry
+ * Bottoms ×2
+ * Jacket
+
+Cyberware:
+* Neuroport
+* Cybereyes ×2
+* Virtuality
+* Shift Tacts
 
 # Ninja
  Protean
+## Description
 Sometimes, an individual needs to be zeroed in a quiet way that leaves no trace. Solos or Bandits are much too noisy and Netrunners or Operatives don’t specialize in flatlining their targets. You, on the other hand, excel at this dirty business.
+
 Some Ninjas favor long-range snipers to take out a target without the risk of even getting close. Others learn to move silently through buildings and perform a quiet execution with a concealed tanto blade. And then there are jobs that require more discretion in the form of poisons or other methods that can be covered up as accidents. As situations change, you need to change with them. The tools you use in your trade include both your creativity and the equipment you carry.
+
 While there are Ninjas out there who have become legends, their real identity is rarely known. It’s even possible that they lead unassuming lives as a cover, and not even those closest to them know what brutal deeds they are prepared to do.
+
 A good Ninja is highly sought after by corporations, governments and Fixers alike. A bad one, someone who gets exposed, will find that they have no friends anywhere. There is no room for failure when discretion is your main weapon.
-In a world of neon, holograms and screens, people never seem wary enough of the shadows the lights cast.
-∆ “Rogue Rouge”
-Ninja Lifepath
-What kind of Ninja are you?
 
-Who do you usually work for?
+> In a world of neon, holograms and screens, people never seem wary enough of the shadows the lights cast.
+> ∆ “Rogue Rouge”
 
-If you work with someone, who?
+## Ninja Lifepath
+### What kind of Ninja are you?
+| 1d6 | Type |
+| --- | ---- |
+| 1 | Sniper |
+| 2 | Poisoner |
+| 3 | Assassinates from the shadows |
+| 4 | Masked vigilante |
+| 5 | Hidden in plain sight |
+| 6 | Edgelord |
 
-What’s your moral compass like?
+### Who do you usually work for?
+| 1d6 | Client |
+| --- | ------ |
+| 1 | Government “black ops”. |
+| 2 | A corporation’s special operations. |
+| 3 | A Fixer sets you up with clients. |
+| 4 | You find clients on anonymous Data Pools. |
+| 5 | Yourself, according to your own convictions. |
+| 6 | An Operative feeds you information. |
 
-What’s your MO?
+### If you work with someone, who?
+| 1d6 | Partner |
+| --- | ------- |
+| 1 | Family member |
+| 2 | Old friend |
+| 3 | Possible romantic partner |
+| 4 | Secret parter with unexpected connections |
+| 5 | Secret partner with mob/gang connections |
+| 6 | Secret partner with corporate connections |
 
-Who’s gunning for you?
+### What’s your moral compass like?
+| 1d6 | Ethics |
+| --- | ------ |
+| 1 | Always working for good, trying to take out what seems like the "bad guys". |
+| 2 | Always try to spare the innocent |
+| 3 | You’ll occasionally, but rarely, take on unethical contracts. |
+| 4 | Ruthless and profit-centered. You’ll work for anyone who’s willing to pay. |
+| 5 | Willing to bend any rules (and law) to ge the job done. |
+| 6 | You often engage in, and enjoy, unethical work. |
 
-Connection Qustions
+### What’s your M.O.?
+| 1d6 | MO |
+| --- | --- |
+| 1 | In and out without a trace. |
+| 2 | Spreading death and fear from the shadows. |
+| 3 | Blend in, do the job, blend in again. |
+| 4 | Fear is a more powerful weapon than anything else. |
+| 5 | Close and personal — you want to look into their eyes. |
+| 6 | Honor bound and methodical. |
+
+### Who’s gunning for you?
+| 1d6 | Enemy |
+| --- | ----- |
+| 1 | Target who got away and wants revenge. |
+| 2 | Corp who wants you exclusively. |
+| 3 | Fixer who wants you exclusively. |
+| 4 | Former client who things you screwed them. |
+| 5 | Another Ninja who sees you as competition. |
+| 6 | Law enforcers who want you for murder charges. |
+
+### Connection Qustions
 Ask these questions to different players about their characters to build existing relationships.
-»  Who have I killed for you?
-»  How did you catch on to what I do?
-»  What secret have you asked me to keep?
-Ninja Role Ability
-Preparation is everything. You have a number of points equal to your Role rank that you may allocate between different Ninja abilities. You may change your allocation as an Action as you shift focus.
-Martial Skill
-Your training allows you a bonus to any Melee or Martial Arts attack or use of a Martial Arts technique. Add +1 to your attack roll for each two points allocated, up to a maximum bonus of +3 for six points.
-Poison
-You apply a toxin to a Melee Weapon. It requires your expertise to utilize this effectively and thus you can’t prepare someone else’s weapon like this. When you attack someone and penetrate their SP at all, they must make a BODY + Endurance check against a DV equal to 12 + the number of points allocated. On a failure, they take an additional 1d6 directly to HP.
-Precision Kill
-When your target is unaware of an attack from you, it’s deadlier. Add 1d6 if you allocate three points to this ability, or 2d6 if you allocate six points, or 3d6 if you allocate nine points.
-Seek Cover
-By allocating two points to this ability, you increase your possibility of recovering from detection. Add +5 to your Initiative, but your first turn can only focus on hiding or retreating. This includes things like using a smoke grenade to get away.
-Silent Death
-Each point allocated gives you +1 to any Stealth checks you make.
-Threat Detection
-You have enhanced situational awareness. Each point adds +1 to Perception checks. This doesn’t stack with the same ability from the Solo role ability if you have both.
-Weak-Spot
-If the target’s armor’s current SP, or their cover’s current HP, is lower than three times the points allocated to this ability, you may choose to completely bypass that protection with your first attack on your turn. This, naturally, doesn’t ablate the armor. You may allocate no more than five points to this ability (thus bypassing anything less than SP15).
-Ninja Starting Equipment
-Weapons and Armor: Light Melee Weapon, Heavy Melee Weapon or Heavy Pistol, Very Heavy Melee Weapon or Sniper Rifle; Basic H Pistol Ammunition ×50, Basic Rifle Ammunition ×70; Light Armorjack Body Armor (SP11), Light Armorjack Head Armor (SP11)
-Outfit: Agent, Binoculars, Caltrops, Lock-Picking Set, Radio Communicator, Vial of Poison; Leisurewear: Footwear ×2, Jacket, Mirrorshades, Bottoms ×2, Top ×2
-Cyberware: Hidden Holster, Sub-Dermal Pocket (PSYCHE loss: 10)
+* Who have I killed for you?
+* How did you catch on to what I do?
+* What secret have you asked me to keep?
 
-# Nomad
- Sundry
-Years ago, the Corps drove your family off the farm. They rolled in, took over the land, and put rent-a-cops all over the place. But that was before your people created Nomad Packs of up to two-hundred members. Back then, your Pack was crammed into a huge, ragtag fleet of cars, vans, buses, and RVs roaming the freeways looking for supplies, odd jobs, and spare parts in a fragmented world. But the Nomad Pack has evolved. Your knowledge of roadcraft, of how to get between the safe-zones over the savage highways, has allowed you to become the masters of getting people, supplies, and materials to a world that desperately needs them. Your cousins on the open seas have taken over the huge container ships and turned them into the Nomad convoys keeping civilization running. Your Deltajock farm boys keep the supply lines to the Orbital Highriders open. If it has to get somewhere and get there safely, Nomads get the job done. Your vehicles are well-armored and bristling with weapons: miniguns, rocket launchers, and the like. Every kid knows how to use a rifle, and everyone packs a knife. Like modern-day cowboys, you ride the hard trail. You’ve got a gun, a bike, and your Family, and that’s all you need.
-There’s nothing like the freedom of the open road under your wheels. I’ve got my bike, I’ve got my gun, and I’ve got my family.
-∆ Racer Rajavi, Aldecaldo Nomad
-Nomad Lifepath
-How big is your pack?
+## Ninja Role Ability
+### General Description
+Preparation is everything. You have a number of points equal to your Role rank that you may allocate between different Ninja tactics. You may change your allocation when you roll initiative or as an Action as you shift focus.
 
-If the pack focuses on air, what do they do?
+### Tactics
+When is handled by the GM. The base UI is in place.
 
-If the pack focuses on the sea, what do they do?
+| Unlock rank | Name | Description | Implementation |
+| ----------- | ---- | ----------- | -------------- |
+| 1 | Poison | You apply a toxin to a Melee Weapon. It requires your expertise to utilize this effectively and thus you can’t prepare someone else’s weapon like this. When you attack someone and penetrate their SP at all, they must make a BODY + Endurance check against a DV equal to 11 + the number of points allocated. On a failure, they take an additional 1d6 directly to HP. | WHen points are allocated, trigger the check and possible bonus damge. The GM will handle which weapon is used. |
+| 1 | Silent Death | Each point allocated gives you +1 to any Stealth checks you make. | Apply as AE |
+| 1 | Threat Detection | You have enhanced situational awareness. Each point adds +1 to Perception checks. This doesn’t stack with the same tactic from the Solo Role if you have both. | Apply as AE. The GM will prevent the conflice with the Solo tactic |
+|  2 | Martial Skill | Your training allows you a bonus to any Melee or Martial Arts attack or use of a Martial Arts technique. Add +1 to your attack roll for each two points allocated, up to a maximum bonus of +3 for six points. | Add an AE  with the bonus to the Melee weapon and Martial Arts skills. |
+| 2 | Seek Cover | By allocating two points to this tactic, you increase your possibility of recovering from detection. Add +5 to your Initiative, but your first turn can only focus on hiding or retreating. | Handled by the GM. |
+| 2 | Weak-Spot | When you allocate two points to this tactic, you may bypass armor with 3 SP or less. Each 2 additional points increases the SP bypassed by another 3 for amaximum total of 15. The attack doesn't ablate armor because it doesn't interact with it. | Applies to standard damage only, not cones, explosions, or autofire. Apply if target's current SP is low enough. |
+| 3 | Precision Kill | When your target is unaware of an attack from you, it’s deadlier. Add 1d6 if you allocate three points to this tactic, or 2d6 if you allocate six points, or 3d6 if you allocate nine points. | Handeled bythe GM. |
 
-If they focus on land, what do they do?
+## Ninja Starting Equipment
+Weapons and Armor:
+* Katana
+* Stun Baton or Katana
+* Kendachi Ra-5 Powered Knife
+* Constitutional Arms Liberty or Tsunami Arms Yanari
+* Militech M-179 Achilles or Arasaka Nowaki
+* Throwing Axe or Bow
+* Throwing Axe or Basic Arrows ×50
+* Basic Medium Pistol Ammo ×50
+* Basic Sniper Ammo ×50 or Basic Assault Rifle Ammo ×50
+* Light Armorjack
 
-What do you do for your pack?
+Outfit:
+* Binoculars
+* Caltrops
+* Lock-Picking Set
+* Radio Communicator
+* Toxin
 
-Upgrades: Av-4, Cabin Cruiser, Groundcars, Yacht
+Clothes:
+* Entropism:
+ * Footwear ×2
+ * Jacket
+ * Shades
+ * Bottoms ×2
+ * Top ×2
+* Kitsch:
+ * Top
+ * Jacket
 
-Nomad Starting Gear
-Weapons and Armor: Two Pistols or one Pistol and one Melee Weapon, each worth €$500; Appropriate Basic  Pistol Ammunition ×100; Light Armorjack Body Armor (SP11), Light Armorjack Head Armor (SP11)
-Outfit: Anti-Smog Breathing Mask, Duct Tape, Flashlight, Grapple Gun, Inflatable Bed & Sleeping Bag, Medtech Bag, Radio Communicator ×2, Rope, Techtool, Tent and Camping Equipment
-Clothes: Bohemian (Jewelry); Nomad Leathers (Top ×4, Bottom ×2, Footwear ×2, Jacket, Mirrorshades, Hat)
-Cyberware: Wolvers
+Cyberware:
+* Neuroport
+* Hidden Holster
+* Sub-Dermal Pocket
+* Toxin Binders
 
 # Operative
   Specialist
+## Description
 Knowledge is power and never before has that been as obvious. Every corporation, from the smallest fashion design firm to the largest megacorp, wants to know what the competition is doing and wants to prevent said competition from doing the same. Nations still have their own intelligence services and need to keep an eye on both internal and external threats. Enter the Operative.
+
 Operatives are experts at covertly gathering and analyzing intelligence in meatspace. Netrunners can often do a lot of the digital work, but there’s still a lot to say about more traditional spies. Of course, the traditional role has developed a lot of non-traditional methods along with new technology. Voice-modulation and adaptive faceplates make it easier than ever to go undercover. Planted bugs can be controlled wirelessly. Synthetic drugs can alter someone’s perceptions enough to make them spill secrets they shouldn’t share. A good operative can be at the center of the most important meetings an organization has and still go unnoticed. Of course, this has also led to a very lucrative job market in counter-intelligence.
-Do you realize how expensive the cover-up will be?
-∆ Abernathy, Arasaka Counter­intelligence
-Operative Lifepath
-Who do you work for?
 
-Can you detach?
+> ***Do you realize how expensive the cover-up will be?***
+> ∆ Abernathy, Arasaka Counter­intelligence
 
-What enemy have you made?
+## Operative Lifepath
+### Who do you work for?
 
-What intelligence do you focus on?
+### Can you detach?
 
-What’s your supervisor like?
+### What enemy have you made?
 
-Connection Qustions
+### What intelligence do you focus on?
+
+### What’s your supervisor like?
+
+### Connection Qustions
 Ask these questions to different players about their characters to build existing relationships.
-»  What secret have I uncovered about you?
-»  What intel have you asked me to look for?
-»  What kind of secret am I keeping from you?
-Operative Role Ability
-When an Operative gains a rank in their Role ability, they gain 1 rank each in two different specialties out of Analysis, Infiltration, Observation, or Undercover.
-Analysis
-Collecting intelligence isn’t as useful if you don’t understand what to do with it and what to look for in the first place. You can encode information in seemingly innocuous text. It can be decoded with an INT + Deduction (+ their Analysis rank if any) roll against a DV equal to 10 + your INT + your Analysis rank. You can predetermine that those with at least your Operator rank in an organization and/or a specific individual who can decode the information automatically.
-In addition, add your Analysis rank to rolls involving the Cryptography component. You may also use your Analysis rank instead of the Deduction skill when sorting through information for important details.
-Infiltration
-Getting into, and out of, a location can require a lot of subterfuge. Add half your ranks in Infiltration (rounded up) to any Acting (for deception only), Conceal, Pick Lock, or Stealth check, as well as any roll using the Forgery component.
-On reaching Infiltration rank 5, you are able to Netrun as if you had 1 Netrunner rank, provided you have the required equipment.
-Observation
-This specialty reflects an Operative’s ability to identify valuable intelligence and collect it. Add half your Observation rank (round up) to Deduction, Human Perception, Investigation, and Perception checks.
-You also have access to a server where you can store days worth of video and other material for later analysis.The server is secure against most netrunners.
-Undercover
-Each rank in this specialty gives the choice between establishing a new cover, upgrading a cover, or preparing a temporary cover strategy. Normal covers start out as fake identification, including presence in all relevant public databases, and some counterfeit chips to go with it. Upgrades for a cover are chosen from this list:
-Connected background: Someone will answer the phone for your cover’s parents, for example.
-Convincing training: You gain +2 on Acting tests to convincingly perform your cover. This may be taken up to 5 times for a cumulative bonus.
-Cross-Culture: You’re trained in the intracacies of a culture your cover is supposedly from and can mimic its patterns exactly. As a bonus, you gain one level of the Ability for a language spoken by the culture.
-Faceplate:. Your cover gets its own appearance through cybernetics and body-sculpting. Switching takes half an hour and a DV10 TECH + Medicine (Cybernetics) check. The modification results in 7 (2d6) PSYCHE loss, but there is no extra loss for additional plates for other covers.
-Seeded Secure Data: Information about your cover has been planted in closed government or corporate records, making you seem real to anyone who gains access there.
-Tabula Rasa: Your original identity is completely wiped from all records, or their death is staged, to make tracing you harder. Optionally, your organization has backups and proof to restore the old you.
-You may choose to learn a temporary cover strategy from the list below. The ones where you construct something take 1 hour to prepare and can more easily be revealed for what they are through INT + Investigation +1d10 against your Undercover rank + 10.
-Backup Equipment: A small satelite in orbit has a payload containing the equivalent of the weapons and outfit in the Operative starting gear. With a signal through your cyberware, the sateline will set to crash in a less populated area within 2km of you and provide your cyberware with ways to track it. Once used, this benefit is gone, but can be selected again.
-Badge: After seeing a symbol a group uses amongst themselves, you can quickly reproduce a replica.
-Convincing Disguise: You are able to very quickly alter your, or someone else’s, appearance through wigs, make-up, simple props, etc. This takes five minutes/person and uses up props worth €$20 (Everyday)
-Fake ID: You can produce believable ID cards or chips of a type you’ve had time to analyze. Only a check against a database will reveal them as fake.
-Safehouse: You have a secodary location that’s unknown to others. It’s cramped and rough but has all the amenities you might need.
-Wardrobe: Your living space contains a very large and varied collection of outfits and disguise parts. Assuem you have access to a version of any non-specialty clothing worth €$100 (Premium) or less.
-Operative Starting Gear
-Weapons: A Pistol worth €$500, Light Melee Weapon worth €$20, a Silencer worth €$50, appropriate Basic Pistol Ammunition ×30, Light Armorjack Body Armor (SP11), Light Armorjack Head Armor (SP11)
-Outfit: Audio Recorder, Bug Detector, Disposable Cell Phone, Radio Communicator, Scrambler/Descrambler
-Clothes: Generic Chic (Bottoms ×2, Top ×2, Footwear, Mirrorshades, Hat; Businesswear: Jacket)
-Cyberware: Cybereye (MicroVideo), Cyberaudio Suite (Audio Recorder), Shift Tacts (PSYCHE loss: 18; Max is reduced by 5)
+* What secret have I uncovered about you?
+* What intel have you asked me to look for?
+* What kind of secret am I keeping from you?
+
+## Operative Role Ability
+### General Descrition
+When an Operative gains a rank in their Role ability, they gain 1 rank each in two different specialties: Analysis, Infiltration, Preparation, or Undercover.
+
+### Analysis
+| Unlock Rank | Name | Description | Implementation |
+| ----------- | ---- | ----------- | -------------- |
+| 1 | Coded Message  | You can encode information in seemingly innocuous text, or even an image. It can be decoded with an INT + Deduction (+ their Analysis rank if any) roll against a DV equal to 10 + your INT + your Analysis rank. You can select a number of individual equal to your Analysis rank who will automatically understand the message. In addition, you can let anyone with at least your rank in your organization automatically decode it. | Handled by the GM. |
+| 1 | Intelligence Analysis | Gathering intelligence isn’t useful if you don’t know what to do with it. Add your Analysis ranks to the INT checks when sorting through information or attempting to deducce patterns. | Handled by the GM. |
+| 4 | Any pattern is easy for you to read. Add half your Analysis ranks (rounded down) to Deduction and Human Perception checks. | Apply the bonus to those checks. |
+
+### Infiltration
+| Unlock rank | Name | Description | Implementation |
+| ----------- | ---- | ----------- | -------------- |
+| 1 | Move freely | Getting into, and out of, a location can require a lot of subterfuge. Add half your ranks in Infiltration (rounded up) to any Acting (for deception only), Conceal, Pick Lock, or Stealth check, as well as any roll using the Forgery component. | Apply the bonus for Conceal, Pick Lock, Stealth, and the Forgery Component. Make a note about the bonus in the chat message for making an Acting check. |
+| 1 | Quick Disguise | You've learned some quick and dirty ways to fly under the radar. For each rank in Infiltration, you gain access to one of the strategies in the table every 2 ranks in Infiltration (rounded up). Strategies that require manufacturing take 1 hour to prepare and has a suggested Cost. Seeing through your disguise strategies requires a Deduction or Perception check against 10 + your INT + your Infiltration rank. | Note the Infiltration DV in the Role Ability area. One unlocked Strategy per rounded up (Infiltration/2). |
+| 5 | Infiltrate Network. | You are able to perform basic Netrunning even if you're not a Netrunner, provided you have the required equipment. You gain 1 NET Action (which stacks with other sources). | +1 NET Actions. Displayed together with those from Netrunner, if applicable, otherwise in the Operative part of the Role Ability area. Unlocks the Netrunning tab. |
+
+| Strategy | Description | Implementation |
+| -------- | ----------- | -------------- |
+| Backup Equipment | A small satelite in orbit has a payload containing the equivalent of the Operative starting gear, but in any sift in style. With a signal through your cyberware, the sateline will set to crash in a less populated area within 2km of you and provide your cyberware with ways to track it. Once used, this benefit is gone but it can be selected multiple times. | Cna be selected multiple times (noting how many in the Role Ability area). THe rest is narrative. |
+| Badge | After seeing a symbol a group uses amongst themselves, you can quickly reproduce a replica with €$50 (Costly) materials. Those who normally use that type of badge have +2 to see throug it. | Narrative |
+| Convincing Disguise | You are able to very quickly alter your, or someone else’s, appearance through wigs, make-up, simple props, etc. This takes 30 minutes/person and uses up props worth €$20 (Everyday) + any clothes needed. Making someone look good, as opposed to believable, requires a Style check. | Handled by the GM |
+| Fake ID | You can produce believable ID cards or chips of a type you’ve had time to analyze. These take two hours and €$100 (Premium) to make. Only a check against a database will reveal them as fake. | Handeld by the GM |
+| Quick Change | If you've prepared both your first outfit and a disguise, you can wear them at the same time and change from one to the other as an Action, no matter how different they are. | Narrative only. |
+| Safehouse | You have a secodary location that’s unknown to others. It’s cramped and rough but has all the amenities you might need. | Narrative only. |
+| Wardrobe | Your living space contains a very large and varied collection of outfits and disguise parts. Assuem you have access to a version of any non-specialty clothing worth €$100 (Premium) or less. It is in your size and might not fit others. | Narrative only |
+
+### Preparation
+| Unlock rank | Name | Description | Implementation |
+| ----------- | ---- | ----------- | -------------- |
+| 1 | Prepared | Once per session, you may declare that you have actually prepared for a situation and retroactively say that you brought something useful. If this is somethoing you wwould have bought, it can be no more than €$50 (Costly). | Handled by the GM. |
+| 2 | Hidden | You may declare that any one item you have is miniturized, disguised as something else, or otherwise easy to completely conceal. The item can't require more than one hand. If you ever lose this item for some reason, work with the GM to have a replacement boon. | Handled by the GM. |
+| 3 | There is More To It | You may designate an additional item as easily concealable. It may be something that requires more than one hand — but it must then be disguised as something of similar size. | Handled by the GM. |
+| 4 | Well prepared | You may use your Prepared ability twice per session. | Handled by the GM |
+| 5 | Already Did That | Instead of having brought something, you may use your Prepared ability to play out a scene retroactively, such as looking up a floorpan or bribing a guard. | Handled by the GM. |
+| 6 | Well Spent | You uses of Prepared may each get you something worth up to €$100 (Premium). | Handled by the GM. |
+| 7 | Quartermaster's Pet | Using Prepared to establish something €$10 (Everyday) or less doesn't take a use of the ability. | Handled by the GM. |
+| 8 | Spy Gadgets | You may treat a number of items equal to half your Preparation rank (round down) has safely disguised into something else. If they can be handle in one hand, they can be miniturized. If you want, two items may be concealed as one item of the same size as the larger of the two. | Handled by the GM.
+| 10 | Always Prepared | Provided you can show any possibility to have prepared for an obstacle, you may use the Prepared ability with no limitation on uses. The uses you do have are for things you shouldn't have been able to forsee. | Handled by the GM |
+
+### Undercover
+| Unlock rank | Name | Description | Implementation |
+| ----------- | ---- | ----------- | -------------- |
+| 1 | Cover | Each rank in this specialty gives the choice between establishing a new cover, upgrading a cover, or preparing a temporary cover strategy. Normal covers start out as fake identification, including presence in all relevant public databases, and some counterfeit chips to go with it. Upgrades for a cover are chosen from the list. | The list of options (1 per rank in the specialty) should always include "New Cover" (no matter the number of previous covers), which will prompt the player for a name and add that name to the Role Ability area on the character sheet. When a an option among the Cover upgrades is selected, the player should be prompted to specify which cover it's for. That will add the ability name and description under that name in the Role Ability area. The same upgrade option can be chosen multiple times to upgrade different covers. |
+
+| Cover upgrade | Description | Implementation |
+| ------------- | ----------- | -------------- |
+| Connected background | Someone will answer the phone for your cover’s parents, for example. | Narrative only. |
+| Convincing training | You gain +2 on Acting tests to convincingly perform your cover. This may be taken up to 5 times for a cumulative bonus. | Allow for multiple selection and note the total bonus in the Role Ability area, but leave application to the GM. |
+| Cross-Culture | You’re trained in the intracacies of a culture your cover is supposedly from and can mimic its patterns exactly. As a bonus, you gain two level of the Ability for a language spoken by the culture. | Add the ability with a prompt for language to append to the Ability name. "Language: {name}" |
+| Faceplate | Your cover gets its own appearance through cybernetics and body-sculpting. Switching takes ten minutes. Others trying to change it for you take half an hour and must succeed on a Medicine check or an Electronics (Cybernetics) check (their choice). The modification results in 7 (2d6) PSYCHE loss, but there is no extra loss for additional plates for other covers. | Apply the PSYCHE loss. THe rest is handle dby the GM. |
+| Seeded Secure Data | Information about your cover has been planted in closed government or corporate records, making you seem real to anyone who gains access there. | Narrative only.
+| Tabula Rasa | Your original identity is completely wiped from all records, or their death is staged, to make tracing you harder. Optionally, your organization has backups and proof to restore the old you. | Can only be selected once and treated as a cover that can't be upgraded called "??? Unknown identity" |
+
+## Operative Starting Gear
+Weapons:
+* Constitutional Arms Unity
+* Militech M2 Combat Knife
+* AmuTek XC-10 Cetus or AmuTek XC-10 Strix
+* Basic Heavy Pistol Ammo ×50
+* Light Armorjack
+
+Outfit:
+* Audio Recorder
+* Bug Detector
+* Disposable Cell Phone ×2
+* Radio Communicator
+* Scrambler/Descrambler
+
+Clothes:
+* Entropism:
+ * Bottoms
+ * Top
+ * Footwear
+* Kitsch:
+ * Bottoms ×2
+ * Top ×2
+ * Shades
+ * Headwear
+* Neomilitarism:
+ * Jacket
+
+Cyberware:
+* Neuroport
+* Standard Cybereye
+* MicroOptics
+* Standard Cyberaudio Suite
+* Amplified Hearing
+* Shift Tacts
 
 # Rocker
  Networker
+## Description
 If you live to rock, this is where you belong. As a Rocker, you’re one of the street poets, the social conscience, and the rebels. With the advent of digital porta-studios and garage music mastering, every Rocker with a message can take it to The Street, put it in the record stores, or bounce it off the comsats. Sometimes, your message isn’t something the Corporations or government wants to hear. Sometimes what you say is going to get right in the faces of the powerful people who really want to run this world. You don’t care, because as a Rocker, it’s your place to challenge authority, whether in straight-out protest songs that tell it like it is, playing kick-ass rock n’ roll to get the people away from the TV sets and into The Streets, firing up the crowd with speeches, or composing fiery writings that shape the minds and hearts of millions.
+
 Rocker have a proud history that includes Dylan, Springsteen, U2, NWA, the Who, Jett, the Stones — the legions of hard-rock heroes who told the truth with screaming guitars or gut-honest lyrics. You have the power to get the people up; to lead, inspire, and inform. Your message can give the timid courage, the weak strength, and the blind vision.
+
 Rocker legends like Johnny Silverhand, Rockerboy Manson, and Kerry Eurodyne have led armies against Corporations and governments. Rockers have exposed corruption and brought down dictators. It’s a lot of power for someone doing gigs every night in another city. But you can handle it. After all: you came to play!
-They’re not chanting my name in giant concert halls yet, but I’ve got fans, and I don’t have to compromise my message for anyone.
-∆ Forty, Rockerboy
-Rockerboy Role Ability
+
+> They’re not chanting my name in giant concert halls yet, but I’ve got fans, and I don’t have to compromise my message for anyone.
+> ∆ Forty, Rockerboy
+
+## Rocker Lifepath
+### What kind of Rocker are you?
+| 1d10 | Type |
+| ---- | ---- |
+| 1 | Musician |
+| 2 | Slam Poet |
+| 3 | Street Artist |
+| 4 | Performance Art |
+| 5 | Comedian |
+| 6 | Orator |
+| 7 | Politico |
+| 8 | Rap Artist |
+| 9 | DJ |
+| 10 | Idoru |
+
+### Have you split with your band?
+| 1d6 | Reason |
+| 1 | You were a jerk and the others voted you out. |
+| 2 | You slept with another member’s mainline. |
+| 3 | The rest were killed in a tragic “accident”. |
+| 4 | The rest of the group were murdered or split up by external enemies. |
+| 5 | The group broke up over “creative differences”. |
+| 6 | You decided to go solo. |
+
+### Where do you usually perform?
+| 1d6 | Venue |
+| --- | ------- |
+| 1 | Alternative Cafés |
+| 2 | Private Clubs |
+| 3 | Seedy Dive Bars |
+| 4 | Guerrilla Performances |
+| 5 | Nightclubs Around the City |
+| 6 | On the Data Pool |
+
+### Who's gunning for you or your band?
+| 1d10 | Enemy |
+| ---- | ----- |
+| 1 | Old group member who thinks you did them dirty. |
+| 2 | Rival group or artist trying to steal market share. |
+| 3 | Corporate enemies who don’t like your message. |
+| 4 | Critic or “influencer” trying to bring you down. |
+| 5 | Older star who feels threatened by your fame. |
+| 6 | Romantic interest or media figure who wants revenge for personal reasons. |
+| 7 | Stalker who won't anyone else have you if they can't. |
+| 8 | Someone who thinks you've taken advantage of a person close to them. |
+| 9 | A manager who'll literally kill to secure your contract. |
+| 10 | Someone has taken out a contract on you for unknown reasons. |
+
+### Connection Qustions
+Ask these questions to different players about their characters to build existing relationships.
+* What hit of mine is your favorite and why?
+* What have I created that’s about you?
+* When did you first discover my work?
+
+## Rocker Role Ability
+### General Description
 As their Role increases, so does the Rocker's fanbase. Their ability allow them to get fans to do things for them, as well as impress new people enough to become fans.
-Define how you express yourself, be it through music, street art, or something else. Add your Rockerboy ranks to checks where you use this form to make an impact.
-If you're trying to make a specific person a fan and they could possibly be persuaded, the DV for your check is DV8 (+ the target's INT or COOl, their choice, if they actively disagree with you).
-With most audiences, assume that for every step above 10, you convert 5% of non-fans into new fans.
-Once someone is a fan, you can ask things of them and may roll 1d10 + COOL + Rockerboy ranks  instead of Influence when talking to them. What sort of them you can ask and what the DV might be depends on your rank, as described below.
-Ranks 1 and 2
-Venues: Small local clubs
-Single Fan: A small favor for the Rockerboy; buy a drink or meal, give you a lift somewhere.
-Small Group: Ask for autographs and other personal totems; fans will stop you in streets to befriend you.
-Huge Group (100+ people): You’re kidding, right? You don’t have huge groups of fans yet.
-Ranks 3 and 4
-Venues: Well-known clubs
-Single Fan: A major favor for the Rockerboy; go to bed with you, put a good word in for you, etc.
-Small Group: Fans will regularly hang out with you; provide booze, drugs, or other party favors.
-Huge Group: A strong local following; fans buy their recordings and merch.
-Ranks 5 and 6
-Venues: Large, important clubs
-Single Fan: Commit a minor crime for you; shoplift, help out in a fight.
-Small Group: Act as your personal “posse”; constantly hang out with you, do you favors, and provide things for your personal needs.
-Huge Group: Fans all over the City, often in nearby cities. They are strongly loyal and will often do major favors for you in exchange for attention.
-Ranks 7 and 8
-Venues: Small concert halls, local video feed
-Single Fan: Willing to risk their life without question.
-Small Group: Commit a minor crime for you; shoplift, help in a fight.
-Huge Group: Fans are rabidly loyal. They fight with rival fan groups, support strong fan information networks, will band together to help you.
-Rank 9
-Venues: Large concert halls, national video feed
-Single Fan: Commit major crime for you; steal expensive item, beat someone up
-Small Group: Commit a major crime for you; steal expensive item, beat someone up.
-Huge Group: Fans are a brainwashed, cult-like following; they will riot, destroy property, and even kill for you.
-Rank 10
-Venues: Huge stadiums or international video
-Single Fan: Willing to sacrifice self without question.
-Small Group: Risk their lives for you; to act as personal protection.
-Huge Group: Worldwide following with cult-like attributes. They will do almost anything for you if asked; they are a private army based on your charisma.
-Rockerboy Starting Gear
-Weapons: Pistol worth €$500, Melee Weapon or Flashbang Grenade worth €$500, Teargas Grenade ×2, appropriate Basic Pistol Ammunition ×50, Light Armorjack Body Armor (SP11), Light Armorjack Head Armor (SP11)
-Outfit: Computer, Electric Guitar and Pocket AMP or other tool of expression, Glow Paint ×5, Radio Scanner/Music Player
-Clothes: Generic Chic (Jacket, Jewelry ×3, Top ×4); Leasurewear (Jewelry, Mirrorshades, Footwear); Urban Flash (Bottoms, Top)
-Cyberware: Cyberaudio Suite (Audio Recorder), Chemskin, Tech Hair (PSYCHE loss: 9; max reduced by 4)
+Define how you express yourself, be it through music, street art, or something else. Add your Rocker ranks to checks where you use this form to make an impact.
+
+If you're trying to make a specific person a fan and they could possibly be persuaded, the DV for your check is DV8 (+ the target's INT or COOl, their choice, if they actively disagree with you). With most audiences, assume that for every step above 10, you convert 5% of non-fans into new fans.
+
+Those who are your fans are happy to do things for you. Roll 1d10 + COOL + your Rocker ranks. Most individuals have a DV of 15, convincing all of a small group (up to 20 or so people) is DV 18, and a large group (up to 100 or so) is DV 22. Add +1 per Rocker rank you have more than needed.
+
+### Implementation
+A dropdown on the Role allows its owner to select one of the Components linked to Compose and/or Performance, or the Acting skill. Add their Rocker ranks to any check that includes their choice. Put an Rock button in the Character Ability area as a shortcut for this sort of roll. If they've chosen a Component that could be used with more than one skill, provide a button for each.
+As normal for Networkers, display the last unlocked ability in their Role Ability area. But there should also be a table for each of the Single fan, Small group, and Large Group with the descriptions unlocked for them. Each has a button to influence them, as described. The GM will handle details.
+
+| Unlock rank | Name | Description |
+| ----------- | ---- | ----------- |
+| 1 | Enthusiast | **Venues:** Small local clubs<br>**Single Fan:** A small favor for the Rockerboy; buy a drink or meal, give you a lift somewhere.<br>**Small Group:** Ask for autographs and other personal totems; fans will stop you in streets to befriend you.<br>**Huge Group (100+ people):** You’re kidding, right? You don’t have huge groups of fans yet. |
+| 3 | Promising Artist | **Venues:** Well-known clubs<br>**Single Fan:** A major favor for the Rocker; go to bed with you, put a good word in for you, etc. **Small Group:** Fans will regularly hang out with you; provide booze, drugs, or other party favors.<br>**Huge Group:** A strong local following; fans buy their recordings and merch. |
+| 5 | Rising Star | **Venues:** Large, important clubs<br>**Single Fan:** Commit a minor crime for you; shoplift, help out in a fight.<br>**Small Group:** Act as your personal “posse”; constantly hang out with you, do you favors, and provide things for your personal needs.<br>**Huge Group:** Fans all over the City, often in nearby cities. They are strongly loyal and will often do major favors for you in exchange for attention. |
+| 7 | True Star-Power | **Venues:** Small concert halls, local video feed<br>**Single Fan:** Willing to risk their life without question.**Small Group:** Commit a minor crime for you; shoplift, help in a fight.<br>**Huge Group:** Fans are rabidly loyal. They fight with rival fan groups, support strong fan information networks, will band together to help you. |
+| 9 | Scream and the World Will Listen | **Venues:** Large concert halls, national video feed<br>**Single Fan:** Commit major crime for you; steal expensive item, beat someone up.<br>**Small Group:** Commit a major crime for you; steal expensive item, beat someone up.<br>**Huge Group:** Fans are a brainwashed, cult-like following; they will riot, destroy property, and even kill for you. |
+| 10 | **Venues:** Huge stadiums or international video<br>**Single Fan:** Willing to sacrifice self without question.<br>**Small Group:** Risk their lives for you; act as personal protection.<br>**Huge Group:** Worldwide following with cult-like attributes. They will do almost anything for you if asked; they are a private army based on your charisma. |
+
+## Rocker Starting Gear
+Weapons:
+* Tsunami Arms Nue
+* Baseball Bat or Flashbang Grenade
+* Teargas Grenade ×2
+* Basic Very HEavy Pistol Ammo ×50
+* Light Armorjack
+
+Outfit:
+* Laptop
+* Electric Guitar
+* Pocket Amplifier
+* Glow Paint ×5
+* Radio Scanner/Music Player
+
+Clothes:
+* Entropism:
+ * Footwear
+ * Shades
+ * Jewelry
+ * Bottoms
+* Kitsch:
+ * Jacket
+ * Jewelry ×3
+ * Top ×4
+ * Bottoms
+ * Shades
+
+Cyberware:
+* Neuroport
+* Cyberaudio Suite
+* Level Dampener
+* Chemskin
+* Tech Hair
 
 # Solo
   Protean
+## Description
 You were reborn with a gun in your hand. Whether as a freelance guard and killer-for-hire, or as one of the Corporate cybersoldiers who enforce business deals and the Company’s “black operations,” you’re an elite fighting machine.
+
 As the battle damage piles up, you might rely more and more upon tech: cyberlimbs for weapons and armor, bio-program chips to increase your reflexes and awareness, combat drugs to give you that edge over your opponents. When you’re the best of the best, you might even leave the ranks of Corporate samurai and go ronin — freelancing your lethal talents as a killer, bodyguard, or enforcer to whoever can pay your very high fees. Sounds good? There’s a price — a heavy one. You’ve lost so much of your original meat body that you’re almost a machine. Your killing reflexes are so jacked up that you have to restrain yourself from going berserk at any moment. Years of combat drugs taken to keep the edge have given you terrifying addictions. There are few people you can trust anymore. One night you might sleep in a penthouse condo in the City, the next in a filthy alley on The Street. But that’s the price of being the best. And you’re willing to pay it. Because you’re a Solo.
-When Militech offered me three squares a day and a cot, you better believe I signed up.
-∆ Abril “Mover” Montella, Private Contractor
-Solo Role Ability
-Any time outside combat, just before Initiative is rolled, or as an Action during combat, you may distribute a number of points equal to your rank in this Role ability between the sub-abilities listed here. You are assumed to have allocated points i the same way until you declare a change.
-Damage Deflection
-You know how to “roll with the punches” and reduce damage done to you. For each two points allocated to this ability, you reduce the first damage you take each round by 1. Thus, you can reduce damage by up to 5 (by allocating the 10 points from the maximum Role rank).
-Fumble Recovery
-Thanks to your training, you know how to recover from mishaps and rarely fail completely. For four points, you ignore critical failures (1s) on attack rolls. The roll is still treated as 1.
-Initiative Reaction
-Your reflexes are fast enough to respond to danger. Each point allocated to this ability gives you +1 to Initiative.
-Precision Attack
-Your aim is exceptional. Each three points allocated to this ability gives +1 to all attacks made. Thus, this ability can give a maximum total of +3 for nine points.
-Pummel
-Weapons can come in handy in what would otherwise be unarmed combat. By allocating one point to this ability, you deal +1 damage with Martial Arts (Brawling), provided you’re holding at least one weapon.
-Spot Weakness
-You are able to look for ways to hurt even heavily armored targets. Each point allocated gives +1 to the damage (before armor) of your first successful attack each round.
-Threat Detection
-You have enhanced situational awareness. Each point adds +1 to Perception checks. This can’t stack with the same ability from the Ninja role ability.
-Solo Starting Gear
-Weapons and Armor: Assault Rifle worth €$500, Pistol worth €$500, Melee Weapon worth €$50 or Bulletproof Shield; appropriate Basic Pistol Ammunition ×50, Basic Rifle Ammunition ×70; Light Armorjack Body Armor (SP11), Light Armorjack Head Armor (SP11)
+
+> ***When Militech offered me three squares a day and a cot, you better believe I signed up.***
+> ∆ Abril “Mover” Montella, Private Contractor
+
+## Solo Lifepath
+### What kind of Solo are you?
+| 1d6 | Type |
+| --- | ---- |
+| 1 | Bodyguard |
+| 2 | Street muscle for hire |
+| 3 | Corporate enforcer who takes jobs on the side |
+| 4 | Corporate or freelance Black Ops agent |
+| 5 | Local vigilante for hire |
+| 6 | Hitman for hire |
+
+### What's your moral compass life?
+| 1d6 | Ethics |
+| --- | ------ |
+| 1 | Always working for good, trying to take out who seem like the “bad guys”. |
+| 2 | You always spare the innocent. |
+| 3 | You occasionally, but rarely, slip into the unethical. |
+| 4 | Ruthless and profit-centered. You’ll work for anyone who’s willing to pay. |
+| 5 | You're willing to bend any rules (and law) to ge the job done. |
+| 6 | You engage in, and enjoy, unethical work all the time. It makes it mroe interesting. |
+
+### What's your operational territory?
+| 1d6 | Area |
+| --- | ---- |
+| 1 | Corporate Zone |
+| 2 | Combat Zone |
+| 3 | The whole city |
+| 4 | The territory of a single corporation |
+| 5 | The territory of a particular Fixer or contact |
+| 6 | Wherever the money takes you |
+
+### Who's gunning for you?
+| 1d6 | Enemy |
+| 1 | A corporation you may have angered. |
+| 2 | A boostergang you’ve tackled. |
+| 3 | Law enforcers who think you’re guilty of something you may or may not have done. |
+| 4 | Rival Solo from another corp. |
+| 5 | A Fixer who sees you as a threat. |
+| 6 | A rival Solo or Ninja who sees you as a threat. |
+
+### Connection Qustions
+Ask these questions to different players about their characters to build existing relationships.
+* How did I save your life?
+* What have you given me that I always have with me?
+* Who did you know that died by my side in combat?
+
+## Solo Role Ability
+### General Description
+You're always ready for combat. You are able to allocate a number of points equal to your rank as a Solo between the tactics listed here. You may change the allocation at any time outside combat, when you roll Initiative, or as an Action.
+
+### Tactics
+| Unlock rank | Name | Description | Implementation |
+| ----------- | ---- | ----------- | -------------- |
+| 1 | Initiative Reaction | Your reflexes are fast enough to respond to danger. Each point allocated to this ability gives you +1 to Initiative. | Implement as AE |
+| 1 | Pummel | Weapons can come in handy in what would otherwise be unarmed combat. By allocating one point to this ability, you deal +1 damage with Martial Arts (Brawling), provided you’re holding at least one weapon. Two points allow you to use any one-handed item as a Light Melee weapon and two-handed as a Medium Melee weapon. | Add the bonus for 1 point, add two entries (Light and Medium Melee with default values) to the Weapons table without adding any actual Gear. The details are handled by the GM. |
+| 1 | Spot Weakness | You are able to look for ways to hurt even heavily armored targets. Each point allocated gives +1 to the damage (before armor) of your first successful attack each round. | Implement as AE for damage bonus. |
+| 1 | Threat Detection | You have enhanced situational awareness. Each point adds +1 to Perception checks. This can’t stack with the same ability from the Ninja role ability. | Apply as AE. GM will handle any overlap. |
+| 2 | Damage Deflection | You know how to “roll with the punches” and reduce damage done to you. For each two points allocated to this ability, you reduce the first damage you take each round by 1. Thus, you can reduce damage by up to 5 (by allocating the 10 points from the maximum Role rank). | Apply as an AE that triggers when taking damage and checks if applicable |
+| 3 | Precision Attack | Your aim is exceptional. Each three points allocated to this ability gives +1 to all attacks made. Thus, this ability can give a maximum total of +3 for nine points. | Note the bonus in the attack roll message. |
+| 4 | Fumble Recovery | Thanks to your training, you know how to recover from mishaps and rarely fail completely. For four points, if you roll 1 on the die for an attack rolls: reroll. You must accept the new result. | Note the use of the tactic in chat. |
+
+## Solo Starting Gear
+Weapons and Armor:
+* Tsunami Arms Nue
+* Constitutional Arms M2038 Tactician
+* Nokota D5 Copperhead
+* Militech M2 Combat Knife
+* Kang Tao Type-2067 or Militech Mk.2x Grandstand
+* Basic Very Heavy Pistol Ammo ×50
+* Basic Assault Rifle Ammo ×50
+* Basic Shotgun Slugs ×20 or Basic Shotgun Shells ×20
+* Light Armorjack
+
 Outfit:
-Clothes: Leisurewear (Footwear ×2, Jacket ×3, Mirrorshades, Bottoms ×2, Top ×2)
-Cyberware: Biomonitor, Sandevistan Speedware or Wolvers (PSYCHE loss: 10; max reduced by 3)
+* Binoculars
+* Backpack
+* Duct Tape
+* Flashlight
+* Rope
+
+Clothes:
+* Entropism:
+ * Footwear ×2
+ * Jacket ×2
+ * Shades
+ * Bottoms ×2
+ * Top ×3
+ * Headwear
+
+Cyberware:
+* Neuroport
+* Sandevistan or Kerenzikov
+* Cyberarm
+* Wolvers
 
 # Techie
  Specialist
+## Description
 You can’t leave anything alone. If it’s near you for more than five minutes, you’ve disassembled it and made it into something new. You’ve always got at least two screwdrivers and a wrench in your pockets. Computer down? No problem. Hydrogen burner out in your Metrocar? No problem. Can’t get the video to run or your interface glitching? No problem.
+
 You make your living building, fixing, and modifying — a crucial occupation in a technological world recovering from a War that broke the back of the supply chain. You can make some good bucks fixing everyday stuff, but for the serious money you need to tackle the big jobs. Illegal weapons. Illegal or stolen cybertech. Corporate espionage and counter-espionage gear for “black operations.” If you’re any good, you’re making a lot of money. And that money goes into new gadgets, hardware, and information.
+
 Your black market work isn’t just making you friends, it’s also racking you up an impressive number of enemies as well — so you invest a lot in defense systems and, if really pushed to the wall, call in a few markers on a Solo or two. You’ve fixed up tech for everybody from black ops Corporate samurai to Ms. Zepada down the block. No one’s ever come back to you with a complaint, but that might be because of the turrets guarding your front door. You’re addicted to technology in all its forms and that’s what makes you a Tech.
-This City depends on technology to keep everything from going full-on post-apocalypse. And that means everyone depends on me.
-∆ João “Torch” Barbosa Alvés, Owner of Torch’s Total Repairs
-Tech Lifepath
-What kind of Tech are you?
 
-If any, what of partner do you have?
+> This City depends on technology to keep everything from going full-on post-apocalypse. And that means everyone depends on me.
+> ∆ João “Torch” Barbosa Alvés, Owner of Torch’s Total Repairs
 
-What’s your workspace like?
+## Tech Lifepath
+### What kind of Tech are you?
+| 1d10 | Type |
+| ---- | ---- |
+| 1 | Cyberware Technician |
+| 2 | Vehicle Mechanic |
+| 3 | Jack of All Trades |
+| 4 | Small Electronics Technician |
+| 5 | Weaponsmith |
+| 6 | Crazy Inventor |
+| 7 | Robot and Drone Mechanic |
+| 8 | Heavy Machinery Mechanic |
+| 9 | Scavenger |
+| 10 | Nautical Mechanic |
 
-Who are your main clients?
+### If any, what of partner do you have?
+| 1d6 | Collaborator |
+| --- | ------------ |
+| 1 | Family Member |
+| 2 | Old Friend |
+| 3 | Possible Romantic Partner |
+| 4 | Mentor |
+| 5 | Secret with gang connections |
+| 6 | Secret with corpo connections |
 
-Where do you get supplies?
+### What’s your workspace like?
+| 1d6 | Workspace |
+| --- | --------- |
+| 1 | A mess strewn with blueprint paper. |
+| 2 | Everything’s color-coded but still a nightmare. |
+| 3 | Totally digital and obsessively backed up every day. |
+| 4 | Everything is designed in your Neuroport. |
+| 5 | You keep everything, just in case. |
+| 6 | Only you understand your filing system. |
 
-Who’s gunning for you?
+### Who are your main clients?
+| 1d6 | Client |
+| --- | ------ |
+| 1 | Local Fixers who sends you clients. |
+| 2 | Local gangers who also protect your work and/or home. |
+| 3 | Corporate Corpos who use you for “black projects” of some kind. |
+| 4 | Local Solos who use you for weapon upkeep.
+| 5 | Local Nomads and Fixers who bring you “found” tech to repair. |
+| 6 | You work for yourself and sell what you make or repair. |
 
-Connection Qustions
+### Where do you get supplies?
+| 1d6 | Supplies |
+| --- | -------- |
+| 1 | Scavenge the wreckage of abandoned zones. |
+| 2 | Strip gear from bodies after a firefight. |
+| 3 | From a local Fixer in exchange for repair work. |
+| 4 | From Corporate Corpos in exchange for your services. |
+| 5 | You have a backdoor into a few warehouses. |
+| 6 | You hit the Night Markets to score deals when you can. |
+
+### Who’s gunning for you?
+| 1d6 | Enemies |
+| --- | ------- |
+| 1 |Combat Zone gangers who want you exclusively. |
+| 2 | Rival Tech trying to steal your customers. |
+| 3 | Corporates who want you exclusively. |
+| 4 | Larger manufacturer trying to bring you down because your mods are a threat. |
+| 5 | Old client who thinks you screwed them over. |
+| 6 | Rival Tech trying to beat you out for resources. |
+
+### Connection Qustions
 Ask these questions to different players about their characters to build existing relationships.
-»  What have I built specifically for you?
-»  How did you help me get a rare part?
-»  What are you hoping to get me to build for you?
-Tech Role Ability
-Sometimes known as Maker, this ability acts as a special skill that allows the Tech their truly amazing talents. Whenever you gain a rank in this role ability, you also gain one rank each in two of its Wired forms of Expertise: Field, Upgrade, Fabrication, or Invention.
-Field Expertise
-You are able to handle unfortunate break-downs or dealing with other tech on the fly. Add your Field Expertise ranks to any Electronics and Mechanics checks you make, except those for a Role ability.
-Also, as long as you have at least 1 rank of Field Expertise, you may make a temporary repair of an item as a single action instead of the full time and at ¼ of the material cost, but at the same DV. The repair lasts for 10 minutes for each rank of Field Expertise, after which it breaks. You can’t perform this temporary repair on an item more than once before it needs proper repair. You do get to add your Expertise to this roll. After a temporary repair, the DV to take care of it is at least 2 higher than it was and still requires at least as much materials as it would have.
-Upgrade Expertise
-You are able to improve on an existing item by modifying it. This requires a roll with the appropriate TECH skill, but you also get to add your ranks in Upgrade Expertise on top of the normal roll.
-The upgrade consumes resources in the same price category as the item itself. For the time it takes and the DV, consult the repair table on . On a failed roll, you waste half that time, but lost none of the components in the process.
-An item can only have 1 upgrade at a time, either chosen from this list or with the approval of the GM:
-»  Lower PSYCHE loss by non-borgware by 1d6 (or 4, chosen at the start of upgrading). This only applies if the typical loss would be 7 or greater.
-»  For an item that has slots (for attachments, programs, etc), increase the number of slots by 1.
-»  Simplify the item, halving the time for any future repair.
-»  Grant a one-handed weapon the concealable trait if it didn’t have it already.
-»  Improve an Average Quality weapon to an Excellent Quality weapon.
-»  Allow an Exotic weapon to fire one variety of non-basic ammunition of its ammunition type.
-»  Increase an item’s SP by 1, but only if it had any to begin with.
-»  Upgrade a vehicle with something that would only require a Nomad Role Ability of 1.
-»  Install an upgrade created by the Invention Expertise of the Tech Role Ability.
-Fabrication Expertise
-This is the ability to expertly construct any item you’re reasonably familiar with. Make a roll with the appropriate TECH skill and also add your ranks in this Expertise to the result. The DV and the time is the same as for a repair on . The cost of the components used up by the process is one price category lower than the completed item.
-On a failed roll, you spent half the time listed on the attempt before realizing you’d have to start over. No components are lost in the process.
-Invention Expertise
-This Expertise requires careful collaboration with the GM. It allows you to come up with entirely new items or new modifications to existing ones. As part of this, you should make a simple schematic for how you imagine it to work. The GM will suggest what it would mean in terms of rules, taking care to not break any game balance while still getting as close as possible to the effect you want.
-To design your item, the GM has to decide what price category a constructed one would sell for on the open market. Use the table for this Role Ability to determine the DV you need to beat and the time it will take. Roll the appropriate TECH skill and also add your ranks in this Expertise.
-Remember that GMs are human beings and able to make mistakes. They might well decide that the roles for the item need to be changed once they’ve seen it in play for a while. Sometimes this means adding to its capabilities, sometimes it means weakening it. The goal is to not have any one character or player get all the spotlight and fun.
-Once invented, you can use the blueprints, or show them to another Tech, to create the item with the Fabricate Expertise, or a modification with the Upgrade Expertise.
-Tech Starting Gear
-Weapons: Shotgun or Assault Rifle, Basic Shotgun Shell Ammunition ×100 or Basic Rifle Ammunition ×100, Flashbang Grenade; Light Armorjack Body Armor (SP11), Light Armorjack Head Armor (SP11)
-Outfit: Agent, Anti-Smog Breathing Mask, Disposable Cell Phone, Duct Tape ×5, Flashlight, Road Flare ×6, Tech Bag; Generic Chic: Bottoms ×8, Tops ×10; Leisurewear: Footwear ×2
-Cyberware: Cybereye, MicroOptics, Skinwatch, Tool Hand
+* What have I built specifically for you?
+* How did you help me get a rare part?
+* What are you hoping to get me to build for you?
+
+## Tech Role Ability
+A the Tech their truly amazing talents. Whenever you gain a rank in this role ability, you gain one rank each in two of its specialties: Field, Upgrade, Fabrication, or Invention.
+
+### Field Expertise
+| Unlock rank | Name | Description | Implementation |
+| ----------- | ---- | ----------- | -------------- |
+| 1 | Techie McGuy | You are able to handle unfortunate break-downs or dealing with other tech on the fly. Add your Field Expertise ranks to any Electronics and Mechanics checks you make, except those for a Role ability. | Add the bonus to checks. |
+| 1 | Patched | You may make a temporary repair of an item in as little as an Action, instead of the full time, and at ¼ of the material cost, but at the same DV. The repair lasts for 10 minutes for each rank of Field Expertise, after which it breaks. You can’t perform this temporary repair on an item more than once before it needs proper repair. You do get to add your Expertise to this roll. | Handed by the GM |
+
+### Upgrade Expertise
+| Unlock rank | Name | Description | Implementation |
+| ----------- | ---- | ----------- | -------------- |
+| 1 | Modification | You are able to improve on an existing item by modifying it. This requires a roll with the appropriate TECH skill, but you also get to add your ranks in Upgrade Expertise on top of the normal roll. The upgrade consumes resources in the same price category as the item itself. For the time it takes and the DV, consult the repair table in the rules. On a failed roll, you waste half that time, but lose none of the components in the process. | The Role Ability area gains a button to Upgrade for each Skill/Component for the Electronics and Mechanics skills. |
+| 1 | Upgrades | Each rank in Upgrade Expertise means you learn one of the upgrades from the table. It is applied using the Modicifacion ability. Any given item can only recieve one of these upgrades | Handled by the GM. Including the upgrades |
+
+Upgrandes
+* Lower PSYCHE loss by non-borgware by 1d6 (or 4, chosen at the start of upgrading). This only applies if the typical loss would be 7 or greater.
+* For an item that has slots (for attachments, programs, etc), increase the number of slots by 1.
+* Simplify the item, halving the time for any future repair.
+* Grant a one-handed weapon the concealable trait if it didn’t have it already.
+* Improve an Average Quality weapon to an Excellent Quality weapon.
+* Allow an Exotic weapon to fire one variety of non-basic Ammo of its Ammo type.
+* Increase an item’s SP by 1, but only if it had any to begin with.
+* Upgrade a vehicle with something that would only require a Nomad Role Ability of 1.
+* Install an upgrade created by the Invention Expertise of the Tech Role Ability.
+* Allow two items to function as one.
+* Make an item more rugged, doubling its HP and make it immune to EMP and microwave radiation.
+
+### Fabrication Expertise
+| Unlock rank | Name | Description | Implementation |
+| ----------- | ---- | ----------- | -------------- |
+| 1 | Maker | This is the ability to expertly construct any item you’re reasonably familiar with. Make a roll with the appropriate TECH skill but you also add your ranks in Fabrication Expertise to the result. The DV and the time is the same as for a repair. The cost of the components used up by the process is one price category lower than the completed item. On a failed roll, you spent half the time listed on the attempt before realizing you’d have to start over. No components are lost in the process. | The Role Ability area gains a button to Fabricate for each Skill/Component for the Electronics and Mechanics skills. |
+| 1 | Expert Use | If you succeed on a Maker check by more than 5, you only use up half the materials needed. | Handled by the GM |
+| 5 | Tools for the Job | If you're fabricating something that requires special equipment, you gain +2 to the check when you have those tools. | Handled by the GM |
+
+### Invention Expertise
+| Unlock rank | Name | Description | Implementation |
+| ----------- | ---- | ----------- | -------------- |
+| 1 | Invention | This Expertise requires careful collaboration with the GM. It allows you to come up with entirely new items or new modifications to existing ones. As part of this, you should make a simple schematic for how you imagine it to work. The GM will suggest what it would mean in terms of rules, taking care to not break any game balance while still getting as close as possible to the effect you want.<br>To design your item, the GM has to decide what price category a constructed one would sell for on the open market. Use the the appropriate TECH skill, but add your Invention Expertise to  the roll.<br>Remember that GMs are human beings and able to make mistakes. They might well decide that the roles for the item need to be changed once they’ve seen it in play for a while. Sometimes this means adding to its capabilities, sometimes it means weakening it. The goal is to not have any one character or player get all the spotlight and fun.<br>Once invented, the blueprints can be used to create the an item with the Fabricate Expertise, or a modification with the Upgrade Expertise. | The Role Ability area gains a button to Invent for each Skill/Component for the Electronics and Mechanics skills. |
+
+## Tech Starting Gear
+Weapons:
+* Techtronika VST-37 Pozhar or Nokota D5 Copperhead
+* Basic Shotgun Shell ×50 or Basic Shotgun Slugs ×50 or Basic Assault Rifle Ammo ×50
+* Flashbang Grenade
+* Light Armorjack
+
+Outfit:
+* Anti-Smog Breathing Mask
+* Disposable Cell Phone
+* Duct Tape ×5
+* Flashlight
+* Road Flare ×6
+* Tech Bag
+* Tech Tool
+
+Clothes:
+* Entropism:
+ * Footwear ×2
+ * Bottoms ×2
+ * Top ×2
+* Kitsch:
+ * Bottoms ×2
+ * Tops ×2
+ * Shades
+
+Cyberware:
+* Neuroport
+* Standard Cybereye
+* MicroOptics
+* Dermal Display
+* Standard Cyberarm
+* Tool Hand
