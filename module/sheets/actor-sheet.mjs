@@ -7,7 +7,16 @@ import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs'
 import { normalizeGearState, getGearStateUpdateData } from '../helpers/gear.mjs';
 import { getEffectiveItemWeapons, getInstalledWeaponMods } from '../helpers/mods.mjs';
 import { buildWeaponUpdate, getWeaponTypeDefinition, getWeaponAmmoTypes } from '../helpers/combat.mjs';
-import { getTurnState } from '../helpers/combat-tracker.mjs';
+import { getTurnState, consumeNetAction } from '../helpers/combat-tracker.mjs';
+import {
+  getNetConnection, isNetConnected, getPrimaryCyberdeck,
+  getAccessPointsInRange, getCyberdeckRam,
+  checkQuickhackPrereqs,
+  connectToArchitecture, disconnectFromArchitecture,
+  defrag,
+  spawnProgramActor, despawnProgramActor,
+  performQuickhackBreach, performQuickhackUpload,
+} from '../helpers/netrunning.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack, resolveDoubleLockAttack } from '../helpers/combat-resolution.mjs';
 import { startRicochetPlacement, clearRicochetPoint, refreshAllRicochetLines } from '../helpers/ricochet-canvas.mjs';
 import { clearWeaponCharge } from '../helpers/tech-charge.mjs';
@@ -721,6 +730,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           const comp = c.system.computer ?? {};
           const usedSlots = execsPerComputer.get(c.id) ?? 0;
           const totalSlots = (comp.softwareSlots ?? 0) + (comp.generalSlots ?? 0);
+          const isCyberdeck = comp.isCyberdeck ?? false;
           return {
             id: c.id,
             name: c.name,
@@ -729,7 +739,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
             softwareSlots: comp.softwareSlots ?? 0,
             generalSlots: comp.generalSlots ?? 0,
             ram: comp.ram ?? 0,
-            isCyberdeck: comp.isCyberdeck ?? false,
+            currentRam: isCyberdeck ? getCyberdeckRam(this.document, c.id) : 0,
+            range: comp.range ?? 0,
+            isCyberdeck,
             canQuickhack: comp.canQuickhack ?? false,
             running: comp.running ?? false,
             usedSlots,
@@ -741,6 +753,44 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           if (a.canQuickhack !== b.canQuickhack) return a.canQuickhack ? -1 : 1;
           return a.name.localeCompare(b.name);
         });
+
+      // ── Net connection context ────────────────────────────────────────────
+      context.netConnected = isNetConnected(this.document);
+      context.canConnect   = false;
+      context.nearbyAccessPoints = [];
+
+      if (!context.netConnected && canvas?.ready && canvas.scene) {
+        const actorTok = canvas.tokens.placeables.find((t) => t.actor?.id === this.document.id);
+        if (actorTok) {
+          const gridSize  = canvas.grid.size;
+          const tokenPos  = {
+            x: actorTok.document.x + actorTok.document.width  * gridSize / 2,
+            y: actorTok.document.y + actorTok.document.height * gridSize / 2,
+          };
+          const primaryDeck = getPrimaryCyberdeck(this.document);
+          const range       = Number(primaryDeck?.system.computer?.range) || 10;
+          const aps         = getAccessPointsInRange(canvas.scene, tokenPos, range);
+          context.nearbyAccessPoints = aps.map((r) => ({ id: r.id, name: r.name || 'Access Point' }));
+          context.canConnect = aps.length > 0 && Boolean(primaryDeck);
+        }
+      }
+
+      // ── Quickhacking context ──────────────────────────────────────────────
+      context.canQuickhack       = false;
+      context.quickhackTarget    = '';
+      context.quickhackTargetBreached = false;
+
+      if (canvas?.ready) {
+        const qhCheck = checkQuickhackPrereqs(this.document);
+        context.canQuickhack = qhCheck.ok;
+        if (qhCheck.targetActor) {
+          context.quickhackTarget = qhCheck.targetActor.name;
+          // Check if target already breached by this actor
+          context.quickhackTargetBreached = qhCheck.targetActor.effects.some(
+            (e) => e.getFlag('cyberpunk-blue', 'breachedBy') === this.document.id
+          );
+        }
+      }
 
       // Split executables into On Disk vs On Shards
       const computerIdSet = new Set(computerItems.map((c) => c.id));
@@ -783,6 +833,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       context.executablesOnShards  = [];
       context.diskColVis   = {};
       context.shardsColVis = {};
+      context.netConnected = false;
+      context.canConnect   = false;
+      context.nearbyAccessPoints        = [];
+      context.canQuickhack              = false;
+      context.quickhackTarget           = '';
+      context.quickhackTargetBreached   = false;
     }
 
     // Character creation state
@@ -950,6 +1006,21 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     });
     this.element.querySelectorAll('[data-executable-field]').forEach((input) => {
       input.addEventListener('change', this._onExecutableFieldUpdate.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="net-connect"]').forEach((button) => {
+      button.addEventListener('click', this._onNetConnect.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="net-disconnect"]').forEach((button) => {
+      button.addEventListener('click', this._onNetDisconnect.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="net-defrag"]').forEach((button) => {
+      button.addEventListener('click', this._onNetDefrag.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="net-quickhack-breach"]').forEach((button) => {
+      button.addEventListener('click', this._onQuickhackBreach.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="net-quickhack-upload"]').forEach((button) => {
+      button.addEventListener('click', this._onQuickhackUpload.bind(this));
     });
 
     // Money field: supports arithmetic expressions (e.g. "500-50" → 450)
@@ -1736,6 +1807,150 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       flavor,
       rollMode: game.settings.get('core', 'rollMode'),
     });
+
+    // Consume a NET action if in combat
+    const combatant = game.combat?.combatants.find((c) => c.actor?.id === this.document.id);
+    if (combatant) await consumeNetAction(combatant);
+  }
+
+  async _onNetConnect(event) {
+    event.preventDefault();
+    const actor = this.document;
+    if (isNetConnected(actor)) return;
+
+    // Gather nearby access points from canvas
+    let aps = [];
+    if (canvas?.ready && canvas.scene) {
+      const actorTok = canvas.tokens.placeables.find((t) => t.actor?.id === actor.id);
+      if (actorTok) {
+        const gridSize = canvas.grid.size;
+        const tokenPos = {
+          x: actorTok.document.x + actorTok.document.width  * gridSize / 2,
+          y: actorTok.document.y + actorTok.document.height * gridSize / 2,
+        };
+        const primaryDeck = getPrimaryCyberdeck(actor);
+        const range = Number(primaryDeck?.system.computer?.range) || 10;
+        aps = getAccessPointsInRange(canvas.scene, tokenPos, range);
+      }
+    }
+
+    if (aps.length === 0) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Netrunning.NoAccessPoints'));
+      return;
+    }
+
+    let chosenAp = aps[0];
+    if (aps.length > 1) {
+      const { promise, resolve } = Promise.withResolvers();
+      const buttons = aps.map((r) => ({
+        action: r.id,
+        label: r.name || game.i18n.localize('CYBER_BLUE.Netrunning.AccessPoint'),
+        callback: () => resolve(r),
+      }));
+      buttons.push({
+        action: 'cancel',
+        label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Cancel'),
+        icon: 'fas fa-times',
+        callback: () => resolve(null),
+      });
+      const dialog = new foundry.applications.api.DialogV2({
+        window: { title: game.i18n.localize('CYBER_BLUE.Netrunning.ChooseAP') },
+        content: `<div class="cyberpunk-blue"><p>${game.i18n.localize('CYBER_BLUE.Netrunning.ChooseAPHint')}</p></div>`,
+        buttons,
+        submit: (result) => resolve(result),
+      });
+      dialog.addEventListener('close', () => resolve(null), { once: true });
+      dialog.render(true);
+      chosenAp = await promise;
+      if (!chosenAp) return;
+    }
+
+    await connectToArchitecture(actor, chosenAp);
+
+    const combatant = game.combat?.combatants.find((c) => c.actor?.id === actor.id);
+    if (combatant) await consumeNetAction(combatant);
+  }
+
+  async _onNetDisconnect(event) {
+    event.preventDefault();
+    const actor = this.document;
+    if (!isNetConnected(actor)) return;
+
+    const { promise, resolve } = Promise.withResolvers();
+    const dialog = new foundry.applications.api.DialogV2({
+      window: { title: game.i18n.localize('CYBER_BLUE.Netrunning.DisconnectTitle') },
+      content: `<div class="cyberpunk-blue"><p>${game.i18n.localize('CYBER_BLUE.Netrunning.DisconnectConfirm')}</p></div>`,
+      buttons: [
+        {
+          action: 'confirm',
+          label: game.i18n.localize('CYBER_BLUE.Netrunning.Disconnect'),
+          icon: 'fas fa-plug-circle-xmark',
+          callback: () => resolve(true),
+        },
+        {
+          action: 'cancel',
+          label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Cancel'),
+          icon: 'fas fa-times',
+          callback: () => resolve(false),
+        },
+      ],
+      submit: (result) => resolve(result === 'confirm'),
+    });
+    dialog.addEventListener('close', () => resolve(false), { once: true });
+    dialog.render(true);
+    const confirmed = await promise;
+    if (!confirmed) return;
+
+    await disconnectFromArchitecture(actor, true);
+
+    const combatant = game.combat?.combatants.find((c) => c.actor?.id === actor.id);
+    if (combatant) await consumeNetAction(combatant);
+  }
+
+  async _onNetDefrag(event) {
+    event.preventDefault();
+    const actor = this.document;
+    await defrag(actor);
+
+    const combatant = game.combat?.combatants.find((c) => c.actor?.id === actor.id);
+    if (combatant) await consumeNetAction(combatant);
+  }
+
+  async _onQuickhackBreach(event) {
+    event.preventDefault();
+    const actor = this.document;
+    const check = checkQuickhackPrereqs(actor);
+    if (!check.ok) {
+      ui.notifications.warn(check.reason || game.i18n.localize('CYBER_BLUE.Netrunning.QuickhackNotReady'));
+      return;
+    }
+
+    await performQuickhackBreach(actor, check.targetActor);
+
+    const combatant = game.combat?.combatants.find((c) => c.actor?.id === actor.id);
+    if (combatant) await consumeNetAction(combatant);
+  }
+
+  async _onQuickhackUpload(event) {
+    event.preventDefault();
+    const actor = this.document;
+    const check = checkQuickhackPrereqs(actor);
+    if (!check.ok) {
+      ui.notifications.warn(check.reason || game.i18n.localize('CYBER_BLUE.Netrunning.QuickhackNotReady'));
+      return;
+    }
+    const breached = check.targetActor.effects.some(
+      (e) => e.getFlag('cyberpunk-blue', 'breachedBy') === actor.id
+    );
+    if (!breached) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Netrunning.MustBreachFirst'));
+      return;
+    }
+
+    await performQuickhackUpload(actor, check.targetActor);
+
+    const combatant = game.combat?.combatants.find((c) => c.actor?.id === actor.id);
+    if (combatant) await consumeNetAction(combatant);
   }
 
   async _onExecutableInstall(event) {
@@ -1861,6 +2076,15 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       : rawValue;
 
     await exeDoc.update({ [field]: value });
+
+    // Program lifecycle: spawn / despawn when the running flag is toggled
+    if (field === 'system.running' && isNetConnected(this.document)) {
+      if (value === true) {
+        await spawnProgramActor(this.document, exeDoc);
+      } else {
+        await despawnProgramActor(this.document, exeDoc);
+      }
+    }
   }
 
   /**

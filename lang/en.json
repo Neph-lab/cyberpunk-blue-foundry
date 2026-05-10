@@ -792,6 +792,61 @@
       "SecondaryDV": "Secondary DV",
       "SecondaryEffect": "Secondary effect (on fail)",
       "AddictionPenalty": "Addiction penalty"
+    },
+    "Netrunning": {
+      "Connected": "Connected to Architecture",
+      "Disconnected": "Disconnected",
+      "Connect": "Jack In",
+      "Disconnect": "Jack Out",
+      "DisconnectTitle": "Jack Out?",
+      "DisconnectConfirm": "Disconnect from the Architecture? (Safe disconnect — no damage.)",
+      "UnsafeDisconnect": "Unsafe disconnect! {name} takes 1d6 HP damage.",
+      "Defrag": "Defrag",
+      "DefragDone": "{name} defragged — all RAM restored.",
+      "AccessPoint": "Access Point",
+      "NoAccessPoints": "No access points within cyberdeck range.",
+      "ChooseAP": "Choose Access Point",
+      "ChooseAPHint": "Multiple access points detected. Choose one to jack in.",
+      "Breach": "Breach",
+      "Upload": "Upload Quickhack",
+      "QuickhackNotReady": "Quickhack prerequisites not met.",
+      "MustBreachFirst": "Target must be Breached before uploading a quickhack.",
+      "BreachSuccess": "Breach successful — {target} is now Breached.",
+      "BreachFail": "Breach failed (rolled {roll}, needed {dv}).",
+      "BreachedStatus": "Breached",
+      "QuickhackPending": "Quickhack Pending",
+      "ChooseQuickhack": "Choose Quickhack",
+      "ChooseQuickhackHint": "Select a quickhack executable (≤ {ram} RAM) to upload.",
+      "QuickhackUploaded": "{name} uploaded to {target}.",
+      "QuickhackNoRam": "Not enough RAM to upload any quickhack.",
+      "RamLabel": "RAM",
+      "RangeLabel": "Range",
+      "NotConnected": "Not connected"
+    },
+    "RegionBehavior": {
+      "AccessPoint": {
+        "Label": "NET: Access Point",
+        "ArchitectureScene": "Architecture Scene",
+        "ArchitectureSceneHint": "UUID of the Architecture scene this access point connects to.",
+        "AccNodeRegion": "ACC Node Region",
+        "AccNodeRegionHint": "UUID of the ACC_node Region inside the Architecture where netrunners spawn."
+      },
+      "AccNode": {
+        "Label": "NET: ACC Node",
+        "AccessPointRegion": "Access Point Region",
+        "AccessPointRegionHint": "UUID of the Access Point Region in the physical world."
+      },
+      "NetNode": {
+        "Label": "NET: Network Node",
+        "NodeType": "Node Type",
+        "NodeLabel": "Node Label",
+        "Type": {
+          "EXE": "EXE",
+          "DATA": "DATA",
+          "CTRL": "CTRL",
+          "ROOT": "ROOT"
+        }
+      }
     }
   }
 }

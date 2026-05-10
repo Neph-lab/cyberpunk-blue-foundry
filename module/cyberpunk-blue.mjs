@@ -45,6 +45,20 @@ import { registerSocketHandlers, applyDamageWithPermission } from './helpers/soc
 import { refreshAllRicochetLines, clearRicochetLine } from './helpers/ricochet-canvas.mjs';
 import { refreshTechChargeHighlights, clearTechChargeHighlights } from './helpers/tech-charge-canvas.mjs';
 import { clearWeaponCharge } from './helpers/tech-charge.mjs';
+import {
+  CyberBlueAccessPointBehavior,
+  CyberBlueAccNodeBehavior,
+  CyberBlueNetNodeBehavior,
+} from './helpers/region-behaviors.mjs';
+import {
+  isNetConnected,
+  getNetConnection,
+  getPrimaryCyberdeck,
+  getAccessPointsInRange,
+  spawnProgramActor,
+  despawnProgramActor,
+  disconnectFromArchitecture,
+} from './helpers/netrunning.mjs';
 
 Hooks.once('init', function () {
   game.cyberpunkblue = {
@@ -118,6 +132,14 @@ Hooks.once('init', function () {
   };
 
   CONFIG.ActiveEffect.legacyTransferral = false;
+
+  // ── Region Behavior Types ──────────────────────────────────────────────────
+  CONFIG.RegionBehavior.dataModels['cyberpunk-blue.accessPoint'] = CyberBlueAccessPointBehavior;
+  CONFIG.RegionBehavior.dataModels['cyberpunk-blue.accNode']     = CyberBlueAccNodeBehavior;
+  CONFIG.RegionBehavior.dataModels['cyberpunk-blue.netNode']     = CyberBlueNetNodeBehavior;
+  CONFIG.RegionBehavior.typeLabels['cyberpunk-blue.accessPoint'] = 'CYBER_BLUE.RegionBehavior.AccessPoint.Label';
+  CONFIG.RegionBehavior.typeLabels['cyberpunk-blue.accNode']     = 'CYBER_BLUE.RegionBehavior.AccNode.Label';
+  CONFIG.RegionBehavior.typeLabels['cyberpunk-blue.netNode']     = 'CYBER_BLUE.RegionBehavior.NetNode.Label';
 
   Actors.registerSheet('cyberpunk-blue', CyberBlueActorSheet, {
     makeDefault: true,
@@ -719,6 +741,69 @@ Hooks.on('updateItem', (item, change) => {
   }
 });
 Hooks.on('deleteCombat', () => { try { clearTechChargeHighlights(); } catch { } });
+
+// ─── Netrunning: program actor lifecycle ─────────────────────────────────────
+// When a programExecutable's `running` flag changes while a netrunner is
+// connected, spawn or despawn its linked program actor accordingly.
+Hooks.on('updateItem', async (item, change) => {
+  if (!game.user.isGM) return;
+  if (item.type !== 'programExecutable') return;
+  const runningChanged = foundry.utils.hasProperty(change, 'system.running');
+  if (!runningChanged) return;
+
+  const actor = item.parent;
+  if (!actor || !isNetConnected(actor)) return;
+
+  if (change.system.running === true) {
+    await spawnProgramActor(actor, item);
+  } else {
+    await despawnProgramActor(actor, item);
+  }
+});
+
+// ─── Netrunning: unsafe disconnect when token leaves AP region ────────────────
+// If a connected netrunner's token moves out of every AP region that contains
+// their linked access point, trigger an unsafe disconnect (1d6 HP damage).
+Hooks.on('updateToken', async (tokenDoc, change) => {
+  if (!game.user.isGM) return;
+  // Only fire when position changes
+  if (change.x === undefined && change.y === undefined) return;
+
+  const actor = tokenDoc.actor;
+  if (!actor || !isNetConnected(actor)) return;
+
+  const conn = getNetConnection(actor);
+  if (!conn?.apSceneId || !conn?.apRegionId) return;
+
+  // Check if the AP is still reachable from the new token position
+  const scene = tokenDoc.parent;
+  if (!scene || scene.id !== conn.apSceneId) {
+    // Actor's physical-world token is on a different scene — disconnect
+    await disconnectFromArchitecture(actor, false);
+    return;
+  }
+
+  const apRegion = scene.regions.get(conn.apRegionId);
+  if (!apRegion) {
+    await disconnectFromArchitecture(actor, false);
+    return;
+  }
+
+  // Get new token centre in pixels
+  const gridSize = scene.grid.size;
+  const newX = (change.x ?? tokenDoc.x) + tokenDoc.width  * gridSize / 2;
+  const newY = (change.y ?? tokenDoc.y) + tokenDoc.height * gridSize / 2;
+
+  // Check if AP region still reachable at max cyberdeck range
+  const primaryDeck = getPrimaryCyberdeck(actor);
+  const range = Number(primaryDeck?.system.computer?.range) || 10;
+
+  const reachable = getAccessPointsInRange(scene, { x: newX, y: newY }, range);
+  if (reachable.some((r) => r.id === conn.apRegionId)) return;
+
+  // No longer in range — unsafe disconnect
+  await disconnectFromArchitecture(actor, false);
+});
 
 // ─── Tech Weapon charge: turn-start housekeeping (GM only) ───────────────────
 // Clears cooldown flags and transitions MOVE AE from 0→half on second+ turns.
@@ -1574,6 +1659,64 @@ async function ensureAmmoCatalogue() {
 // ─── Equipment catalogue ──────────────────────────────────────────────────────
 
 /**
+ * Synchronise the `system.weapons` and `system.isWeapon` fields of existing
+ * cyberware items in the cyberware compendium against the current catalogue.
+ * Runs on every GM load so changes like Monowire / Mantis Blades weapons
+ * propagate without requiring a full pack wipe.
+ */
+async function _syncCyberwareEntries(catalogue) {
+  const PACK_ID = 'cyberpunk-blue.cyberware';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) return;
+  await pack.getIndex({ fields: ['name', 'type'] });
+
+  const byName = new Map(
+    catalogue
+      .filter((it) => it.type === 'cyberware')
+      .map((it) => [it.name, it])
+  );
+
+  const updates = [];
+  for (const entry of pack.index) {
+    if (entry.type !== 'cyberware') continue;
+    const def = byName.get(entry.name);
+    if (!def) continue;
+    const doc = await pack.getDocument(entry._id);
+    if (!doc) continue;
+
+    const currentWeapons  = doc.system.weapons  ?? [];
+    const currentIsWeapon = doc.system.isWeapon  ?? false;
+    const catWeapons      = def.system?.weapons  ?? [];
+    const catIsWeapon     = def.system?.isWeapon ?? false;
+
+    const weaponCountChanged = currentWeapons.length !== catWeapons.length;
+    const isWeaponChanged    = currentIsWeapon !== catIsWeapon;
+    // Also detect critDoublePick flag changes (e.g. Monowire)
+    const critDoublePickChanged = catWeapons.some((cw, i) =>
+      !!currentWeapons[i]?.critDoublePick !== !!cw.critDoublePick
+    );
+
+    if (weaponCountChanged || isWeaponChanged || critDoublePickChanged) {
+      updates.push({
+        _id: doc.id,
+        'system.isWeapon': catIsWeapon,
+        'system.weapons':  catWeapons,
+      });
+    }
+  }
+
+  if (updates.length === 0) return;
+
+  await pack.configure({ locked: false });
+  try {
+    await Item.updateDocuments(updates, { pack: PACK_ID });
+    console.log(`Cyberpunk Blue | Synced weapon data for ${updates.length} cyberware items.`);
+  } finally {
+    await pack.configure({ locked: true });
+  }
+}
+
+/**
  * Populate the gear, drugs, cyberware, and programs compendium packs on first load.
  * Each catalogue entry carries a `_folder` property for folder classification;
  * it is stripped before the item is written to the pack.
@@ -1628,6 +1771,9 @@ async function ensureEquipmentCatalogue() {
     const cyCreated = await _populateEquipmentPack('cyberpunk-blue.cyberware', cyItems);
     const dCreated  = await _populateEquipmentPack('cyberpunk-blue.drugs',     drugItems);
     const pCreated  = await _populateEquipmentPack('cyberpunk-blue.programs',  progItems);
+
+    // Sync weapon data on already-populated cyberware pack entries
+    await _syncCyberwareEntries(CYBERWARE_CATALOGUE);
 
     const total = gCreated + cyCreated + dCreated + pCreated;
     if (total > 0) {

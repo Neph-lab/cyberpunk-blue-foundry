@@ -923,6 +923,29 @@
           </div>
         </section>
 
+        {{!-- ── Connection Status ── --}}
+        <section class="sheet-panel net-connection-panel">
+          <div class="net-connection-row">
+            {{#if netConnected}}
+              <span class="state-chip net-chip-connected"><i class="fas fa-plug"></i> {{localize "CYBER_BLUE.Netrunning.Connected"}}</span>
+              <button type="button" class="net-action-btn" data-action="net-disconnect">
+                <i class="fas fa-plug-circle-xmark"></i> {{localize "CYBER_BLUE.Netrunning.Disconnect"}}
+              </button>
+            {{else}}
+              <span class="state-chip net-chip-disconnected"><i class="fas fa-plug-circle-xmark"></i> {{localize "CYBER_BLUE.Netrunning.NotConnected"}}</span>
+              {{#if canConnect}}
+                <button type="button" class="net-action-btn" data-action="net-connect">
+                  <i class="fas fa-plug"></i> {{localize "CYBER_BLUE.Netrunning.Connect"}}
+                  {{#if nearbyAccessPoints.length}}({{nearbyAccessPoints.length}}){{/if}}
+                </button>
+              {{/if}}
+            {{/if}}
+            <button type="button" class="net-action-btn" data-action="net-defrag" title="{{localize "CYBER_BLUE.Netrunning.Defrag"}}">
+              <i class="fas fa-broom"></i> {{localize "CYBER_BLUE.Netrunning.Defrag"}}
+            </button>
+          </div>
+        </section>
+
         {{!-- ── Computers ── --}}
         <section class="sheet-panel">
           <h2>{{localize "CYBER_BLUE.Combat.NetrunnerComputers"}}</h2>
@@ -940,7 +963,14 @@
                     {{#if comp.hardwareSlots}}<span title="Hardware Slots">HW: {{comp.hardwareSlots}}</span>{{/if}}
                     <span title="Software Slots">SW: {{comp.softwareSlots}} ({{comp.freeSlots}} free)</span>
                     {{#if comp.generalSlots}}<span title="General Slots">Gen: {{comp.generalSlots}}</span>{{/if}}
-                    {{#if comp.ram}}<span title="RAM">RAM: {{comp.ram}}</span>{{/if}}
+                    {{#if comp.isCyberdeck}}
+                      <span title="{{localize "CYBER_BLUE.Netrunning.RamLabel"}}">
+                        {{localize "CYBER_BLUE.Netrunning.RamLabel"}}: {{comp.currentRam}}/{{comp.ram}}
+                      </span>
+                    {{else if comp.ram}}
+                      <span title="RAM">RAM: {{comp.ram}}</span>
+                    {{/if}}
+                    {{#if comp.range}}<span title="{{localize "CYBER_BLUE.Netrunning.RangeLabel"}}">{{localize "CYBER_BLUE.Netrunning.RangeLabel"}}: {{comp.range}}m</span>{{/if}}
                   </div>
                 </div>
               {{/each}}
@@ -949,6 +979,26 @@
             <p class="hint">{{localize "CYBER_BLUE.Combat.NetrunnerNoComputers"}}</p>
           {{/if}}
         </section>
+
+        {{!-- ── Quickhacking ── --}}
+        {{#if canQuickhack}}
+          <section class="sheet-panel net-quickhack-panel">
+            <h2>{{localize "CYBER_BLUE.Netrunning.Breach"}}</h2>
+            <div class="net-quickhack-row">
+              <span class="net-qh-target">{{quickhackTarget}}</span>
+              {{#if quickhackTargetBreached}}
+                <span class="state-chip net-chip-breached"><i class="fas fa-skull"></i> {{localize "CYBER_BLUE.Netrunning.BreachedStatus"}}</span>
+                <button type="button" class="net-action-btn" data-action="net-quickhack-upload">
+                  <i class="fas fa-upload"></i> {{localize "CYBER_BLUE.Netrunning.Upload"}}
+                </button>
+              {{else}}
+                <button type="button" class="net-action-btn" data-action="net-quickhack-breach">
+                  <i class="fas fa-bolt"></i> {{localize "CYBER_BLUE.Netrunning.Breach"}}
+                </button>
+              {{/if}}
+            </div>
+          </section>
+        {{/if}}
 
         {{!-- ── On Disk executables ── --}}
         <section class="sheet-panel">

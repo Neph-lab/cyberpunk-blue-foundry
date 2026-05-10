@@ -29,6 +29,8 @@ export default class CyberBlueGear extends CyberBlueItemBase {
       softwareSlots: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
       generalSlots: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
       ram: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
+      // Wireless range in meters — used for AP detection and Quickhacking range checks
+      range: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
       isCyberdeck: new fields.BooleanField({ initial: false }),
       canQuickhack: new fields.BooleanField({ initial: false }),
     });
