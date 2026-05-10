@@ -229,6 +229,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       .filter((item) => item.type === 'ability')
       .map((item, i, arr) => ({
         ...item,
+        ...getInstructionContext(item),
         maxRankDisplay: canManageRestricted && Number.isFinite(item.system.maxRank)
           ? item.system.maxRank
           : null,

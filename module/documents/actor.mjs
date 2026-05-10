@@ -105,10 +105,54 @@ export class CyberBlueActor extends Actor {
       }
     }
 
+    // ── Cybereye / Cyberleg left-right renaming ────────────────────────────────
+    // When a second cyberware item sharing the same base name already exists,
+    // rename the pair so one is suffixed "(Left)" and the other "(Right)".
+    // Applies to any cyberware: "Standard Cybereye" → "Standard Cybereye (Left)"
+    // and "Standard Cybereye (Right)".  Only fires when a second copy is created.
+    if (embeddedName === 'Item' && !options?.cyberBlueSkipLRRename) {
+      const newCyberware = created.filter((item) => item.type === 'cyberware');
+      for (const newItem of newCyberware) {
+        const baseName = newItem.name;
+        // Skip if already tagged (Left)/(Right)
+        if (baseName.endsWith('(Left)') || baseName.endsWith('(Right)')) continue;
+        // Find the existing item with the same name (not the one just created)
+        const existing = this.items.find(
+          (item) =>
+            item.type === 'cyberware'
+            && item.name === baseName
+            && item.id !== newItem.id
+            && !item.name.endsWith('(Left)')
+            && !item.name.endsWith('(Right)'),
+        );
+        if (existing) {
+          await existing.update({ name: `${baseName} (Left)` });
+          await newItem.update({ name: `${baseName} (Right)` });
+        }
+      }
+    }
+
     return created;
   }
 
   async _prepareIncomingItemData(entry) {
+    // ── Ammo stacking: merge into existing item instead of creating a new one ─
+    // When ammo of the same name already exists on the actor, increment its
+    // quantity rather than adding a duplicate.  Quantity comes from the incoming
+    // entry (default 1), or from the existing item's quantity field if missing.
+    if (entry?.type === 'ammo') {
+      const existing = this.items.find(
+        (item) => item.type === 'ammo' && item.name === entry.name,
+      );
+      if (existing) {
+        const incoming = Number(entry.system?.quantity) || 1;
+        const current = Number(existing.system?.quantity) || 0;
+        await existing.update({ 'system.quantity': current + incoming });
+        return null; // skip creating a new item
+      }
+      return entry;
+    }
+
     if (entry?.type !== 'cyberware') {
       return entry;
     }

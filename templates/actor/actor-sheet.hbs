@@ -625,6 +625,15 @@
                   </td>
                   <td class="embedded-summary">{{ability.system.note}}</td>
                   <td>
+                    <div class="instruction-cell">
+                      {{#if ability.hasInstructions}}
+                        {{#if ability.instructionActive}}
+                          <button type="button" data-action="advance-instructions" title="{{ability.instructionNextLabel}}"><i class="fas fa-forward-step"></i></button>
+                        {{else}}
+                          <button type="button" data-action="start-instructions" title="{{ability.instructionNextLabel}}">{{localize "CYBER_BLUE.Instructions.Use"}}</button>
+                        {{/if}}
+                      {{/if}}
+                    </div>
                     <div class="embedded-controls">
                       {{#if ability.canMoveUp}}
                         <button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}">
