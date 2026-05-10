@@ -256,10 +256,11 @@ export async function disconnectFromArchitecture(actor, safe = true) {
 
   const archScene = game.scenes.get(conn.archSceneId);
 
-  // Stop all running executables (despawn their program tokens)
+  // Stop all running executables (despawn their program tokens).
+  // skipBackupDrive: voluntary disconnect is not a destruction — no Backup Drive save.
   const runningExes = actor.items.filter((i) => i.type === 'programExecutable' && i.system.running);
   for (const exe of runningExes) {
-    await _despawnProgramActor(actor, exe, { skipRunningUpdate: true });
+    await _despawnProgramActor(actor, exe, { skipRunningUpdate: true, skipBackupDrive: true });
     await exe.update({ 'system.running': false });
   }
 
@@ -389,15 +390,56 @@ export async function spawnProgramActor(actor, exeItem) {
  *
  * @param {Actor} actor
  * @param {Item}  exeItem
- * @param {{skipRunningUpdate?: boolean}} [opts]
+ * @param {{skipRunningUpdate?: boolean, skipBackupDrive?: boolean}} [opts]
  */
 export async function despawnProgramActor(actor, exeItem, opts = {}) {
   return _despawnProgramActor(actor, exeItem, opts);
 }
 
-async function _despawnProgramActor(actor, exeItem, { skipRunningUpdate = false } = {}) {
+/**
+ * Return true if the actor has an equipped Backup Drive gear item.
+ * Backup Drive is a Cyberdeck Hardware MOD (gear type, equipped state).
+ */
+function _hasBackupDrive(actor) {
+  return actor.items.some(
+    (item) => item.type === 'gear' && item.name === 'Backup Drive' && item.system.equipped,
+  );
+}
+
+async function _despawnProgramActor(
+  actor, exeItem, { skipRunningUpdate = false, skipBackupDrive = false } = {},
+) {
   const programActorId = exeItem.getFlag('cyberpunk-blue', PROGRAM_ACTOR_FLAG);
   if (!programActorId) return;
+
+  // ── Backup Drive: save non-Black ICE programs instead of deleting them ────
+  // If the Netrunner has a Backup Drive installed and the program being
+  // destroyed is not Black ICE, cancel the deletion and mark it as not running
+  // (REZ still resets so it can be retrieved on the next connection).
+  const isBlackIce = exeItem.system.category === 'black-ice';
+  if (!skipBackupDrive && !isBlackIce && _hasBackupDrive(actor)) {
+    await exeItem.unsetFlag('cyberpunk-blue', PROGRAM_ACTOR_FLAG);
+
+    const rezUpdate = skipRunningUpdate ? {} : { 'system.rez.value': exeItem.system.rez?.max ?? 0 };
+    await exeItem.update({ 'system.running': false, ...rezUpdate });
+
+    // Remove tokens without permanently deleting the program actor.
+    // The actor remains in the world so the player can re-run it next session.
+    for (const scene of game.scenes) {
+      const tIds = scene.tokens
+        .filter((t) => t.actorId === programActorId)
+        .map((t) => t.id);
+      if (tIds.length) await scene.deleteEmbeddedDocuments('Token', tIds);
+    }
+
+    await ChatMessage.create({
+      content: `<div class="cyberpunk-blue chat-card">
+        <p><i class="fas fa-hard-drive"></i>
+        <strong>Backup Drive</strong>: ${exeItem.name} was saved to the backup drive instead of being deleted. It can be retrieved as a full Action on the next connection.</p>
+      </div>`,
+    });
+    return;
+  }
 
   await exeItem.unsetFlag('cyberpunk-blue', PROGRAM_ACTOR_FLAG);
 
