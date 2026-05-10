@@ -1,5 +1,6 @@
 import { CyberBlueActor } from './documents/actor.mjs';
 import { CyberBlueItem } from './documents/item.mjs';
+import { CyberBlueActiveEffect } from './documents/active-effect.mjs';
 import { CyberBlueActorSheet } from './sheets/actor-sheet.mjs';
 import { CyberBlueItemSheet } from './sheets/item-sheet.mjs';
 import { CyberBlueMookSheet } from './sheets/mook-sheet.mjs';
@@ -65,6 +66,7 @@ Hooks.once('init', function () {
   game.cyberpunkblue = {
     CyberBlueActor,
     CyberBlueItem,
+    CyberBlueActiveEffect,
     config: CYBER_BLUE,
     combat: {
       createWeaponData,
@@ -91,6 +93,7 @@ Hooks.once('init', function () {
   };
 
   CONFIG.Actor.documentClass = CyberBlueActor;
+  CONFIG.ActiveEffect.documentClass = CyberBlueActiveEffect;
   CONFIG.Actor.dataModels = {
     character: models.CyberBlueCharacter,
     npc: models.CyberBlueNPC,

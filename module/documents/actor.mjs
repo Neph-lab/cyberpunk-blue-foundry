@@ -1,6 +1,7 @@
 import { getEligiblePlatforms, promptForCyberwarePlatform } from '../helpers/cyberware.mjs';
 import { normalizeGearState } from '../helpers/gear.mjs';
 import { applyFirstRoleSetup, normalizeRoleSystemData } from '../helpers/roles.mjs';
+import { CyberBlueActiveEffect } from './active-effect.mjs';
 
 export class CyberBlueActor extends Actor {
   static SERIOUS_WOUND_FLAG = 'autoSeriousWound';
@@ -388,7 +389,25 @@ export class CyberBlueActor extends Actor {
       flavor,
     });
 
+    // Consume any one-use AEs (e.g. Guide Tarot "The Magician") now that
+    // their changes have been included in this roll.
+    await this.consumeOneUseEffects();
+
     return roll;
+  }
+
+  /**
+   * Delete all active one-use AEs on this actor.
+   * Called automatically at the end of rollSkill; can also be called manually
+   * for roll paths that bypass rollSkill (e.g. custom sheet rolls).
+   */
+  async consumeOneUseEffects() {
+    const toDelete = this.effects
+      .filter((e) => !e.disabled && e.getFlag('cyberpunk-blue', CyberBlueActiveEffect.ONE_USE_FLAG))
+      .map((e) => e.id);
+    if (toDelete.length) {
+      await this.deleteEmbeddedDocuments('ActiveEffect', toDelete);
+    }
   }
 
   getSeriousWoundEffect() {
