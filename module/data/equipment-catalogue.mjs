@@ -22,6 +22,27 @@ const COST = {
 
 const h = (text) => `<p>${text}</p>`;
 
+// ── AE helpers ─────────────────────────────────────────────────────────────
+const ae      = (name, changes) => ({ name, disabled: false, transfer: true, changes });
+const aeOff   = (name, changes) => ({ name, disabled: true,  transfer: true, changes });
+const reminder = (name)         => ({ name, disabled: false, transfer: true, changes: [] });
+const stat    = (slug, val) => ({ key: `system.stats.${slug}.value`,    mode: 2, value: String(val) });
+const statOvr = (slug, val) => ({ key: `system.stats.${slug}.value`,    mode: 5, value: String(val) });
+const statMod = (slug, val) => ({ key: `system.stats.${slug}.rollMod`,  mode: 2, value: String(val) });
+const skill   = (slug, val) => ({ key: `system.skills.${slug}.rank`,    mode: 2, value: String(val) });
+const comp    = (slug, val) => ({ key: `system.components.${slug}.rank`, mode: 2, value: String(val) });
+
+// ── Instruction step helpers ───────────────────────────────────────────────
+const S = {
+  message: (content, { name = 'Message', terminates = false, whisperGm = false } = {}) => ({
+    type: 'message', name, message: content, terminates, whisperGm,
+  }),
+  pause: (name = 'Pause') => ({ type: 'pause', name }),
+  effect: ({ name = 'Effect', effectName = '', effectEnabled = true, permanent = false, terminates = false } = {}) => ({
+    type: 'effect', name, effectName, effectEnabled, permanent, terminates,
+  }),
+};
+
 /**
  * Build a standard Gear item.
  */
@@ -29,12 +50,14 @@ function gear({
   name, manufacturer = '', cost, folder, description = '',
   isArmor = false, maxSp = 0, quantity = 1,
   isComputer = false, computer = {},
+  effects = [], instructions = [],
 }) {
   return {
     _folder: folder,
     name,
     type: 'gear',
     img: '',
+    effects,
     system: {
       manufacturer,
       cost: COST[cost] ?? cost,
@@ -60,6 +83,9 @@ function gear({
         isCyberdeck:   !!computer.isCyberdeck,
         canQuickhack:  !!computer.canQuickhack,
       },
+      instructions,
+      instructionActive: false,
+      instructionStep: -1,
     },
   };
 }
@@ -214,11 +240,13 @@ export const EQUIPMENT_CATALOGUE = [
     name: 'Anti-Smog Breathing Mask',
     folder: 'Survival & Exploration', cost: 'PR',
     description: 'Immune to airborne toxins that require inhalation while worn.',
+    effects: [reminder('Immune to inhaled toxins while worn')],
   }),
   gear({
     name: 'Auto-Level Ear Protectors',
     folder: 'Survival & Exploration', cost: 'PR',
     description: 'Immune to deafness effects and damage from loud noises while worn.',
+    effects: [reminder('Immune to deafness / loud-noise damage while worn')],
   }),
   gear({
     name: 'Backpack',
@@ -307,6 +335,7 @@ export const EQUIPMENT_CATALOGUE = [
     name: 'Medscanner',
     folder: 'Scientific & Medical', cost: 'VEX',
     description: 'Performs most medical tests. +2 to Medicine checks.',
+    effects: [ae('Medicine +2', [skill('medicine', 2)])],
   }),
   gear({
     name: 'Medtech Bag',
@@ -322,6 +351,7 @@ export const EQUIPMENT_CATALOGUE = [
     name: 'Techscanner',
     folder: 'Scientific & Medical', cost: 'VEX',
     description: '+2 to Electronics and Mechanics checks (hardware only).',
+    effects: [ae('Electronics +2, Mechanics +2 (hardware)', [skill('electronics', 2), skill('mechanics', 2)])],
   }),
   gear({
     name: 'Techtool',
@@ -479,11 +509,23 @@ export const EQUIPMENT_CATALOGUE = [
     name: 'Linear Frame Sigma',
     folder: 'Miscellaneous', cost: 'VEX',
     description: 'Exoskeleton. Connect via Personal Link as an Action; regular limbs are unavailable until disconnected (also an Action). While connected, perform strength-based tasks as if BODY were 12.',
+    effects: [aeOff('Linear Frame Sigma Connected (BODY 12)', [statOvr('body', 12)])],
+    instructions: [
+      S.message('<p><strong>Linear Frame Sigma connected</strong> — strength-based tasks as if BODY were 12. Regular limbs unavailable while connected.</p>', { name: 'Connect' }),
+      S.effect({ name: 'Apply BODY Override', effectName: 'Linear Frame Sigma Connected (BODY 12)' }),
+      S.message('<p>Linear Frame Sigma disconnected. Regular limbs restored.</p>', { name: 'Disconnect', terminates: true }),
+    ],
   }),
   gear({
     name: 'Linear Frame Beta',
     folder: 'Miscellaneous', cost: 'LUX',
     description: 'Exoskeleton. Connect via Personal Link as an Action; regular limbs are unavailable until disconnected (also an Action). While connected, perform strength-based tasks as if BODY were 14.',
+    effects: [aeOff('Linear Frame Beta Connected (BODY 14)', [statOvr('body', 14)])],
+    instructions: [
+      S.message('<p><strong>Linear Frame Beta connected</strong> — strength-based tasks as if BODY were 14. Regular limbs unavailable while connected.</p>', { name: 'Connect' }),
+      S.effect({ name: 'Apply BODY Override', effectName: 'Linear Frame Beta Connected (BODY 14)' }),
+      S.message('<p>Linear Frame Beta disconnected. Regular limbs restored.</p>', { name: 'Disconnect', terminates: true }),
+    ],
   }),
 
   // ── Chipware ──────────────────────────────────────────────────────────────
@@ -503,11 +545,13 @@ export const EQUIPMENT_CATALOGUE = [
     name: 'Olfactory Boost Chip',
     folder: 'Chipware', cost: 'PR',
     description: 'Chipware — equipped in a shard socket. Scent-based tracking using Survival; +2 to scent-based Perception checks.',
+    effects: [reminder('Scent Perception +2 (situational)')],
   }),
   gear({
     name: 'Pain Editor Chip',
     folder: 'Chipware', cost: 'EX',
     description: 'Chipware — equipped in a shard socket. Ignore Seriously Wounded penalties while installed.',
+    effects: [reminder('Ignore Seriously Wounded penalties (while installed)')],
   }),
   gear({
     name: 'Skill Chip',

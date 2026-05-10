@@ -696,6 +696,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'CO', facilities: 'clinic', installationCost: 'PR', installationDv: 15,
     psycheLoss: '1d6',
     description: 'Permanent skin color and pattern change; optionally reactive to temperature or hormone levels. Chem-Skin combined with Tech-Hair grants +2 Style (not additive with other bonuses).',
+    effects: [reminder('If both Chem-Skin AND Tech-Hair installed: +2 Style')],
   }),
   cw({
     name: 'Light Tattoo',
@@ -704,6 +705,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'CO', facilities: 'mall', installationCost: 'CO', installationDv: 12,
     psycheLoss: '', multipleInstalls: true,
     description: 'Subdermal display projecting a colored tattoo through the skin. Having 3 or more Light Tattoos installed grants +2 Style total.',
+    effects: [reminder('3+ Light Tattoos installed: +2 Style total')],
   }),
   cw({
     name: 'Shift Tacts',
@@ -720,6 +722,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'CO', facilities: 'mall', installationCost: 'CO', installationDv: 14,
     psycheLoss: '',
     description: 'Artificial hair that can emit light; optionally reactive to temperature or hormone levels. Tech-Hair combined with Chem-Skin grants +2 Style (not additive with other bonuses).',
+    effects: [reminder('If both Chem-Skin AND Tech-Hair installed: +2 Style')],
   }),
   cw({
     name: 'Threading',
