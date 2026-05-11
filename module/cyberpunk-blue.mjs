@@ -1708,6 +1708,25 @@ async function _ensureArmorInGearPack(gearItems) {
  * Runs on every GM load so changes like Monowire / Mantis Blades weapons
  * propagate without requiring a full pack wipe.
  */
+/**
+ * Canonical form of a catalogue-defined effect for comparison purposes.
+ * Excludes _id, origin, and system-generated flags (Psyche Loss, etc.).
+ */
+function _catalogueEffectSig(e) {
+  return JSON.stringify({
+    name:    (e.name ?? '').trim(),
+    disabled: e.disabled ?? false,
+    changes:  (e.changes ?? []).map((c) => ({ key: c.key, mode: c.mode, value: String(c.value) })),
+    flags:   e.flags?.['cyberpunk-blue'] ?? {},
+  });
+}
+
+/** True if a document-level AE was added by the system (not from the catalogue). */
+function _isSystemGeneratedEffect(effect) {
+  return !!(effect.getFlag?.('cyberpunk-blue', 'autoPsycheLoss')
+    || effect.getFlag?.('cyberpunk-blue', 'autoOperationalEffectState'));
+}
+
 async function _syncCyberwareEntries(catalogue) {
   const PACK_ID = 'cyberpunk-blue.cyberware';
   const pack = game.packs.get(PACK_ID);
@@ -1740,13 +1759,36 @@ async function _syncCyberwareEntries(catalogue) {
       !!currentWeapons[i]?.critDoublePick !== !!cw.critDoublePick
     );
 
+    // Compare effects (catalogue definition vs. doc's non-system-generated AEs)
+    const catEffects = def.effects ?? [];
+    const docEffects = (doc.effects?.contents ?? []).filter((e) => !_isSystemGeneratedEffect(e));
+    const catSig = catEffects.map(_catalogueEffectSig).sort().join('\n');
+    const docSig = docEffects.map((e) => _catalogueEffectSig({
+      name:    e.name,
+      disabled: e.disabled,
+      changes:  e.changes ?? [],
+      flags:   { 'cyberpunk-blue': Object.fromEntries(
+        Object.entries(e.flags?.['cyberpunk-blue'] ?? {})
+          .filter(([k]) => k !== 'autoPsycheLoss' && k !== 'autoOperationalEffectState')
+      ) },
+    })).sort().join('\n');
+    const effectsChanged = catSig !== docSig;
+
+    const update = { _id: doc.id };
+    let needsUpdate = false;
     if (weaponCountChanged || isWeaponChanged || critDoublePickChanged) {
-      updates.push({
-        _id: doc.id,
-        'system.isWeapon': catIsWeapon,
-        'system.weapons':  catWeapons,
-      });
+      update['system.isWeapon'] = catIsWeapon;
+      update['system.weapons']  = catWeapons;
+      needsUpdate = true;
     }
+    if (effectsChanged) {
+      // Replace all catalogue-sourced effects with the current catalogue definition.
+      // System-generated effects (Psyche Loss etc.) are added at runtime and won't
+      // appear on compendium items, so a full replace is safe here.
+      update.effects = catEffects;
+      needsUpdate = true;
+    }
+    if (needsUpdate) updates.push(update);
   }
 
   if (updates.length === 0) return;
@@ -1754,7 +1796,9 @@ async function _syncCyberwareEntries(catalogue) {
   await pack.configure({ locked: false });
   try {
     await Item.updateDocuments(updates, { pack: PACK_ID });
-    console.log(`Cyberpunk Blue | Synced weapon data for ${updates.length} cyberware items.`);
+    const weaponCount  = updates.filter((u) => 'system.isWeapon' in u).length;
+    const effectsCount = updates.filter((u) => 'effects' in u).length;
+    console.log(`Cyberpunk Blue | Synced ${weaponCount} weapon and ${effectsCount} effects updates in cyberware pack.`);
   } finally {
     await pack.configure({ locked: true });
   }
