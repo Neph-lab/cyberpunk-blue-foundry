@@ -152,12 +152,15 @@ Handled by GM.
 
 ### 4a. Grenades (AoE resolution system)
 
-| Grenade | Effect | Notes |
+| Grenade | Effect | Status |
 |---|---|---|
-| ❌ All grenade types | AoE attack roll, DV13 BODY+Endurance save in radius | Shared resolution: deviation scatter, AoE radius, save prompt, damage application |
-A grenade is a thrown Weapon with Explosion damage. If no Half Damage radius is set, assume it should be ½ Spread (round up). If the effect is not damage, its uses Affliction Explosion to apply an AE. If nothing else is given, assume this is a DV 13 BODY + Endurance check that lasts a number of minutes equal to the margin of failure.
-| ❌ Smoke / Teargas | Cloud drift/shrink per turn | Ongoing zone tracking across turns |
-Just like any AoE, this should use Foundry Regions to take advantage of their capabilities. The explosion Region remains after detonation. Radii shrink by 1 meter at the end of each Round (every 3 seconds game time outside Combat). The GM will move the region manually if needed.
+| ✅ Knock-Out Grenade | `affliction-explosion` — DV13 BODY+Endurance; 4m inner / 8m outer, outerZoneResistBonus 5; AE: 'Knocked Out' | Weapon entry in equipment catalogue |
+| ✅ Smoke Grenade | `affliction-explosion` — DV13 BODY+Endurance; 16m inner / 22m outer, outerZoneResistBonus 0; AE: 'Smoke: Damaged Eye' | Weapon entry in equipment catalogue |
+| ✅ Teargas Grenade | `affliction-explosion` — DV13 BODY+Endurance; 10m inner / 12m outer, outerZoneResistBonus 4; AE: 'Teargas: Damaged Eye' | Weapon entry in equipment catalogue |
+| ✅ Toxic Grenade | `explosion` — 2d6 damage; 4m inner / 10m outer; DV15 save noted in description | Weapon entry in equipment catalogue |
+| ➖ Smoke / Teargas cloud drift/shrink | Radii shrink 2m per turn; cloud drifts with wind | Region management deferred — GM handles manually |
+
+All 4 grenades use `type: 'thrown'`, `skill: 'athletics'`, `rangeTable: [15, 13, 25, 0…]`. Affliction grenades carry a disabled AE with `isAfflictionEffect: true` flag; `applyAfflictionEffect` finds it via flag fallback. `_syncGearEntries` propagates `isWeapon`/`weapons` changes on next GM load.
 
 ---
 

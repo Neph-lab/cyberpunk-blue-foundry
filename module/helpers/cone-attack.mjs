@@ -807,7 +807,7 @@ export async function resolveAfflictionConeAttack(attacker, item, weaponIndex) {
     const penetrates = await checkAfflictionSP(weapon, targetActor, isHalf);
     if (!penetrates) continue;
 
-    const resistBonus = isHalf ? 2 : 0;
+    const resistBonus = isHalf ? (weapon.outerZoneResistBonus ?? 2) : 0;
     const defenseRoll = await rollAfflictionDefense(targetActor, weapon, resistBonus);
     if (defenseRoll.total >= (weapon.afflictionDv ?? 13)) continue; // resisted
 
@@ -952,7 +952,7 @@ export async function resolveAfflictionExplosionAttack(attacker, item, weaponInd
     const penetrates = await checkAfflictionSP(weapon, targetActor, isHalf);
     if (!penetrates) continue;
 
-    const resistBonus = isHalf ? 2 : 0;
+    const resistBonus = isHalf ? (weapon.outerZoneResistBonus ?? 2) : 0;
     const defenseRoll = await rollAfflictionDefense(targetActor, weapon, resistBonus);
     if (defenseRoll.total >= (weapon.afflictionDv ?? 13)) continue;
 

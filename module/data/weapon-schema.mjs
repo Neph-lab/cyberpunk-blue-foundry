@@ -184,6 +184,10 @@ export function buildWeaponField() {
     afflictionDv: new fields.NumberField({ ...requiredInteger, initial: 13, min: 0 }),
     // _id of a *disabled* ActiveEffect that lives on this Item
     afflictionEffectId: new fields.StringField({ required: true, blank: true, initial: '' }),
+    // Bonus added to the target's affliction defense roll when they are in the
+    // outer (half-damage / half-effect) zone of an affliction-explosion.
+    // Defaults to 2 (matching the original hardcoded value).
+    outerZoneResistBonus: new fields.NumberField({ ...requiredInteger, initial: 2, min: 0 }),
   });
 }
 
