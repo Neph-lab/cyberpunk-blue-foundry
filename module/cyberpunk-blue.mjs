@@ -1532,13 +1532,15 @@ async function _syncModEntries(catalogue) {
     const accidentalDischargeChanged = !!sys.accidentalDischarge !== !!defSys.accidentalDischarge;
     // Batch 8 fields
     const bayonetChanged = !!sys.bayonet !== !!defSys.bayonet;
+    // Batch 9 fields
+    const requiresLightMeleeChanged = !!sys.requiresLightMelee !== !!defSys.requiresLightMelee;
 
     if (weaponChangesChanged || burstChanged || beginnerChanged || vitalsChanged ||
         trajectoryChanged || closeRangeChanged || steadyChanged || handlingComputerChanged ||
         calibrationChanged || recoilBonusChanged || recoilAFOnlyChanged ||
         barrierPenChanged || improvedRicochetChanged ||
         improvedChargeChanged || srCapacityChanged ||
-        accidentalDischargeChanged || bayonetChanged) {
+        accidentalDischargeChanged || bayonetChanged || requiresLightMeleeChanged) {
       updates.push({
         _id: doc.id,
         'system.weaponChanges': defSys.weaponChanges ?? [],
@@ -1558,6 +1560,7 @@ async function _syncModEntries(catalogue) {
         'system.srCapacity': !!defSys.srCapacity,
         'system.accidentalDischarge': !!defSys.accidentalDischarge,
         'system.bayonet': !!defSys.bayonet,
+        'system.requiresLightMelee': !!defSys.requiresLightMelee,
       });
     }
   }

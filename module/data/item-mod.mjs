@@ -49,6 +49,7 @@ export default class CyberBlueMod extends CyberBlueItemBase {
     schema.requiresPowerWeapon = new fields.BooleanField({ initial: false });
     schema.requiresSmartWeapon = new fields.BooleanField({ initial: false });
     schema.requiresTechWeapon = new fields.BooleanField({ initial: false });
+    schema.requiresLightMelee = new fields.BooleanField({ initial: false });
     schema.blockedOnPower = new fields.BooleanField({ initial: false });
     schema.blockedOnSmart = new fields.BooleanField({ initial: false });
     schema.blockedOnTech = new fields.BooleanField({ initial: false });

@@ -110,6 +110,9 @@ export function getModificationValidation(itemLike, mod) {
       if (mod.requiresTechWeapon && !targetWeapon.isTechWeapon) {
         return { valid: false, reason: 'Requires a Tech Weapon.' };
       }
+      if (mod.requiresLightMelee && targetWeapon.type !== 'lightMelee') {
+        return { valid: false, reason: 'Requires a Light Melee weapon.' };
+      }
       if (mod.blockedOnPower && targetWeapon.isPowerWeapon) {
         return { valid: false, reason: 'Cannot be installed on Power Weapons.' };
       }

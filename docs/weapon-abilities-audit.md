@@ -135,7 +135,7 @@ Last updated: 2026-05-11
 | ✅ Burning Edge — ignores SP < 11 | Kendachi Mono-Three | burningEdge flag; always active (GM handles toggle cases) |
 | ✅ Bayonet — melee 1d6/RoF2, ignores ½ SP | Kendachi Shi Bayonet (mod) | bayonet mod flag; getEffectiveItemWeapons injects synthetic weapon |
 | ✅ halveSP — Bayonet weapon mode | synthetic bayonet entry | halveSP=true; Math.ceil(SP/2) in SP computation block |
-| ❌ Return Thrower — thrown weapon returns | Militech TWA Boomerang (mod) | restriction-check not yet added to mod validation; effect is narrative |
+| ➖ Return Thrower — thrown weapon returns | Militech TWA Boomerang (mod) | `requiresLightMelee: true` blocks attachment to non-LMW; return flight is narrative |
 
 ---
 
@@ -204,7 +204,7 @@ Description text is sufficient; no mechanical enforcement needed:
 |---|---|---|
 | ➖ Tracker Dart / Dart modes (Sonnet HP, Ashura SR) | medium | Second weapons[] entries added; Ashura dart now silenced; Sonnet tag/beacon redirect GM-handled |
 | ❌ Battery ammo category (Mámù) | low | New ammo type + reload flow |
-| ❌ Return Thrower restriction (Boomerang mod) | low | Validate mod only attaches to light melee throwable |
+| ➖ Return Thrower restriction (Boomerang mod) | low | `requiresLightMelee: true` added; blocks attachment to non-LMW |
 | ❌ Thermal Imaging darkness cap | deferred | No darkness mechanic yet |
 | ❌ Miss-redirect beacon system (Sonnet HP) | low | Requires TAG/beacon token tracking |
 | ➖ Extended/Drum Magazine per-type caps | low | GM handles; caps not enforced |

@@ -251,7 +251,7 @@ const attachments = [
     system: { requiresPowerWeapon: true, improvedRicochet: true },
     description: desc('Power weapon only. Action Assembly. Improved Ricochet: a successful ricochet hit deals +1 damage per die of base weapon damage.') }),
   modItem({ name: 'Militech TWA Boomerang', manufacturer: 'Militech', cost: 'PR', imgPath: img(M_ROOT, 'Militech TWA Boomerang.png'),
-    system: {},
+    system: { requiresLightMelee: true },
     description: desc('Light Melee weapons designed to be thrown only. Return Thruster: silently returns to thrower\'s wireless hand-signal at start of next turn if within 50m and no obstacles. Holding it still requires DV12 BODY+Athletics.') }),
   modItem({ name: 'Militech 4X Action Repeater', manufacturer: 'Militech', cost: 'PR', imgPath: img(M_ROOT, 'Militech 4x Action Repeater.png'),
     system: {},
