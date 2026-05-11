@@ -46,8 +46,8 @@ export const BANDIT = role({
   name: 'Bandit',
   category: 'networker',
   img: 'systems/cyberpunk-blue/assets/Roles/bandit.png',
-  description: `<p>Dealing with street gangs is a fact of life. Bandits work their way through the dangerous underbelly of society. They might start as lowly thugs, but the ambitious and ruthless might become the next crime boss of the city.</p>
-<p>A combination of their ability to handle the roughest part of society and the contacts within their gang defines bandits. Attitude is vital — in a gang, it is all you really have.</p>
+  description: `<p>Dealing with street gangs is a fact of life for those living on the Street. Some are hardened veterans who have survived years of street conflict and grown wise and cynical. Others are fresh-faced wannabes who fantasize about a life of violence and crime. In time, a Bandit might actually become a small power in the criminal underworld of a city — maybe even running their own crew, owning turf, and having their name be something whispered about in fear.</p>
+<p>A combination of the Bandit's ability to handle the rough side of The Street and the contacts they have within their gang defines them. Attitude counts for a lot among the criminal element — in a gang, it is all you really have.</p>
 <blockquote><em>Ya strong 'nuff to chrome up? Split some nerves?</em><br>∆ Maelstrom recruiter</blockquote>`,
   lifepathLinks: `<h3>What kind of gang are you in?</h3>
 <table><thead><tr><th>1d10</th><th>Type of Gang</th></tr></thead><tbody>
@@ -116,8 +116,8 @@ export const CORPO = role({
   name: 'Corpo',
   category: 'leader',
   img: 'systems/cyberpunk-blue/assets/Roles/corpo.png',
-  description: `<p>The corporations rule the world. As a Corpo, you work within that system and turn it to your advantage. Your life has many layers of manipulation and intrigue; anyone could stab you in the back at any time.</p>
-<p>Your key ability is <em>Teamwork</em> — leading subordinates who are more loyal to you than to the corporation itself. Treat them right and they will be. Mistreat them and they might rat you out or worse.</p>
+  description: `<p>The corporations rule the world. Everyone knows it, even if some try their best to deny it. It's better to work within that system and turn it to your advantage. Of course, even as a junior executive, there are those who would literally kill to get your job. And those higher up are equally willing to flatline you if they think you're gunning for their position. In some respects, the corporate world is just as bloody as the street gangs, just in nicer clothes and more polite language. The advantage is that you can have others do your dirty work for you. As long as your underlings remain loyal, at least, but if they're not, you can hire someone else to deal with that problem too.</p>
+<p>For all the wealth available to Corpos, the one thing they can rarely afford themselves is ethics. Your life has many layers of manipulation and intrigue, making it difficult to place complete trust in anyone save for a few allies. Anyone could stab you in the back at any time and your only chance to truly survive is to do the same to them as soon as you can get away with it.</p>
 <blockquote><em>We can provide great opportunities for those willing to do whatever it takes to get to the top!</em><br>∆ Alicia Jones, Recruiter for Zetatech</blockquote>`,
   lifepathLinks: `<h3>What kind of Corp do you work for?</h3>
 <table><thead><tr><th>1d10</th><th>Type</th></tr></thead><tbody>
@@ -238,8 +238,10 @@ export const FIXER = role({
   name: 'Fixer',
   category: 'networker',
   img: 'systems/cyberpunk-blue/assets/Roles/fixer.png',
-  description: `<p>You realized fast that you were never going to get a Corporate job or be tough enough to be a Solo. But you always knew you had a knack for figuring out what other people wanted and how to get it for them. For a price, of course.</p>
-<p>One part Robin Hood, two parts Al Capone. In the past they would have called you a crime lord. In this fragmented, nasty, and deadly time, they call you a Fixer.</p>
+  description: `<p>You realized fast that you weren't ever going to get a Corporate job or be tough enough to be a Solo. But you always knew you had a knack for figuring out what other people wanted, and how to get it for them. For a price, of course.</p>
+<p>Now your deals have moved past the nickel-and-dime stuff into the big time. Maybe you move illegal weapons over the border. Or steal and resell medical supplies. Perhaps you're a skill broker acting as an agent for high-priced Solos and 'Runners, or even hiring a whole Nomad pack to back a client's contracts. Your connections get into all kinds of businesses, deals, and political groups. Those contacts and allies form part of a vast web of intrigue and coercion.</p>
+<p>If there's a buzz about a new nightclub in the City, you're already a part of it. If there are military class weapons on The Street, you smuggled 'em in. If there's a faction war going down, you're negotiating between sides with an eye on the main chance. But you might not be solely in it for the bucks.</p>
+<p>If someone needs to get the heat off, you'll hide them. You get people housing when there isn't any, and you bring in food when the streets are blockaded. Maybe you do it because you know they'll owe you later, but you're not sure. You're one part Robin Hood and two parts Al Capone. In the past, they would have called you a crime lord. But in this fragmented, nasty, and deadly time, they call you a Fixer.</p>
 <blockquote><em>I don't need to know what they'll do with them. I'm just the middleman.</em><br>∆ Grease, Fixer</blockquote>`,
   lifepathLinks: `<h3>What kind of Fixer are you?</h3>
 <table><thead><tr><th>1d10</th><th>Type</th></tr></thead><tbody>
@@ -290,9 +292,11 @@ export const GUIDE = role({
   name: 'Guide',
   category: 'sundry',
   img: 'systems/cyberpunk-blue/assets/Roles/guide.png',
-  description: `<p>In a world completely ruled by the material, you are the voice of the soul. Your predictions are hazy at best, but they might provide a much needed edge when it really matters.</p>
-<p><em>Note: Not all games are suitable for a Guide. They risk removing some of the dystopia that is Cyberpunk. If this Role is present, it should either show how spirituality is just another commodity, or provide contrast against sufficient darkness.</em></p>
-<blockquote><em>We should not fear change itself, but only who we might change into. Knowing one's path is most important.</em><br>∆ Misty Olszewski, Misty's Esoterica</blockquote>`,
+  description: `<p>In a world completely ruled by the material, you are the voice of the soul. There are, of course, droves of charlatans who will sell crystals, platitude posters, and tedious meditation BDs. There are so many corpos with too much money and more anxiety than sense. Few of them care about guiding their clients to anything but handing over their eddies. That's where you differ.</p>
+<p>As a Guide, you have a sense of where the world is headed. Your predictions are hazy at best, but they might provide a much needed edge when it really matters. Maybe you read cards, seek truth through introspection, or perhaps drug fueled visions show you the path. There are many ways to access these abilities and every Guide has their own methods.</p>
+<p>In many ways, a Guide has to fight the way the world works. The vast majority of people only believe in fate in the most superficial of ways. You can give into that and coach through business jargon. You can speak to those who still seek meaning in religion and hope their desperation pays for your guidance. For those who can't make up their mind about beliefs, there's always that mix of neo-spirituality and materialistic pseudo-mysticism.</p>
+<p><em>Not all games are suitable for a Guide to be part of, as they risk removing some of the dystopia that is Cyberpunk. If a character has this Role, it should highlight the worst part of the world by either showing how even spirituality is just a commodity, or by providing contrast. They can't do the latter if there isn't enough darkness for the dark future to be dystopian in.</em></p>
+<blockquote><em>We shouldn't fear change itself, but only who we might change into. Knowing one's path is most important.</em><br>∆ Misty Olszewski, Misty's Esoterica</blockquote>`,
   lifepathLinks: `<h3>What kind of Guide are you?</h3>
 <table><thead><tr><th>1d10</th><th>Type</th></tr></thead><tbody>
 <tr><td>1</td><td>Self-Help Guru</td></tr><tr><td>2</td><td>Cult Leader</td></tr>
@@ -344,8 +348,9 @@ export const LAW = role({
   name: 'Law',
   category: 'leader',
   img: 'systems/cyberpunk-blue/assets/Roles/law.png',
-  description: `<p>There used to be a big City Force, but most of the Old Guard in NCPD have been thrown out on their own to keep what peace they can. Even if you would rather just walk a beat, if you are a professional Law of any stripe, you are stuck carrying at least four high-caliber weapons, mostly full-auto, and wearing a Kevlar® vest.</p>
-<p>Your key ability is calling for <strong>Backup</strong>. Abuse it at your own peril — your boss will not be pleased.</p>
+  description: `<p>There used to be a big City Force, but most of the Old Guard in NCPD have been thrown out on their own to keep what peace they can. The ones who remain work to keep people safe and make some kind of stand against chaos. Even if you'd rather just walk a beat, if you're a professional Law of any stripe, you're stuck carrying at least four high-caliber weapons, mostly full-auto, and wearing a Kevlar® vest. Even then, you're still outgunned and outflanked. Half the gangs are cybered up to begin with: super speed, super reflexes, night vision, and embedded weapons.</p>
+<p>Half of the guys on The Street are freelance Corporate mercs who used to have jobs during the War; hired to enforce Corp armies disbanded by the New United States' goon squads. Now they're the goon squads and you're trying to keep them under control too. Every night is a new firefight and another great opportunity for a messy death. Or you might draw a Psycho Squad berth and get the job of hunting down heavily armed and armored cyborgs who've flipped out. A cyberpsycho can walk through machine gun fire and not even feel it, so a lot of the Psycho Squad become a bit crazy themselves; they load up with boosted reflexes, get some monstrously huge guns, and go hunt the cyborgs solo. But you're not that crazy. Yet.</p>
+<p>Of course, there are areas of the City where not even the Law dare go most of the time. The only reason any of them would willingly enter would be to save one of their own and then get the hell out as quickly as possible.</p>
 <blockquote><em>Someone has to prevent civilians from taking a bullet in the latest gang war.</em><br>∆ Officer Suri "Cavalry" Navarro, NCPD</blockquote>`,
   lifepathLinks: `<h3>What is your position in the force?</h3>
 <table><thead><tr><th>1d6</th><th>Position</th></tr></thead><tbody>
@@ -394,9 +399,10 @@ export const MEDIA = role({
   name: 'Media',
   category: 'networker',
   img: 'systems/cyberpunk-blue/assets/Roles/media.png',
-  description: `<p>They are bending the truth out there, and you are going to stop them. The Corporations rule the world. You have got a vidlink and a press pass, and you are not afraid to use them.</p>
-<p>Your credibility allows you to pick up on rumors, talk to informants, and spread your message.</p>
-<blockquote><em>I did not become a journalist to smile for the camera with some Corpo on synthcoke — I bring the actual News!</em><br>∆ "24/7", Reporter for Never Blink News</blockquote>`,
+  description: `<p>They're bending the truth out there. And you're going to stop them. Someone has to do it. The Corporations rule the world. They dump toxics, destabilize economies, and commit murder with equal impunity.</p>
+<p>You've got a vidlink and a press pass, and you're not afraid to use them as a city-wide figure, seen nightly all over. It's not always like the old days, when you had a major Mediacorp behind you; this time, you've gotta depend on your fans, your contacts, and your own reputation. But it's harder for Corps to make you disappear these days. So when you dig down for the dirt and slime the corrupt officials and Corporate lapdogs try to cover up, you can dig deep. The next morning, you can put the details of their crimes all over the screamsheets and vidscreens.</p>
+<p>The bad guys have tried to kill you several times. That's why you need backup, such as a crack Solo bodyguard and the top 'Runners in the business digging through NET Architectures to back your stories. Stay ahead and you'll change the world. Slack off and you'll be flatlined soon enough.</p>
+<blockquote><em>I didn't become a journalist to smile for the camera with some Corpo on synthcoke — I bring the actual News!</em><br>∆ "24/7", Reporter for Never Blink News</blockquote>`,
   lifepathLinks: `<h3>What kind of Media are you?</h3>
 <table><thead><tr><th>1d6</th><th>Type</th></tr></thead><tbody>
 <tr><td>1</td><td>Blogger</td></tr><tr><td>2</td><td>Writer (Books)</td></tr>
@@ -439,7 +445,10 @@ export const MEDTECH = role({
   name: 'Medtech',
   category: 'specialist',
   img: 'systems/cyberpunk-blue/assets/Roles/medtech.png',
-  description: `<p>You are an artist, and the human body is your canvas. Patching up the wounded, mending up the sick, and keeping the locals alive — for love, commitment, or a fat payday.</p>
+  description: `<p>You're an artist, and the human body is your canvas. If you're lucky, you got to attend one of the real med schools scattered around the wreck of the Old United States. And after the War, military hospitals were everywhere and the few doctors on the war front needed helping hands to hold down screaming patients and splice cyberware back together. So, maybe you learned that way.</p>
+<p>There's always an old ripperdoc or two out there who perform street surgery of various levels of legality. Maybe one of those trained you. Maybe that's where you are right now, patching up the wounded, mending up the sick, and keeping the locals alive. For love, commitment, or maybe just a fat payday on the side.</p>
+<p>If you're really lucky, you've scored a berth in the local Trauma Team franchise. Trauma Teams are groups of licensed paramedicals who patrol the city looking for patients. You operate from an AV-4 Urban Assault Vehicle, redesigned into an ambulance configuration, and armed with a belly-mounted minigun. It's the best of the best — Trauma Team charges some heavy subscription fees to save its clients, and that translates into new medical toys, faster AV ambulances, and hefty salaries for the best surgeons around.</p>
+<p>It doesn't matter how you got here. What matters is that you're here, on The Street, doing the job. And you'd be doing it no matter what the reason. It's what marks you as a Medtech.</p>
 <blockquote><em>I don't have initials after my name, but I can fix that arm. Or you lose it. Your choice.</em><br>∆ Virgil "Redtail" Martinez</blockquote>`,
   lifepathLinks: `<h3>What kind of Medtech are you?</h3>
 <table><thead><tr><th>1d10</th><th>Type</th></tr></thead><tbody>
@@ -533,9 +542,11 @@ export const NETRUNNER = role({
   name: 'Netrunner',
   category: 'sundry',
   img: 'systems/cyberpunk-blue/assets/Roles/netrunner.png',
-  description: `<p>You are a brain-burning computer hacker and master of the Post-NET cyberverse. As an electronic wraith, you slip into mainframes: stealing, trading, and selling their deepest secrets.</p>
-<p>Of course, the deadliest parts of cyberspace are still out there in the remnants of the old NET. Others might think it is all safe behind the Blackwall, but you know that it is only a matter of time.</p>
-<blockquote><em>Do spiders spin webs? It is time to catch flies.</em><br>∆ Spider Murphy</blockquote>`,
+  description: `<p>You're a brain-burning computer hacker &amp; master of the Post-NET cyberverse. Maybe your parents bought you an old Kirama LPD-12 cyberdeck with Zetatech 526 optical goggles when you were too young for interface plugs, and your life was changed. Maybe you used REFRAME-G1's meta-programming to crack into the school district's system and change your grades. As a teenager, you might have shifted enough funds out of unprotected Trans United Bank accounts to finance your first neural interface plugs.</p>
+<p>You could have run high and fast with the other gods of the NET: Bartmoss, Magnificent Curtis, and the rest. Then the 4th Corp War blew the Old NET apart. The R.A.B.I.D.S made NET travel a suicide run; the Nodes were fragmented or corrupted. But there are still places to run. You just had to go there and jack in the hard way. You traded in sitting on the couch for a Bodyweight combat bodysuit and Virtuality 5 interface goggles to mesh NET with Meatspace.</p>
+<p>The systems you cracked are smaller, but even deadlier. Now, you're really part of a team, with Solos to cover your back, Medtechs to restart your heart if the ICE gets you, and Techs to help you hot-wire your cyberdeck for more speed and software deployment. As an electronic wraith, you slip into mainframes: stealing, trading, and selling their deepest secrets.</p>
+<p>Of course, the deadliest parts of cyberspace are still out there in the remnants of the old NET. Others might think it's all safe behind the Blackwall, but you know that it's only a matter of time before the AI and ghosts of Soulkiller that live there break free.</p>
+<blockquote><em>Do spiders spin webs? It's time to catch flies.</em><br>∆ Spider Murphy</blockquote>`,
   lifepathLinks: `<h3>What kind of Netrunner are you?</h3>
 <table><thead><tr><th>1d6</th><th>Type</th></tr></thead><tbody>
 <tr><td>1</td><td>Freelancer who hacks for hire</td></tr>
@@ -564,8 +575,10 @@ export const NINJA = role({
   name: 'Ninja',
   category: 'protean',
   img: 'systems/cyberpunk-blue/assets/Roles/ninja.png',
-  description: `<p>Sometimes, an individual needs to be zeroed quietly. You excel at this dirty business — whether through long-range snipers, silent executions with a concealed blade, or methods that can be covered up as accidents.</p>
-<p>A good Ninja is highly sought after. A bad one — someone who gets exposed — will find they have no friends anywhere. There is no room for failure when discretion is your main weapon.</p>
+  description: `<p>Sometimes, an individual needs to be zeroed in a quiet way that leaves no trace. Solos or Bandits are much too noisy and Netrunners or Operatives don't specialize in flatlining their targets. You, on the other hand, excel at this dirty business.</p>
+<p>Some Ninjas favor long-range snipers to take out a target without the risk of even getting close. Others learn to move silently through buildings and perform a quiet execution with a concealed tanto blade. And then there are jobs that require more discretion in the form of poisons or other methods that can be covered up as accidents. As situations change, you need to change with them. The tools you use in your trade include both your creativity and the equipment you carry.</p>
+<p>While there are Ninjas out there who have become legends, their real identity is rarely known. It's even possible that they lead unassuming lives as a cover, and not even those closest to them know what brutal deeds they are prepared to do.</p>
+<p>A good Ninja is highly sought after by corporations, governments and Fixers alike. A bad one, someone who gets exposed, will find that they have no friends anywhere. There is no room for failure when discretion is your main weapon.</p>
 <blockquote><em>In a world of neon, holograms and screens, people never seem wary enough of the shadows the lights cast.</em><br>∆ "Rogue Rouge"</blockquote>`,
   lifepathLinks: `<h3>What kind of Ninja are you?</h3>
 <table><thead><tr><th>1d6</th><th>Type</th></tr></thead><tbody>
@@ -598,7 +611,8 @@ export const OPERATIVE = role({
   name: 'Operative',
   category: 'specialist',
   img: 'systems/cyberpunk-blue/assets/Roles/operative.png',
-  description: `<p>Knowledge is power, and never before has that been as obvious. Every corporation wants to know what the competition is doing. Enter the Operative — an expert at covertly gathering and analyzing intelligence in meatspace.</p>
+  description: `<p>Knowledge is power and never before has that been as obvious. Every corporation, from the smallest fashion design firm to the largest megacorp, wants to know what the competition is doing and wants to prevent said competition from doing the same. Nations still have their own intelligence services and need to keep an eye on both internal and external threats. Enter the Operative.</p>
+<p>Operatives are experts at covertly gathering and analyzing intelligence in meatspace. Netrunners can often do a lot of the digital work, but there's still a lot to say about more traditional spies. Of course, the traditional role has developed a lot of non-traditional methods along with new technology. Voice-modulation and adaptive faceplates make it easier than ever to go undercover. Planted bugs can be controlled wirelessly. Synthetic drugs can alter someone's perceptions enough to make them spill secrets they shouldn't share. A good operative can be at the center of the most important meetings an organization has and still go unnoticed. Of course, this has also led to a very lucrative job market in counter-intelligence.</p>
 <blockquote><em>Do you realize how expensive the cover-up will be?</em><br>∆ Abernathy, Arasaka Counter-intelligence</blockquote>`,
   lifepathLinks: `<p><em>Operative lifepath tables are set by the GM based on their employer, specialization, and current operational context.</em></p>`,
   lifepathQuestions: `<ul>
@@ -701,8 +715,10 @@ export const ROCKER = role({
   name: 'Rocker',
   category: 'networker',
   img: 'systems/cyberpunk-blue/assets/Roles/rockerboy.png',
-  description: `<p>If you live to rock, this is where you belong. As a Rocker, you are one of the street poets, the social conscience, and the rebels. Rocker legends like Johnny Silverhand have led armies against Corporations. Your message can give the timid courage, the weak strength, and the blind vision.</p>
-<blockquote><em>They are not chanting my name in giant concert halls yet, but I have got fans, and I do not have to compromise my message for anyone.</em><br>∆ Forty, Rockerboy</blockquote>`,
+  description: `<p>If you live to rock, this is where you belong. As a Rocker, you're one of the street poets, the social conscience, and the rebels. With the advent of digital porta-studios and garage music mastering, every Rocker with a message can take it to The Street, put it in the record stores, or bounce it off the comsats. Sometimes, your message isn't something the Corporations or government wants to hear. Sometimes what you say is going to get right in the faces of the powerful people who really want to run this world. You don't care, because as a Rocker, it's your place to challenge authority.</p>
+<p>Rocker have a proud history that includes Dylan, Springsteen, U2, NWA, the Who, Jett, the Stones — the legions of hard-rock heroes who told the truth with screaming guitars or gut-honest lyrics. You have the power to get the people up; to lead, inspire, and inform. Your message can give the timid courage, the weak strength, and the blind vision.</p>
+<p>Rocker legends like Johnny Silverhand, Rockerboy Manson, and Kerry Eurodyne have led armies against Corporations and governments. Rockers have exposed corruption and brought down dictators. It's a lot of power for someone doing gigs every night in another city. But you can handle it. After all: you came to play!</p>
+<blockquote><em>They're not chanting my name in giant concert halls yet, but I've got fans, and I don't have to compromise my message for anyone.</em><br>∆ Forty, Rockerboy</blockquote>`,
   lifepathLinks: `<h3>What kind of Rocker are you?</h3>
 <table><thead><tr><th>1d10</th><th>Type</th></tr></thead><tbody>
 <tr><td>1</td><td>Musician</td></tr><tr><td>2</td><td>Slam Poet</td></tr>
@@ -736,8 +752,8 @@ export const SOLO = role({
   name: 'Solo',
   category: 'protean',
   img: 'systems/cyberpunk-blue/assets/Roles/solo.png',
-  description: `<p>You were reborn with a gun in your hand. Whether as a freelance guard and killer-for-hire, or as a Corporate cybersoldier who enforces business deals and "black operations," you are an elite fighting machine.</p>
-<p>You can have others do your dirty work for you. As long as your underlings remain loyal, at least.</p>
+  description: `<p>You were reborn with a gun in your hand. Whether as a freelance guard and killer-for-hire, or as one of the Corporate cybersoldiers who enforce business deals and the Company's "black operations," you're an elite fighting machine.</p>
+<p>As the battle damage piles up, you might rely more and more upon tech: cyberlimbs for weapons and armor, bio-program chips to increase your reflexes and awareness, combat drugs to give you that edge over your opponents. When you're the best of the best, you might even leave the ranks of Corporate samurai and go ronin — freelancing your lethal talents as a killer, bodyguard, or enforcer to whoever can pay your very high fees. Sounds good? There's a price — a heavy one. You've lost so much of your original meat body that you're almost a machine. Your killing reflexes are so jacked up that you have to restrain yourself from going berserk at any moment. Years of combat drugs taken to keep the edge have given you terrifying addictions. There are few people you can trust anymore. One night you might sleep in a penthouse condo in the City, the next in a filthy alley on The Street. But that's the price of being the best. And you're willing to pay it. Because you're a Solo.</p>
 <blockquote><em>When Militech offered me three squares a day and a cot, you better believe I signed up.</em><br>∆ Abril "Mover" Montella, Private Contractor</blockquote>`,
   lifepathLinks: `<h3>What kind of Solo are you?</h3>
 <table><thead><tr><th>1d6</th><th>Type</th></tr></thead><tbody>
@@ -772,7 +788,9 @@ export const TECHIE = role({
   name: 'Techie',
   category: 'specialist',
   img: 'systems/cyberpunk-blue/assets/Roles/tech.png',
-  description: `<p>You cannot leave anything alone. If it is near you for more than five minutes, you have disassembled it and made it into something new. You make your living building, fixing, and modifying — a crucial occupation in a technological world recovering from war.</p>
+  description: `<p>You can't leave anything alone. If it's near you for more than five minutes, you've disassembled it and made it into something new. You've always got at least two screwdrivers and a wrench in your pockets. Computer down? No problem. Hydrogen burner out in your Metrocar? No problem. Can't get the video to run or your interface glitching? No problem.</p>
+<p>You make your living building, fixing, and modifying — a crucial occupation in a technological world recovering from a War that broke the back of the supply chain. You can make some good bucks fixing everyday stuff, but for the serious money you need to tackle the big jobs. Illegal weapons. Illegal or stolen cybertech. Corporate espionage and counter-espionage gear for "black operations." If you're any good, you're making a lot of money. And that money goes into new gadgets, hardware, and information.</p>
+<p>Your black market work isn't just making you friends, it's also racking you up an impressive number of enemies as well — so you invest a lot in defense systems and, if really pushed to the wall, call in a few markers on a Solo or two. You've fixed up tech for everybody from black ops Corporate samurai to Ms. Zepeda down the block. No one's ever come back to you with a complaint, but that might be because of the turrets guarding your front door. You're addicted to technology in all its forms and that's what makes you a Tech.</p>
 <blockquote><em>This City depends on technology to keep everything from going full-on post-apocalypse. And that means everyone depends on me.</em><br>∆ João "Torch" Barbosa Alvés, Owner of Torch's Total Repairs</blockquote>`,
   lifepathLinks: `<h3>What kind of Tech are you?</h3>
 <table><thead><tr><th>1d10</th><th>Type</th></tr></thead><tbody>
