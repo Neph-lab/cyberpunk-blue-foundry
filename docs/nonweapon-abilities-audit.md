@@ -2,7 +2,7 @@
 
 Status key: ✅ automated · ❌ not automated · ➖ partial / display only
 
-Last updated: 2026-05-11 (gear AE state sync + Rocket Boost reminder + Skill Chip + Airhypo)
+Last updated: 2026-05-11 (gear AE state sync + Rocket Boost reminder + Skill Chip + Airhypo + Pain Editor + reminder AEs)
 
 Focus: Cyberware, non-weapon Gear, non-weapon Mods, Executables/Programs, Drugs.
 Weapon abilities are tracked separately in `weapon-abilities-audit.md`.
@@ -35,16 +35,16 @@ All entries below exist in the catalogue with descriptive text but apply **no me
 AE flag `maExtraDamageDice: 1`; `buildMaDamageFormula()` in martial-arts.mjs adds extra dice to all MA rolls.
 | ✅ Toxin Binders | +2 Endurance vs blood-borne toxins/drugs | Situational; passive AE |
 AE adds +2 to Endurance skill rank.
-| ❌ Enhanced Antibodies | Heal BODY×2 HP/day after stabilised | Passive healing rate change |
-Add +BODY of the character to HP regained when GM activates natural healing. GM-handled.
+| ➖ Enhanced Antibodies | Heal BODY×2 HP/day after stabilised | Passive healing rate change |
+Reminder AE added. Bonus is GM-handled.
 | ✅ Implanted Linear Frame Sigma | BODY → 12 | Hard override via OVERRIDE AE |
 AE with mode 5 (OVERRIDE) sets BODY to 12. Can't be installed if Beta is installed.
 | ✅ Implanted Linear Frame Beta | BODY → 14 | Hard override via OVERRIDE AE |
 AE with mode 5 (OVERRIDE) sets BODY to 14. Conflicts with Sigma.
-| ❌ Amplified Hearing | +2 hearing Perception | Perception sub-type bonus |
-Reminder AE only; bonus is handled by GM.
-| ❌ Image Enhance | +2 sight Perception | PAIRED; Perception sub-type bonus |
-Reminder AE only; bonus is handled by GM.
+| ➖ Amplified Hearing | +2 hearing Perception | Perception sub-type bonus |
+Reminder AE exists; sub-type bonus is GM-handled.
+| ➖ Image Enhance | +2 sight Perception | PAIRED; Perception sub-type bonus |
+Reminder AE exists; sub-type bonus is GM-handled.
 | ✅ Voice Stress Analyzer | +2 Human Perception, +1 Influence | Multiple stat bonus |
 AE adds +2 humanPerc rank, +1 influence rank.
 | ✅ AudioVox | +2 Acting, +2 Music; voice imitation via Acting | Skill bonus + narrative voice-mimicry |
@@ -53,8 +53,8 @@ AE adds +2 acting rank, +2 music component rank.
 AE adds +2 medicine rank.
 | ✅ Techscanner (cyberarm) | +2 Electronics, +2 Mechanics | Skill bonus when cyber arm installed |
 AE adds +2 electronics rank, +2 mechanics rank.
-| ❌ Olfactory Boost | +2 scent Perception | Perception sub-type bonus |
-Reminder AE; bonus is handled by GM.
+| ➖ Olfactory Boost | +2 scent Perception | Perception sub-type bonus |
+Reminder AE exists (as 'Olfactory Boost Chip' gear item); sub-type bonus is GM-handled.
 | ✅ TeleOptics | +1 attack rolls >50m (not Autofire) | Conditional attack bonus |
 AE flag `teleOptics: true`; `combat-resolution.mjs` checks the flag and adds +1 when range > 50m.
 | ✅ Targeting Scope | +1 Aimed attacks | Conditional attack bonus |
@@ -84,10 +84,10 @@ Reminder AE on each item; threshold check can't be automated with standard AEs. 
 
 | Cyberware | Effect | Notes |
 |---|---|---|
-| ❌ Pain Editor | Ignore Seriously Wounded penalties | Passive flag; suppresses wound-penalty AE |
-Should be Gear (Chipware), not Cyberware. Providing the effect while equipped requires wound-suppression AE logic.
-| ❌ Tactile Boost | Narrative only | No mechanical enforcement needed |
-Should be Gear (Chipware). No mechanical effect to automate.
+| ✅ Pain Editor | Ignore Seriously Wounded penalties | Passive flag; suppresses wound-penalty AE |
+'Pain Editor Chip' gear item has AE with `painEditor: true` flag. `shouldBeSeriouslyWounded()` checks for active `painEditor` AE on the actor before creating the Seriously Wounded effect. Respects gear state (AE disabled when 'owned').
+| ➖ Tactile Boost | Narrative only | No mechanical enforcement needed |
+'Tactile Boost Chip' gear item; description-only; no reminder AE needed.
 
 ---
 
@@ -99,12 +99,12 @@ Should be Gear (Chipware). No mechanical effect to automate.
 `aeOff` + Instructions: Deploy message → enable AE (+6 move.value) → Retract message (terminates).
 | ➖ Rocket Boost | Doubles jump height; ignore first 6m of fall | PAIRED; reminder AE only |
 Reminder AE added. Jump/fall-distance mechanics not implemented; GM-handled.
-| ❌ Gripfoot | Removes movement penalties on difficult terrain/climbing | PAIRED; terrain-penalty suppression |
-Negate terrain penalties from a Region.
-| ❌ Jump Booster | Removes jump-distance penalties | PAIRED |
-Handled by the GM.
-| ❌ Webbed Foot | Removes swimming movement penalties | PAIRED |
-Handled by the GM.
+| ➖ Gripfoot | Removes movement penalties on difficult terrain/climbing | PAIRED; terrain-penalty suppression |
+Reminder AE added. Negate terrain penalties from a Region — GM-handled.
+| ➖ Jump Booster | Removes jump-distance penalties | PAIRED |
+Reminder AE added. GM-handled.
+| ➖ Webbed Foot | Removes swimming movement penalties | PAIRED |
+Reminder AE added. GM-handled.
 
 ---
 
@@ -118,8 +118,8 @@ Handled by the GM.
 Single-blade entry (3d6, RoF 2) + combined-strike entry (6d6, RoF 1, 2-handed). Both on the same catalogue item.
 | ❌ Self-ICE | Adds a Passwall layer (DV 10 + 2 per install) to architecture | NET-side effect; requires architecture integration |
 Relevant for quickhacking. Rules added at the end of this document.
-| ❌ Radar / Sonar | 50m terrain scan on HUD | Display feature; no combat mechanic required beyond narrative |
-Yes, that.
+| ➖ Radar / Sonar | 50m terrain scan on HUD | Display feature; no combat mechanic required beyond narrative |
+Reminder AE added. GM-handled.
 
 ---
 

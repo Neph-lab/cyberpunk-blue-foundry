@@ -570,6 +570,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     useCyberneticsComponent: true, psycheLoss: '1d6',
     description: 'PAIRED (must be installed in both legs/feet). No movement penalties for climbing.',
+    effects: [reminder('No climbing movement penalties (GM-handled)')],
   }),
   cw({
     name: 'Jump Booster',
@@ -578,6 +579,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     useCyberneticsComponent: true, psycheLoss: '1d6',
     description: 'PAIRED (must be installed in both legs/feet). No movement penalties for jumping.',
+    effects: [reminder('No jumping movement penalties (GM-handled)')],
   }),
   cw({
     name: 'Rocket Boost',
@@ -617,6 +619,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '1d6',
     description: 'PAIRED (must be installed in both legs/feet, or in meat feet). No movement penalties for swimming.',
+    effects: [reminder('No swimming movement penalties (GM-handled)')],
   }),
 
   // ── Internal Cyberware ────────────────────────────────────────────────────
@@ -644,6 +647,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'mall', installationCost: 'CO', installationDv: 15,
     psycheLoss: '1d6/2',
     description: 'After being stabilised, heals BODY×2 HP per day with light activity (versus the standard recovery rate).',
+    effects: [reminder('Heals BODY×2 HP/day when stabilised (GM-handled)')],
   }),
   cw({
     name: 'Gills',
@@ -685,6 +689,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'VEX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     useCyberneticsComponent: true, psycheLoss: '2d6',
     description: '50m terrain scan, including underwater (not through cover). Displays on HUD or cybereyes. Optional motion highlighting.',
+    effects: [reminder('50m terrain/underwater scan (GM-handled)')],
   }),
   cw({
     name: 'Toxin Binders',

@@ -485,7 +485,12 @@ export class CyberBlueActor extends Actor {
     if (!this.system.resources?.seriousWoundThreshold) return false;
     const hp = this.system.resources.hp.value ?? 0;
     const threshold = this.system.resources.seriousWoundThreshold.value ?? 0;
-    return hp > 0 && hp < threshold;
+    if (!(hp > 0 && hp < threshold)) return false;
+    // Pain Editor (chipware) suppresses the Seriously Wounded penalty.
+    const hasPainEditor = this.effects.some(
+      (e) => !e.disabled && e.getFlag?.('cyberpunk-blue', 'painEditor'),
+    );
+    return !hasPainEditor;
   }
 
   getSeriousWoundEffectData() {

@@ -571,7 +571,11 @@ export const EQUIPMENT_CATALOGUE = [
     name: 'Pain Editor Chip',
     folder: 'Chipware', cost: 'EX',
     description: 'Chipware — equipped in a shard socket. Ignore Seriously Wounded penalties while installed.',
-    effects: [reminder('Ignore Seriously Wounded penalties (while installed)')],
+    effects: [{
+      name: 'Pain Editor: Ignore Seriously Wounded',
+      disabled: false, transfer: true, changes: [],
+      flags: { 'cyberpunk-blue': { painEditor: true } },
+    }],
   }),
   gear({
     name: 'Skill Chip',
