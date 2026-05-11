@@ -36,6 +36,7 @@ export class CyberBlueItem extends Item {
   static PSYCHE_LOSS_FLAG = 'autoPsycheLoss';
   static PSYCHE_PROMPT_FLAG = 'psycheLossPrompted';
   static OPERATIONAL_EFFECT_FLAG = 'autoOperationalEffectState';
+  static GEAR_EFFECT_STATE_FLAG = 'autoGearEffectState';
 
   async _onCreate(data, options, userId) {
     await super._onCreate(data, options, userId);
@@ -204,6 +205,53 @@ export class CyberBlueItem extends Item {
 
   shouldApplyCyberwareEffects() {
     return !this.isUnconnectedExtension();
+  }
+
+  shouldApplyGearEffects() {
+    return this.type === 'gear' && normalizeGearState(this.system) !== 'owned';
+  }
+
+  async syncGearEffects(options = {}) {
+    if (this.type !== 'gear') {
+      return;
+    }
+
+    const shouldApply = this.shouldApplyGearEffects();
+    const updates = [];
+
+    for (const effect of this.effects.contents) {
+      const overrideState = effect.getFlag('cyberpunk-blue', CyberBlueItem.GEAR_EFFECT_STATE_FLAG) ?? null;
+      if (!shouldApply) {
+        if (effect.disabled !== true || overrideState?.active !== true) {
+          updates.push({
+            _id: effect.id,
+            disabled: true,
+            [`flags.cyberpunk-blue.${CyberBlueItem.GEAR_EFFECT_STATE_FLAG}`]: {
+              active: true,
+              previousDisabled: effect.disabled === true,
+            },
+          });
+        }
+        continue;
+      }
+
+      if (overrideState?.active === true) {
+        updates.push({
+          _id: effect.id,
+          disabled: overrideState.previousDisabled === true,
+          [`flags.cyberpunk-blue.${CyberBlueItem.GEAR_EFFECT_STATE_FLAG}`]: null,
+        });
+      }
+    }
+
+    if (!updates.length) {
+      return;
+    }
+
+    await this.updateEmbeddedDocuments('ActiveEffect', updates, {
+      ...options,
+      cyberBlueSyncGearEffects: true,
+    });
   }
 
   getCyberwareDisableState() {

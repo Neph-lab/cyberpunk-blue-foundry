@@ -2,7 +2,7 @@
 
 Status key: ✅ automated · ❌ not automated · ➖ partial / display only
 
-Last updated: 2026-05-11
+Last updated: 2026-05-11 (gear AE state sync + Rocket Boost reminder)
 
 Focus: Cyberware, non-weapon Gear, non-weapon Mods, Executables/Programs, Drugs.
 Weapon abilities are tracked separately in `weapon-abilities-audit.md`.
@@ -97,8 +97,8 @@ Should be Gear (Chipware). No mechanical effect to automate.
 |---|---|---|
 | ✅ Skate Foot | +6m MOVE per turn | PAIRED; additive to base MOVE |
 `aeOff` + Instructions: Deploy message → enable AE (+6 move.value) → Retract message (terminates).
-| ❌ Rocket Boost | Doubles jump height; ignore first 6m of fall | PAIRED; two separate effects |
-Create an AE as reminder, but as jumps and fall damage isn't implemented, ignore details.
+| ➖ Rocket Boost | Doubles jump height; ignore first 6m of fall | PAIRED; reminder AE only |
+Reminder AE added. Jump/fall-distance mechanics not implemented; GM-handled.
 | ❌ Gripfoot | Removes movement penalties on difficult terrain/climbing | PAIRED; terrain-penalty suppression |
 Negate terrain penalties from a Region.
 | ❌ Jump Booster | Removes jump-distance penalties | PAIRED |
@@ -127,10 +127,10 @@ Yes, that.
 
 | Gear | Effect | Notes |
 |---|---|---|
-| ✅ Medscanner (gear) | +2 Medicine while held | AE on gear item |
-AE adds +2 medicine rank. Doesn't stack with the Cyberware version (player awareness; no enforcement).
-| ✅ Techscanner (gear) | +2 Electronics, +2 Mechanics while held | AE on gear item |
-AE adds +2 electronics rank, +2 mechanics rank.
+| ✅ Medscanner (gear) | +2 Medicine while carried/equipped | AE on gear item |
+AE adds +2 medicine rank. `syncGearEffects()` disables the AE when gear state is 'owned'; re-enables when carried/equipped. Doesn't stack with the Cyberware version (player awareness; no enforcement).
+| ✅ Techscanner (gear) | +2 Electronics, +2 Mechanics while carried/equipped | AE on gear item |
+AE adds +2 electronics rank, +2 mechanics rank. Same gear-state sync as Medscanner.
 | ❌ Smart Visor | Functions as 2-slot cybereye with Virtuality while worn | Worn-state tracking + conditional NET access |
 Requires Gear Mods to replicate Cybereye extensions. Deferred until Mods overhaul.
 | ➖ Anti-Smog Breathing Mask | Immune to inhaled toxins while worn | Reminder AE only |

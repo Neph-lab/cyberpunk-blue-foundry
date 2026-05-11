@@ -586,6 +586,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     useCyberneticsComponent: true, psycheLoss: '2d6',
     description: 'PAIRED (must be installed in both legs/feet). Doubles jump height. Ignore an additional 6m of falling distance.',
+    effects: [reminder('Rocket Boost: doubled jump height; ignore extra 6m fall distance (GM-handled)')],
   }),
   cw({
     name: 'Skate Foot',

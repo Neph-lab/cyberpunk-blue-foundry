@@ -634,6 +634,30 @@ Hooks.on('createActiveEffect', syncCyberwareOperationalEffects);
 Hooks.on('updateActiveEffect', syncCyberwareOperationalEffects);
 Hooks.on('deleteActiveEffect', syncCyberwareOperationalEffects);
 
+// ─── Gear AE state sync ───────────────────────────────────────────────────────
+// Disables item-level AEs when gear state is 'owned'; re-enables when carried/equipped.
+
+const syncGearEffectsHook = (document, options = {}) => {
+  if (options?.cyberBlueSyncGearEffects) {
+    return;
+  }
+
+  const item = document instanceof Item
+    ? document
+    : document?.parent instanceof Item
+      ? document.parent
+      : null;
+
+  if (!(item instanceof CyberBlueItem) || item.type !== 'gear') {
+    return;
+  }
+
+  return item.syncGearEffects(options);
+};
+
+Hooks.on('createItem', syncGearEffectsHook);
+Hooks.on('updateItem', syncGearEffectsHook);
+
 // ─── PSYCHE state sync ────────────────────────────────────────────────────────
 
 const PSYCHE_STATE_FLAG = 'psycheState';
@@ -927,21 +951,27 @@ Hooks.once('ready', async () => {
   await ensureMacroCatalogue();
 
   const seen = new Set();
-  const cyberwareItems = [
+  const allItems = [
     ...game.items.contents,
     ...game.actors.contents.flatMap((actor) => actor.items.contents),
-  ].filter((item) => item instanceof CyberBlueItem && item.type === 'cyberware')
-    .filter((item) => {
-      if (seen.has(item.uuid)) {
-        return false;
-      }
-      seen.add(item.uuid);
-      return true;
-    });
+  ].filter((item) => {
+    if (seen.has(item.uuid)) {
+      return false;
+    }
+    seen.add(item.uuid);
+    return true;
+  });
+
+  const cyberwareItems = allItems.filter((item) => item instanceof CyberBlueItem && item.type === 'cyberware');
+  const gearItems = allItems.filter((item) => item instanceof CyberBlueItem && item.type === 'gear');
 
   for (const item of cyberwareItems) {
     await item.syncCyberwarePsycheLossEffect({ cyberBlueSyncPsycheLoss: true });
     await item.syncCyberwareOperationalEffects({ cyberBlueSyncOperationalEffects: true });
+  }
+
+  for (const item of gearItems) {
+    await item.syncGearEffects({ cyberBlueSyncGearEffects: true });
   }
 
   for (const actor of game.actors.contents) {
@@ -1724,7 +1754,8 @@ function _catalogueEffectSig(e) {
 /** True if a document-level AE was added by the system (not from the catalogue). */
 function _isSystemGeneratedEffect(effect) {
   return !!(effect.getFlag?.('cyberpunk-blue', 'autoPsycheLoss')
-    || effect.getFlag?.('cyberpunk-blue', 'autoOperationalEffectState'));
+    || effect.getFlag?.('cyberpunk-blue', 'autoOperationalEffectState')
+    || effect.getFlag?.('cyberpunk-blue', 'autoGearEffectState'));
 }
 
 async function _syncCyberwareEntries(catalogue) {
@@ -1769,7 +1800,7 @@ async function _syncCyberwareEntries(catalogue) {
       changes:  e.changes ?? [],
       flags:   { 'cyberpunk-blue': Object.fromEntries(
         Object.entries(e.flags?.['cyberpunk-blue'] ?? {})
-          .filter(([k]) => k !== 'autoPsycheLoss' && k !== 'autoOperationalEffectState')
+          .filter(([k]) => k !== 'autoPsycheLoss' && k !== 'autoOperationalEffectState' && k !== 'autoGearEffectState')
       ) },
     })).sort().join('\n');
     const effectsChanged = catSig !== docSig;
@@ -1799,6 +1830,60 @@ async function _syncCyberwareEntries(catalogue) {
     const weaponCount  = updates.filter((u) => 'system.isWeapon' in u).length;
     const effectsCount = updates.filter((u) => 'effects' in u).length;
     console.log(`Cyberpunk Blue | Synced ${weaponCount} weapon and ${effectsCount} effects updates in cyberware pack.`);
+  } finally {
+    await pack.configure({ locked: true });
+  }
+}
+
+/**
+ * Sync gear compendium entries with the current catalogue definition.
+ * Only the effects array is compared and updated; system-generated effects
+ * (gear state flags) are excluded from comparison.
+ */
+async function _syncGearEntries(catalogue) {
+  const PACK_ID = 'cyberpunk-blue.gear';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) return;
+  await pack.getIndex({ fields: ['name', 'type'] });
+
+  const byName = new Map(
+    catalogue
+      .filter((it) => it.type === 'gear')
+      .map((it) => [it.name, it])
+  );
+
+  const updates = [];
+  for (const entry of pack.index) {
+    if (entry.type !== 'gear') continue;
+    const def = byName.get(entry.name);
+    if (!def) continue;
+    const doc = await pack.getDocument(entry._id);
+    if (!doc) continue;
+
+    const catEffects = def.effects ?? [];
+    const docEffects = (doc.effects?.contents ?? []).filter((e) => !_isSystemGeneratedEffect(e));
+    const catSig = catEffects.map(_catalogueEffectSig).sort().join('\n');
+    const docSig = docEffects.map((e) => _catalogueEffectSig({
+      name:    e.name,
+      disabled: e.disabled,
+      changes:  e.changes ?? [],
+      flags:   { 'cyberpunk-blue': Object.fromEntries(
+        Object.entries(e.flags?.['cyberpunk-blue'] ?? {})
+          .filter(([k]) => k !== 'autoGearEffectState')
+      ) },
+    })).sort().join('\n');
+
+    if (catSig !== docSig) {
+      updates.push({ _id: doc.id, effects: catEffects });
+    }
+  }
+
+  if (updates.length === 0) return;
+
+  await pack.configure({ locked: false });
+  try {
+    await Item.updateDocuments(updates, { pack: PACK_ID });
+    console.log(`Cyberpunk Blue | Synced effects on ${updates.length} gear pack entries.`);
   } finally {
     await pack.configure({ locked: true });
   }
@@ -1860,8 +1945,11 @@ async function ensureEquipmentCatalogue() {
     const dCreated  = await _populateEquipmentPack('cyberpunk-blue.drugs',     drugItems);
     const pCreated  = await _populateEquipmentPack('cyberpunk-blue.programs',  progItems);
 
-    // Sync weapon data on already-populated cyberware pack entries
+    // Sync weapon data and effects on already-populated cyberware pack entries
     await _syncCyberwareEntries(CYBERWARE_CATALOGUE);
+
+    // Sync effects on already-populated gear pack entries
+    await _syncGearEntries(EQUIPMENT_CATALOGUE);
 
     // Add armor items that may have been missing in earlier versions
     await _ensureArmorInGearPack(gearItems);
