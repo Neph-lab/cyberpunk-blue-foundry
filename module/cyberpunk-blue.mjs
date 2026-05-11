@@ -1611,7 +1611,8 @@ async function _syncWeaponEntries(catalogue) {
       !!currentWeapons[0]?.critSlicing !== !!catalogueWeapons[0]?.critSlicing ||
       !!currentWeapons[0]?.critBlunt !== !!catalogueWeapons[0]?.critBlunt ||
       !!currentWeapons[0]?.critCrushing !== !!catalogueWeapons[0]?.critCrushing ||
-      !!currentWeapons[0]?.critStun !== !!catalogueWeapons[0]?.critStun;
+      !!currentWeapons[0]?.critStun !== !!catalogueWeapons[0]?.critStun ||
+      !!currentWeapons[0]?.critDoublePick !== !!catalogueWeapons[0]?.critDoublePick;
 
     // Batch 5: new PW mechanic fields
     const pwFieldsChanged = catalogueWeapons.some((cw, i) => {
@@ -1676,8 +1677,19 @@ async function _syncWeaponEntries(catalogue) {
       const cur = currentWeapons[i] ?? {};
       return (cur.type ?? '') !== (cw.type ?? '');
     });
+    // Batch 12: affliction fields + outerZoneResistBonus (new schema fields)
+    const batch12FieldsChanged = catalogueWeapons.some((cw, i) => {
+      const cur = currentWeapons[i] ?? {};
+      return (
+        (cur.afflictionPrimary ?? 'body') !== (cw.afflictionPrimary ?? 'body') ||
+        (cur.afflictionSkill ?? '') !== (cw.afflictionSkill ?? '') ||
+        (cur.afflictionDv ?? 13) !== (cw.afflictionDv ?? 13) ||
+        (cur.afflictionEffectId ?? '') !== (cw.afflictionEffectId ?? '') ||
+        (cur.outerZoneResistBonus ?? 2) !== (cw.outerZoneResistBonus ?? 2)
+      );
+    });
 
-    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged || batch9FieldsChanged || batch10FieldsChanged || batch11FieldsChanged) {
+    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged || batch9FieldsChanged || batch10FieldsChanged || batch11FieldsChanged || batch12FieldsChanged) {
       updates.push({ _id: doc.id, 'system.weapons': catalogueWeapons });
     }
   }

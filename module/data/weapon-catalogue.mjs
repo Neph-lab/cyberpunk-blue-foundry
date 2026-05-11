@@ -77,7 +77,7 @@ function entry(opts = {}) {
     machineGun: 'heavyWeapons', precisionRifle: 'shoulderArms',
     sniperRifle: 'shoulderArms', grenadeLauncher: 'heavyWeapons',
     rocketLauncher: 'heavyWeapons', flamethrower: 'heavyWeapons',
-    bowCrossbow: 'archery',
+    bowCrossbow: 'archery', stunGun: 'handgun', thrown: 'athletics',
   };
   return {
     type: opts.type ?? 'mediumPistol',
@@ -114,6 +114,34 @@ function entry(opts = {}) {
     critBlunt: !!opts.critBlunt,
     critCrushing: !!opts.critCrushing,
     critStun: !!opts.critStun,
+    critDoublePick: !!opts.critDoublePick,
+    // ── Batch 7+ flags (were missing from entry() — causing compendium items to have false) ──
+    vicious: !!opts.vicious,
+    heavyRecoil: !!opts.heavyRecoil,
+    shockwave: !!opts.shockwave,
+    burningEdge: !!opts.burningEdge,
+    chargedAttackBonus: opts.chargedAttackBonus ?? 0,
+    halveSP: !!opts.halveSP,
+    autoFireOn10: !!opts.autoFireOn10,
+    doubleLock: !!opts.doubleLock,
+    electricCharge: !!opts.electricCharge,
+    electricChargeMax: opts.electricChargeMax ?? 0,
+    chompAmmo: !!opts.chompAmmo,
+    minimumAmmoToFire: opts.minimumAmmoToFire ?? 0,
+    cs3: !!opts.cs3,
+    cs3FallbackDamage: opts.cs3FallbackDamage ?? '',
+    chargeKeepsRof: !!opts.chargeKeepsRof,
+    targetedShotDamageDice: opts.targetedShotDamageDice ?? '',
+    armorPiercing: !!opts.armorPiercing,
+    scatter: !!opts.scatter,
+    shatteredProjectiles: !!opts.shatteredProjectiles,
+    shortAmmoFallbackDamage: opts.shortAmmoFallbackDamage ?? '',
+    critOnBodyReq: opts.critOnBodyReq ?? 0,
+    afflictionPrimary: opts.afflictionPrimary ?? 'body',
+    afflictionSkill: opts.afflictionSkill ?? '',
+    afflictionDv: opts.afflictionDv ?? 13,
+    afflictionEffectId: opts.afflictionEffectId ?? '',
+    outerZoneResistBonus: opts.outerZoneResistBonus ?? 2,
   };
 }
 
