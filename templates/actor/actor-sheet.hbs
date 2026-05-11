@@ -329,6 +329,9 @@
                 {{/if}}
               {{/unless}}
               {{#if (eq feature.kind "protean")}}
+                {{#if feature.enrichedAbilityOverview}}
+                  <div class="role-overview-html role-ability-overview">{{{feature.enrichedAbilityOverview}}}</div>
+                {{/if}}
                 <div class="role-focus-summary">
                   <span>{{localize "CYBER_BLUE.Role.Pool"}}: {{feature.totalPoints}}</span>
                   <span>{{localize "CYBER_BLUE.Role.Remaining"}}: {{feature.remainingPoints}}</span>

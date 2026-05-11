@@ -16,7 +16,7 @@ import {
   syncDisabledCyberwareItemEffects,
   syncActorCyberwareDisableEffects,
 } from './helpers/cyberware-disable.mjs';
-import { syncActorLeaderRoles } from './helpers/roles.mjs';
+import { syncActorLeaderRoles, syncAllProteanFociAEs, normalizeRoleSystemData } from './helpers/roles.mjs';
 import { CyberBlueJsonImportDialog, CyberBlueMacroCreator, CyberBlueWeaponImportDialog } from './helpers/gm-tools.mjs';
 import { CharacterCreationWizard } from './helpers/character-creation.mjs';
 import {
@@ -84,6 +84,7 @@ Hooks.once('init', function () {
     },
     roles: {
       syncLeaderTeams: syncActorLeaderRoles,
+      syncProteanFoci: syncAllProteanFociAEs,
     },
   };
 
@@ -769,6 +770,23 @@ Hooks.on('updateItem', syncLeaderTeams);
 Hooks.on('deleteItem', syncLeaderTeams);
 Hooks.on('updateActor', syncLeaderTeams);
 
+// ─── Protean tactic AE sync ───────────────────────────────────────────────────
+// Re-sync tactic AEs whenever a protean Role item is created/updated/deleted.
+// Only runs on the client that made the change (userId === game.user.id) to
+// avoid duplicate writes when multiple clients are online.
+const syncProteanFociEffects = (document, ...hookArgs) => {
+  const userId = hookArgs[hookArgs.length - 1];
+  if (userId !== game.user.id) return;
+  if (!(document instanceof Item) || document.type !== 'role') return;
+  if (!(document.parent instanceof CyberBlueActor)) return;
+  const system = normalizeRoleSystemData(document.system);
+  if (system.category !== 'protean') return;
+  return syncAllProteanFociAEs(document.parent);
+};
+Hooks.on('createItem', syncProteanFociEffects);
+Hooks.on('updateItem', syncProteanFociEffects);
+Hooks.on('deleteItem', syncProteanFociEffects);
+
 // ─── Ricochet canvas line hooks ───────────────────────────────────────────────
 // Redraw the ricochet trajectory line whenever the relevant state changes.
 Hooks.on('canvasReady', () => { try { refreshAllRicochetLines(); } catch { /* canvas not ready */ } });
@@ -1001,6 +1019,7 @@ Hooks.once('ready', async () => {
   for (const actor of game.actors.contents) {
     await syncActorCyberwareDisableEffects(actor, { cyberBlueSyncCyberwareDisable: true });
     await syncActorLeaderRoles(actor);
+    await syncAllProteanFociAEs(actor);
     await syncPsycheStateEffect(actor, { cyberBlueSyncPsycheState: false });
   }
 

@@ -548,3 +548,195 @@ export function getRoleTeamMembers(actor, roleItem, feature) {
 export function canEditRoleChoices(item) {
   return isRoleOwnerEditor(item);
 }
+
+// ─── Protean tactic AE sync ───────────────────────────────────────────────────
+
+/**
+ * Synchronise ActiveEffects on the actor for all protean-tactic foci across
+ * every protean Role item on the actor.
+ *
+ * Deletes all AEs tagged `isProteanFocusAE`, then recreates them from the
+ * current point allocations.  Handles non-stacking Threat Detection, numeric
+ * flag values (Damage Deflection), and boolean flags (Spot Weakness etc.)
+ * that combat-resolution.mjs reads via getActiveAEFlag().
+ *
+ * Safe to call from updateItem hooks and the GM-ready scan.
+ *
+ * @param {Actor} actor
+ */
+export async function syncAllProteanFociAEs(actor) {
+  if (!(actor instanceof Actor) || !actor.isOwner) return;
+
+  const ADD = 2; // ACTIVE_EFFECT_MODES.ADD
+
+  // 1. Remove all previously-synced tactic AEs.
+  const toDelete = actor.effects.contents
+    .filter((e) => e.getFlag?.('cyberpunk-blue', 'isProteanFocusAE'))
+    .map((e) => e.id);
+  if (toDelete.length) {
+    await actor.deleteEmbeddedDocuments('ActiveEffect', toDelete);
+  }
+
+  // 2. Gather foci from all protean roles on this actor.
+  const focusList = []; // { roleName, focus, pts }
+  let threatDetectionMax = 0;
+
+  for (const roleItem of actor.items.filter((i) => i.type === 'role')) {
+    const system = normalizeRoleSystemData(roleItem.system);
+    if (system.category !== 'protean') continue;
+    for (const focus of system.proteanFoci ?? []) {
+      const pts = Number(focus.points) || 0;
+      focusList.push({ roleName: roleItem.name, focus, pts });
+      if (focus.name === 'Threat Detection') {
+        threatDetectionMax = Math.max(threatDetectionMax, pts);
+      }
+    }
+  }
+
+  if (!focusList.length) return;
+
+  // 3. Build AEs to create.
+  const toCreate = [];
+  let threatDetectionHandled = false;
+
+  for (const { roleName, focus, pts } of focusList) {
+    // Skip zero-allocated foci (no AE needed).
+    if (pts <= 0) continue;
+
+    const baseCpbFlags = { isProteanFocusAE: true, proteanFocusName: focus.name };
+
+    switch (focus.name) {
+
+      // ── Initiative Reaction (Solo): +1 to Initiative per point ─────────────
+      case 'Initiative Reaction':
+        toCreate.push({
+          name: `${roleName}: Initiative Reaction (+${pts} Initiative)`,
+          disabled: false, transfer: false,
+          flags: { 'cyberpunk-blue': baseCpbFlags },
+          changes: [{ key: 'system.stats.rflx.rollMod', mode: ADD, value: String(pts) }],
+        });
+        break;
+
+      // ── Spot Weakness (Solo): SP bypass on first hit (handled by combat code)
+      case 'Spot Weakness':
+        toCreate.push({
+          name: `${roleName}: Spot Weakness (SP bypassed, first hit)`,
+          disabled: false, transfer: false,
+          flags: { 'cyberpunk-blue': { ...baseCpbFlags, soloSpotWeakness: true } },
+          changes: [],
+        });
+        break;
+
+      // ── Threat Detection (Solo/Ninja): +1 Perception per point; NON-STACKING
+      case 'Threat Detection':
+        if (!threatDetectionHandled) {
+          threatDetectionHandled = true;
+          if (threatDetectionMax > 0) {
+            toCreate.push({
+              name: `Threat Detection (+${threatDetectionMax} Perception)`,
+              disabled: false, transfer: false,
+              flags: { 'cyberpunk-blue': baseCpbFlags },
+              changes: [{ key: 'system.skills.perception.bonus', mode: ADD, value: String(threatDetectionMax) }],
+            });
+          }
+        }
+        break;
+
+      // ── Damage Deflection (Solo): −1 per 2 pts on first damage taken ───────
+      case 'Damage Deflection': {
+        const reduction = Math.min(Math.floor(pts / 2), 5);
+        if (reduction > 0) {
+          toCreate.push({
+            name: `${roleName}: Damage Deflection (−${reduction} first damage)`,
+            disabled: false, transfer: false,
+            flags: { 'cyberpunk-blue': { ...baseCpbFlags, soloDamageDeflection: reduction } },
+            changes: [],
+          });
+        }
+        break;
+      }
+
+      // ── Fumble Recovery (Solo): reroll attack die = 1 when ≥ 4 pts ─────────
+      case 'Fumble Recovery':
+        if (pts >= 4) {
+          toCreate.push({
+            name: `${roleName}: Fumble Recovery (reroll 1s)`,
+            disabled: false, transfer: false,
+            flags: { 'cyberpunk-blue': { ...baseCpbFlags, soloFumbleRecovery: true } },
+            changes: [],
+          });
+        }
+        break;
+
+      // ── Silent Death (Ninja): +1 Stealth per point ─────────────────────────
+      case 'Silent Death':
+        toCreate.push({
+          name: `${roleName}: Silent Death (+${pts} Stealth)`,
+          disabled: false, transfer: false,
+          flags: { 'cyberpunk-blue': baseCpbFlags },
+          changes: [{ key: 'system.skills.stealth.bonus', mode: ADD, value: String(pts) }],
+        });
+        break;
+
+      // ── Martial Skill (Ninja): +1 Melee/MA per 2 pts (max +3) ──────────────
+      case 'Martial Skill': {
+        const bonus = Math.min(Math.floor(pts / 2), 3);
+        if (bonus > 0) {
+          toCreate.push({
+            name: `${roleName}: Martial Skill (+${bonus} Melee & Martial Arts)`,
+            disabled: false, transfer: false,
+            flags: { 'cyberpunk-blue': baseCpbFlags },
+            changes: [
+              { key: 'system.skills.meleeWeapon.bonus', mode: ADD, value: String(bonus) },
+              { key: 'system.skills.martialArts.bonus', mode: ADD, value: String(bonus) },
+            ],
+          });
+        }
+        break;
+      }
+
+      // ── Seek Cover (Ninja): +5 Initiative when 2 pts allocated ─────────────
+      case 'Seek Cover':
+        if (pts >= 2) {
+          toCreate.push({
+            name: `${roleName}: Seek Cover (+5 Initiative)`,
+            disabled: false, transfer: false,
+            flags: { 'cyberpunk-blue': baseCpbFlags },
+            changes: [{ key: 'system.stats.rflx.rollMod', mode: ADD, value: '5' }],
+          });
+        }
+        break;
+
+      // ── Weak-Spot (Ninja): SP bypass up to threshold (combat-code flag) ────
+      case 'Weak-Spot': {
+        const threshold = Math.floor(pts / 2) * 3;
+        toCreate.push({
+          name: `${roleName}: Weak-Spot (SP ≤ ${threshold} bypassed)`,
+          disabled: false, transfer: false,
+          flags: { 'cyberpunk-blue': { ...baseCpbFlags, ninjaWeakSpot: true } },
+          changes: [],
+        });
+        break;
+      }
+
+      // Precision Attack, Pummel, Poison, Precision Kill — combat-code hooks
+      // not yet implemented; displayed on sheet as text only.
+      default:
+        break;
+    }
+  }
+
+  // Handle Threat Detection if only Ninja has it and pts > 0 (deduplicated above).
+  if (!threatDetectionHandled && threatDetectionMax > 0) {
+    toCreate.push({
+      name: `Threat Detection (+${threatDetectionMax} Perception)`,
+      disabled: false, transfer: false,
+      flags: { 'cyberpunk-blue': { isProteanFocusAE: true, proteanFocusName: 'Threat Detection' } },
+      changes: [{ key: 'system.skills.perception.bonus', mode: ADD, value: String(threatDetectionMax) }],
+    });
+  }
+
+  if (toCreate.length) {
+    await actor.createEmbeddedDocuments('ActiveEffect', toCreate);
+  }
+}

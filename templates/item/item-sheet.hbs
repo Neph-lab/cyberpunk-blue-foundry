@@ -877,15 +877,20 @@
                     <span>{{localize "CYBER_BLUE.Role.Pool"}}: {{roleRank}}</span>
                   </div>
                   {{#each roleProteanFoci as |focus|}}
-                    <div class="item-meta-row">
-                      <label title="{{focus.description}}">
-                        <span>{{focus.name}}</span>
-                        {{#if @root.roleCanEditChoices}}
-                          <input type="number" name="system.proteanFoci.{{focus.focusIndex}}.points" value="{{focus.points}}" min="{{focus.minPoints}}" max="{{focus.maxPoints}}" step="{{focus.step}}" data-dtype="Number" />
-                        {{else}}
-                          <div class="readonly-value">{{focus.points}}</div>
-                        {{/if}}
-                      </label>
+                    <div class="role-tactic-entry">
+                      <div class="role-tactic-header">
+                        <label>
+                          <span class="role-tactic-name">{{focus.name}}</span>
+                          {{#if @root.roleCanEditChoices}}
+                            <input type="number" name="system.proteanFoci.{{focus.focusIndex}}.points" value="{{focus.points}}" min="{{focus.minPoints}}" max="{{focus.maxPoints}}" step="{{focus.step}}" data-dtype="Number" />
+                          {{else}}
+                            <div class="readonly-value">{{focus.points}}</div>
+                          {{/if}}
+                        </label>
+                      </div>
+                      {{#if focus.description}}
+                        <p class="hint role-tactic-description">{{focus.description}}</p>
+                      {{/if}}
                     </div>
                   {{/each}}
                 {{/if}}
