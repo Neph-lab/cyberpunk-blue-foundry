@@ -433,7 +433,7 @@ const special = [
     weapons: [entry({ type: 'rocketLauncher', damage: '10d6', rateOfFire: 1, magazine: 1, shots: 1, hands: 2, rangeTable: R.rl, smart: true, damageType: 'explosion', coneSpread: 4, coneHalfDamageDistance: 4 })],
     description: desc('Smart Weapon. Explosive 4/10m. Homing Guidance: ISA rockets are homing — when the only moving target is 50+m away vs unmoving background, a miss of ≤7 means the rocket guides itself onto the target.') }),
   weaponItem({ name: 'Kang Tao TKI-20 Mámù', manufacturer: 'Kang Tao', cost: 'EX', imgPath: img(W_ROOT, 'Kang Tao Mámù.png'),
-    weapons: [entry({ type: 'mediumPistol', damage: '3d6', rateOfFire: 2, magazine: 12, hands: 1, concealable: true, rangeTable: R.pistol, shots: 1, critStun: true, shockwave: true })],
+    weapons: [entry({ type: 'stunGun', damage: '3d6', rateOfFire: 2, magazine: 12, hands: 1, concealable: true, rangeTable: R.pistol, shots: 1, critStun: true, shockwave: true })],
     description: desc('Stun Gun. Shockwave: a standing target with BODY < 8 is pushed 2m away. Stun: target reduced to 0 HP becomes stable (criticals still trigger normally). Battery: no ammo slot — €$50 battery, 1h to recharge from empty.') }),
   weaponItem({ name: 'Sanroo Hotness', manufacturer: 'Sanroo', cost: 'EX', imgPath: img(W_ROOT, 'Sanroo hotness.png'),
     weapons: [entry({ type: 'flamethrower', damage: '4d6', rateOfFire: 1, magazine: 10, shots: 1, hands: 2, damageType: 'cone', coneSpread: 4, coneAngle: 53, coneHalfDamageDistance: 6 })],

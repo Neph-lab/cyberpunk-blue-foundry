@@ -22,6 +22,7 @@ export default class CyberBlueAmmo extends CyberBlueItemBase {
       grenade: new fields.BooleanField({ initial: false }),
       rocket: new fields.BooleanField({ initial: false }),
       flamethrower: new fields.BooleanField({ initial: false }),
+      battery: new fields.BooleanField({ initial: false }),
     });
 
     return schema;

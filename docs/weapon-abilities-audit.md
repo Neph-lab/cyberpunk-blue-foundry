@@ -166,7 +166,7 @@ Last updated: 2026-05-11
 | Ability | Where | Notes |
 |---|---|---|
 | ➖ Tracker Dart / Dart alternate fire mode | Sonnet HP, Ashura SR | second weapon entries added; beacon/tag mechanic GM-handled |
-| ❌ Battery ammo category | Kang Tao Mámù stun gun | 'Battery' ammo type not yet created; Mámù uses dummy mag for now |
+| ✅ Battery ammo category | Kang Tao Mámù stun gun | `stunGun` weapon type (category: ranged, skill: handgun); `battery` ammo flag; 'Basic Battery' entry (qty 1, €$50); reload prompts for battery ammo only |
 
 ---
 
@@ -203,7 +203,7 @@ Description text is sufficient; no mechanical enforcement needed:
 | Item | Priority | Notes |
 |---|---|---|
 | ➖ Tracker Dart / Dart modes (Sonnet HP, Ashura SR) | medium | Second weapons[] entries added; Ashura dart now silenced; Sonnet tag/beacon redirect GM-handled |
-| ❌ Battery ammo category (Mámù) | low | New ammo type + reload flow |
+| ✅ Battery ammo category (Mámù) | — | `stunGun` weapon type added; `battery` ammo flag in schema + catalogue; Mámù type changed from `mediumPistol` to `stunGun`; `_syncWeaponEntries` batch 11 detects type changes |
 | ➖ Return Thrower restriction (Boomerang mod) | low | `requiresLightMelee: true` added; blocks attachment to non-LMW |
 | ❌ Thermal Imaging darkness cap | deferred | No darkness mechanic yet |
 | ❌ Miss-redirect beacon system (Sonnet HP) | low | Requires TAG/beacon token tracking |

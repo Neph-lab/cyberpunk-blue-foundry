@@ -31,6 +31,7 @@ function ammoItem({ name, ammoTypes = {}, quantity = 10, note = '', img = '' }) 
         grenade:       !!ammoTypes.grenade,
         rocket:        !!ammoTypes.rocket,
         flamethrower:  !!ammoTypes.flamethrower,
+        battery:       !!ammoTypes.battery,
       },
     },
   };
@@ -110,5 +111,12 @@ export const AMMO_CATALOGUE = [
     ammoTypes: { flamethrower: true },
     img: `${ASSET_BASE}/Basic Rifle.png`,
     note: 'Standard accelerant',
+  }),
+  ammoItem({
+    name: 'Basic Battery',
+    ammoTypes: { battery: true },
+    quantity: 1,
+    img: `${ASSET_BASE}/Basic Rifle.png`,
+    note: '€$50; fully recharges a stun gun (12 shots); 1 hour to recharge from empty',
   }),
 ];

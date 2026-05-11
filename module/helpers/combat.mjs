@@ -266,6 +266,20 @@ const RAW_WEAPON_TYPES = [
     concealable: true,
     rangeTable: [15, 13, 25, 0, 0, 0, 0, 0],
   },
+  {
+    value: 'stunGun',
+    label: 'Stun Gun',
+    category: 'ranged',
+    skillOptions: ['handgun'],
+    defaultSkill: 'handgun',
+    damage: '3d6',
+    rateOfFire: 2,
+    magazine: 12,
+    shots: 1,
+    hands: 1,
+    concealable: true,
+    rangeTable: [13, 15, 20, 25, 30, 30, 0, 0],
+  },
 ];
 
 const CATEGORY_LABELS = {
@@ -345,6 +359,7 @@ const WEAPON_AMMO_COMPATIBILITY = {
   rocketLauncher: ['rocket'],
   flamethrower: ['flamethrower'],
   bowCrossbow: ['bow'],
+  stunGun: ['battery'],
 };
 
 /**

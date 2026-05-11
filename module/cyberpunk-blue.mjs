@@ -1671,8 +1671,13 @@ async function _syncWeaponEntries(catalogue) {
         (cur.silenceBuiltInDV ?? 0) !== (cw.silenceBuiltInDV ?? 0)
       );
     });
+    // Batch 11: weapon type change (e.g. mediumPistol → stunGun for Mámù)
+    const batch11FieldsChanged = catalogueWeapons.some((cw, i) => {
+      const cur = currentWeapons[i] ?? {};
+      return (cur.type ?? '') !== (cw.type ?? '');
+    });
 
-    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged || batch9FieldsChanged || batch10FieldsChanged) {
+    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged || batch9FieldsChanged || batch10FieldsChanged || batch11FieldsChanged) {
       updates.push({ _id: doc.id, 'system.weapons': catalogueWeapons });
     }
   }
