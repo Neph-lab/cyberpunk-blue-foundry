@@ -204,8 +204,11 @@ const pistols = [
     weapons: [entry({ ...HP_BASE, magazine: 12, tech: true, chargeType: 'hold', jamOnRoll: 1, jamFiresFirst: false, cs3: true, cs3FallbackDamage: '2d6' })],
     description: desc('Tech Weapon (HOLD charge), Cheap. Charged Shot 3 (CS3).') }),
   weaponItem({ name: 'Malorian Arms Sonnet', manufacturer: 'Malorian Arms', cost: 'EX', imgPath: img(W_PISTOL, 'Maloran Arms Sonnet.png'),
-    weapons: [entry({ ...HP_BASE, magazine: 12, smart: true })],
-    description: desc('Smart Weapon. Experimental: alternate mode fires a tracker dart (1d6, ammo 2). ISA shots that miss by ≤5 vs a beacon-tagged target: roll 1d10+15 to redirect onto them.') }),
+    weapons: [
+      entry({ ...HP_BASE, magazine: 12, smart: true }),
+      entry({ type: 'heavyPistol', damage: '1d6', rateOfFire: 1, magazine: 2, hands: 1, concealable: true, rangeTable: R.pistol, shots: 1, smart: true }),
+    ],
+    description: desc('Smart Weapon. Mode 2: tracker dart (1d6, ammo 2) — tags target for ISA miss-redirect (ISA miss ≤5 vs beacon-tagged target: roll 1d10+15 to redirect; GM-handled).') }),
   weaponItem({ name: 'Sanroo Hello Cutie+', manufacturer: 'Sanroo', cost: 'VEX', imgPath: img(W_PISTOL, 'Sanroo-Hello-Cutie.png'),
     weapons: [entry({ ...HP_BASE, magazine: 12, tech: true, chargeType: 'hold', cs3: true, cs3FallbackDamage: '2d6', chargedAttackBonus: 2 })],
     description: desc('Tech Weapon (HOLD charge). Charged Shot 3. Stabilizers: +2 attacks while charged.') }),
@@ -409,9 +412,9 @@ const snipers = [
   weaponItem({ name: 'Tsunami Ashura', manufacturer: 'Tsunami Arms', cost: 'VEX', imgPath: img(W_SNIPER, 'Tsunami Ashura.png'),
     weapons: [
       entry({ ...SR_BASE, magazine: 5, smart: true }),
-      entry({ ...SR_BASE, damage: '4d6', magazine: 5, smart: true, payloadDmgBonus: 2 }),
+      entry({ ...SR_BASE, damage: '4d6', magazine: 5, smart: true, payloadDmgBonus: 2, silenceBuiltIn: true, silenceBuiltInDV: 10 }),
     ],
-    description: desc('Smart Weapon. Dart mode: silent smart dart, 4d6 + toxin payload. Replacement darts €$50 per 10.') }),
+    description: desc('Smart Weapon. Dart mode: silent smart dart (DV10 to hear), 4d6 + toxin payload (+2 dmg on penetration). Replacement darts €$50 per 10.') }),
 
   weaponItem({ name: 'Rostovic Kolac', manufacturer: 'Rostovic', cost: 'EX', imgPath: img(W_ROOT, 'Rostovic Kolac.png'),
     weapons: [entry({ ...PR_BASE, damage: '6d6', power: true, heavyRecoil: true })],

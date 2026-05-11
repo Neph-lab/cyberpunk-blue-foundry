@@ -1660,8 +1660,16 @@ async function _syncWeaponEntries(catalogue) {
       const cur = currentWeapons[i] ?? {};
       return (cur.minimumAmmoToFire ?? 0) !== (cw.minimumAmmoToFire ?? 0);
     });
+    // Batch 10: silence fields (silenceBuiltIn, silenceBuiltInDV)
+    const batch10FieldsChanged = catalogueWeapons.some((cw, i) => {
+      const cur = currentWeapons[i] ?? {};
+      return (
+        !!cur.silenceBuiltIn !== !!cw.silenceBuiltIn ||
+        (cur.silenceBuiltInDV ?? 0) !== (cw.silenceBuiltInDV ?? 0)
+      );
+    });
 
-    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged || batch9FieldsChanged) {
+    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged || batch9FieldsChanged || batch10FieldsChanged) {
       updates.push({ _id: doc.id, 'system.weapons': catalogueWeapons });
     }
   }

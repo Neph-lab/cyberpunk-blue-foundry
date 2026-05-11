@@ -2,7 +2,7 @@
 
 Status key: ✅ implemented · ❌ not implemented · ➖ partial / display only
 
-Last updated: after Batch 9 (2026-05-04)
+Last updated: 2026-05-11
 
 ---
 
@@ -202,7 +202,7 @@ Description text is sufficient; no mechanical enforcement needed:
 
 | Item | Priority | Notes |
 |---|---|---|
-| ❌ Tracker Dart / Dart modes (Sonnet HP, Ashura SR) | medium | Add second weapons[] entries to catalogue |
+| ➖ Tracker Dart / Dart modes (Sonnet HP, Ashura SR) | medium | Second weapons[] entries added; Ashura dart now silenced; Sonnet tag/beacon redirect GM-handled |
 | ❌ Battery ammo category (Mámù) | low | New ammo type + reload flow |
 | ❌ Return Thrower restriction (Boomerang mod) | low | Validate mod only attaches to light melee throwable |
 | ❌ Thermal Imaging darkness cap | deferred | No darkness mechanic yet |
