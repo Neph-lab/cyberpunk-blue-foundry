@@ -112,10 +112,10 @@ Handled by the GM.
 
 | Cyberware | Effect | Notes |
 |---|---|---|
-| ❌ Monowire | On crit: roll injury table twice, choose result | Cyberware weapon; crit modifier separate from weapon-ability system |
-This is a Weapon with an extra ability. On a Crit, roll twice and present a dialog for the player to pick (and one to the GM in case the player doesn't choose) before applying. The pure damage of the Crit can be handled first.
-| ❌ Mantis Blades | Two blades at same target same Attack → roll all dice together | Cyberware weapon; multi-hit pooling rule |
-Allow for a secondary attack button that is RoF 1 and deals all 6 dice damage at once.
+| ✅ Monowire | On crit: roll injury table twice, choose result | `critDoublePick: true` on weapon schema |
+`_drawSecondCritResult()` + DialogV2 pick dialog in `critical-injury.mjs`. GM fallback: auto-resolves to first result on close.
+| ✅ Mantis Blades | Two blades at same target same Attack → roll all dice together | Two weapon entries in catalogue |
+Single-blade entry (3d6, RoF 2) + combined-strike entry (6d6, RoF 1, 2-handed). Both on the same catalogue item.
 | ❌ Self-ICE | Adds a Passwall layer (DV 10 + 2 per install) to architecture | NET-side effect; requires architecture integration |
 Relevant for quickhacking. Rules added at the end of this document.
 | ❌ Radar / Sonar | 50m terrain scan on HUD | Display feature; no combat mechanic required beyond narrative |
@@ -127,20 +127,20 @@ Yes, that.
 
 | Gear | Effect | Notes |
 |---|---|---|
-| ❌ Medscanner (gear) | +2 Medicine while held | Skill bonus; gear item (non-cyberware) |
-AE while equipped. Doesn't stack with the Cyberware version.
-| ❌ Techscanner (gear) | +2 Electronics, +2 Mechanics while held | Skill bonus; gear item |
-AE while equipped. Doesn't stack with the Cyberware version. 
+| ✅ Medscanner (gear) | +2 Medicine while held | AE on gear item |
+AE adds +2 medicine rank. Doesn't stack with the Cyberware version (player awareness; no enforcement).
+| ✅ Techscanner (gear) | +2 Electronics, +2 Mechanics while held | AE on gear item |
+AE adds +2 electronics rank, +2 mechanics rank.
 | ❌ Smart Visor | Functions as 2-slot cybereye with Virtuality while worn | Worn-state tracking + conditional NET access |
-Gear Mods need to be able to replicate Cybereye extensions. The GM handles if they can be added to a Smart Visor.
-| ❌ Anti-Smog Breathing Mask | Immune to inhaled toxins while worn | Status immunity while worn |
-AE that is description only.
-| ❌ Auto-Level Ear Protectors | Immune to deafness / loud-noise effects while worn | Status immunity while worn |
-AE with description and suppressing any effect causing the Deaf condition.
-| ❌ Linear Frame Sigma (exoskeleton) | Strength tasks as BODY 12 | Non-cyberware; worn-state BODY override |
-Implement. GM handles any conflicts.
-| ❌ Linear Frame Beta (exoskeleton) | Strength tasks as BODY 14 | Non-cyberware; worn-state BODY override |
-Implement. GM handles any conflict.
+Requires Gear Mods to replicate Cybereye extensions. Deferred until Mods overhaul.
+| ➖ Anti-Smog Breathing Mask | Immune to inhaled toxins while worn | Reminder AE only |
+Status immunity AE (description only); mechanical enforcement not implemented.
+| ➖ Auto-Level Ear Protectors | Immune to deafness / loud-noise effects while worn | Reminder AE only |
+Reminder AE; Deaf-condition suppression not implemented.
+| ✅ Linear Frame Sigma (exoskeleton) | Strength tasks as BODY 12 | Instructions + aeOff |
+`aeOff` + Instructions: Connect → enable OVERRIDE AE (BODY 12) → Disconnect (terminates).
+| ✅ Linear Frame Beta (exoskeleton) | Strength tasks as BODY 14 | Instructions + aeOff |
+`aeOff` + Instructions: Connect → enable OVERRIDE AE (BODY 14) → Disconnect (terminates).
 | ❌ Airhypo | Store 3 drugs; administer as Action; vs unwilling: BODY+Melee attack first | Inventory sub-system + combat action |
 The drugs involved can be handled manually. Treat as Light Melee weapon with Affliction damage that transfers a description-only Drugged AE.
 | ❌ Caltrops | DV15 RFLX+Athletics save or 1d6 per 2m moved through | Area placement + movement-triggered save |
