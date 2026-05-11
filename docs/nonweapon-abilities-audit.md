@@ -2,7 +2,7 @@
 
 Status key: ✅ automated · ❌ not automated · ➖ partial / display only
 
-Last updated: 2026-05-11 (gear AE state sync + Rocket Boost reminder)
+Last updated: 2026-05-11 (gear AE state sync + Rocket Boost reminder + Skill Chip)
 
 Focus: Cyberware, non-weapon Gear, non-weapon Mods, Executables/Programs, Drugs.
 Weapon abilities are tracked separately in `weapon-abilities-audit.md`.
@@ -59,8 +59,8 @@ Reminder AE; bonus is handled by GM.
 AE flag `teleOptics: true`; `combat-resolution.mjs` checks the flag and adds +1 when range > 50m.
 | ✅ Targeting Scope | +1 Aimed attacks | Conditional attack bonus |
 AE flag `targetingScope: true`; `combat-resolution.mjs` adds +1 when Target Vitals is active.
-| ❌ Skill Chip | Treat skill rank as 3 if user < 3 | Minimum-rank floor, not additive |
-The one-line note-field in the header should have the name of the Skill or Component. Implemented via AE if that name can be validated as actual Skill or Component.
+| ✅ Skill Chip | Treat skill rank as 3 if user < 3 | Minimum-rank floor, not additive |
+Note field (slug) validated against `CONFIG.CYBER_BLUE.skills` / `.components`. If valid, `syncSkillChipEffect()` creates an AE with flag `skillChipFloor: slug`. `getSkillRollContext()` calls `_getSkillChipFloors()` to apply `max(rank, 3)` floor at roll time. Respects gear state (AE disabled when 'owned').
 
 ### 1b. Speedware (exclusive group — only one may be active)
 

@@ -37,6 +37,7 @@ export class CyberBlueItem extends Item {
   static PSYCHE_PROMPT_FLAG = 'psycheLossPrompted';
   static OPERATIONAL_EFFECT_FLAG = 'autoOperationalEffectState';
   static GEAR_EFFECT_STATE_FLAG = 'autoGearEffectState';
+  static SKILL_CHIP_FLOOR_FLAG = 'skillChipFloor';
 
   async _onCreate(data, options, userId) {
     await super._onCreate(data, options, userId);
@@ -369,5 +370,66 @@ export class CyberBlueItem extends Item {
       ...options,
       cyberBlueSyncOperationalEffects: true,
     });
+  }
+
+  /**
+   * Maintains a single AE on "Skill Chip" gear items that carries a
+   * `skillChipFloor` flag pointing to the validated skill/component slug
+   * from the note field.  The AE is created/updated when the note field
+   * contains a valid slug, and deleted otherwise.
+   *
+   * Actors read this flag via `_getSkillChipFloors()` inside
+   * `getSkillRollContext()` to apply a minimum-rank-3 floor.
+   */
+  async syncSkillChipEffect(options = {}) {
+    if (this.type !== 'gear' || this.name !== 'Skill Chip') {
+      return;
+    }
+
+    const slug = (this.system.note ?? '').trim().toLowerCase();
+    const isSkill     = !!CONFIG.CYBER_BLUE?.skills?.[slug];
+    const isComponent = !isSkill && !!CONFIG.CYBER_BLUE?.components?.[slug];
+    const isValid     = isSkill || isComponent;
+
+    const existing = this.effects.find(
+      (e) => e.getFlag('cyberpunk-blue', CyberBlueItem.SKILL_CHIP_FLOOR_FLAG) != null,
+    );
+
+    if (!isValid) {
+      if (existing) {
+        await existing.delete({ ...options, cyberBlueSyncSkillChip: true });
+      }
+      return;
+    }
+
+    const effectData = {
+      name: `Skill Chip: ${slug} (min rank 3)`,
+      // Respect current gear state so the AE starts in the right condition.
+      disabled: !this.shouldApplyGearEffects(),
+      transfer: true,
+      changes: [],
+      flags: {
+        'cyberpunk-blue': {
+          [CyberBlueItem.SKILL_CHIP_FLOOR_FLAG]: slug,
+        },
+      },
+    };
+
+    if (!existing) {
+      await this.createEmbeddedDocuments('ActiveEffect', [effectData], {
+        ...options,
+        cyberBlueSyncSkillChip: true,
+      });
+      return;
+    }
+
+    const currentSlug     = existing.getFlag('cyberpunk-blue', CyberBlueItem.SKILL_CHIP_FLOOR_FLAG);
+    const needsUpdate     = currentSlug !== slug || existing.name !== effectData.name;
+    if (needsUpdate) {
+      await existing.update(
+        { name: effectData.name, [`flags.cyberpunk-blue.${CyberBlueItem.SKILL_CHIP_FLOOR_FLAG}`]: slug },
+        { ...options, cyberBlueSyncSkillChip: true },
+      );
+    }
   }
 }

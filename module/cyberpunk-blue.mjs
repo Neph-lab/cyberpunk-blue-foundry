@@ -658,6 +658,27 @@ const syncGearEffectsHook = (document, options = {}) => {
 Hooks.on('createItem', syncGearEffectsHook);
 Hooks.on('updateItem', syncGearEffectsHook);
 
+// ─── Skill Chip AE sync ───────────────────────────────────────────────────────
+// Creates / updates a flag-bearing AE on "Skill Chip" gear whose note field
+// contains a validated skill or component slug.  Actors read the flag at roll
+// time via _getSkillChipFloors() to apply a minimum rank floor of 3.
+
+const syncSkillChipEffectHook = (document, options = {}) => {
+  if (options?.cyberBlueSyncSkillChip) {
+    return;
+  }
+
+  const item = document instanceof Item ? document : null;
+  if (!(item instanceof CyberBlueItem) || item.type !== 'gear' || item.name !== 'Skill Chip') {
+    return;
+  }
+
+  return item.syncSkillChipEffect(options);
+};
+
+Hooks.on('createItem', syncSkillChipEffectHook);
+Hooks.on('updateItem', syncSkillChipEffectHook);
+
 // ─── PSYCHE state sync ────────────────────────────────────────────────────────
 
 const PSYCHE_STATE_FLAG = 'psycheState';
@@ -972,6 +993,9 @@ Hooks.once('ready', async () => {
 
   for (const item of gearItems) {
     await item.syncGearEffects({ cyberBlueSyncGearEffects: true });
+    if (item.name === 'Skill Chip') {
+      await item.syncSkillChipEffect({ cyberBlueSyncSkillChip: true });
+    }
   }
 
   for (const actor of game.actors.contents) {
@@ -1755,7 +1779,8 @@ function _catalogueEffectSig(e) {
 function _isSystemGeneratedEffect(effect) {
   return !!(effect.getFlag?.('cyberpunk-blue', 'autoPsycheLoss')
     || effect.getFlag?.('cyberpunk-blue', 'autoOperationalEffectState')
-    || effect.getFlag?.('cyberpunk-blue', 'autoGearEffectState'));
+    || effect.getFlag?.('cyberpunk-blue', 'autoGearEffectState')
+    || effect.getFlag?.('cyberpunk-blue', 'skillChipFloor') != null);
 }
 
 async function _syncCyberwareEntries(catalogue) {

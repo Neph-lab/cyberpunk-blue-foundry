@@ -311,6 +311,22 @@ export class CyberBlueActor extends Actor {
     return CONFIG.CYBER_BLUE.components[componentSlug] ?? null;
   }
 
+  /**
+   * Returns a Map from slug → minimum rank floor contributed by active
+   * Skill Chip AEs.  Only non-disabled, transferred effects are counted.
+   */
+  _getSkillChipFloors() {
+    const floors = new Map();
+    for (const effect of this.effects ?? []) {
+      if (effect.disabled) continue;
+      const slug = effect.getFlag?.('cyberpunk-blue', 'skillChipFloor');
+      if (typeof slug === 'string' && slug) {
+        floors.set(slug, Math.max(floors.get(slug) ?? 0, 3));
+      }
+    }
+    return floors;
+  }
+
   getSkillRollContext(skillSlug, componentSlug = null) {
     // Mooks: all skill checks use combatNumber as a flat bonus (no separate stat + rank).
     if (this.type === 'mook') {
@@ -343,6 +359,11 @@ export class CyberBlueActor extends Actor {
     const skillRank = this.system.skills[skillSlug]?.rank ?? 0;
     const skillBonus = this.system.skills[skillSlug]?.bonus ?? 0;
 
+    // Skill Chip: active AEs may impose a minimum rank floor of 3.
+    const chipFloors = this._getSkillChipFloors();
+    const skillFloor = chipFloors.get(skillSlug) ?? 0;
+    const effectiveSkillRank = Math.max(skillRank, skillFloor);
+
     if (!componentSlug) {
       return {
         skillLabel: skill.label,
@@ -354,7 +375,7 @@ export class CyberBlueActor extends Actor {
         componentLabel: null,
         componentRank: null,
         componentBonus: 0,
-        usedRank: skillRank,
+        usedRank: effectiveSkillRank,
       };
     }
 
@@ -365,6 +386,8 @@ export class CyberBlueActor extends Actor {
 
     const componentRank = this.system.components[componentSlug]?.rank ?? 0;
     const componentBonus = this.system.components[componentSlug]?.bonus ?? 0;
+    const componentFloor = chipFloors.get(componentSlug) ?? 0;
+    const effectiveComponentRank = Math.max(componentRank, componentFloor);
 
     return {
       skillLabel: skill.label,
@@ -376,7 +399,7 @@ export class CyberBlueActor extends Actor {
       componentLabel: component.label,
       componentRank,
       componentBonus,
-      usedRank: Math.min(skillRank, componentRank),
+      usedRank: Math.min(effectiveSkillRank, effectiveComponentRank),
     };
   }
 
