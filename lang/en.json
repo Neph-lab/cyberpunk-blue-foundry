@@ -331,6 +331,13 @@
       "Fixer": {
         "Haggle": "Haggle"
       },
+      "Specialist": {
+        "Budget": "Rank Budget",
+        "PointsRemaining": "remaining",
+        "AddRank": "Add specialty rank",
+        "RemoveRank": "Remove specialty rank",
+        "ChosenOptions": "Chosen"
+      },
       "Guide": {
         "DealReading": "Deal Reading",
         "Meditate": "Meditate",

@@ -579,6 +579,7 @@
         <div class="tab active" data-group="primary" data-tab="description">
           <section class="sheet-panel">
             {{#if isRole}}
+              <img src="{{item.img}}" alt="{{item.name}}" class="role-description-img" style="float: left; width: 450px; max-width: 100%; margin: 0 1em 0.5em 0;" />
               {{#if roleShowRestrictedEditing}}
                 <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
                   {{{enrichedDescription}}}

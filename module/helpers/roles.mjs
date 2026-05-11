@@ -22,6 +22,7 @@ export function getRoleCategoryLabel(category) {
 export function createRoleAbilitySectionData() {
   return {
     id: randomId(),
+    name: '',
     unlockRank: 1,
     content: '',
   };

@@ -27,6 +27,7 @@ import { CharacterCreationWizard, CC_STEPS_LIST } from '../helpers/character-cre
 import {
   getRoleCategoryLabel,
   getRoleTeamMembers,
+  getHighestUnlockedRoleAbilitySection,
   getUnlockedLeaderFeatures,
   getUnlockedProteanFoci,
   getUnlockedSpecialtyOptionGroups,
@@ -539,8 +540,11 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     context.roleOverviewFeatures = context.roles.map((role) => {
       const roleSystem = normalizeRoleSystemData(role.system);
       const roleRank = Number(roleSystem.rank) || 0;
-      const sections = getVisibleRoleAbilitySections(roleSystem, roleRank)
-        .filter((section) => section.content);
+      // Networkers show only their latest unlocked tier in the overview.
+      // All other categories keep their full detail on the Role item sheet.
+      const sections = roleSystem.category === 'networker'
+        ? [getHighestUnlockedRoleAbilitySection(roleSystem, roleRank)].filter(Boolean).filter((s) => s.content)
+        : [];
 
       // ── Role-specific mechanics context ────────────────────────────────
       const roleMechanics = {};
@@ -643,6 +647,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         roleId: role.id,
         roleName: role.name,
         kind: roleSystem.category,
+        roleRank,
+        abilityOverview: roleSystem.abilityOverview ?? '',
         categoryLabel: getRoleCategoryLabel(roleSystem.category),
         sections,
         roleMechanics,
@@ -689,11 +695,13 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       }
 
       if (roleSystem.category === 'specialist') {
-        const specialties = (roleSystem.specialties ?? []).filter((specialty) => specialty.rank > 0).map((specialty, specialtyIndex) => {
-          const unlockedGroups = getUnlockedSpecialtyOptionGroups(specialty);
+        const totalBudget = roleRank * 2;
+        const allSpecialties = (roleSystem.specialties ?? []).map((specialty, specialtyIndex) => {
+          const rank = Number(specialty.rank) || 0;
+          const unlockedGroups = rank > 0 ? getUnlockedSpecialtyOptionGroups(specialty) : [];
           const allSelectedIds = new Set(unlockedGroups.flatMap((g) => g.selectedOptionIds ?? []));
           const totalSelected = allSelectedIds.size;
-          const atCap = totalSelected >= (Number(specialty.rank) || 0);
+          const atCap = totalSelected >= rank;
           const allOptions = unlockedGroups.flatMap((group) => {
             const realGroupIndex = (specialty.optionGroups ?? []).findIndex((g) => g.id === group.id);
             return (group.options ?? []).map((option) => ({
@@ -705,13 +713,22 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           });
           return {
             ...specialty,
+            rank,
             specialtyIndex,
-            unlockedSections: getUnlockedSpecialtySections(specialty),
+            unlockedSections: rank > 0 ? getUnlockedSpecialtySections(specialty) : [],
             unlockedOptionGroups: unlockedGroups,
             allOptions,
+            selectedOptions: allOptions.filter((opt) => opt.selected),
           };
         });
-        return { ...base, specialties };
+        const totalUsed = allSpecialties.reduce((sum, s) => sum + s.rank, 0);
+        const remainingBudget = totalBudget - totalUsed;
+        const specialties = allSpecialties.map((s) => ({
+          ...s,
+          canIncrement: remainingBudget > 0 && s.rank < roleRank,
+          canDecrement: s.rank > 0,
+        }));
+        return { ...base, specialties, totalBudget, remainingBudget };
       }
 
       return base;
@@ -719,32 +736,29 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       if (feature.sections?.length) return true;
       if (feature.kind === 'protean' && feature.foci?.length) return true;
       if (feature.kind === 'leader' && feature.leaderFeatures?.length) return true;
-      if (feature.kind === 'specialist' && feature.specialties?.length) return true;
+      if (feature.kind === 'specialist' && (feature.roleRank ?? 0) >= 1) return true;
       if (feature.hasMechanics) return true;
       return false;
     });
+    const _enrichHTML = (html) => foundry.applications.ux.TextEditor.implementation.enrichHTML(html ?? '', {
+      secrets: this.document.isOwner,
+      async: true,
+      rollData: this.document.getRollData(),
+      relativeTo: this.document,
+    });
     context.enrichedRoleOverviewFeatures = await Promise.all(context.roleOverviewFeatures.map(async (feature) => ({
       ...feature,
+      enrichedAbilityOverview: feature.abilityOverview ? await _enrichHTML(feature.abilityOverview) : '',
       sections: await Promise.all((feature.sections ?? []).map(async (section) => ({
         ...section,
-        enrichedContent: await foundry.applications.ux.TextEditor.implementation.enrichHTML(section.content ?? '', {
-          secrets: this.document.isOwner,
-          async: true,
-          rollData: this.document.getRollData(),
-          relativeTo: this.document,
-        }),
+        enrichedContent: await _enrichHTML(section.content),
       }))),
       specialties: feature.specialties
         ? await Promise.all(feature.specialties.map(async (specialty) => ({
           ...specialty,
           unlockedSections: await Promise.all((specialty.unlockedSections ?? []).map(async (section) => ({
             ...section,
-            enrichedContent: await foundry.applications.ux.TextEditor.implementation.enrichHTML(section.content ?? '', {
-              secrets: this.document.isOwner,
-              async: true,
-              rollData: this.document.getRollData(),
-              relativeTo: this.document,
-            }),
+            enrichedContent: await _enrichHTML(section.content),
           }))),
         })))
         : null,
@@ -1182,6 +1196,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     });
     this.element.querySelectorAll('[data-action="role-guide-play"]').forEach((button) => {
       button.addEventListener('click', this._onGuidePlayCard.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="specialty-rank-change"]').forEach((button) => {
+      button.addEventListener('click', this._onSpecialtyRankChange.bind(this));
     });
 
     // Money field: supports arithmetic expressions (e.g. "500-50" → 450)
@@ -2494,6 +2511,32 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         <p>1d10 + TECH (${techVal}) + ${skill} (${skillRank}) + spec rank (${specRank})</p>
       </div>`,
     });
+  }
+
+  async _onSpecialtyRankChange(event) {
+    event.preventDefault();
+    const roleId = event.currentTarget.closest('[data-item-id]')?.dataset.itemId;
+    const specialtyIndex = parseInt(event.currentTarget.dataset.specialtyIndex, 10);
+    const delta = parseInt(event.currentTarget.dataset.delta, 10);
+    if (!roleId || !Number.isFinite(specialtyIndex) || !Number.isFinite(delta)) return;
+
+    const roleItem = this.document.items.get(roleId);
+    if (!roleItem || roleItem.type !== 'role') return;
+
+    const system = normalizeRoleSystemData(roleItem.system);
+    const specialty = system.specialties[specialtyIndex];
+    if (!specialty) return;
+
+    const roleRank = Number(system.rank) || 0;
+    const totalBudget = roleRank * 2;
+    const currentTotal = system.specialties.reduce((sum, s) => sum + (Number(s.rank) || 0), 0);
+    const currentRank = Number(specialty.rank) || 0;
+    const newRank = Math.max(0, Math.min(roleRank, currentRank + delta));
+
+    if (delta > 0 && currentTotal >= totalBudget) return;
+    if (newRank === currentRank) return;
+
+    await roleItem.update({ [`system.specialties.${specialtyIndex}.rank`]: newRank });
   }
 
   async _onFixerHaggle(event) {

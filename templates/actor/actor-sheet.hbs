@@ -373,27 +373,40 @@
                 {{/each}}
               {{/if}}
               {{#if (eq feature.kind "specialist")}}
+                {{#if feature.enrichedAbilityOverview}}
+                  <div class="role-overview-html role-ability-overview">{{{feature.enrichedAbilityOverview}}}</div>
+                {{/if}}
+                {{#if feature.totalBudget}}
+                  <div class="specialty-budget">
+                    <span>{{localize "CYBER_BLUE.Role.Specialist.Budget"}}: <strong>{{feature.remainingBudget}} / {{feature.totalBudget}}</strong> {{localize "CYBER_BLUE.Role.Specialist.PointsRemaining"}}</span>
+                  </div>
+                {{/if}}
                 <div class="specialty-summary-list">
                   {{#each feature.specialties as |specialty|}}
                     <div class="specialty-summary">
-                      <strong>{{specialty.name}}</strong>
-                      <span>{{localize "CYBER_BLUE.Sheet.Labels.Rank"}} {{specialty.rank}}</span>
+                      <div class="specialty-header" data-item-id="{{../roleId}}">
+                        <strong class="specialty-name">{{specialty.name}}</strong>
+                        <div class="specialty-rank-controls">
+                          <button type="button" data-action="specialty-rank-change" data-specialty-index="{{specialty.specialtyIndex}}" data-delta="-1" {{#unless specialty.canDecrement}}disabled{{/unless}} class="specialty-rank-btn" title="{{localize "CYBER_BLUE.Role.Specialist.RemoveRank"}}">
+                            <i class="fas fa-minus"></i>
+                          </button>
+                          <span class="specialty-rank-value">{{specialty.rank}}</span>
+                          <button type="button" data-action="specialty-rank-change" data-specialty-index="{{specialty.specialtyIndex}}" data-delta="1" {{#unless specialty.canIncrement}}disabled{{/unless}} class="specialty-rank-btn" title="{{localize "CYBER_BLUE.Role.Specialist.AddRank"}}">
+                            <i class="fas fa-plus"></i>
+                          </button>
+                        </div>
+                      </div>
+                      {{#if specialty.description}}
+                        <p class="specialty-description hint">{{specialty.description}}</p>
+                      {{/if}}
                       {{#each specialty.unlockedSections as |section|}}
                         <div class="role-overview-html">{{{section.enrichedContent}}}</div>
                       {{/each}}
-                      {{#if specialty.allOptions.length}}
-                        <div class="specialty-options">
-                          {{#each specialty.allOptions as |opt|}}
-                            <label class="checkbox {{#if opt.disabled}}is-disabled{{/if}}" title="{{opt.description}}" data-item-id="{{../../roleId}}">
-                              <input type="checkbox"
-                                data-action="toggle-specialty-option"
-                                data-specialty-index="{{../specialtyIndex}}"
-                                data-group-index="{{opt.groupIndex}}"
-                                data-option-id="{{opt.id}}"
-                                {{checked opt.selected}}
-                                {{#if opt.disabled}}disabled{{/if}} />
-                              <span>{{opt.name}}</span>
-                            </label>
+                      {{#if specialty.selectedOptions.length}}
+                        <div class="specialty-options-selected">
+                          <span class="specialty-options-label">{{localize "CYBER_BLUE.Role.Specialist.ChosenOptions"}}:</span>
+                          {{#each specialty.selectedOptions as |opt|}}
+                            <span class="specialty-option-chip" title="{{opt.description}}">{{opt.name}}</span>
                           {{/each}}
                         </div>
                       {{/if}}
