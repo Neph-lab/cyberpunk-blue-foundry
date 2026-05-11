@@ -14,6 +14,7 @@
 
 import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
 import { getEffectiveItemWeapons } from './mods.mjs';
+import { getActiveAEFlag } from './effects.mjs';
 
 /** Flag key written onto every affliction AE applied to an actor. */
 export const AFFLICTION_EFFECT_FLAG = 'isAffliction';
@@ -291,7 +292,8 @@ export async function resolveAfflictionAttack(attacker, item, weaponIndex) {
   }
 
   // Attack roll
-  const attackRoll = await attacker.rollSkill({ skillSlug, dv: resolvedDV });
+  const precisionBonus = getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
+  const attackRoll = await attacker.rollSkill({ skillSlug, modifier: precisionBonus, dv: resolvedDV });
 
   // Consume ammo
   const shots = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;

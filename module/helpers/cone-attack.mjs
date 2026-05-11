@@ -3,6 +3,7 @@ import { getEffectiveItemWeapons } from './mods.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
 import { rollAfflictionDefense, checkAfflictionSP, applyAfflictionEffect } from './affliction-attack.mjs';
 import { applyDamageWithPermission, rollCriticalInjuryWithPermission } from './socket.mjs';
+import { getActiveAEFlag } from './effects.mjs';
 
 function getPixelsPerMeter() {
   const gridSize = canvas.grid.size;
@@ -354,7 +355,8 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
   }
 
   // Roll attack
-  const attackRoll = await attacker.rollSkill({ skillSlug });
+  const precisionBonus = getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
+  const attackRoll = await attacker.rollSkill({ skillSlug, modifier: precisionBonus });
   const hit = attackRoll.total >= resolvedDV;
 
   // Consume ammo
@@ -522,7 +524,8 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
   if (confirmedAngle === null) return;
 
   // Roll attack
-  const attackRoll = await attacker.rollSkill({ skillSlug });
+  const precisionBonus = getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
+  const attackRoll = await attacker.rollSkill({ skillSlug, modifier: precisionBonus });
   const attackTotal = attackRoll.total;
 
   // Consume ammo (shots)
@@ -747,7 +750,8 @@ export async function resolveAfflictionConeAttack(attacker, item, weaponIndex) {
   if (confirmedAngle === null) return;
 
   // Attack roll (used for evasion comparison per target)
-  const attackRoll = await attacker.rollSkill({ skillSlug });
+  const precisionBonus = getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
+  const attackRoll = await attacker.rollSkill({ skillSlug, modifier: precisionBonus });
   const attackTotal = attackRoll.total;
 
   // Consume ammo
@@ -879,7 +883,8 @@ export async function resolveAfflictionExplosionAttack(attacker, item, weaponInd
     return;
   }
 
-  const attackRoll = await attacker.rollSkill({ skillSlug });
+  const precisionBonus = getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
+  const attackRoll = await attacker.rollSkill({ skillSlug, modifier: precisionBonus });
   const hit = attackRoll.total >= resolvedDV;
 
   // Consume ammo

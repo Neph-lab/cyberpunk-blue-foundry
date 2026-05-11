@@ -11,6 +11,7 @@ import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './c
 import { resolveAfflictionAttack } from './affliction-attack.mjs';
 import { applyDamageWithPermission, rollCriticalInjuryWithPermission, deleteActorItemWithPermission, ablateArmorExtraWithPermission, applyForcedCriticalInjuryWithPermission } from './socket.mjs';
 import { clearWeaponCharge, countWallsBetweenTokens } from './tech-charge.mjs';
+import { getActiveAEFlag } from './effects.mjs';
 
 /** Count the number of d6s in a damage roll (using their face count, not total). */
 function countDamageDice(roll) {
@@ -120,32 +121,6 @@ async function _setChompPending(attacker, targetToken) {
   });
 }
 
-/**
- * Return the first truthy value (or max numeric value) of a system flag key
- * across all *active* (non-disabled) AEs on an actor.  Returns null if no
- * active AE has the flag set.
- *
- * Used for tactic AEs (soloSpotWeakness, ninjaWeakSpot, soloDamageDeflection,
- * soloFumbleRecovery) which carry their effect purely via a flag, not a change.
- *
- * @param {Actor}  actor
- * @param {string} flagKey — flag key within the 'cyberpunk-blue' scope
- * @returns {*} max numeric value across matching AEs, or true if non-numeric, or null
- */
-function getActiveAEFlag(actor, flagKey) {
-  let result = null;
-  for (const effect of actor.effects ?? []) {
-    if (effect.disabled) continue;
-    const val = effect.getFlag('cyberpunk-blue', flagKey);
-    if (val === undefined || val === null || val === false) continue;
-    if (typeof val === 'number') {
-      result = result === null ? val : Math.max(result, val);
-    } else {
-      result = val; // boolean true or string
-    }
-  }
-  return result;
-}
 
 export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const effectiveWeapons = item.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(item);
@@ -451,6 +426,9 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // ── Targeting Scope: +1 attack on aimed shots (Target Vitals) ────────────
   // targetingScopeBonus was computed before the dialog using the same flag.
   attackModifier += targetingScopeBonus;
+
+  // ── Solo Precision Attack: +1 to all attacks per 3 pts allocated ─────────
+  attackModifier += getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
 
   const attackRoll = await attacker.rollSkill({ skillSlug, dv: resolvedDV, modifier: attackModifier });
 
@@ -1170,10 +1148,14 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
     resolvedDV = rawDV;
   }
 
+  // ── Solo Precision Attack: +1 to all attacks per 3 pts allocated ─────────
+  const autofirePrecisionBonus = getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
+
   // Roll attack using custom formula (skill override + recoil mod bonus)
+  const autofireTotal = totalBonus + autofirePrecisionBonus;
   const formula = modRecoilBonus !== 0
-    ? `1d10 + ${totalBonus} + ${modRecoilBonus}`
-    : `1d10 + ${totalBonus}`;
+    ? `1d10 + ${autofireTotal} + ${modRecoilBonus}`
+    : `1d10 + ${autofireTotal}`;
   const attackRoll = await (new Roll(formula)).evaluate();
   await attackRoll.toMessage({
     speaker: ChatMessage.getSpeaker({ actor: attacker }),

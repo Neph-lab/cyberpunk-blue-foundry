@@ -35,6 +35,35 @@ export function onManageActiveEffect(event, owner) {
 }
 
 /**
+ * Scan all *active* (non-disabled) AEs on an actor for a flag value under the
+ * 'cyberpunk-blue' scope.  Returns the maximum numeric value across all matching
+ * AEs, `true` if the flag is a non-numeric truthy value, or `null` if no active
+ * AE carries the flag.
+ *
+ * Used for tactic AEs (soloSpotWeakness, ninjaWeakSpot, soloDamageDeflection,
+ * soloFumbleRecovery, soloPrecisionAttack) which carry their effect purely via a
+ * flag, not a change.
+ *
+ * @param {Actor}  actor
+ * @param {string} flagKey — flag key within the 'cyberpunk-blue' scope
+ * @returns {number|boolean|null}
+ */
+export function getActiveAEFlag(actor, flagKey) {
+  let result = null;
+  for (const effect of actor.effects ?? []) {
+    if (effect.disabled) continue;
+    const val = effect.getFlag('cyberpunk-blue', flagKey);
+    if (val === undefined || val === null || val === false) continue;
+    if (typeof val === 'number') {
+      result = result === null ? val : Math.max(result, val);
+    } else {
+      result = val; // boolean true or string
+    }
+  }
+  return result;
+}
+
+/**
  * Prepare the data structure for Active Effects which are currently embedded in an Actor or Item.
  * @param {ActiveEffect[]} effects    A collection or generator of Active Effect documents to prepare sheet data for
  * @return {object}                   Data for rendering
