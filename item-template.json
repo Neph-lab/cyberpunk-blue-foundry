@@ -12,6 +12,7 @@
       "abilitySections": [
         {
           "id": "section1",
+          "name": "Section Title",
           "unlockRank": 1,
           "content": "<p>Ability text unlocked at rank 1.</p>"
         }
