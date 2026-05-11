@@ -155,10 +155,19 @@ export const CORPO = role({
 <tr><td>5</td><td>International, offices in several major cities</td></tr>
 <tr><td>6</td><td>International, offices everywhere</td></tr>
 </tbody></table>
-<h3>Who is your boss like?</h3>
+<h3>Who's gunning for your team?</h3>
+<table><thead><tr><th>1d6</th><th>Enemy</th></tr></thead><tbody>
+<tr><td>1</td><td>Rival Corp in your industry</td></tr>
+<tr><td>2</td><td>Law enforcement is watching you</td></tr>
+<tr><td>3</td><td>Local Media wants to bring you down</td></tr>
+<tr><td>4</td><td>Different divisions in your company are feuding</td></tr>
+<tr><td>5</td><td>Local government doesn't like your Corp</td></tr>
+<tr><td>6</td><td>Another Corp is eyeing you for a hostile takeover</td></tr>
+</tbody></table>
+<h3>How is your boss?</h3>
 <table><thead><tr><th>1d6</th><th>Boss</th></tr></thead><tbody>
 <tr><td>1</td><td>Mentors you, but watch out for their enemies</td></tr>
-<tr><td>2</td><td>Gives you free reins and does not want to know what you are up to</td></tr>
+<tr><td>2</td><td>Gives you free reins and doesn't want to know what you're up to</td></tr>
 <tr><td>3</td><td>A micro-manager trying to meddle in your work</td></tr>
 <tr><td>4</td><td>Unpredictable outbursts offset by quiet paranoia</td></tr>
 <tr><td>5</td><td>Cool and has your back against rivals</td></tr>
@@ -262,6 +271,33 @@ export const FIXER = role({
 <tr><td>3</td><td>Possible Romantic Partner</td></tr><tr><td>4</td><td>Mentor</td></tr>
 <tr><td>5</td><td>Secret with gang connections</td></tr>
 <tr><td>6</td><td>Secret with corpo connections</td></tr>
+</tbody></table>
+<h3>Who are your side-clients?</h3>
+<table><thead><tr><th>1d6</th><th>Clients</th></tr></thead><tbody>
+<tr><td>1</td><td>Local Rockerboys or Medias who need gigs</td></tr>
+<tr><td>2</td><td>Local Bandits who also protect your work or home</td></tr>
+<tr><td>3</td><td>Corpos who use you for "black project" procurement work</td></tr>
+<tr><td>4</td><td>Local Solos or other combat types looking for work</td></tr>
+<tr><td>5</td><td>Local Nomads and Fixers who use you to set up deals</td></tr>
+<tr><td>6</td><td>Local politicos or Corpos who need information</td></tr>
+</tbody></table>
+<h3>What's your "office" like?</h3>
+<table><thead><tr><th>1d6</th><th>Office</th></tr></thead><tbody>
+<tr><td>1</td><td>You don't have one; it's all mobile</td></tr>
+<tr><td>2</td><td>A booth in a local bar</td></tr>
+<tr><td>3</td><td>It's all Data Pool messages and dead drops</td></tr>
+<tr><td>4</td><td>Spare room in a warehouse, shop, or clinic</td></tr>
+<tr><td>5</td><td>An otherwise abandoned building</td></tr>
+<tr><td>6</td><td>The lobby of a cube hotel</td></tr>
+</tbody></table>
+<h3>Who is gunning for you?</h3>
+<table><thead><tr><th>1d6</th><th>Enemy</th></tr></thead><tbody>
+<tr><td>1</td><td>Bandits who want you to work with them exclusively</td></tr>
+<tr><td>2</td><td>Rival Fixers trying to steal your clients</td></tr>
+<tr><td>3</td><td>Corpos or Operatives who want you to work for them exclusively</td></tr>
+<tr><td>4</td><td>Enemy of a former client who wants to tie up loose ends — like you</td></tr>
+<tr><td>5</td><td>Old client who thinks you screwed them over</td></tr>
+<tr><td>6</td><td>Rival Fixers trying to beat you out for resources</td></tr>
 </tbody></table>`,
   lifepathQuestions: `<ul>
 <li><em>What deal did I broker that saved the life of you or someone you love?</em></li>
@@ -304,6 +340,33 @@ export const GUIDE = role({
 <tr><td>5</td><td>Spirit Medium</td></tr><tr><td>6</td><td>Street Prophet</td></tr>
 <tr><td>7</td><td>Life Coach</td></tr><tr><td>8</td><td>Monk</td></tr>
 <tr><td>9</td><td>Card-Reader</td></tr><tr><td>10</td><td>Psychic</td></tr>
+</tbody></table>
+<h3>What's your divining space like?</h3>
+<table><thead><tr><th>1d6</th><th>Space</th></tr></thead><tbody>
+<tr><td>1</td><td>Crystal balls, pseudo-mystical trinkets, and an overwhelming smell of incense</td></tr>
+<tr><td>2</td><td>Ascetic in order to leave room for introspection and contemplation. No distractions.</td></tr>
+<tr><td>3</td><td>A ritual circle on the floor, drawn in blood. Occult symbols on the walls and disturbing chants from speakers.</td></tr>
+<tr><td>4</td><td>A simple office with candles to set the mood and help you get into the right head-space</td></tr>
+<tr><td>5</td><td>A small temple with an altar and room for prayer or contemplation</td></tr>
+<tr><td>6</td><td>A complete mess, cluttered with anything that could provide inspiration and paraphernalia for drugs that help you get into your head-space</td></tr>
+</tbody></table>
+<h3>Who are your usual clients?</h3>
+<table><thead><tr><th>1d6</th><th>Client</th></tr></thead><tbody>
+<tr><td>1</td><td>Superstitious corpos that'll try anything to get an edge over the competition</td></tr>
+<tr><td>2</td><td>Superstitious Fixers who want you to bless their dealings</td></tr>
+<tr><td>3</td><td>Faithful who seek advice and blessings</td></tr>
+<tr><td>4</td><td>People who think that you're a prophet</td></tr>
+<tr><td>5</td><td>Bandits, Ninjas, and Solos who want good luck charms</td></tr>
+<tr><td>6</td><td>Downloads of your advice from the Data Pool</td></tr>
+</tbody></table>
+<h3>Who's gunning for you?</h3>
+<table><thead><tr><th>1d6</th><th>Enemy</th></tr></thead><tbody>
+<tr><td>1</td><td>A former client who blames you for their misfortune</td></tr>
+<tr><td>2</td><td>A corpo who wants to buy you as their permanent lucky charm</td></tr>
+<tr><td>3</td><td>Extremists who claim you're an evil witch</td></tr>
+<tr><td>4</td><td>A charlatan who sees you as competition</td></tr>
+<tr><td>5</td><td>Supposed purists who want to expose you as fake</td></tr>
+<tr><td>6</td><td>A mysterious stranger</td></tr>
 </tbody></table>`,
   lifepathQuestions: `<ul>
 <li><em>What path or omen have I warned you about?</em></li>
@@ -368,6 +431,33 @@ export const LAW = role({
 <tr><td>13</td><td>The Glen</td></tr><tr><td>14</td><td>Japantown</td></tr>
 <tr><td>15</td><td>Wellsprings</td></tr><tr><td>16</td><td>Downtown</td></tr>
 <tr><td>17</td><td>North Oak</td></tr><tr><td>18</td><td>Netwatch Liaison</td></tr>
+</tbody></table>
+<h3>How corrupt is your unit?</h3>
+<table><thead><tr><th>1d6</th><th>Corruption</th></tr></thead><tbody>
+<tr><td>1</td><td>Fair, honest policing with strong ethical practices</td></tr>
+<tr><td>2</td><td>Fair and honest policing, but hard on law-breakers</td></tr>
+<tr><td>3</td><td>Will occasionally, but rarely, slip into unethical actions</td></tr>
+<tr><td>4</td><td>Willing to bend any rules to get to the bad guys</td></tr>
+<tr><td>5</td><td>Ruthless to control the Street, even breaking the law to, ostensibly, uphold it</td></tr>
+<tr><td>6</td><td>Corrupt, taking bribes and engaging in illegal and unethical business all the time</td></tr>
+</tbody></table>
+<h3>Who's gunning for your unit?</h3>
+<table><thead><tr><th>1d6</th><th>Enemy</th></tr></thead><tbody>
+<tr><td>1</td><td>Friends of a criminal you helped put away</td></tr>
+<tr><td>2</td><td>An escaped or released criminal who blames you</td></tr>
+<tr><td>3</td><td>Police Accountability Group</td></tr>
+<tr><td>4</td><td>Dirty Politicians</td></tr>
+<tr><td>5</td><td>A powerful gang</td></tr>
+<tr><td>6</td><td>Dirty cops whose plans you're in the way of</td></tr>
+</tbody></table>
+<h3>Who are your unit's major targets?</h3>
+<table><thead><tr><th>1d6</th><th>Target</th></tr></thead><tbody>
+<tr><td>1</td><td>Organized Crime</td></tr>
+<tr><td>2</td><td>Trafficking and kidnapping</td></tr>
+<tr><td>3</td><td>Illicit trade (1d6: 1: Drugs, 2: XBDs, 3: Weapons, 4: Counterfeit luxury items, 5: Organs or Cyberware, 6: Fenced stolen goods)</td></tr>
+<tr><td>4</td><td>Burglars and robbers</td></tr>
+<tr><td>5</td><td>Illegal gambling</td></tr>
+<tr><td>6</td><td>Street Criminals</td></tr>
 </tbody></table>`,
   lifepathQuestions: `<ul>
 <li><em>What crime did I let you get away with and why?</em></li>
@@ -409,11 +499,38 @@ export const MEDIA = role({
 <tr><td>3</td><td>Videographer</td></tr><tr><td>4</td><td>Documentarian</td></tr>
 <tr><td>5</td><td>Investigative Reporter</td></tr><tr><td>6</td><td>Street Scribe</td></tr>
 </tbody></table>
+<h3>How do you reach the public?</h3>
+<table><thead><tr><th>1d6</th><th>Type</th></tr></thead><tbody>
+<tr><td>1</td><td>Monthly Magazine</td></tr>
+<tr><td>2</td><td>Blog</td></tr>
+<tr><td>3</td><td>Mainstream Vid Feed</td></tr>
+<tr><td>4</td><td>News Channel</td></tr>
+<tr><td>5</td><td>Radio Broadcasts</td></tr>
+<tr><td>6</td><td>Screamsheets</td></tr>
+</tbody></table>
 <h3>What do you report on?</h3>
 <table><thead><tr><th>1d6</th><th>Story</th></tr></thead><tbody>
 <tr><td>1</td><td>Political Intrigue</td></tr><tr><td>2</td><td>Ecological Impact</td></tr>
 <tr><td>3</td><td>Celebrity News</td></tr><tr><td>4</td><td>Corporate Takedowns</td></tr>
 <tr><td>5</td><td>Editorials</td></tr><tr><td>6</td><td>Propaganda</td></tr>
+</tbody></table>
+<h3>How ethical are you?</h3>
+<table><thead><tr><th>1d6</th><th>Ethics</th></tr></thead><tbody>
+<tr><td>1</td><td>Fair, honest reporting. Strong ethical practices. You only report the verifiable truth.</td></tr>
+<tr><td>2</td><td>Fair and honest reporting, but willing to go on hearsay and rumor if that's what it takes</td></tr>
+<tr><td>3</td><td>Will occasionally but rarely slip into unethical things. You have some standards.</td></tr>
+<tr><td>4</td><td>Willing to bend any rules to get the bad guys, but only the bad guys</td></tr>
+<tr><td>5</td><td>Ruthless and determined to make it big, even if it means breaking the law</td></tr>
+<tr><td>6</td><td>Totally corrupt, taking bribes and engaging in illegal and unethical reporting — your pen is for hire</td></tr>
+</tbody></table>
+<h3>Who's gunning for you?</h3>
+<table><thead><tr><th>1d6</th><th>Enemy</th></tr></thead><tbody>
+<tr><td>1</td><td>A corpo or politico you exposed who wants revenge</td></tr>
+<tr><td>2</td><td>Someone who was hurt by others after your reporting</td></tr>
+<tr><td>3</td><td>An informant who blames you for being exposed</td></tr>
+<tr><td>4</td><td>A Ninja or Solo hired to silence you</td></tr>
+<tr><td>5</td><td>A conspiracy theorist convinced you're covering up the actual truth</td></tr>
+<tr><td>6</td><td>Someone sending you secret threats</td></tr>
 </tbody></table>`,
   lifepathQuestions: `<ul>
 <li><em>How did I make you out as the hero of a story?</em></li>
@@ -457,6 +574,42 @@ export const MEDTECH = role({
 <tr><td>5</td><td>Cyberpsycho Therapist</td></tr><tr><td>6</td><td>Ripperdoc</td></tr>
 <tr><td>7</td><td>Cryosystems Operator</td></tr><tr><td>8</td><td>Pharmacist</td></tr>
 <tr><td>9</td><td>Bodysculptor</td></tr><tr><td>10</td><td>Forensic Pathologist</td></tr>
+</tbody></table>
+<h3>If you have a partner, who?</h3>
+<table><thead><tr><th>1d6</th><th>Partner</th></tr></thead><tbody>
+<tr><td>1</td><td>Trauma Team group</td></tr>
+<tr><td>2</td><td>Old friend</td></tr>
+<tr><td>3</td><td>Possible romantic partner</td></tr>
+<tr><td>4</td><td>Family member</td></tr>
+<tr><td>5</td><td>Secret partner with mob/gang connections</td></tr>
+<tr><td>6</td><td>Secret partner with corporate connections</td></tr>
+</tbody></table>
+<h3>What's your workspace like?</h3>
+<table><thead><tr><th>1d6</th><th>Workspace</th></tr></thead><tbody>
+<tr><td>1</td><td>Sterilized daily in the morning like clockwork</td></tr>
+<tr><td>2</td><td>It's not state-of-the-art anymore, but comfortable to you</td></tr>
+<tr><td>3</td><td>Cryo equipment also keeps drinks cool</td></tr>
+<tr><td>4</td><td>Everything possible is single use and stored compacted until needed</td></tr>
+<tr><td>5</td><td>Not as clean as your patients would have hoped</td></tr>
+<tr><td>6</td><td>Meticulously organized, sharpened, and sterilized</td></tr>
+</tbody></table>
+<h3>Who are your main clients?</h3>
+<table><thead><tr><th>1d6</th><th>Clients</th></tr></thead><tbody>
+<tr><td>1</td><td>Local fixers send you clients</td></tr>
+<tr><td>2</td><td>Local Bandits who protect your work or home in exchange for medical help</td></tr>
+<tr><td>3</td><td>Corporate Corpos and Operatives who use you for "black project" medical work</td></tr>
+<tr><td>4</td><td>Solos and other combat types</td></tr>
+<tr><td>5</td><td>Local Nomads and Fixers bring you wounded clients</td></tr>
+<tr><td>6</td><td>Trauma Team paramedical work</td></tr>
+</tbody></table>
+<h3>Where do you get your supplies?</h3>
+<table><thead><tr><th>1d6</th><th>Type</th></tr></thead><tbody>
+<tr><td>1</td><td>Scavenge stashes of supplies in abandoned city zones</td></tr>
+<tr><td>2</td><td>Strip parts from bodies after firefights</td></tr>
+<tr><td>3</td><td>Have a local Fixer bring you supplies in exchange for medical work</td></tr>
+<tr><td>4</td><td>Corporate Corpos or Trauma Team keeps you supplied in exchange for your services</td></tr>
+<tr><td>5</td><td>You have a backdoor into a few corporate or hospital warehouses</td></tr>
+<tr><td>6</td><td>You hit the Night Markets and score deals whenever you can</td></tr>
 </tbody></table>`,
   lifepathQuestions: `<ul>
 <li><em>When did I save your life?</em></li>
@@ -555,6 +708,51 @@ export const NETRUNNER = role({
 <tr><td>4</td><td>You just like to crack systems for the fun of it</td></tr>
 <tr><td>5</td><td>Part of a regular team of freelancers</td></tr>
 <tr><td>6</td><td>Hack for a Media, politico, or Lawman who hires you as needed</td></tr>
+</tbody></table>
+<h3>If you work with a partner, who?</h3>
+<table><thead><tr><th>1d6</th><th>Partner</th></tr></thead><tbody>
+<tr><td>1</td><td>Family member</td></tr>
+<tr><td>2</td><td>Old friend</td></tr>
+<tr><td>3</td><td>Possible romantic partner</td></tr>
+<tr><td>4</td><td>Secret partner who might be a rogue AI. Might.</td></tr>
+<tr><td>5</td><td>Secret partner with mob/gang connections</td></tr>
+<tr><td>6</td><td>Secret partner with Corporate connections</td></tr>
+</tbody></table>
+<h3>What's your workspace like?</h3>
+<table><thead><tr><th>1d6</th><th>Workspace</th></tr></thead><tbody>
+<tr><td>1</td><td>There are screens everywhere</td></tr>
+<tr><td>2</td><td>It looks better in Virtuality, you swear</td></tr>
+<tr><td>3</td><td>It's a filthy bed covered in wires</td></tr>
+<tr><td>4</td><td>Corporate, modular, and utilitarian</td></tr>
+<tr><td>5</td><td>Minimalist, clean, and organized</td></tr>
+<tr><td>6</td><td>It's taken over your entire living space</td></tr>
+</tbody></table>
+<h3>Who are some of your other clients?</h3>
+<table><thead><tr><th>1d6</th><th>Clients</th></tr></thead><tbody>
+<tr><td>1</td><td>Local fixers who sends you clients</td></tr>
+<tr><td>2</td><td>Local gangers who also protect your work area while you sweep for NET threats</td></tr>
+<tr><td>3</td><td>Corporate Corpos who use you for "black project" work</td></tr>
+<tr><td>4</td><td>Local Solos or other combat types who use you to keep their personal systems secure</td></tr>
+<tr><td>5</td><td>Local Nomads and Fixers who use you to keep their personal systems secure</td></tr>
+<tr><td>6</td><td>You work for yourself and whatever you can find on the NET</td></tr>
+</tbody></table>
+<h3>Where do you get your programs?</h3>
+<table><thead><tr><th>1d6</th><th>Source</th></tr></thead><tbody>
+<tr><td>1</td><td>Dig around in old abandoned city zones</td></tr>
+<tr><td>2</td><td>Steal them from other Netrunners you brain-burn</td></tr>
+<tr><td>3</td><td>Have a local Fixer supply programs in exchange for hack work</td></tr>
+<tr><td>4</td><td>Corporate Corpos supply programs in exchange for work</td></tr>
+<tr><td>5</td><td>You have backdoors into a few Corporate warehouses</td></tr>
+<tr><td>6</td><td>You hit the Night Markets and score programs whenever you can</td></tr>
+</tbody></table>
+<h3>Who's gunning for you?</h3>
+<table><thead><tr><th>1d6</th><th>Enemy</th></tr></thead><tbody>
+<tr><td>1</td><td>You think it might be a rogue AI or a NET ghost. Either way, it's bad news.</td></tr>
+<tr><td>2</td><td>Rival Netrunners who just don't like you</td></tr>
+<tr><td>3</td><td>Corporates who want you to work for them exclusively</td></tr>
+<tr><td>4</td><td>Law who considers you an illegal "black hat" and wants to arrest you</td></tr>
+<tr><td>5</td><td>Old client who thinks you screwed them over</td></tr>
+<tr><td>6</td><td>Fixer or another client who wants you exclusively</td></tr>
 </tbody></table>`,
   lifepathQuestions: `<ul>
 <li><em>Why did I break into a corp subnet for you?</em></li>
@@ -585,6 +783,51 @@ export const NINJA = role({
 <tr><td>1</td><td>Sniper</td></tr><tr><td>2</td><td>Poisoner</td></tr>
 <tr><td>3</td><td>Assassinates from the shadows</td></tr><tr><td>4</td><td>Masked vigilante</td></tr>
 <tr><td>5</td><td>Hidden in plain sight</td></tr><tr><td>6</td><td>Edgelord</td></tr>
+</tbody></table>
+<h3>Who do you usually work for?</h3>
+<table><thead><tr><th>1d6</th><th>Client</th></tr></thead><tbody>
+<tr><td>1</td><td>Government "black ops"</td></tr>
+<tr><td>2</td><td>A corporation's special operations</td></tr>
+<tr><td>3</td><td>A Fixer sets you up with clients</td></tr>
+<tr><td>4</td><td>You find clients on anonymous Data Pools</td></tr>
+<tr><td>5</td><td>Yourself, according to your own convictions</td></tr>
+<tr><td>6</td><td>An Operative feeds you information</td></tr>
+</tbody></table>
+<h3>If you work with someone, who?</h3>
+<table><thead><tr><th>1d6</th><th>Partner</th></tr></thead><tbody>
+<tr><td>1</td><td>Family member</td></tr>
+<tr><td>2</td><td>Old friend</td></tr>
+<tr><td>3</td><td>Possible romantic partner</td></tr>
+<tr><td>4</td><td>Secret partner with unexpected connections</td></tr>
+<tr><td>5</td><td>Secret partner with mob/gang connections</td></tr>
+<tr><td>6</td><td>Secret partner with corporate connections</td></tr>
+</tbody></table>
+<h3>What's your moral compass like?</h3>
+<table><thead><tr><th>1d6</th><th>Ethics</th></tr></thead><tbody>
+<tr><td>1</td><td>Always working for good, trying to take out what seems like the "bad guys"</td></tr>
+<tr><td>2</td><td>Always try to spare the innocent</td></tr>
+<tr><td>3</td><td>You'll occasionally, but rarely, take on unethical contracts</td></tr>
+<tr><td>4</td><td>Ruthless and profit-centered. You'll work for anyone who's willing to pay.</td></tr>
+<tr><td>5</td><td>Willing to bend any rules (and law) to get the job done</td></tr>
+<tr><td>6</td><td>You often engage in, and enjoy, unethical work</td></tr>
+</tbody></table>
+<h3>What's your M.O.?</h3>
+<table><thead><tr><th>1d6</th><th>MO</th></tr></thead><tbody>
+<tr><td>1</td><td>In and out without a trace</td></tr>
+<tr><td>2</td><td>Spreading death and fear from the shadows</td></tr>
+<tr><td>3</td><td>Blend in, do the job, blend in again</td></tr>
+<tr><td>4</td><td>Fear is a more powerful weapon than anything else</td></tr>
+<tr><td>5</td><td>Close and personal — you want to look into their eyes</td></tr>
+<tr><td>6</td><td>Honor bound and methodical</td></tr>
+</tbody></table>
+<h3>Who's gunning for you?</h3>
+<table><thead><tr><th>1d6</th><th>Enemy</th></tr></thead><tbody>
+<tr><td>1</td><td>Target who got away and wants revenge</td></tr>
+<tr><td>2</td><td>Corp who wants you exclusively</td></tr>
+<tr><td>3</td><td>Fixer who wants you exclusively</td></tr>
+<tr><td>4</td><td>Former client who thinks you screwed them</td></tr>
+<tr><td>5</td><td>Another Ninja who sees you as competition</td></tr>
+<tr><td>6</td><td>Law enforcers who want you for murder charges</td></tr>
 </tbody></table>`,
   lifepathQuestions: `<ul>
 <li><em>Who have I killed for you?</em></li>
@@ -726,6 +969,37 @@ export const ROCKER = role({
 <tr><td>5</td><td>Comedian</td></tr><tr><td>6</td><td>Orator</td></tr>
 <tr><td>7</td><td>Politico</td></tr><tr><td>8</td><td>Rap Artist</td></tr>
 <tr><td>9</td><td>DJ</td></tr><tr><td>10</td><td>Idoru</td></tr>
+</tbody></table>
+<h3>Have you split with your band?</h3>
+<table><thead><tr><th>1d6</th><th>Reason</th></tr></thead><tbody>
+<tr><td>1</td><td>You were a jerk and the others voted you out</td></tr>
+<tr><td>2</td><td>You slept with another member's partner</td></tr>
+<tr><td>3</td><td>The rest were killed in a tragic "accident"</td></tr>
+<tr><td>4</td><td>The rest of the group were murdered or split up by external enemies</td></tr>
+<tr><td>5</td><td>The group broke up over "creative differences"</td></tr>
+<tr><td>6</td><td>You decided to go solo</td></tr>
+</tbody></table>
+<h3>Where do you usually perform?</h3>
+<table><thead><tr><th>1d6</th><th>Venue</th></tr></thead><tbody>
+<tr><td>1</td><td>Alternative Cafés</td></tr>
+<tr><td>2</td><td>Private Clubs</td></tr>
+<tr><td>3</td><td>Seedy Dive Bars</td></tr>
+<tr><td>4</td><td>Guerrilla Performances</td></tr>
+<tr><td>5</td><td>Nightclubs Around the City</td></tr>
+<tr><td>6</td><td>On the Data Pool</td></tr>
+</tbody></table>
+<h3>Who's gunning for you or your band?</h3>
+<table><thead><tr><th>1d10</th><th>Enemy</th></tr></thead><tbody>
+<tr><td>1</td><td>Old group member who thinks you did them dirty</td></tr>
+<tr><td>2</td><td>Rival group or artist trying to steal market share</td></tr>
+<tr><td>3</td><td>Corporate enemies who don't like your message</td></tr>
+<tr><td>4</td><td>Critic or "influencer" trying to bring you down</td></tr>
+<tr><td>5</td><td>Older star who feels threatened by your fame</td></tr>
+<tr><td>6</td><td>Romantic interest or media figure who wants revenge for personal reasons</td></tr>
+<tr><td>7</td><td>Stalker who won't let anyone else have you if they can't</td></tr>
+<tr><td>8</td><td>Someone who thinks you've taken advantage of a person close to them</td></tr>
+<tr><td>9</td><td>A manager who'll literally kill to secure your contract</td></tr>
+<tr><td>10</td><td>Someone has taken out a contract on you for unknown reasons</td></tr>
 </tbody></table>`,
   lifepathQuestions: `<ul>
 <li><em>What hit of mine is your favorite and why?</em></li>
@@ -762,6 +1036,33 @@ export const SOLO = role({
 <tr><td>4</td><td>Corporate or freelance Black Ops agent</td></tr>
 <tr><td>5</td><td>Local vigilante for hire</td></tr>
 <tr><td>6</td><td>Hitman for hire</td></tr>
+</tbody></table>
+<h3>What's your moral compass like?</h3>
+<table><thead><tr><th>1d6</th><th>Ethics</th></tr></thead><tbody>
+<tr><td>1</td><td>Always working for good, trying to take out who seem like the "bad guys"</td></tr>
+<tr><td>2</td><td>You always spare the innocent</td></tr>
+<tr><td>3</td><td>You occasionally, but rarely, slip into the unethical</td></tr>
+<tr><td>4</td><td>Ruthless and profit-centered. You'll work for anyone who's willing to pay.</td></tr>
+<tr><td>5</td><td>You're willing to bend any rules (and law) to get the job done</td></tr>
+<tr><td>6</td><td>You engage in, and enjoy, unethical work all the time. It makes it more interesting.</td></tr>
+</tbody></table>
+<h3>What's your operational territory?</h3>
+<table><thead><tr><th>1d6</th><th>Area</th></tr></thead><tbody>
+<tr><td>1</td><td>Corporate Zone</td></tr>
+<tr><td>2</td><td>Combat Zone</td></tr>
+<tr><td>3</td><td>The whole city</td></tr>
+<tr><td>4</td><td>The territory of a single corporation</td></tr>
+<tr><td>5</td><td>The territory of a particular Fixer or contact</td></tr>
+<tr><td>6</td><td>Wherever the money takes you</td></tr>
+</tbody></table>
+<h3>Who's gunning for you?</h3>
+<table><thead><tr><th>1d6</th><th>Enemy</th></tr></thead><tbody>
+<tr><td>1</td><td>A corporation you may have angered</td></tr>
+<tr><td>2</td><td>A boostergang you've tackled</td></tr>
+<tr><td>3</td><td>Law enforcers who think you're guilty of something you may or may not have done</td></tr>
+<tr><td>4</td><td>Rival Solo from another corp</td></tr>
+<tr><td>5</td><td>A Fixer who sees you as a threat</td></tr>
+<tr><td>6</td><td>A rival Solo or Ninja who sees you as a threat</td></tr>
 </tbody></table>`,
   lifepathQuestions: `<ul>
 <li><em>How did I save your life?</em></li>
@@ -799,6 +1100,51 @@ export const TECHIE = role({
 <tr><td>5</td><td>Weaponsmith</td></tr><tr><td>6</td><td>Crazy Inventor</td></tr>
 <tr><td>7</td><td>Robot and Drone Mechanic</td></tr><tr><td>8</td><td>Heavy Machinery Mechanic</td></tr>
 <tr><td>9</td><td>Scavenger</td></tr><tr><td>10</td><td>Nautical Mechanic</td></tr>
+</tbody></table>
+<h3>If any, what partner do you have?</h3>
+<table><thead><tr><th>1d6</th><th>Collaborator</th></tr></thead><tbody>
+<tr><td>1</td><td>Family Member</td></tr>
+<tr><td>2</td><td>Old Friend</td></tr>
+<tr><td>3</td><td>Possible Romantic Partner</td></tr>
+<tr><td>4</td><td>Mentor</td></tr>
+<tr><td>5</td><td>Secret with gang connections</td></tr>
+<tr><td>6</td><td>Secret with corpo connections</td></tr>
+</tbody></table>
+<h3>What's your workspace like?</h3>
+<table><thead><tr><th>1d6</th><th>Workspace</th></tr></thead><tbody>
+<tr><td>1</td><td>A mess strewn with blueprint paper</td></tr>
+<tr><td>2</td><td>Everything's color-coded but still a nightmare</td></tr>
+<tr><td>3</td><td>Totally digital and obsessively backed up every day</td></tr>
+<tr><td>4</td><td>Everything is designed in your Neuroport</td></tr>
+<tr><td>5</td><td>You keep everything, just in case</td></tr>
+<tr><td>6</td><td>Only you understand your filing system</td></tr>
+</tbody></table>
+<h3>Who are your main clients?</h3>
+<table><thead><tr><th>1d6</th><th>Client</th></tr></thead><tbody>
+<tr><td>1</td><td>Local Fixers who send you clients</td></tr>
+<tr><td>2</td><td>Local gangers who also protect your work and/or home</td></tr>
+<tr><td>3</td><td>Corporate Corpos who use you for "black projects" of some kind</td></tr>
+<tr><td>4</td><td>Local Solos who use you for weapon upkeep</td></tr>
+<tr><td>5</td><td>Local Nomads and Fixers who bring you "found" tech to repair</td></tr>
+<tr><td>6</td><td>You work for yourself and sell what you make or repair</td></tr>
+</tbody></table>
+<h3>Where do you get supplies?</h3>
+<table><thead><tr><th>1d6</th><th>Supplies</th></tr></thead><tbody>
+<tr><td>1</td><td>Scavenge the wreckage of abandoned zones</td></tr>
+<tr><td>2</td><td>Strip gear from bodies after a firefight</td></tr>
+<tr><td>3</td><td>From a local Fixer in exchange for repair work</td></tr>
+<tr><td>4</td><td>From Corporate Corpos in exchange for your services</td></tr>
+<tr><td>5</td><td>You have a backdoor into a few warehouses</td></tr>
+<tr><td>6</td><td>You hit the Night Markets to score deals when you can</td></tr>
+</tbody></table>
+<h3>Who's gunning for you?</h3>
+<table><thead><tr><th>1d6</th><th>Enemies</th></tr></thead><tbody>
+<tr><td>1</td><td>Combat Zone gangers who want you exclusively</td></tr>
+<tr><td>2</td><td>Rival Tech trying to steal your customers</td></tr>
+<tr><td>3</td><td>Corporates who want you exclusively</td></tr>
+<tr><td>4</td><td>Larger manufacturer trying to bring you down because your mods are a threat</td></tr>
+<tr><td>5</td><td>Old client who thinks you screwed them over</td></tr>
+<tr><td>6</td><td>Rival Tech trying to beat you out for resources</td></tr>
 </tbody></table>`,
   lifepathQuestions: `<ul>
 <li><em>What have I built specifically for you?</em></li>
