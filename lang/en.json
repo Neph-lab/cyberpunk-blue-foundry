@@ -889,7 +889,8 @@
       "QuickhackNoRam": "Not enough RAM to upload any quickhack.",
       "RamLabel": "RAM",
       "RangeLabel": "Range",
-      "NotConnected": "Not connected"
+      "NotConnected": "Not connected",
+      "CannotRemoveBackupDriveConnected": "Cannot remove Backup Drive while jacked into an architecture. Jack out first."
     },
     "RegionBehavior": {
       "AccessPoint": {
