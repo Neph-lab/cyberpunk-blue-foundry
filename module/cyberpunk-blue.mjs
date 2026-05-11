@@ -1873,7 +1873,8 @@ async function _syncCyberwareEntries(catalogue) {
 
 /**
  * Sync gear compendium entries with the current catalogue definition.
- * Only the effects array is compared and updated; system-generated effects
+ * Compares isWeapon / weapons (for gear items that gain weapon entries, e.g.
+ * Airhypo) and effects; system-generated effects
  * (gear state flags) are excluded from comparison.
  */
 async function _syncGearEntries(catalogue) {
@@ -1896,6 +1897,14 @@ async function _syncGearEntries(catalogue) {
     const doc = await pack.getDocument(entry._id);
     if (!doc) continue;
 
+    const currentWeapons  = doc.system.weapons  ?? [];
+    const currentIsWeapon = doc.system.isWeapon  ?? false;
+    const catWeapons      = def.system?.weapons  ?? [];
+    const catIsWeapon     = def.system?.isWeapon ?? false;
+
+    const weaponCountChanged = currentWeapons.length !== catWeapons.length;
+    const isWeaponChanged    = currentIsWeapon !== catIsWeapon;
+
     const catEffects = def.effects ?? [];
     const docEffects = (doc.effects?.contents ?? []).filter((e) => !_isSystemGeneratedEffect(e));
     const catSig = catEffects.map(_catalogueEffectSig).sort().join('\n');
@@ -1908,10 +1917,20 @@ async function _syncGearEntries(catalogue) {
           .filter(([k]) => k !== 'autoGearEffectState')
       ) },
     })).sort().join('\n');
+    const effectsChanged = catSig !== docSig;
 
-    if (catSig !== docSig) {
-      updates.push({ _id: doc.id, effects: catEffects });
+    const update = { _id: doc.id };
+    let needsUpdate = false;
+    if (weaponCountChanged || isWeaponChanged) {
+      update['system.isWeapon'] = catIsWeapon;
+      update['system.weapons']  = catWeapons;
+      needsUpdate = true;
     }
+    if (effectsChanged) {
+      update.effects = catEffects;
+      needsUpdate = true;
+    }
+    if (needsUpdate) updates.push(update);
   }
 
   if (updates.length === 0) return;
@@ -1919,7 +1938,9 @@ async function _syncGearEntries(catalogue) {
   await pack.configure({ locked: false });
   try {
     await Item.updateDocuments(updates, { pack: PACK_ID });
-    console.log(`Cyberpunk Blue | Synced effects on ${updates.length} gear pack entries.`);
+    const weaponCount  = updates.filter((u) => 'system.isWeapon' in u).length;
+    const effectsCount = updates.filter((u) => 'effects' in u).length;
+    console.log(`Cyberpunk Blue | Synced ${weaponCount} weapon and ${effectsCount} effects updates in gear pack.`);
   } finally {
     await pack.configure({ locked: true });
   }

@@ -120,16 +120,29 @@ export async function checkAfflictionSP(weapon, targetActor, isHalfDamage = fals
 
 /**
  * Copy the weapon's affliction AE to the target actor and enable it.
+ *
+ * Resolution order:
+ *  1. If `weapon.afflictionEffectId` is set, find the AE by that _id.
+ *  2. Otherwise fall back to the first AE on the item that carries
+ *     `flags.cyberpunk-blue.isAfflictionEffect = true`.
  */
 export async function applyAfflictionEffect(item, weapon, targetActor) {
-  if (!weapon.afflictionEffectId) {
-    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.AfflictionNoEffect'));
-    return false;
-  }
-  const sourceEffect = item.effects.get(weapon.afflictionEffectId);
-  if (!sourceEffect) {
-    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.AfflictionEffectMissing'));
-    return false;
+  let sourceEffect = null;
+
+  if (weapon.afflictionEffectId) {
+    sourceEffect = item.effects.get(weapon.afflictionEffectId);
+    if (!sourceEffect) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.AfflictionEffectMissing'));
+      return false;
+    }
+  } else {
+    sourceEffect = item.effects.find(
+      (e) => e.getFlag?.('cyberpunk-blue', 'isAfflictionEffect'),
+    ) ?? null;
+    if (!sourceEffect) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.AfflictionNoEffect'));
+      return false;
+    }
   }
 
   const aeData = sourceEffect.toObject();

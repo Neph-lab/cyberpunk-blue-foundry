@@ -2,7 +2,7 @@
 
 Status key: ✅ automated · ❌ not automated · ➖ partial / display only
 
-Last updated: 2026-05-11 (gear AE state sync + Rocket Boost reminder + Skill Chip)
+Last updated: 2026-05-11 (gear AE state sync + Rocket Boost reminder + Skill Chip + Airhypo)
 
 Focus: Cyberware, non-weapon Gear, non-weapon Mods, Executables/Programs, Drugs.
 Weapon abilities are tracked separately in `weapon-abilities-audit.md`.
@@ -141,8 +141,8 @@ Reminder AE; Deaf-condition suppression not implemented.
 `aeOff` + Instructions: Connect → enable OVERRIDE AE (BODY 12) → Disconnect (terminates).
 | ✅ Linear Frame Beta (exoskeleton) | Strength tasks as BODY 14 | Instructions + aeOff |
 `aeOff` + Instructions: Connect → enable OVERRIDE AE (BODY 14) → Disconnect (terminates).
-| ❌ Airhypo | Store 3 drugs; administer as Action; vs unwilling: BODY+Melee attack first | Inventory sub-system + combat action |
-The drugs involved can be handled manually. Treat as Light Melee weapon with Affliction damage that transfers a description-only Drugged AE.
+| ✅ Airhypo | Store 3 drugs; administer as Action; vs unwilling: BODY+Melee attack first | Affliction weapon |
+lightMelee weapon entry (damage '0', BODY+Endurance DV13). On hit that passes SP (auto, since damage=0), target rolls defense; on failure, 'Drugged' AE is copied to target. `applyAfflictionEffect` falls back to `isAfflictionEffect` flag when `afflictionEffectId` is empty. `_syncGearEntries` now also syncs `isWeapon`/`weapons` on gear items so existing compendium entry is updated on next GM load.
 | ❌ Caltrops | DV15 RFLX+Athletics save or 1d6 per 2m moved through | Area placement + movement-triggered save |
 Treat as a grenade (see next section) where the Region created stays until manually removed. A Token moving more than 2 meters inside the region during their turn takes damage.
 | ❌ Toxin (gear) | DV13 BODY+Endurance or 2d6 HP + −1 BODY | Save-or-suffer on application |
