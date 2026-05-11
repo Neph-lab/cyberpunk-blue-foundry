@@ -122,8 +122,8 @@ Last updated: 2026-05-11
 | ✅ Auto-fire-on-10 — attack die = 10 → redirect to autofire | Kang Tao S9 Daishi Tang SMG | autoFireOn10 flag; resolveAutofireAttack redirect |
 | ✅ Target Vitals penalty −1 | Kang Tao Zhanshou (mod, SW only) | targetVitalsPenaltyReduction=1 |
 | ❌ Miss redirect (ISA miss ≤5 vs beacon-tagged target) | Malorian Arms Sonnet HP | requires TAG/beacon mechanic not yet built |
-| ❌ Tracker Dart mode | Malorian Arms Sonnet HP | alternate weapon entry needed |
-| ❌ Dart mode (silent, 4d6, toxin) | Tsunami Ashura SR | alternate weapon entry needed |
+| ➖ Tracker Dart mode | Malorian Arms Sonnet HP | second weapon entry added (1d6, ammo 2, smart); beacon tagging GM-handled |
+| ➖ Dart mode (silent, 4d6, toxin) | Tsunami Ashura SR | second weapon entry with silenceBuiltIn; payload bonus present |
 
 ---
 
@@ -165,7 +165,7 @@ Last updated: 2026-05-11
 
 | Ability | Where | Notes |
 |---|---|---|
-| ❌ Tracker Dart / Dart alternate fire mode | Sonnet HP, Ashura SR | needs second weapon[] entry; not yet added to catalogue |
+| ➖ Tracker Dart / Dart alternate fire mode | Sonnet HP, Ashura SR | second weapon entries added; beacon/tag mechanic GM-handled |
 | ❌ Battery ammo category | Kang Tao Mámù stun gun | 'Battery' ammo type not yet created; Mámù uses dummy mag for now |
 
 ---
