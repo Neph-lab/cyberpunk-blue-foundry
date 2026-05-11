@@ -303,6 +303,17 @@ export async function resolveAfflictionAttack(attacker, item, weaponIndex) {
   const hit = resolvedDV === null || attackRoll.total >= resolvedDV;
   if (!hit) return;
 
+  // ── Shockwave (Kang Tao Mámù): BODY < 8 target pushed 2m ────────────────
+  if ((weapon.shockwave ?? false) && targetActor) {
+    const targetBody = targetActor.system?.stats?.body?.value ?? 0;
+    if (targetBody < 8) {
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-wind"></i> <strong>${game.i18n.localize('CYBER_BLUE.Combat.Shockwave')}</strong> — ${game.i18n.format('CYBER_BLUE.Combat.ShockwavePush', { target: targetActor.name, dist: 2 })}</p></div>`,
+      });
+    }
+  }
+
   if (!targetActor) {
     ui.notifications.info(game.i18n.localize('CYBER_BLUE.Combat.AfflictionHitNoTarget'));
     return;

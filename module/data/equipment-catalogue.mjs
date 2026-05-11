@@ -24,7 +24,7 @@ const h = (text) => `<p>${text}</p>`;
 
 // ── AE helpers ─────────────────────────────────────────────────────────────
 const ae      = (name, changes) => ({ name, disabled: false, transfer: true, changes });
-const aeOff   = (name, changes) => ({ name, disabled: true,  transfer: true, changes });
+const aeOff   = (name, changes) => ({ name, disabled: true,  transfer: true, changes, flags: { 'cyberpunk-blue': { noGearStateSync: true } } });
 const reminder = (name)         => ({ name, disabled: false, transfer: true, changes: [] });
 const stat    = (slug, val) => ({ key: `system.stats.${slug}.value`,    mode: 2, value: String(val) });
 const statOvr = (slug, val) => ({ key: `system.stats.${slug}.value`,    mode: 5, value: String(val) });

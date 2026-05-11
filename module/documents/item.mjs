@@ -209,7 +209,7 @@ export class CyberBlueItem extends Item {
   }
 
   shouldApplyGearEffects() {
-    return this.type === 'gear' && normalizeGearState(this.system) !== 'owned';
+    return this.type === 'gear' && normalizeGearState(this.system) === 'equipped';
   }
 
   async syncGearEffects(options = {}) {
@@ -221,6 +221,11 @@ export class CyberBlueItem extends Item {
     const updates = [];
 
     for (const effect of this.effects.contents) {
+      // Skip AEs managed by the combat/affliction system or instruction steps —
+      // those have their own enable/disable lifecycle independent of gear state.
+      const cpbFlags = effect.flags?.['cyberpunk-blue'] ?? {};
+      if (cpbFlags.isAfflictionEffect || cpbFlags.noGearStateSync) continue;
+
       const overrideState = effect.getFlag('cyberpunk-blue', CyberBlueItem.GEAR_EFFECT_STATE_FLAG) ?? null;
       if (!shouldApply) {
         if (effect.disabled !== true || overrideState?.active !== true) {

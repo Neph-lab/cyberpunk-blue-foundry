@@ -2,7 +2,7 @@
 
 Status key: ✅ implemented · ❌ not implemented · ➖ partial / display only
 
-Last updated: 2026-05-11 (battery ammo + stunGun weapon type for Mámù)
+Last updated: 2026-05-11 (stun weapons → affliction; gear AEs require equipped state)
 
 ---
 
@@ -68,7 +68,7 @@ Last updated: 2026-05-11 (battery ammo + stunGun weapon type for Mámù)
 | ✅ Slicing — Broken Arm/Leg → roll 1d6; 2+ = Dismembered | Kendachi Mono-Three, Katana | critSlicing flag; handled in critical-injury.mjs |
 | ✅ Blunt — no dismember; would-be dismember → Broken + 5 dmg | Baseball Bat | critBlunt flag |
 | ✅ Crushing — cascading crit chain | Sledgehammer | critCrushing flag |
-| ✅ Stun — 0–(−10) HP → unconscious at 1 HP | Militech Stun Baton, Kang Tao Mámù | critStun flag |
+| ✅ Stun — hit+SP penetration → BODY+Endurance DV13 or Stunned AE | Militech Stun Baton, Kang Tao Mámù | damageType='affliction'; isAfflictionEffect AE on item; shockwave still fires on hit (affliction-attack.mjs) |
 | ✅ Vicious — crits deal +5 extra damage | Budget Arms Cut-O-Matic (powered) | vicious flag; +5 on crit |
 | ✅ Shattered Projectiles — dmg on miss; if > 15 → 2d6 in 2m radius | Techtronika Metel VHP | shatteredProjectiles; chat message for splash |
 

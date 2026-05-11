@@ -2,7 +2,7 @@
 
 Status key: ✅ automated · ❌ not automated · ➖ partial / display only
 
-Last updated: 2026-05-11 (grenades: all 4 weapon entries + outerZoneResistBonus)
+Last updated: 2026-05-11 (gear AEs now only active when 'equipped'; drug/instruction AEs exempt via noGearStateSync flag)
 
 Focus: Cyberware, non-weapon Gear, non-weapon Mods, Executables/Programs, Drugs.
 Weapon abilities are tracked separately in `weapon-abilities-audit.md`.
@@ -60,7 +60,7 @@ AE flag `teleOptics: true`; `combat-resolution.mjs` checks the flag and adds +1 
 | ✅ Targeting Scope | +1 Aimed attacks | Conditional attack bonus |
 AE flag `targetingScope: true`; `combat-resolution.mjs` adds +1 when Target Vitals is active.
 | ✅ Skill Chip | Treat skill rank as 3 if user < 3 | Minimum-rank floor, not additive |
-Note field (slug) validated against `CONFIG.CYBER_BLUE.skills` / `.components`. If valid, `syncSkillChipEffect()` creates an AE with flag `skillChipFloor: slug`. `getSkillRollContext()` calls `_getSkillChipFloors()` to apply `max(rank, 3)` floor at roll time. Respects gear state (AE disabled when 'owned').
+Note field (slug) validated against `CONFIG.CYBER_BLUE.skills` / `.components`. If valid, `syncSkillChipEffect()` creates an AE with flag `skillChipFloor: slug`. `getSkillRollContext()` calls `_getSkillChipFloors()` to apply `max(rank, 3)` floor at roll time. Respects gear state (AE disabled unless 'equipped').
 
 ### 1b. Speedware (exclusive group — only one may be active)
 
@@ -85,7 +85,7 @@ Reminder AE on each item; threshold check can't be automated with standard AEs. 
 | Cyberware | Effect | Notes |
 |---|---|---|
 | ✅ Pain Editor | Ignore Seriously Wounded penalties | Passive flag; suppresses wound-penalty AE |
-'Pain Editor Chip' gear item has AE with `painEditor: true` flag. `shouldBeSeriouslyWounded()` checks for active `painEditor` AE on the actor before creating the Seriously Wounded effect. Respects gear state (AE disabled when 'owned').
+'Pain Editor Chip' gear item has AE with `painEditor: true` flag. `shouldBeSeriouslyWounded()` checks for active `painEditor` AE on the actor before creating the Seriously Wounded effect. Respects gear state (AE disabled unless 'equipped').
 | ➖ Tactile Boost | Narrative only | No mechanical enforcement needed |
 'Tactile Boost Chip' gear item; description-only; no reminder AE needed.
 
@@ -127,9 +127,9 @@ Reminder AE added. GM-handled.
 
 | Gear | Effect | Notes |
 |---|---|---|
-| ✅ Medscanner (gear) | +2 Medicine while carried/equipped | AE on gear item |
-AE adds +2 medicine rank. `syncGearEffects()` disables the AE when gear state is 'owned'; re-enables when carried/equipped. Doesn't stack with the Cyberware version (player awareness; no enforcement).
-| ✅ Techscanner (gear) | +2 Electronics, +2 Mechanics while carried/equipped | AE on gear item |
+| ✅ Medscanner (gear) | +2 Medicine while equipped | AE on gear item |
+AE adds +2 medicine rank. `syncGearEffects()` disables the AE when gear state is not 'equipped'. Doesn't stack with the Cyberware version (player awareness; no enforcement).
+| ✅ Techscanner (gear) | +2 Electronics, +2 Mechanics while equipped | AE on gear item |
 AE adds +2 electronics rank, +2 mechanics rank. Same gear-state sync as Medscanner.
 | ❌ Smart Visor | Functions as 2-slot cybereye with Virtuality while worn | Worn-state tracking + conditional NET access |
 Requires Gear Mods to replicate Cybereye extensions. Deferred until Mods overhaul.

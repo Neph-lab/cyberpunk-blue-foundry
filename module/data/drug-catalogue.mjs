@@ -51,6 +51,7 @@ function ae(name, changes) {
     disabled: true,
     transfer: true,
     changes: changes.map(({ key, value }) => ({ key, mode: ADD, value: String(value) })),
+    flags: { 'cyberpunk-blue': { noGearStateSync: true } },
   };
 }
 

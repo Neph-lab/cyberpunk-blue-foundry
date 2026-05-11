@@ -1592,6 +1592,7 @@ async function _syncWeaponEntries(catalogue) {
   const byName = new Map(catalogue.filter((it) => it.type === 'gear').map((it) => [it.name, it]));
 
   const updates = [];
+  const effectsToCreate = []; // { doc, effects }[] — affliction AEs to add to existing items
   for (const entry of pack.index) {
     if (entry.type !== 'gear') continue;
     const def = byName.get(entry.name);
@@ -1692,14 +1693,36 @@ async function _syncWeaponEntries(catalogue) {
     if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged || batch9FieldsChanged || batch10FieldsChanged || batch11FieldsChanged || batch12FieldsChanged) {
       updates.push({ _id: doc.id, 'system.weapons': catalogueWeapons });
     }
+
+    // Sync missing affliction AEs (e.g. stun weapons converted to affliction damageType)
+    const catalogueAfflictionEffects = (def.effects ?? []).filter(
+      (e) => e.flags?.['cyberpunk-blue']?.isAfflictionEffect,
+    );
+    const existingAfflictionNames = new Set(
+      doc.effects.contents
+        .filter((e) => e.getFlag?.('cyberpunk-blue', 'isAfflictionEffect'))
+        .map((e) => e.name),
+    );
+    const missingAfflictionEffects = catalogueAfflictionEffects.filter(
+      (ce) => !existingAfflictionNames.has(ce.name),
+    );
+    if (missingAfflictionEffects.length > 0) {
+      effectsToCreate.push({ doc, effects: missingAfflictionEffects });
+    }
   }
 
-  if (updates.length === 0) return;
+  if (updates.length === 0 && effectsToCreate.length === 0) return;
 
   await pack.configure({ locked: false });
   try {
-    await Item.updateDocuments(updates, { pack: PACK_ID });
-    console.log(`Cyberpunk Blue | Updated weapon entries for ${updates.length} items in weapons pack.`);
+    if (updates.length > 0) {
+      await Item.updateDocuments(updates, { pack: PACK_ID });
+      console.log(`Cyberpunk Blue | Updated weapon entries for ${updates.length} items in weapons pack.`);
+    }
+    for (const { doc: itemDoc, effects } of effectsToCreate) {
+      await itemDoc.createEmbeddedDocuments('ActiveEffect', effects);
+      console.log(`Cyberpunk Blue | Added ${effects.length} affliction AE(s) to "${itemDoc.name}" in weapons pack.`);
+    }
   } finally {
     await pack.configure({ locked: true });
   }
