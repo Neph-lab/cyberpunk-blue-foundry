@@ -327,6 +327,19 @@
         "Upgrade": "Upgrade",
         "Invention": "Invent",
         "Skill": "Skill"
+      },
+      "Fixer": {
+        "Haggle": "Haggle"
+      },
+      "Guide": {
+        "DealReading": "Deal Reading",
+        "Meditate": "Meditate",
+        "Reading": "Reading",
+        "InDeck": "in deck",
+        "Locked": "locked",
+        "LockedTitle": "Cards locked due to cyberware (PSYCHE max below 60)",
+        "PlayCard": "Play card (draw replacement from deck)",
+        "Cards": "cards"
       }
     },
     "Effect": {

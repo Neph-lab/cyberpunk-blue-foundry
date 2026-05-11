@@ -52,6 +52,24 @@ import {
   resolveFlyingKick,
 } from '../helpers/martial-arts.mjs';
 
+/** Major arcana cards available to Guide (indices 0–21). */
+const GUIDE_CARDS = [
+  'The Fool', 'The Magician', 'The High Priestess', 'The Empress', 'The Emperor',
+  'The Hierophant', 'The Lovers', 'The Chariot', 'Strength', 'The Hermit',
+  'Wheel of Fortune', 'Justice', 'The Hanged Man', 'Death', 'Temperance',
+  'The Devil', 'The Tower', 'The Star', 'The Moon', 'The Sun', 'Judgement', 'The World',
+];
+
+/** Fisher-Yates shuffle; returns a new array. */
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 function sortEmbeddedDocuments(left, right) {
   return (left.sort ?? 0) - (right.sort ?? 0) || left.name.localeCompare(right.name);
 }
@@ -596,6 +614,30 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           roleMechanics.techieRolls = techieRolls;
         }
       }
+      if (role.name === 'Fixer' && roleRank >= 1) {
+        roleMechanics.canHaggle = true;
+        roleMechanics.fixerRank = roleRank;
+      }
+      if (role.name === 'Guide' && roleRank >= 1) {
+        const psycheMax = this.document.system.resources?.psyche?.max ?? 60;
+        const lockedCount = Math.max(0, Math.floor((60 - psycheMax) / 10));
+        const meditationsMax = 1 + (roleRank >= 5 ? 1 : 0) + (roleRank >= 10 ? 1 : 0);
+        const meditationsUsed = this.document.getFlag('cyberpunk-blue', 'guide.meditationsUsed') ?? 0;
+        const readingRaw = this.document.getFlag('cyberpunk-blue', 'guide.reading') ?? [];
+        const deckRaw = this.document.getFlag('cyberpunk-blue', 'guide.deck') ?? [];
+        roleMechanics.canGuide = true;
+        roleMechanics.guide = {
+          guideRank:       roleRank,
+          lockedCount,
+          meditationsMax,
+          meditationsUsed,
+          meditationsLeft: Math.max(0, meditationsMax - meditationsUsed),
+          canMeditate:     meditationsUsed < meditationsMax && readingRaw.length > 0,
+          hasReading:      readingRaw.length > 0,
+          deckSize:        deckRaw.length,
+          reading:         readingRaw.map((idx) => ({ index: idx, name: GUIDE_CARDS[idx] ?? `Card ${idx}` })),
+        };
+      }
 
       const base = {
         roleId: role.id,
@@ -1128,6 +1170,18 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     });
     this.element.querySelectorAll('[data-action="role-techie-roll"]').forEach((button) => {
       button.addEventListener('click', this._onTechieRoll.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="role-fixer-haggle"]').forEach((button) => {
+      button.addEventListener('click', this._onFixerHaggle.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="role-guide-deal"]').forEach((button) => {
+      button.addEventListener('click', this._onGuideDeal.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="role-guide-meditate"]').forEach((button) => {
+      button.addEventListener('click', this._onGuideMeditate.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="role-guide-play"]').forEach((button) => {
+      button.addEventListener('click', this._onGuidePlayCard.bind(this));
     });
 
     // Money field: supports arithmetic expressions (e.g. "500-50" → 450)
@@ -2438,6 +2492,151 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       flavor: `<div class="cyberpunk-blue chat-card">
         <h3>${game.i18n.localize(`CYBER_BLUE.Role.Techie.${rollType.charAt(0).toUpperCase() + rollType.slice(1)}`)}</h3>
         <p>1d10 + TECH (${techVal}) + ${skill} (${skillRank}) + spec rank (${specRank})</p>
+      </div>`,
+    });
+  }
+
+  async _onFixerHaggle(event) {
+    event.preventDefault();
+    const actor = this.document;
+    const fixerRole = actor.items.find((i) => i.type === 'role' && i.name === 'Fixer');
+    if (!fixerRole) return;
+    const rank = Number(fixerRole.system.rank) || 0;
+    const system = actor.system;
+    const coolVal = system.stats?.cool?.value ?? 0;
+    const intVal  = system.stats?.int?.value  ?? 0;
+    const tradingRank  = system.skills?.trading?.rank  ?? 0;
+    const tradingBonus = system.skills?.trading?.bonus ?? 0;
+    // Ability: "Use COOL instead of INT if preferred" → auto-use whichever is higher
+    const useCool = coolVal > intVal;
+    const statName = useCool ? 'COOL' : 'INT';
+    const statVal  = useCool ? coolVal : intVal;
+    const statRollMod = useCool
+      ? (system.stats?.cool?.rollMod ?? 0)
+      : (system.stats?.int?.rollMod  ?? 0);
+    const terms = [statVal, tradingRank, rank];
+    if (statRollMod)  terms.push(statRollMod);
+    if (tradingBonus) terms.push(tradingBonus);
+    const formula = ['1d10', ...terms.map((t) => (t >= 0 ? `+ ${t}` : `- ${Math.abs(t)}`))].join(' ');
+    const roll = await new Roll(formula).evaluate();
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      rollMode: game.settings.get('core', 'rollMode'),
+      flavor: `<div class="cyberpunk-blue chat-card">
+        <h3>${game.i18n.localize('CYBER_BLUE.Role.Fixer.Haggle')}</h3>
+        <p>1d10 + ${statName} (${statVal}) + Trading (${tradingRank}) + Fixer rank (${rank})</p>
+      </div>`,
+    });
+  }
+
+  /** Deal a fresh Reading at the start of a session (or re-deal). Resets meditations. */
+  async _onGuideDeal(event) {
+    event.preventDefault();
+    const actor = this.document;
+    const guideRole = actor.items.find((i) => i.type === 'role' && i.name === 'Guide');
+    if (!guideRole) return;
+    const rank = Number(guideRole.system.rank) || 0;
+    const psycheMax = actor.system.resources?.psyche?.max ?? 60;
+    const lockedCount = Math.max(0, Math.floor((60 - psycheMax) / 10));
+    const availableCards = 22 - lockedCount;
+    const drawCount = Math.min(rank, availableCards);
+
+    // Build and shuffle a deck of available cards (lock the highest-numbered ones)
+    const allIndices = Array.from({ length: 22 }, (_, i) => i);
+    const unlockedIndices = allIndices.slice(0, availableCards);
+    const shuffled = shuffleArray(unlockedIndices);
+    const reading = shuffled.slice(0, drawCount);
+    const deck    = shuffled.slice(drawCount);
+
+    await actor.setFlag('cyberpunk-blue', 'guide.reading', reading);
+    await actor.setFlag('cyberpunk-blue', 'guide.deck',    deck);
+    await actor.setFlag('cyberpunk-blue', 'guide.meditationsUsed', 0);
+
+    const cardNames = reading.map((i) => `${i}. ${GUIDE_CARDS[i]}`).join(', ');
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `<div class="cyberpunk-blue chat-card">
+        <h3>Guide Reading Dealt</h3>
+        <p>${lockedCount > 0 ? `<em>${lockedCount} card(s) locked due to cyberware.</em> ` : ''}Drawing ${drawCount} of ${availableCards} available cards.</p>
+        <p><strong>Reading:</strong> ${cardNames}</p>
+        <p><em>Deck: ${deck.length} card(s) remaining.</em></p>
+      </div>`,
+    });
+  }
+
+  /** Meditate: reshuffle all held + deck cards and deal a new Reading. */
+  async _onGuideMeditate(event) {
+    event.preventDefault();
+    const actor = this.document;
+    const guideRole = actor.items.find((i) => i.type === 'role' && i.name === 'Guide');
+    if (!guideRole) return;
+    const rank = Number(guideRole.system.rank) || 0;
+    const meditationsMax = 1 + (rank >= 5 ? 1 : 0) + (rank >= 10 ? 1 : 0);
+    const meditationsUsed = actor.getFlag('cyberpunk-blue', 'guide.meditationsUsed') ?? 0;
+    if (meditationsUsed >= meditationsMax) {
+      ui.notifications.warn('No meditations remaining this session.');
+      return;
+    }
+    const psycheMax = actor.system.resources?.psyche?.max ?? 60;
+    const lockedCount = Math.max(0, Math.floor((60 - psycheMax) / 10));
+    const availableCards = 22 - lockedCount;
+    const drawCount = Math.min(rank, availableCards);
+
+    const currentReading = actor.getFlag('cyberpunk-blue', 'guide.reading') ?? [];
+    const currentDeck    = actor.getFlag('cyberpunk-blue', 'guide.deck')    ?? [];
+    const allCurrent = [...currentReading, ...currentDeck];
+    const shuffled = shuffleArray(allCurrent);
+    const reading = shuffled.slice(0, drawCount);
+    const deck    = shuffled.slice(drawCount);
+    const newMeditationsUsed = meditationsUsed + 1;
+
+    await actor.setFlag('cyberpunk-blue', 'guide.reading', reading);
+    await actor.setFlag('cyberpunk-blue', 'guide.deck',    deck);
+    await actor.setFlag('cyberpunk-blue', 'guide.meditationsUsed', newMeditationsUsed);
+
+    const cardNames = reading.map((i) => `${i}. ${GUIDE_CARDS[i]}`).join(', ');
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `<div class="cyberpunk-blue chat-card">
+        <h3>Guide Meditates</h3>
+        <p>Reshuffled and dealt a new Reading (meditation ${newMeditationsUsed}/${meditationsMax}).</p>
+        <p><strong>New Reading:</strong> ${cardNames}</p>
+      </div>`,
+    });
+  }
+
+  /** Play a card from the Reading; draw a replacement from the deck, shuffle played card back in. */
+  async _onGuidePlayCard(event) {
+    event.preventDefault();
+    const actor = this.document;
+    const cardIndex = parseInt(event.currentTarget.dataset.cardIndex, 10);
+    if (!Number.isFinite(cardIndex)) return;
+
+    const reading = [...(actor.getFlag('cyberpunk-blue', 'guide.reading') ?? [])];
+    const deck    = [...(actor.getFlag('cyberpunk-blue', 'guide.deck')    ?? [])];
+    const pos = reading.indexOf(cardIndex);
+    if (pos === -1) return;
+
+    // Remove played card from reading, shuffle it back into deck, draw one replacement
+    reading.splice(pos, 1);
+    const newDeck = shuffleArray([...deck, cardIndex]);
+    let newReading = [...reading];
+    if (newDeck.length > 0) {
+      newReading = [...reading, newDeck.shift()];
+    }
+
+    await actor.setFlag('cyberpunk-blue', 'guide.reading', newReading);
+    await actor.setFlag('cyberpunk-blue', 'guide.deck',    newDeck);
+
+    const cardName = GUIDE_CARDS[cardIndex] ?? `Card ${cardIndex}`;
+    const drawnName = newReading.length > reading.length
+      ? (GUIDE_CARDS[newReading.at(-1)] ?? `Card ${newReading.at(-1)}`)
+      : null;
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `<div class="cyberpunk-blue chat-card">
+        <h3>Guide plays: ${cardIndex}. ${cardName}</h3>
+        ${drawnName ? `<p>Drew <strong>${drawnName}</strong> as replacement. Reading: ${newReading.map((i) => `${i}. ${GUIDE_CARDS[i]}`).join(', ')}.</p>` : '<p>Deck is empty — no replacement drawn.</p>'}
       </div>`,
     });
   }
