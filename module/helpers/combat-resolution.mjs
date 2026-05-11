@@ -283,9 +283,14 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
       <span>${game.i18n.localize('CYBER_BLUE.Combat.HandlingComputerBonus')}</span>
     </label>` : '';
 
-  // TeleOptics eligibility is evaluated here (before modifier assembly) for the dialog.
+  // TeleOptics + Targeting Scope eligibility evaluated here (before modifier assembly) for the dialog.
   const hasTeleOptics = getActiveAEFlag(attacker, 'teleOptics');
   const teleOpticsBonusPreview = (hasTeleOptics && distanceMeters !== null && distanceMeters > 50) ? 1 : 0;
+
+  // Targeting Scope: +1 to aimed attacks. Pre-read targetVitals flag for dialog preview.
+  const hasTargetingScope = getActiveAEFlag(attacker, 'targetingScope');
+  const preTargetVitals = item.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false;
+  const targetingScopeBonus = (hasTargetingScope && preTargetVitals) ? 1 : 0;
 
   const distanceBonusLines = [
     trajectoryBonus ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-ruler-combined"></i> ${game.i18n.localize('CYBER_BLUE.Combat.TrajectoryCalculations')}</p>` : '',
@@ -293,6 +298,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     calibrationBonus > 0 ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-bullseye"></i> ${game.i18n.format('CYBER_BLUE.Combat.CalibrationActive', { n: calibrationBonus })}</p>` : '',
     (isCharged && (weapon.chargedAttackBonus ?? 0) > 0) ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-bolt"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChargedAttackBonus', { n: weapon.chargedAttackBonus })}</p>` : '',
     teleOpticsBonusPreview > 0 ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-eye"></i> TeleOptics +1 (range &gt;50m)</p>` : '',
+    targetingScopeBonus > 0 ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-crosshairs"></i> Targeting Scope +1 (aimed)</p>` : '',
   ].filter(Boolean).join('');
 
   const dialogContent = `
@@ -441,6 +447,10 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // ── TeleOptics cyberware: +1 attack vs targets beyond 50m (not Autofire) ──
   // teleOpticsBonusPreview was computed before the dialog (same value); reuse it.
   attackModifier += teleOpticsBonusPreview;
+
+  // ── Targeting Scope: +1 attack on aimed shots (Target Vitals) ────────────
+  // targetingScopeBonus was computed before the dialog using the same flag.
+  attackModifier += targetingScopeBonus;
 
   const attackRoll = await attacker.rollSkill({ skillSlug, dv: resolvedDV, modifier: attackModifier });
 

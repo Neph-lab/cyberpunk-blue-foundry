@@ -32,6 +32,11 @@ const h = (text) => `<p>${text}</p>`;
 const ae      = (name, changes) => ({ name, disabled: false, transfer: true, changes });
 const aeOff   = (name, changes) => ({ name, disabled: true,  transfer: true, changes });
 const reminder = (name)         => ({ name, disabled: false, transfer: true, changes: [] });
+/** AE with no stat changes but a cyberpunk-blue flag — used for combat-code hooks (TeleOptics, etc.). */
+const aeFlag  = (name, flagKey, flagVal = true) => ({
+  name, disabled: false, transfer: true, changes: [],
+  flags: { 'cyberpunk-blue': { [flagKey]: flagVal } },
+});
 const stat    = (slug, val) => ({ key: `system.stats.${slug}.value`,    mode: 2, value: String(val) });
 const statOvr = (slug, val) => ({ key: `system.stats.${slug}.value`,    mode: 5, value: String(val) });
 const statMod = (slug, val) => ({ key: `system.stats.${slug}.rollMod`,  mode: 2, value: String(val) });
@@ -183,7 +188,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'PR', facilities: 'hospital', installationCost: 'EX', installationDv: 17,
     psycheLoss: '4d6',
     description: 'Speedware. +1 to Initiative, vehicle Swerve checks, and Evasion. Only one speedware may be installed at a time.',
-    effects: [ae('Speedware: +1 Initiative, Evasion, Swerve', [statMod('rflx', 1)])],
+    effects: [ae('Speedware: +1 Initiative, Evasion, Swerve', [statMod('rflx', 1), skill('evasion', 1), skill('drive', 1)])],
   }),
   cw({
     name: 'Sandevistan',
@@ -274,7 +279,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '1d6',
     description: '‡ Illegal without a permit. +1 to Aimed attacks. Does not stack; only one scope benefit applies at a time.',
-    effects: [reminder('Aimed Attack +1 (situational, non-stacking)')],
+    effects: [aeFlag('Targeting Scope: +1 Aimed Attack', 'targetingScope')],
   }),
   cw({
     name: 'TeleOptics',
@@ -283,7 +288,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '1d6',
     description: 'Detailed vision up to 800m. +1 to attack rolls at ranges greater than 50m (does not apply to Autofire).',
-    effects: [reminder('Attack +1 at range > 50m (situational, not Autofire)')],
+    effects: [aeFlag('TeleOptics: +1 attack >50m', 'teleOptics')],
   }),
   cw({
     name: 'Virtuality',
@@ -412,6 +417,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 15,
     psycheLoss: '1d6',
     description: '+1d6 to Martial Arts punch damage.',
+    effects: [aeFlag('Big Knucks: +1d6 MA damage', 'maExtraDamageDice', 1)],
   }),
   cw({
     name: 'Embedded Firearm',

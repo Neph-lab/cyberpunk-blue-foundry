@@ -2,7 +2,7 @@
 
 Status key: ✅ automated · ❌ not automated · ➖ partial / display only
 
-Last updated: 2026-05-04
+Last updated: 2026-05-11
 
 Focus: Cyberware, non-weapon Gear, non-weapon Mods, Executables/Programs, Drugs.
 Weapon abilities are tracked separately in `weapon-abilities-audit.md`.
@@ -29,36 +29,36 @@ All entries below exist in the catalogue with descriptive text but apply **no me
 
 | Cyberware | Bonus | Notes |
 |---|---|---|
-| ❌ Grafted Muscle & Bone Lace | +2 BODY (max 10) | `multipleInstalls: true`; bonus stacks across installs up to BODY 10 |
-+2 to BODY per install, but the cap of 10 for Primary Stats remains in place. Thus BODY + this bonus caps out at 10.
-| ❌ Big Knucks | +1d6 Martial Arts punch damage | Extra die on unarmed punch only |
-All Martial Arts attacks that deal damage.
-| ❌ Toxin Binders | +2 Endurance vs blood-borne toxins/drugs | Situational; could be a passive AE |
-AE affects checks forced by drugs. The rest is up to the GM.
+| ✅ Grafted Muscle & Bone Lace | +2 BODY (max 10) | `multipleInstalls: true`; bonus stacks across installs up to BODY 10 |
++2 to BODY per install via AE. Cap of 10 is GM-enforced (Foundry AEs don't support conditional caps).
+| ✅ Big Knucks | +1d6 Martial Arts punch damage | Extra die on all MA attacks |
+AE flag `maExtraDamageDice: 1`; `buildMaDamageFormula()` in martial-arts.mjs adds extra dice to all MA rolls.
+| ✅ Toxin Binders | +2 Endurance vs blood-borne toxins/drugs | Situational; passive AE |
+AE adds +2 to Endurance skill rank.
 | ❌ Enhanced Antibodies | Heal BODY×2 HP/day after stabilised | Passive healing rate change |
-Add +BODY of the character to HP regained when GM activates natural healing.
-| ❌ Implanted Linear Frame Sigma | BODY → 12 | Hard override, not additive |
-Implement. Can't be installed if Beta is installed.
-| ❌ Implanted Linear Frame Beta | BODY → 14 | Hard override; conflicts with Sigma |
-Implement. Can't be installed if Sigma is installed.
+Add +BODY of the character to HP regained when GM activates natural healing. GM-handled.
+| ✅ Implanted Linear Frame Sigma | BODY → 12 | Hard override via OVERRIDE AE |
+AE with mode 5 (OVERRIDE) sets BODY to 12. Can't be installed if Beta is installed.
+| ✅ Implanted Linear Frame Beta | BODY → 14 | Hard override via OVERRIDE AE |
+AE with mode 5 (OVERRIDE) sets BODY to 14. Conflicts with Sigma.
 | ❌ Amplified Hearing | +2 hearing Perception | Perception sub-type bonus |
-Create an AE as descriptive reminder, but handled by GM.
+Reminder AE only; bonus is handled by GM.
 | ❌ Image Enhance | +2 sight Perception | PAIRED; Perception sub-type bonus |
-As above.
-| ❌ Voice Stress Analyzer | +2 Human Perception, +1 Influence | Multiple stat bonus |
-Implement with an AE
-| ❌ AudioVox | +2 Acting, +2 Music; voice imitation via Acting | Skill bonus + narrative voice-mimicry |
-+2 to Acting via AE. The description includes the rest as a reminder but handled by the GM.
-| ❌ Medscanner (cyberarm) | +2 Medicine | Skill bonus when cyber arm installed |
-Bonus via AE. Doesn't stack with the Gear version.
-| ❌ Techscanner (cyberarm) | +2 Electronics, +2 Mechanics | Skill bonus when cyber arm installed |
-Bonus via AE. Doesn't stack with the Gear version.
+Reminder AE only; bonus is handled by GM.
+| ✅ Voice Stress Analyzer | +2 Human Perception, +1 Influence | Multiple stat bonus |
+AE adds +2 humanPerc rank, +1 influence rank.
+| ✅ AudioVox | +2 Acting, +2 Music; voice imitation via Acting | Skill bonus + narrative voice-mimicry |
+AE adds +2 acting rank, +2 music component rank.
+| ✅ Medscanner (cyberarm) | +2 Medicine | Skill bonus when cyber arm installed |
+AE adds +2 medicine rank.
+| ✅ Techscanner (cyberarm) | +2 Electronics, +2 Mechanics | Skill bonus when cyber arm installed |
+AE adds +2 electronics rank, +2 mechanics rank.
 | ❌ Olfactory Boost | +2 scent Perception | Perception sub-type bonus |
-AE as reminder, but bonus is handled by GM.
-| ❌ TeleOptics | +1 attack rolls >50m (not Autofire) | Conditional attack bonus |
-Implement attack bonus.
-| ❌ Targeting Scope | +1 Aimed attacks | Conditional attack bonus |
-Implement bonus for Target vitals.
+Reminder AE; bonus is handled by GM.
+| ✅ TeleOptics | +1 attack rolls >50m (not Autofire) | Conditional attack bonus |
+AE flag `teleOptics: true`; `combat-resolution.mjs` checks the flag and adds +1 when range > 50m.
+| ✅ Targeting Scope | +1 Aimed attacks | Conditional attack bonus |
+AE flag `targetingScope: true`; `combat-resolution.mjs` adds +1 when Target Vitals is active.
 | ❌ Skill Chip | Treat skill rank as 3 if user < 3 | Minimum-rank floor, not additive |
 The one-line note-field in the header should have the name of the Skill or Component. Implemented via AE if that name can be validated as actual Skill or Component.
 
@@ -66,28 +66,28 @@ The one-line note-field in the header should have the name of the Skill or Compo
 
 | Cyberware | Effect | Notes |
 |---|---|---|
-| ❌ Kerenzikov | +1 Initiative, +1 Evasion, +1 Swerve | Passive always-on while installed; speedware exclusivity |
-Implement with AE
-| ❌ Sandevistan | Action to activate; 10 min: +3 Init/Evasion/Martial Arts/Melee | Active toggle; re-use within 1 hr → 3d6 HP damage to self |
-Use the Instruction array flow to Activate the appropriate AE → An AE representing cooldown. The damage is handled by the GM.
+| ✅ Kerenzikov | +1 Initiative, +1 Evasion, +1 Swerve | Passive always-on while installed; speedware exclusivity |
+AE adds +1 rflx rollMod (Initiative), +1 evasion rank, +1 drive rank (Swerve).
+| ✅ Sandevistan | Action to activate; 10 min: +3 Init/Evasion/Martial Arts/Melee | Active toggle; re-use within 1 hr → 3d6 HP damage to self |
+`aeOff` + Instructions: Activate message → enable AE → Deactivate message (terminates). Cooldown damage is GM-handled.
 
 ### 1c. Fashionware — combined style bonuses
 
 | Cyberware | Effect | Notes |
 |---|---|---|
-| ❌ Chem-Skin + Tech-Hair | +2 Style (combined, not per-item) | Only grants bonus when BOTH are installed |
-Have one of them check for the other, provide bonus if found.
-| ❌ 3+ Light Tattoos | +2 Style total | Threshold check on installed count |
-Implement.
+| ➖ Chem-Skin + Tech-Hair | +2 Style (combined, not per-item) | Only grants bonus when BOTH are installed |
+Reminder AE on each item; the conditional cross-item check can't be automated with standard AEs. GM-enforced.
+| ➖ 3+ Light Tattoos | +2 Style total | Threshold check on installed count |
+Reminder AE on each item; threshold check can't be automated with standard AEs. GM-enforced.
 
 ### 1d. Chipware — active or conditional
 
 | Cyberware | Effect | Notes |
 |---|---|---|
 | ❌ Pain Editor | Ignore Seriously Wounded penalties | Passive flag; suppresses wound-penalty AE |
-Should not be Cyberware! Chipware are Gear that provide their effect while equipped.
+Should be Gear (Chipware), not Cyberware. Providing the effect while equipped requires wound-suppression AE logic.
 | ❌ Tactile Boost | Narrative only | No mechanical enforcement needed |
-Same.
+Should be Gear (Chipware). No mechanical effect to automate.
 
 ---
 
@@ -95,8 +95,8 @@ Same.
 
 | Cyberware | Effect | Notes |
 |---|---|---|
-| ❌ Skate Foot | +6m MOVE per turn | PAIRED; additive to base MOVE |
-Use Instruction array flow to Activate for an AE and end it when ending the Instructions.
+| ✅ Skate Foot | +6m MOVE per turn | PAIRED; additive to base MOVE |
+`aeOff` + Instructions: Deploy message → enable AE (+6 move.value) → Retract message (terminates).
 | ❌ Rocket Boost | Doubles jump height; ignore first 6m of fall | PAIRED; two separate effects |
 Create an AE as reminder, but as jumps and fall damage isn't implemented, ignore details.
 | ❌ Gripfoot | Removes movement penalties on difficult terrain/climbing | PAIRED; terrain-penalty suppression |

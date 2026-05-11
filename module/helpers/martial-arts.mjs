@@ -48,6 +48,31 @@ export function getMartialArtsDamage(bodyValue) {
   return '1d6';
 }
 
+/**
+ * Extra MA damage dice from cyberware AEs (e.g. Big Knucks: +1d6).
+ * Sums the `maExtraDamageDice` flag across all active effects on the actor.
+ */
+function getMaExtraDamageDice(actor) {
+  let total = 0;
+  for (const effect of actor.effects ?? []) {
+    if (effect.disabled) continue;
+    const val = effect.getFlag('cyberpunk-blue', 'maExtraDamageDice');
+    if (typeof val === 'number' && val > 0) total += val;
+  }
+  return total;
+}
+
+/**
+ * Full MA damage formula, including cyberware extra dice.
+ * Use this everywhere a damage roll string is needed.
+ */
+export function buildMaDamageFormula(actor) {
+  const bodyValue = actor.system?.stats?.body?.value ?? 0;
+  const base = getMartialArtsDamage(bodyValue);
+  const extra = getMaExtraDamageDice(actor);
+  return extra > 0 ? `${base} + ${extra}d6` : base;
+}
+
 /** Return the component slug with the highest rank (or null if all are 0). */
 function getBestComponent(actor) {
   let bestSlug = null;
@@ -303,8 +328,7 @@ export async function resolveMartialArtsAttack(attacker, componentSlug, {
   if (!hit) return;
 
   // Damage
-  const bodyValue = attacker.system?.stats?.body?.value ?? 0;
-  const damageFormula = getMartialArtsDamage(bodyValue);
+  const damageFormula = buildMaDamageFormula(attacker);
 
   const damageResult = await applyMartialArtsDamage({
     attacker, targetActor,
@@ -829,8 +853,7 @@ export async function resolveFlyingKick(attacker, maIndex) {
   const hit = dialogResult === null || attackRoll.total >= dialogResult;
   if (!hit) return;
 
-  const bodyValue = attacker.system?.stats?.body?.value ?? 0;
-  const damageFormula = getMartialArtsDamage(bodyValue);
+  const damageFormula = buildMaDamageFormula(attacker);
   await applyMartialArtsDamage({
     attacker, targetActor,
     damageFormula,
@@ -865,8 +888,7 @@ export function buildMartialArtsContext(actor, rofState) {
   const activeComponents = MA_COMPONENTS.filter((c) => (actor.system.components?.[c]?.rank ?? 0) > 0);
 
   const martialArtsAttacks = [];
-  const bodyValue = actor.system?.stats?.body?.value ?? 0;
-  const damage = getMartialArtsDamage(bodyValue);
+  const damage = buildMaDamageFormula(actor);
 
   const shouldShow = maSkillRank > 0 || activeComponents.length > 0;
   if (!shouldShow) return { martialArtsAttacks: [], martialArtsSpecialMoves: [] };
