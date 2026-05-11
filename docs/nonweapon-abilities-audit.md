@@ -2,7 +2,7 @@
 
 Status key: ✅ automated · ❌ not automated · ➖ partial / display only
 
-Last updated: 2026-05-11 (gear AE state sync + Rocket Boost reminder + Skill Chip + Airhypo + Pain Editor + reminder AEs)
+Last updated: 2026-05-11 (grenades: all 4 weapon entries + outerZoneResistBonus)
 
 Focus: Cyberware, non-weapon Gear, non-weapon Mods, Executables/Programs, Drugs.
 Weapon abilities are tracked separately in `weapon-abilities-audit.md`.

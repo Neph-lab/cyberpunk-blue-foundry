@@ -2,7 +2,7 @@
 
 Status key: ✅ implemented · ❌ not implemented · ➖ partial / display only
 
-Last updated: 2026-05-11
+Last updated: 2026-05-11 (battery ammo + stunGun weapon type for Mámù)
 
 ---
 
