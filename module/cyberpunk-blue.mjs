@@ -1872,6 +1872,72 @@ async function _syncCyberwareEntries(catalogue) {
 }
 
 /**
+ * Sync drug compendium entries with the current catalogue definition.
+ * Compares effects (AEs) and instructions; description fields are
+ * informational and intentionally not synced.
+ */
+async function _syncDrugEntries(catalogue) {
+  const PACK_ID = 'cyberpunk-blue.drugs';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) return;
+  await pack.getIndex({ fields: ['name', 'type'] });
+
+  const byName = new Map(
+    catalogue
+      .filter((it) => it.type === 'drug')
+      .map((it) => [it.name, it])
+  );
+
+  const updates = [];
+  for (const entry of pack.index) {
+    if (entry.type !== 'drug') continue;
+    const def = byName.get(entry.name);
+    if (!def) continue;
+    const doc = await pack.getDocument(entry._id);
+    if (!doc) continue;
+
+    const catEffects = def.effects ?? [];
+    const docEffects = (doc.effects?.contents ?? []).filter((e) => !_isSystemGeneratedEffect(e));
+    const catSig = catEffects.map(_catalogueEffectSig).sort().join('\n');
+    const docSig = docEffects.map((e) => _catalogueEffectSig({
+      name:    e.name,
+      disabled: e.disabled,
+      changes:  e.changes ?? [],
+      flags:   { 'cyberpunk-blue': e.flags?.['cyberpunk-blue'] ?? {} },
+    })).sort().join('\n');
+    const effectsChanged = catSig !== docSig;
+
+    const catInstr = JSON.stringify(def.system?.instructions ?? []);
+    const docInstr = JSON.stringify(doc.system?.instructions ?? []);
+    const instrChanged = catInstr !== docInstr;
+
+    const update = { _id: doc.id };
+    let needsUpdate = false;
+    if (effectsChanged) {
+      update.effects = catEffects;
+      needsUpdate = true;
+    }
+    if (instrChanged) {
+      update['system.instructions'] = def.system.instructions ?? [];
+      needsUpdate = true;
+    }
+    if (needsUpdate) updates.push(update);
+  }
+
+  if (updates.length === 0) return;
+
+  await pack.configure({ locked: false });
+  try {
+    await Item.updateDocuments(updates, { pack: PACK_ID });
+    const effectsCount = updates.filter((u) => 'effects' in u).length;
+    const instrCount = updates.filter((u) => 'system.instructions' in u).length;
+    console.log(`Cyberpunk Blue | Synced ${instrCount} instruction and ${effectsCount} effects updates in drugs pack.`);
+  } finally {
+    await pack.configure({ locked: true });
+  }
+}
+
+/**
  * Sync gear compendium entries with the current catalogue definition.
  * Compares isWeapon / weapons (for gear items that gain weapon entries, e.g.
  * Airhypo) and effects; system-generated effects
@@ -2005,8 +2071,11 @@ async function ensureEquipmentCatalogue() {
     // Sync weapon data and effects on already-populated cyberware pack entries
     await _syncCyberwareEntries(CYBERWARE_CATALOGUE);
 
-    // Sync effects on already-populated gear pack entries
+    // Sync effects and weapons on already-populated gear pack entries
     await _syncGearEntries(EQUIPMENT_CATALOGUE);
+
+    // Sync effects and instructions on already-populated drug pack entries
+    await _syncDrugEntries(DRUG_CATALOGUE);
 
     // Add armor items that may have been missing in earlier versions
     await _ensureArmorInGearPack(gearItems);
