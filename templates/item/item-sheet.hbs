@@ -938,6 +938,10 @@
                             </button>
                           </div>
                           <label class="compact-field">
+                            <span>{{localize "CYBER_BLUE.Sheet.Labels.Name"}}</span>
+                            <input type="text" name="system.specialties.{{@../index}}.unlockSections.{{@index}}.name" value="{{section.name}}" />
+                          </label>
+                          <label class="compact-field">
                             <span>{{localize "CYBER_BLUE.Sheet.Labels.UnlockRank"}}</span>
                             <input type="number" name="system.specialties.{{@../index}}.unlockSections.{{@index}}.unlockRank" value="{{section.unlockRank}}" data-dtype="Number" />
                           </label>
@@ -1030,6 +1034,10 @@
                     </button>
                   </div>
                   <div class="item-meta-row">
+                    <label class="compact-field">
+                      <span>{{localize "CYBER_BLUE.Sheet.Labels.Name"}}</span>
+                      <input type="text" name="system.abilitySections.{{section.index}}.name" value="{{section.name}}" />
+                    </label>
                     <label class="compact-field">
                       <span>{{localize "CYBER_BLUE.Sheet.Labels.UnlockRank"}}</span>
                       <input type="number" name="system.abilitySections.{{section.index}}.unlockRank" value="{{section.unlockRank}}" data-dtype="Number" />

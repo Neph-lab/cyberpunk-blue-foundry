@@ -104,6 +104,7 @@ export function createSpecialistOptionGroupData() {
 export function createSpecialtySectionData() {
   return {
     id: randomId(),
+    name: '',
     unlockRank: 1,
     content: '',
   };

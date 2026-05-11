@@ -53,6 +53,7 @@ export default class CyberBlueRole extends CyberBlueItemBase {
     });
     const buildSpecialtySectionField = () => new fields.SchemaField({
       id: new fields.StringField({ required: true, blank: false, initial: '' }),
+      name: new fields.StringField({ required: true, blank: true }),
       unlockRank: new fields.NumberField({ ...requiredInteger, initial: 1, min: 0, max: 10 }),
       content: new fields.HTMLField({ initial: '' }),
     });

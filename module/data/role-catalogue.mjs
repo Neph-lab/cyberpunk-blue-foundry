@@ -463,7 +463,7 @@ export const MEDTECH = role({
       description: 'Field medicine under fire.',
       rank: 0,
       unlockSections: [
-        { id: id('medtech-sp-battle-1'), unlockRank: 1, content: '<p><strong>Emergency Treatment</strong> — Add specialty ranks to all non-Role Medicine checks (stabilize, quick-fix critical injuries, etc.).</p><p><strong>Patching Up</strong> — Given 10 minutes, heal someone for up to twice your Battle Medic rank in HP. A person can only benefit once per day (in addition to other healing). Once per natural-healing reset.</p>' },
+        { id: id('medtech-sp-battle-1'), name: 'Emergency Treatment', unlockRank: 1, content: '<p><strong>Emergency Treatment</strong> — Add specialty ranks to all non-Role Medicine checks (stabilize, quick-fix critical injuries, etc.).</p><p><strong>Patching Up</strong> — Given 10 minutes, heal someone for up to twice your Battle Medic rank in HP. A person can only benefit once per day (in addition to other healing). Once per natural-healing reset.</p>' },
       ],
       optionGroups: [],
     },
@@ -473,7 +473,7 @@ export const MEDTECH = role({
       description: 'Invasive procedures and cyberware installation.',
       rank: 0,
       unlockSections: [
-        { id: id('medtech-sp-surgery-1'), unlockRank: 1, content: '<p><strong>Surgeon</strong> — Treatment of serious critical injuries, installation of cyberware, body-sculpting, and other invasive procedures require TECH + Medicine (Surgery) checks. Without a Medtech with this specialty, none of these are possible. Roll: 1d10 + TECH + min(Medicine rank, Surgery rank).</p>' },
+        { id: id('medtech-sp-surgery-1'), name: 'Surgeon', unlockRank: 1, content: '<p><strong>Surgeon</strong> — Treatment of serious critical injuries, installation of cyberware, body-sculpting, and other invasive procedures require TECH + Medicine (Surgery) checks. Without a Medtech with this specialty, none of these are possible. Roll: 1d10 + TECH + min(Medicine rank, Surgery rank).</p>' },
       ],
       optionGroups: [],
     },
@@ -483,7 +483,7 @@ export const MEDTECH = role({
       description: 'Drug analysis and synthesis.',
       rank: 0,
       unlockSections: [
-        { id: id('medtech-sp-pharma-1'), unlockRank: 1, content: '<p><strong>Compound Analysis</strong> — TECH + Medicine (Pharmaceuticals) to analyze pharmaceutical compounds and drugs.</p><p><strong>Synthesize</strong> — Each rank lets you learn one drug from the list. Materials cost €$100 (Premium) for doses equal to your rank. Preparation takes 1 hour at DV 15 TECH + Medicine (Pharmaceuticals). Applying a dose takes an Action; unwilling targets require a BODY + Melee attack.</p><p><strong>Available drugs:</strong> Antibiotic (+3 HP/day for 7 days), Anti-Psychosis (restore 1d6 PSYCHE), Myelin Strengthener (+1 RFLX for 2d6 hours), Rapidetox (purge all drugs/poisons), Roids (+1 BODY for 2d6 hours), Runnerspeed (+1 NET Action for 1 hour), Speedheal (heal BODY HP), Stim (ignore Seriously Wounded 1 hour), Surge (no sleep needed for 24 hours), Torpor (unconscious for 2d6 hours).</p>' },
+        { id: id('medtech-sp-pharma-1'), name: 'Compound Analysis', unlockRank: 1, content: '<p><strong>Compound Analysis</strong> — TECH + Medicine (Pharmaceuticals) to analyze pharmaceutical compounds and drugs.</p><p><strong>Synthesize</strong> — Each rank lets you learn one drug from the list. Materials cost €$100 (Premium) for doses equal to your rank. Preparation takes 1 hour at DV 15 TECH + Medicine (Pharmaceuticals). Applying a dose takes an Action; unwilling targets require a BODY + Melee attack.</p><p><strong>Available drugs:</strong> Antibiotic (+3 HP/day for 7 days), Anti-Psychosis (restore 1d6 PSYCHE), Myelin Strengthener (+1 RFLX for 2d6 hours), Rapidetox (purge all drugs/poisons), Roids (+1 BODY for 2d6 hours), Runnerspeed (+1 NET Action for 1 hour), Speedheal (heal BODY HP), Stim (ignore Seriously Wounded 1 hour), Surge (no sleep needed for 24 hours), Torpor (unconscious for 2d6 hours).</p>' },
       ],
       optionGroups: [
         {
@@ -512,14 +512,14 @@ export const MEDTECH = role({
       description: 'Operation of cryogenic medical equipment.',
       rank: 0,
       unlockSections: [
-        { id: id('medtech-sp-cryo-1'), unlockRank: 1, content: '<p><strong>Cryosystem Use</strong> — Medicine (Cryosystem Operation) check as an Action to put a body in stasis. DV 13 for a pump, 15 for a tank. Either allows surgery without risk. A pump lasts a week; a tank lasts as long as it has power. A tank also allows complete body modification surgery.</p><p><strong>Crypump</strong> — As a licensed cryotech, you gain access to a cryobag.</p>' },
-        { id: id('medtech-sp-cryo-2'), unlockRank: 2, content: '<p><strong>Cryotank</strong> — Access to a cryotank, owned by government or a corp but available for use. You are responsible for refuelling and any damage.</p>' },
-        { id: id('medtech-sp-cryo-3'), unlockRank: 3, content: '<p><strong>Free Placement</strong> — The cryotank can be placed in a location of your choice.</p>' },
-        { id: id('medtech-sp-cryo-4'), unlockRank: 4, content: '<p><strong>Cryopump Upgrade</strong> — Access to a second cryopump and a refill for each.</p>' },
-        { id: id('medtech-sp-cryo-5'), unlockRank: 5, content: '<p><strong>Cryotank Expansion</strong> — Access to two more cryotanks.</p>' },
-        { id: id('medtech-sp-cryo-6'), unlockRank: 6, content: '<p><strong>Field Cryopump Pack</strong> — A third cryopump with a refill for all three.</p>' },
-        { id: id('medtech-sp-cryo-7'), unlockRank: 7, content: '<p><strong>Cryogenic Lab</strong> — A full 6 cryotanks in your space.</p>' },
-        { id: id('medtech-sp-cryo-10'), unlockRank: 10, content: '<p><strong>Cryotech Expert</strong> — Four cryopumps with refills, and effectively unlimited cryotanks with sponsorship.</p>' },
+        { id: id('medtech-sp-cryo-1'), name: 'Cryosystem Use', unlockRank: 1, content: '<p><strong>Cryosystem Use</strong> — Medicine (Cryosystem Operation) check as an Action to put a body in stasis. DV 13 for a pump, 15 for a tank. Either allows surgery without risk. A pump lasts a week; a tank lasts as long as it has power. A tank also allows complete body modification surgery.</p><p><strong>Crypump</strong> — As a licensed cryotech, you gain access to a cryobag.</p>' },
+        { id: id('medtech-sp-cryo-2'), name: 'Cryotank', unlockRank: 2, content: '<p><strong>Cryotank</strong> — Access to a cryotank, owned by government or a corp but available for use. You are responsible for refuelling and any damage.</p>' },
+        { id: id('medtech-sp-cryo-3'), name: 'Free Placement', unlockRank: 3, content: '<p><strong>Free Placement</strong> — The cryotank can be placed in a location of your choice.</p>' },
+        { id: id('medtech-sp-cryo-4'), name: 'Cryopump Upgrade', unlockRank: 4, content: '<p><strong>Cryopump Upgrade</strong> — Access to a second cryopump and a refill for each.</p>' },
+        { id: id('medtech-sp-cryo-5'), name: 'Cryotank Expansion', unlockRank: 5, content: '<p><strong>Cryotank Expansion</strong> — Access to two more cryotanks.</p>' },
+        { id: id('medtech-sp-cryo-6'), name: 'Field Cryopump Pack', unlockRank: 6, content: '<p><strong>Field Cryopump Pack</strong> — A third cryopump with a refill for all three.</p>' },
+        { id: id('medtech-sp-cryo-7'), name: 'Cryogenic Lab', unlockRank: 7, content: '<p><strong>Cryogenic Lab</strong> — A full 6 cryotanks in your space.</p>' },
+        { id: id('medtech-sp-cryo-10'), name: 'Cryotech Expert', unlockRank: 10, content: '<p><strong>Cryotech Expert</strong> — Four cryopumps with refills, and effectively unlimited cryotanks with sponsorship.</p>' },
       ],
       optionGroups: [],
     },
@@ -615,8 +615,8 @@ export const OPERATIVE = role({
       description: 'Intelligence gathering and pattern recognition.',
       rank: 0,
       unlockSections: [
-        { id: id('op-sp-analysis-1'), unlockRank: 1, content: '<p><strong>Coded Message</strong> — Encode info in seemingly innocuous text or images. Decoding requires INT + Deduction (+ Analysis rank if any) vs DV = 10 + your INT + your Analysis rank. You may designate individuals who automatically understand it.</p><p><strong>Intelligence Analysis</strong> — Add Analysis ranks to INT checks when sorting through information or deducing patterns.</p>' },
-        { id: id('op-sp-analysis-4'), unlockRank: 4, content: '<p><strong>Pattern Recognition</strong> — Add half your Analysis ranks (rounded down) to Deduction and Human Perception checks.</p>' },
+        { id: id('op-sp-analysis-1'), name: 'Coded Message', unlockRank: 1, content: '<p><strong>Coded Message</strong> — Encode info in seemingly innocuous text or images. Decoding requires INT + Deduction (+ Analysis rank if any) vs DV = 10 + your INT + your Analysis rank. You may designate individuals who automatically understand it.</p><p><strong>Intelligence Analysis</strong> — Add Analysis ranks to INT checks when sorting through information or deducing patterns.</p>' },
+        { id: id('op-sp-analysis-4'), name: 'Pattern Recognition', unlockRank: 4, content: '<p><strong>Pattern Recognition</strong> — Add half your Analysis ranks (rounded down) to Deduction and Human Perception checks.</p>' },
       ],
       optionGroups: [],
     },
@@ -626,8 +626,8 @@ export const OPERATIVE = role({
       description: 'Moving freely through secured locations.',
       rank: 0,
       unlockSections: [
-        { id: id('op-sp-infiltration-1'), unlockRank: 1, content: '<p><strong>Move Freely</strong> — Add half your Infiltration ranks (rounded up) to Acting (deception only), Conceal, Pick Lock, Stealth checks, and Forgery component rolls.</p><p><strong>Quick Disguise</strong> — Access one disguise strategy per 2 ranks (rounded up). Manufacturing strategies take 1 hour and have a suggested cost. Seeing through your disguise requires Deduction or Perception vs 10 + INT + Infiltration rank.</p>' },
-        { id: id('op-sp-infiltration-5'), unlockRank: 5, content: '<p><strong>Infiltrate Network</strong> — Perform basic Netrunning even if not a Netrunner (with required equipment). Gain +1 NET Action (stacks with Netrunner). Unlocks the Netrunning tab.</p>' },
+        { id: id('op-sp-infiltration-1'), name: 'Move Freely', unlockRank: 1, content: '<p><strong>Move Freely</strong> — Add half your Infiltration ranks (rounded up) to Acting (deception only), Conceal, Pick Lock, Stealth checks, and Forgery component rolls.</p><p><strong>Quick Disguise</strong> — Access one disguise strategy per 2 ranks (rounded up). Manufacturing strategies take 1 hour and have a suggested cost. Seeing through your disguise requires Deduction or Perception vs 10 + INT + Infiltration rank.</p>' },
+        { id: id('op-sp-infiltration-5'), name: 'Infiltrate Network', unlockRank: 5, content: '<p><strong>Infiltrate Network</strong> — Perform basic Netrunning even if not a Netrunner (with required equipment). Gain +1 NET Action (stacks with Netrunner). Unlocks the Netrunning tab.</p>' },
       ],
       optionGroups: [
         {
@@ -653,15 +653,15 @@ export const OPERATIVE = role({
       description: 'Always having what you need, when you need it.',
       rank: 0,
       unlockSections: [
-        { id: id('op-sp-prep-1'), unlockRank: 1, content: '<p><strong>Prepared</strong> — Once per session, declare you have actually prepared for a situation and retroactively say you brought something useful (≤€$50 if bought).</p>' },
-        { id: id('op-sp-prep-2'), unlockRank: 2, content: '<p><strong>Hidden</strong> — Declare one item you have as miniaturized, disguised, or otherwise concealed (max one hand).</p>' },
-        { id: id('op-sp-prep-3'), unlockRank: 3, content: '<p><strong>There is More To It</strong> — Designate an additional item as concealable (may be two-handed if disguised as something of similar size).</p>' },
-        { id: id('op-sp-prep-4'), unlockRank: 4, content: '<p><strong>Well Prepared</strong> — Use Prepared twice per session.</p>' },
-        { id: id('op-sp-prep-5'), unlockRank: 5, content: '<p><strong>Already Did That</strong> — Use Prepared to play out a retroactive scene (e.g. looking up a floorplan or bribing a guard).</p>' },
-        { id: id('op-sp-prep-6'), unlockRank: 6, content: '<p><strong>Well Spent</strong> — Each use of Prepared can get you something worth up to €$100 (Premium).</p>' },
-        { id: id('op-sp-prep-7'), unlockRank: 7, content: '<p><strong>Quartermaster\'s Pet</strong> — Establishing something ≤€$10 (Everyday) with Prepared does not take a use.</p>' },
-        { id: id('op-sp-prep-8'), unlockRank: 8, content: '<p><strong>Spy Gadgets</strong> — Treat items equal to half your Preparation rank (round down) as safely disguised. One-hand items can be miniaturized; two items may be concealed as one.</p>' },
-        { id: id('op-sp-prep-10'), unlockRank: 10, content: '<p><strong>Always Prepared</strong> — Provided you can show any possibility of preparation, use Prepared with no limitation on uses. Remaining uses apply to truly unforeseeable situations.</p>' },
+        { id: id('op-sp-prep-1'), name: 'Prepared', unlockRank: 1, content: '<p><strong>Prepared</strong> — Once per session, declare you have actually prepared for a situation and retroactively say you brought something useful (≤€$50 if bought).</p>' },
+        { id: id('op-sp-prep-2'), name: 'Hidden', unlockRank: 2, content: '<p><strong>Hidden</strong> — Declare one item you have as miniaturized, disguised, or otherwise concealed (max one hand).</p>' },
+        { id: id('op-sp-prep-3'), name: 'There Is More to It', unlockRank: 3, content: '<p><strong>There Is More to It</strong> — Designate an additional item as concealable (may be two-handed if disguised as something of similar size).</p>' },
+        { id: id('op-sp-prep-4'), name: 'Well Prepared', unlockRank: 4, content: '<p><strong>Well Prepared</strong> — Use Prepared twice per session.</p>' },
+        { id: id('op-sp-prep-5'), name: 'Already Did That', unlockRank: 5, content: '<p><strong>Already Did That</strong> — Use Prepared to play out a retroactive scene (e.g. looking up a floorplan or bribing a guard).</p>' },
+        { id: id('op-sp-prep-6'), name: 'Well Spent', unlockRank: 6, content: '<p><strong>Well Spent</strong> — Each use of Prepared can get you something worth up to €$100 (Premium).</p>' },
+        { id: id('op-sp-prep-7'), name: "Quartermaster's Pet", unlockRank: 7, content: '<p><strong>Quartermaster\'s Pet</strong> — Establishing something ≤€$10 (Everyday) with Prepared does not take a use.</p>' },
+        { id: id('op-sp-prep-8'), name: 'Spy Gadgets', unlockRank: 8, content: '<p><strong>Spy Gadgets</strong> — Treat items equal to half your Preparation rank (round down) as safely disguised. One-hand items can be miniaturized; two items may be concealed as one.</p>' },
+        { id: id('op-sp-prep-10'), name: 'Always Prepared', unlockRank: 10, content: '<p><strong>Always Prepared</strong> — Provided you can show any possibility of preparation, use Prepared with no limitation on uses. Remaining uses apply to truly unforeseeable situations.</p>' },
       ],
       optionGroups: [],
     },
@@ -671,7 +671,7 @@ export const OPERATIVE = role({
       description: 'Maintaining false identities.',
       rank: 0,
       unlockSections: [
-        { id: id('op-sp-undercover-1'), unlockRank: 1, content: '<p><strong>Cover</strong> — Each rank gives the choice between establishing a new cover, upgrading a cover, or preparing a temporary cover strategy. Normal covers start as fake identification (including relevant public databases). Choose from Cover Upgrades for existing covers.</p>' },
+        { id: id('op-sp-undercover-1'), name: 'Cover', unlockRank: 1, content: '<p><strong>Cover</strong> — Each rank gives the choice between establishing a new cover, upgrading a cover, or preparing a temporary cover strategy. Normal covers start as fake identification (including relevant public databases). Choose from Cover Upgrades for existing covers.</p>' },
       ],
       optionGroups: [
         {
@@ -796,7 +796,7 @@ export const TECHIE = role({
       description: 'Handling tech problems on the fly.',
       rank: 0,
       unlockSections: [
-        { id: id('tech-sp-field-1'), unlockRank: 1, content: '<p><strong>Techie McGuy</strong> — Add Field Expertise ranks to any Electronics and Mechanics checks (except those for a Role ability).</p><p><strong>Patched</strong> — Make a temporary repair in as little as an Action at ¼ material cost (same DV). Lasts 10 minutes per Field Expertise rank, then breaks. Cannot be done on the same item twice before proper repair.</p>' },
+        { id: id('tech-sp-field-1'), name: 'Techie McGuy', unlockRank: 1, content: '<p><strong>Techie McGuy</strong> — Add Field Expertise ranks to any Electronics and Mechanics checks (except those for a Role ability).</p><p><strong>Patched</strong> — Make a temporary repair in as little as an Action at ¼ material cost (same DV). Lasts 10 minutes per Field Expertise rank, then breaks. Cannot be done on the same item twice before proper repair.</p>' },
       ],
       optionGroups: [],
     },
@@ -806,7 +806,7 @@ export const TECHIE = role({
       description: 'Improving existing items.',
       rank: 0,
       unlockSections: [
-        { id: id('tech-sp-upgrade-1'), unlockRank: 1, content: '<p><strong>Modification</strong> — Improve an existing item by modifying it. Roll the appropriate TECH skill + Upgrade Expertise ranks. Resources cost: same price category as the item. On failed roll, waste half the time but no components lost.</p><p><strong>Upgrades</strong> — Each rank in Upgrade Expertise learns one upgrade from the list below. Any given item can only receive one of these.</p>' },
+        { id: id('tech-sp-upgrade-1'), name: 'Modification', unlockRank: 1, content: '<p><strong>Modification</strong> — Improve an existing item by modifying it. Roll the appropriate TECH skill + Upgrade Expertise ranks. Resources cost: same price category as the item. On failed roll, waste half the time but no components lost.</p><p><strong>Upgrades</strong> — Each rank in Upgrade Expertise learns one upgrade from the list below. Any given item can only receive one of these.</p>' },
       ],
       optionGroups: [
         {
@@ -836,8 +836,8 @@ export const TECHIE = role({
       description: 'Constructing items from scratch.',
       rank: 0,
       unlockSections: [
-        { id: id('tech-sp-fab-1'), unlockRank: 1, content: '<p><strong>Maker</strong> — Expertly construct any item you are reasonably familiar with. Roll the appropriate TECH skill + Fabrication Expertise ranks. DV and time are the same as for a repair. Component cost is one price category lower than the finished item. On failed roll, spend half the time but lose no components.</p><p><strong>Expert Use</strong> — If you succeed by more than 5, use only half the materials needed.</p>' },
-        { id: id('tech-sp-fab-5'), unlockRank: 5, content: '<p><strong>Tools for the Job</strong> — When fabricating something requiring special equipment, you gain +2 to the check when you have those tools.</p>' },
+        { id: id('tech-sp-fab-1'), name: 'Maker', unlockRank: 1, content: '<p><strong>Maker</strong> — Expertly construct any item you are reasonably familiar with. Roll the appropriate TECH skill + Fabrication Expertise ranks. DV and time are the same as for a repair. Component cost is one price category lower than the finished item. On failed roll, spend half the time but lose no components.</p><p><strong>Expert Use</strong> — If you succeed by more than 5, use only half the materials needed.</p>' },
+        { id: id('tech-sp-fab-5'), name: 'Tools for the Job', unlockRank: 5, content: '<p><strong>Tools for the Job</strong> — When fabricating something requiring special equipment, you gain +2 to the check when you have those tools.</p>' },
       ],
       optionGroups: [],
     },
@@ -847,7 +847,7 @@ export const TECHIE = role({
       description: 'Creating entirely new items or modifications.',
       rank: 0,
       unlockSections: [
-        { id: id('tech-sp-invention-1'), unlockRank: 1, content: '<p><strong>Invention</strong> — Requires careful collaboration with the GM. Create entirely new items or modifications. Make a simple schematic. The GM determines the price category of the item; use the appropriate TECH skill + Invention Expertise. Once invented, blueprints can be used with Fabrication (items) or Upgrade Expertise (modifications).</p><p><em>Note: The GM may adjust item rules after seeing them in play. The goal is shared spotlight and balance.</em></p>' },
+        { id: id('tech-sp-invention-1'), name: 'Invention', unlockRank: 1, content: '<p><strong>Invention</strong> — Requires careful collaboration with the GM. Create entirely new items or modifications. Make a simple schematic. The GM determines the price category of the item; use the appropriate TECH skill + Invention Expertise. Once invented, blueprints can be used with Fabrication (items) or Upgrade Expertise (modifications).</p><p><em>Note: The GM may adjust item rules after seeing them in play. The goal is shared spotlight and balance.</em></p>' },
       ],
       optionGroups: [],
     },
