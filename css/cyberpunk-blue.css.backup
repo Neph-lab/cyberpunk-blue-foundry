@@ -1,0 +1,2726 @@
+/* ============================================================
+   IMPORTS
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Rubik+Glitch&family=Rubik+Iso&family=Share+Tech&family=Share+Tech+Mono&display=swap');
+@import url('./colors_and_type.css');
+
+/* ============================================================
+   GENERAL / ROOT VARIABLES & PROPERTIES
+   ============================================================ */
+
+:root, body, .window-app, .application {
+  scrollbar-color: var(--scrollbar-color) !important;
+  --cpb-shadow: 0 0 7px rgba(110, 0, 255, 0.4);
+  --terminal-text: #27B0FF;
+  --cpb-glow: 0 0 2px rgba(255, 252, 50, 0.9), 0 0 4px rgba(255, 252, 150,0.8), 0 0 8px rgba(255, 255, 200,0.6);
+  --cpb-text-shadow: 0 0 1px rgba(110, 0, 255, 0.4);
+  --font-h1: var(--cpb-font-display) !important;
+  --font-h2: var(--cpb-font-display) !important;
+  --font-h3: var(--cpb-font-mono) !important;
+  --font-h4: var(--cpb-font-mono) !important;
+  --font-h5: var(--cpb-font-mono) !important;
+  --color-tabs-border: var(--cpb-border);
+  --color-text-primary: var(--cpb-text);
+  --color-text-selection-bg: var(--cpb-accent);
+  --color-text-selection: var(--cpb-text);
+  --input-background-color: var(--cpb-bg);
+  --hr-gradient: linear-gradient(90deg, transparent 0%, var(--cpb-accent) 50%, transparent 100%);
+  --sidebar-background: var(--cpb-sidebar-bg);
+  --color-text-emphatic: #00c500;
+  --color-data-background: var(--cpb-bg);
+  --input-text-color: var(--cpb-accent);
+  --input-placeholder-color: var(--cpb-muted);
+}
+
+/* ============================================================
+   GENERAL ELEMENTS
+   ============================================================ */
+
+body {
+  font-family: 'Share Tech', monospace;
+}
+
+*, div, section {
+  scrollbar-color: var(--scrollbar-color) !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--cpb-accent-strong);
+  font-weight: 300;
+}
+
+.journal-entry-pages h1 {
+  font-family: var(--cpb-font-display);
+}
+
+.journal-entry-pages h2,
+.journal-entry-pages h3,
+.journal-entry-pages h4,
+.journal-entry-pages h5,
+.journal-entry-pages h6 {
+  font-family: var(--cpb-font-mono);
+}
+
+.sheet.journal-entry.application .journal-sidebar .toc li.category strong {
+  font-weight: 300;
+}
+
+.dice-roll .dice-formula,
+.dice-roll .dice-total {
+  color: var(--cpb-accent-strong);
+  border: none;
+  border-radius: 0;
+}
+
+section.tab.sidebar-tab,
+section.chat-sidebar:not(.sidebar-popout),
+#chat.chat-sidebar,
+.sidebar-tab,
+#chat {
+  background-color: transparent;
+  background: var(--cpb-sidebar-bg);
+}
+
+.sidebar-tab h2.divider,
+.sidebar-tab h3.divider,
+.sidebar-tab h4.divider,
+.sidebar-tab h5.divider,
+.sidebar-tab h6.divider {
+  white-space: unset;
+}
+
+.directory li.directory-item {
+  border-top: 1px solid var(--cpb-muted);
+}
+
+/* ============================================================
+   .WINDOW-APP & .WINDOW-CONTENT
+   ============================================================ */
+
+.window-app {
+  font-family: var(--cpb-font-body);
+  scrollbar-color: var(--scrollbar-color) !important;
+}
+
+.application .window-header {
+  background: var(--cpb-bg);
+}
+
+.application .window-header .window-title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--cpb-accent);
+}
+
+/* ============================================================
+   .APPLICATION
+   ============================================================ */
+
+.application {
+  color: var(--cpb-text);
+  background: var(--cpb-bg);
+}
+
+.cyberpunk-blue {
+  color: var(--cpb-text);
+  scrollbar-color: var(--scrollbar-color) !important;
+}
+
+button,
+.cyberpunk-blue .button,
+a.button {
+  --button-background-color: black;
+  --button-border-color: var(--cpb-border);
+  --button-text-color: var(--cpb-accent);
+  --button-hover-background-color: var(--cpb-accent);
+  --button-hover-text-color: black;
+  --button-hover-border-color: none;
+}
+
+.cyberpunk-blue input,
+.cyberpunk-blue button,
+.cyberpunk-blue textarea,
+.cyberpunk-blue select {
+  font-family: inherit;
+}
+
+.cyberpunk-blue input[type=text],
+.cyberpunk-blue input[type=number] {
+  border: 1px solid var(--cpb-accent);
+  color: var(--cpb-text);
+  font-size: 1.2rem;
+  text-align: center;
+  min-width: 30px;
+  min-height: 34px;
+  padding: 0.35rem 0.55rem;
+}
+
+.cyberpunk-blue input[type=text] {
+  text-align: left;
+}
+
+.cyberpunk-blue button,
+.cyberpunk-blue .button {
+  color: var(--cpb-text);
+  cursor: pointer;
+  padding: 0.35rem 0.75rem;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.cyberpunk-blue button:hover,
+.cyberpunk-blue button:focus,
+.cyberpunk-blue .button:hover,
+.cyberpunk-blue .button:focus {
+  background: var(--cpb-accent);
+  border-color: var(--cpb-accent-strong);
+  color: black;
+}
+
+/* ============================================================
+   .SHEET
+   ============================================================ */
+
+.cyberpunk-blue .window-content,
+.cyberpunk-blue.sheet.actor,
+.cyberpunk-blue.sheet.item {
+  border-radius: 0;
+}
+
+.cyberpunk-blue form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  height: 100%;
+  padding: 1rem;
+}
+
+.cyberpunk-blue .sheet-header {
+  align-items: end;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 200px minmax(0, 1fr);
+}
+
+.cyberpunk-blue .profile-img {
+  aspect-ratio: 1;
+  border: none;
+  margin: 0 1rem 1rem 0;
+  box-shadow: none;
+  object-fit: contain;
+  max-width: 200px;
+  max-height: 300px;
+}
+
+.cyberpunk-blue .header-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.cyberpunk-blue .header-stats {
+  display: grid;
+  gap: 0.35rem;
+  grid-template-columns: repeat(5, minmax(72px, 1fr));
+  max-width: 560px;
+}
+
+.cyberpunk-blue .header-stat {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.cyberpunk-blue .charname {
+  border: 0;
+  margin: 0;
+}
+
+.cyberpunk-blue .charname input {
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  min-height: 54px;
+  border: none;
+  border-bottom: 1px solid var(--cpb-accent);
+  background: none;
+}
+
+.cyberpunk-blue .sheet-subtitle,
+.cyberpunk-blue .hint {
+  color: var(--cpb-muted);
+  font-size: 0.9rem;
+}
+
+.cyberpunk-blue .sheet-tabs {
+  display: flex;
+  gap: 0;
+  margin-top: 1rem;
+  border-top: none;
+  border-bottom: 2px solid var(--cpb-border);
+  padding-bottom: 0;
+  align-items: flex-start;
+}
+
+.cyberpunk-blue .sheet-tabs .item {
+  color: var(--cpb-accent-strong);
+  padding: 0.5rem 0.9rem;
+  text-decoration: none;
+  overflow: hidden;
+}
+
+.cyberpunk-blue .sheet-tabs .item.active {
+  color: var(--cpb-accent-strong);
+  text-shadow: var(--cpb-glow);
+}
+
+.cyberpunk-blue nav.tabs [data-tab].active {
+  text-shadow: var(--cpb-glow);
+}
+
+.cyberpunk-blue .sheet-body {
+  min-height: 0;
+  overflow: auto;
+}
+
+.cyberpunk-blue .sheet-body .tab {
+  display: none;
+}
+
+.cyberpunk-blue .sheet-body .tab.active {
+  display: block;
+}
+
+.cyberpunk-blue .sheet-panel {
+  margin-top: 0.9rem;
+  padding: 1rem;
+}
+
+.cyberpunk-blue .sheet-panel h2 {
+  color: var(--cpb-muted);
+  font-size: 1.2rem;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   SHEET COMPONENTS: STATS, RESOURCES, GRIDS
+   ============================================================ */
+
+.cyberpunk-blue .stats-grid,
+.cyberpunk-blue .resources-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+}
+
+.cyberpunk-blue .overview-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(300px, 1.1fr) minmax(240px, 0.9fr);
+}
+
+.cyberpunk-blue .stat-card,
+.cyberpunk-blue .resource-card {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  gap: 0.35rem;
+  padding: 0.8rem;
+}
+
+.cyberpunk-blue .header-stat .stat-short {
+  color: var(--cpb-accent-strong);
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-align: center;
+}
+
+.cyberpunk-blue .stat-label,
+.cyberpunk-blue .resource-name,
+.cyberpunk-blue .stat-card .stat-short {
+  color: var(--cpb-muted);
+  font-size: 0.9rem;
+}
+
+.cyberpunk-blue .resource-fields {
+  align-items: center;
+  display: grid;
+  gap: 0.35rem;
+  grid-template-columns: 1fr auto 1fr;
+}
+
+.cyberpunk-blue .numeric-column,
+.cyberpunk-blue .embedded-rank,
+.cyberpunk-blue .skill-stat,
+.cyberpunk-blue .resource-fields input,
+.cyberpunk-blue .health-meta {
+  text-align: center;
+}
+
+/* ============================================================
+   SHEET COMPONENTS: HEALTH SYSTEM
+   ============================================================ */
+
+.cyberpunk-blue .health-group {
+  align-self: start;
+}
+
+.cyberpunk-blue .health-meta {
+  margin-top: 0.35rem;
+}
+
+.cyberpunk-blue .health-effects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.65rem;
+}
+
+.cyberpunk-blue .health-effect {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  justify-items: start;
+  padding: 0.2rem 0.3rem;
+  text-align: left;
+}
+
+.cyberpunk-blue .health-effect img {
+  height: 18px;
+  width: 18px;
+}
+
+.cyberpunk-blue .health-effect.is-tagged {
+  color: var(--cpb-accent-strong);
+}
+
+.cyberpunk-blue .health-panel {
+  margin-top: 1rem;
+}
+
+.cyberpunk-blue .health-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.cyberpunk-blue .health-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  justify-content: center;
+  min-height: 100%;
+  text-align: center;
+}
+
+.cyberpunk-blue .health-hp {
+  min-width: 220px;
+}
+
+.cyberpunk-blue .health-effects {
+  grid-column: span 2;
+  text-align: left;
+}
+
+.cyberpunk-blue .health-block h3 {
+  color: var(--cpb-accent);
+  font-size: 1rem;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.cyberpunk-blue .health-value {
+  color: var(--cpb-text);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.cyberpunk-blue .health-caption {
+  color: var(--cpb-muted);
+  font-size: 0.9rem;
+}
+
+/* ============================================================
+   SHEET COMPONENTS: SKILLS & ABILITIES
+   ============================================================ */
+
+.cyberpunk-blue .skills-layout {
+  display: block;
+}
+
+.cyberpunk-blue .skill-table,
+.cyberpunk-blue .component-table,
+.cyberpunk-blue .embedded-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cyberpunk-blue .component-entries,
+.cyberpunk-blue .embedded-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cyberpunk-blue .skill-table {
+  column-gap: 1rem;
+  columns: 2 520px;
+}
+
+.cyberpunk-blue .skill-table > * {
+  break-inside: avoid;
+}
+
+.cyberpunk-blue .skill-row,
+.cyberpunk-blue .component-row,
+.cyberpunk-blue .embedded-row {
+  align-items: center;
+  background: var(--cpb-panel);
+  border: none;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.1rem;
+}
+
+.cyberpunk-blue .skill-header,
+.cyberpunk-blue .component-header,
+.cyberpunk-blue .embedded-header {
+  color: var(--cpb-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cyberpunk-blue .skill-header .numeric-column,
+.cyberpunk-blue .component-header .numeric-column,
+.cyberpunk-blue .embedded-header .numeric-column {
+  justify-self: center;
+  text-align: center;
+}
+
+.cyberpunk-blue .skill-row input[type=text],
+.cyberpunk-blue .skill-row input[type=number],
+.cyberpunk-blue .component-row input[type=text],
+.cyberpunk-blue .component-row input[type=number],
+.cyberpunk-blue .embedded-row input[type=text],
+.cyberpunk-blue .embedded-row input[type=number],
+.cyberpunk-blue .ability-row input[type=text],
+.cyberpunk-blue .ability-row input[type=number] {
+  border: none;
+  background-color: transparent;
+  background: none;
+  color: var(--cpb-text);
+  font-size: 1rem;
+  min-height: 14px;
+  padding: 0.1rem 0.2rem;
+}
+
+.cyberpunk-blue .skill-row input[type=text],
+.cyberpunk-blue .component-row input[type=text],
+.cyberpunk-blue .embedded-row input[type=text],
+.cyberpunk-blue .ability-row input[type=text] {
+  text-align: left;
+}
+
+.cyberpunk-blue .skill-row input[type=number],
+.cyberpunk-blue .component-row input[type=number],
+.cyberpunk-blue .embedded-row input[type=number],
+.cyberpunk-blue .ability-row input[type=number] {
+  text-align: center;
+}
+
+.cyberpunk-blue .skill-row {
+  grid-template-columns: 88px minmax(120px, 1.2fr) 70px 72px minmax(220px, 2fr) 70px;
+}
+
+.cyberpunk-blue .component-row {
+  grid-template-columns: minmax(120px, 1fr) 72px minmax(160px, 1.4fr) 42px;
+}
+
+.cyberpunk-blue .embedded-row {
+  grid-template-columns: minmax(180px, 1.4fr) 70px minmax(160px, 1fr) minmax(240px, 1.5fr);
+}
+
+.cyberpunk-blue .ability-row {
+  grid-template-columns: minmax(180px, 1.2fr) 80px minmax(140px, 1fr) minmax(220px, 1.4fr) minmax(160px, 0.8fr);
+}
+
+.cyberpunk-blue .ability-single-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cyberpunk-blue .item-meta-row label {
+  display:flex;
+  flex-flow: column;
+}
+
+.cyberpunk-blue .manufacturer-field {
+  min-width: min(100%, 18rem);
+}
+
+.cyberpunk-blue .manufacturer-input-row {
+  align-items: center;
+  display: flex;
+  gap: 0.45rem;
+}
+
+.cyberpunk-blue .manufacturer-logo {
+  height: 35px;
+  object-fit:contain;
+  width: unset;
+}
+
+.cyberpunk-blue .embedded-entry {
+  break-inside: avoid;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cyberpunk-blue .embedded-description {
+  background: var(--cpb-panel);
+  color: white;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.7rem 0.7rem;
+}
+
+.cyberpunk-blue .embedded-entry.is-disabled {
+  opacity: 0.5;
+}
+
+.cyberpunk-blue .embedded-controls {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.cyberpunk-blue .embedded-controls button[title="Edit"] {
+  display: none;
+}
+
+.cyberpunk-blue .panel-header {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cyberpunk-blue .component-pill {
+  background-color: var(--cpb-panel);
+  color: var(--cpb-accent-strong);
+  border: 1px solid var(--cpb-border);
+  font-size: 0.82rem;
+  padding-inline: 0.6rem;
+}
+
+.cyberpunk-blue .roll-button {
+  background: var(--cpb-panel);
+  border-color: var(--cpb-muted);
+  color: var(--cpb-accent-strong);
+}
+
+.cyberpunk-blue .component-panel {
+  margin-top: 1rem;
+}
+
+.cyberpunk-blue .component-add {
+  display: flex;
+  break-inside: avoid;
+  flex-wrap: nowrap;
+}
+
+.cyberpunk-blue .component-add select {
+  border: 1px solid var(--cpb-accent);
+  background: var(--cpb-panel);
+  color: var(--cpb-text);
+  min-height: 34px;
+  padding: 0.35rem 0.7rem;
+}
+
+.cyberpunk-blue .component-links,
+.cyberpunk-blue .embedded-summary {
+  color: white;
+  font-size: 0.85rem;
+}
+
+.cyberpunk-blue .numeric-column,
+.cyberpunk-blue .embedded-rank,
+.cyberpunk-blue .skill-stat,
+.cyberpunk-blue .resource-fields input,
+.cyberpunk-blue .health-meta {
+  text-align: center;
+}
+
+.cyberpunk-blue .ability-single-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cyberpunk-blue .move-panel,
+.cyberpunk-blue .move-card {
+  max-width: 220px;
+}
+
+.cyberpunk-blue .armor-card {
+  max-width: 260px;
+}
+
+.cyberpunk-blue .ability-header {
+  align-items: end;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) minmax(240px, 3fr);
+}
+
+.cyberpunk-blue .ability-header.single-rank {
+  grid-template-columns: minmax(160px, 1fr) minmax(240px, 3fr);
+}
+
+.cyberpunk-blue .ability-note-field {
+  min-width: 0;
+}
+
+/* ============================================================
+   SHEET COMPONENTS: EMBEDDED ITEMS & PANELS
+   ============================================================ */
+
+.cyberpunk-blue .component-pill-list,
+.cyberpunk-blue .panel-header,
+.cyberpunk-blue .item-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.cyberpunk-blue .item-meta-row label {
+  display: flex;
+  flex-flow: column;
+}
+
+.cyberpunk-blue .manufacturer-field {
+  min-width: min(100%, 18rem);
+}
+
+.cyberpunk-blue .manufacturer-input-row {
+  align-items: center;
+  display: flex;
+  gap: 0.45rem;
+}
+
+.cyberpunk-blue .manufacturer-logo {
+  height: 35px;
+  object-fit: contain;
+  width: unset;
+}
+
+.cyberpunk-blue .embedded-entry {
+  break-inside: avoid;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cyberpunk-blue .embedded-description {
+  background: var(--cpb-panel);
+  color: white;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.7rem 0.7rem;
+}
+
+.cyberpunk-blue .embedded-entry.is-disabled {
+  opacity: 0.5;
+}
+
+.cyberpunk-blue .embedded-controls {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.cyberpunk-blue .embedded-controls button[title="Edit"] {
+  display: none;
+}
+
+.cyberpunk-blue .panel-header {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cyberpunk-blue .component-pill {
+  background-color: var(--cpb-panel);
+  color: var(--cpb-accent-strong);
+  border: 1px solid var(--cpb-border);
+  font-size: 0.82rem;
+  padding-inline: 0.6rem;
+}
+
+.cyberpunk-blue .roll-button {
+  background: var(--cpb-panel);
+  border-color: var(--cpb-muted);
+  color: var(--cpb-accent-strong);
+}
+
+.cyberpunk-blue .component-panel {
+  margin-top: 1rem;
+}
+
+.cyberpunk-blue .component-add {
+  display: flex;
+  break-inside: avoid;
+  flex-wrap: nowrap;
+}
+
+.cyberpunk-blue .component-add select {
+  border: 1px solid var(--cpb-accent);
+  background: var(--cpb-panel);
+  color: var(--cpb-text);
+  min-height: 34px;
+  padding: 0.35rem 0.7rem;
+}
+
+.cyberpunk-blue .component-links,
+.cyberpunk-blue .embedded-summary {
+  color: white;
+  font-size: 0.85rem;
+}
+
+.cyberpunk-blue .embedded-name {
+  align-items: center;
+  background: none;
+  border: 0;
+  display: flex;
+  gap: 0.65rem;
+  justify-content: flex-start;
+  padding: 0;
+}
+
+.cyberpunk-blue .embedded-name-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.cyberpunk-blue .manufacturer-summary,
+.cyberpunk-blue .embedded-note {
+  color: white;
+  font-size: 0.8rem;
+}
+
+.cyberpunk-blue .manufacturer-summary {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.cyberpunk-blue .manufacturer-summary .manufacturer-logo {
+  height: unset;
+  width: unset;
+  max-width: 70px;
+  max-height: 15px;
+  object-fit: contain;
+}
+
+.manufacturer-summary img + span {
+  display: none;
+}
+
+.cyberpunk-blue .embedded-name img {
+  border: none;
+  height: 38px;
+  object-fit: cover;
+  width: 38px;
+}
+
+.cyberpunk-blue .state-chip,
+.cyberpunk-blue .item-type-chip {
+  border: 1px solid var(--cpb-border);
+  color: var(--cpb-muted);
+  display: inline-flex;
+  font-size: 0.78rem;
+  padding: 0.24rem 0.6rem;
+}
+
+.cyberpunk-blue .state-active {
+  border-color: var(--cpb-border);
+  color: var(--cpb-accent);
+}
+
+.cyberpunk-blue .state-disabled {
+  border-color: var(--cpb-warning);
+  color: var(--cpb-warning);
+}
+
+.cyberpunk-blue .state-always {
+  border-color: var(--cpb-border);
+  color: var(--cpb-accent-strong);
+}
+
+.cyberpunk-blue .embedded-controls button,
+.cyberpunk-blue .panel-header > button,
+.cyberpunk-blue .component-add button,
+.cyberpunk-blue .component-row button {
+  min-width: 34px;
+  padding: 0.35rem 0.55rem;
+}
+
+.cyberpunk-blue .embedded-controls i,
+.cyberpunk-blue .panel-header i,
+.cyberpunk-blue .component-add i,
+.cyberpunk-blue .component-row i {
+  pointer-events: none;
+}
+
+.cyberpunk-blue .embedded-list,
+.cyberpunk-blue .embedded-entries {
+  gap: 0.5rem;
+}
+
+.cyberpunk-blue .table.embedded-table {
+  border-collapse: separate;
+  border-spacing: 0 2px;
+  display: table;
+  table-layout: auto;
+  width: 100%;
+}
+
+.cyberpunk-blue table.embedded-table th,
+.cyberpunk-blue table.embedded-table td {
+  background: var(--cpb-panel);
+  padding: 0.35rem 0.45rem;
+  vertical-align: middle;
+}
+
+.cyberpunk-blue table.embedded-table th {
+  color: var(--cpb-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cyberpunk-blue table.embedded-table th.numeric-column,
+.cyberpunk-blue table.embedded-table th.column-controls {
+  text-align: center;
+}
+
+.cyberpunk-blue table.embedded-table td .embedded-controls {
+  justify-content: flex-start;
+}
+
+.cyberpunk-blue table.embedded-table td input[type=number] {
+  width: 100%;
+}
+
+.cyberpunk-blue table.embedded-table tbody tr:nth-child(even) td {
+  background: var(--cpb-table-alt-bg);
+}
+
+.cyberpunk-blue .embedded-table .column-compact,
+.cyberpunk-blue .embedded-table .column-controls,
+.cyberpunk-blue .embedded-table th.numeric-column,
+.cyberpunk-blue .embedded-table td.numeric-column {
+  white-space: nowrap;
+  width: 3rem;
+}
+
+.cyberpunk-blue .panel-header.panel-actions {
+  justify-content: flex-end;
+}
+
+.cyberpunk-blue .cyberware-header {
+  align-items: end;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.cyberpunk-blue .cyberware-group h2:not(:first-child) {
+  margin-top: 1.5rem;
+}
+
+.cyberpunk-blue .cyberware-group h2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cyberpunk-blue .cyberware-group h2::before {
+  content: '';
+  flex: 1;
+  padding: 3px;
+  margin: 0 10px;
+  background: linear-gradient(90deg, #27B0FF 0%, transparent 100%);
+}
+.cyberpunk-blue .cyberware-group h2::after {
+  content: '';
+  flex: 1;
+  padding: 3px;
+  margin: 0 10px;
+  background: linear-gradient(90deg, transparent 0%, #27B0FF 100%);
+}
+
+.cyberpunk-blue .cyberware-group .embedded-entry:not(:first-child) .cyberware-row {
+  margin-top: 0.9rem;
+}
+
+.cyberpunk-blue .cyberware-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cyberpunk-blue .foldout-panel summary {
+  color: var(--cpb-accent);
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+
+.cyberpunk-blue .cyberware-detail-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.cyberpunk-blue .derived-field {
+  align-items: center;
+  border: 1px solid var(--cpb-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  justify-content: center;
+  min-height: 54px;
+  padding: 0.45rem;
+  text-align: center;
+}
+
+.cyberpunk-blue .checkbox-label,
+.cyberpunk-blue .compact-field,
+.cyberpunk-blue .platform-select {
+  min-width: 3rem;
+}
+
+.cyberpunk-blue .cyberware-group + .cyberware-group {
+  margin-top: 1rem;
+}
+
+.cyberpunk-blue .cyberware-row {
+  grid-template-columns: minmax(180px, 1.4fr) minmax(110px, 0.8fr) 72px minmax(160px, 1fr) 80px minmax(180px, 1fr);
+}
+
+.cyberpunk-blue .cyberware-sheet.is-disabled .sheet-panel:not(.status-disabled) {
+  opacity: 0.7;
+}
+
+.cyberpunk-blue .combat-layout,
+.cyberpunk-blue .weapon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cyberpunk-blue .weapon-block {
+  border: 1px solid var(--cpb-panel-border);
+  padding: 0.85rem;
+}
+
+.cyberpunk-blue .weapon-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.cyberpunk-blue .weapon-range-table {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  margin-top: 0.9rem;
+}
+
+.cyberpunk-blue .range-band {
+  align-items: center;
+  background: var(--cpb-panel);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.45rem;
+}
+
+.cyberpunk-blue .range-band.is-blocked {
+  background: #000;
+}
+
+.cyberpunk-blue .range-band.is-blocked input {
+  background: #000;
+}
+
+.cyberpunk-blue .sheet-status {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+}
+
+.cyberpunk-blue .status-disabled {
+  border-color: var(--cpb-warning);
+  color: var(--cpb-warning);
+}
+
+.cyberpunk-blue .lifepath-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.cyberpunk-blue .lifepath-layout > .sheet-panel {
+  flex: 1 1 auto;
+  width: 20rem;
+  min-width: min(100%, 30rem);
+}
+
+.cyberpunk-blue .skill-table-container {
+  column-gap: 1rem;
+  columns: 3 650px;
+}
+
+.cyberpunk-blue .skill-table-container > * {
+  break-inside: avoid;
+}
+
+.cyberpunk-blue .skill-row {
+  grid-template-columns: 78px minmax(120px, 1.2fr) 64px 56px minmax(220px, 2fr) 56px;
+}
+
+.cyberpunk-blue .skill-row > input.numeric-column {
+  width: 100%;
+}
+
+.cyberpunk-blue .skill-table-container > .skill-row:not(.skill-header):nth-child(odd),
+.cyberpunk-blue .component-entries > .component-row:nth-child(even),
+.cyberpunk-blue .embedded-entries > .embedded-row:nth-child(even),
+.cyberpunk-blue .embedded-entries > .embedded-entry:nth-child(even) {
+  background: var(--cpb-table-alt-bg);
+}
+
+.cyberpunk-blue .notes-grid > .sheet-panel {
+  margin-top: 0.9rem;
+}
+
+.cyberpunk-blue .traits-grid .sheet-panel > .embedded-table {
+  margin-top: 0;
+}
+
+.cyberpunk-blue .traits-role-panel {
+  width: max-content;
+}
+
+.cyberpunk-blue .traits-role-panel .embedded-table {
+  width: auto;
+}
+
+.cyberpunk-blue .traits-ability-panel {
+  min-width: 0;
+}
+
+.cyberpunk-blue .roles-controls-column {
+  width: 9.5rem;
+}
+
+.cyberpunk-blue .abilities-note-column {
+  width: auto;
+}
+
+.cyberpunk-blue table.embedded-table td {
+  overflow: hidden;
+}
+
+.cyberpunk-blue table.embedded-table td .embedded-summary,
+.cyberpunk-blue .inventory-row .embedded-summary {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.cyberpunk-blue .quick-stats-row .stat-card {
+  justify-content: space-between;
+}
+
+.cyberpunk-blue .quick-stats-row .stat-card > input,
+.cyberpunk-blue .quick-stats-row .stat-card > select,
+.cyberpunk-blue .quick-stats-row .resource-fields,
+.cyberpunk-blue .armor-inline-field .resource-fields,
+.cyberpunk-blue .compact-resource {
+  align-items: center;
+  min-height: 38px;
+  margin-top: auto;
+}
+
+.cyberpunk-blue .compact-resource input {
+  min-width: 3rem;
+}
+
+.cyberpunk-blue .embedded-list,
+.cyberpunk-blue .embedded-entries {
+  gap: 0.5rem;
+}
+
+.cyberpunk-blue .inventory-group + .inventory-group {
+  margin-top: 1rem;
+}
+
+/* Ammo pills row */
+.cyberpunk-blue .ammo-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  position: relative;
+  top: -30px;
+}
+
+.cyberpunk-blue .ammo-pill {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  background: var(--cpb-table-alt-bg);
+}
+
+.cyberpunk-blue .ammo-pill-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.2;
+  width: 100%;
+  white-space: nowrap;
+}
+
+.cyberpunk-blue .ammo-pill-name img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border: none;
+}
+
+.cyberpunk-blue .ammo-pill-qty {
+  max-width: 3rem;
+  min-width: 2rem;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  text-align: center;
+  font-size: 0.85em;
+}
+
+.cyberpunk-blue .ammo-pill-qty:focus {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.cyberpunk-blue .inventory-row {
+  grid-template-columns: minmax(180px, 1.2fr) 70px minmax(220px, 1.6fr) 80px minmax(220px, 1fr);
+}
+
+.cyberpunk-blue .instruction-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cyberpunk-blue .inventory-row .embedded-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.cyberpunk-blue .inventory-row input[type=number] {
+  width: 100%;
+}
+
+.cyberpunk-blue .combat-weapon-table .numeric-column button {
+  width: 100%;
+}
+
+.cyberpunk-blue .weapon-mod-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  margin-top: 0.1rem;
+}
+
+.cyberpunk-blue .weapon-mod-dot {
+  font-size: 0.45rem;
+  color: var(--color-text-light-6);
+}
+
+.cyberpunk-blue .checkbox-bottom {
+  align-self: end;
+}
+
+.cyberpunk-blue .item-meta-row .compact-field {
+  max-width: 8rem;
+}
+
+.cyberpunk-blue .cost-field {
+  min-width: min(100%, 16rem);
+}
+
+.cyberpunk-blue .item-meta-row .ammo-type-grid {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.cyberpunk-blue .item-meta-row .ammo-type-grid .checkbox-label {
+  display: grid;
+  grid-template-columns: min-content max-content;
+  align-items: center;
+  gap: .2rem;
+}
+
+.cyberpunk-blue .item-meta-row .checkbox-label {
+  margin-left: 0.35rem;
+}
+
+.cyberpunk-blue .armor-inline-field {
+  min-width: min(100%, 16rem);
+}
+
+.cyberpunk-blue .weapon-grid .checkbox-label {
+  align-self: end;
+}
+
+.cyberpunk-blue .weapon-damage-type-group {
+  border: 1px solid var(--cpb-panel-border);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  grid-column: 1 / -1;
+}
+
+.cyberpunk-blue .weapon-damage-type-group legend {
+  font-size: 0.75em;
+  font-weight: 600;
+  opacity: 0.7;
+  padding: 0 0.25rem;
+  text-transform: uppercase;
+}
+
+.cyberpunk-blue .weapon-subfields {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  background: var(--cpb-panel);
+  border: 1px solid var(--cpb-panel-border);
+  border-radius: 4px;
+}
+
+.cyberpunk-blue .weapon-subfields .weapon-range-table-wrap {
+  flex: 1 1 100%;
+  margin-top: 0;
+}
+
+.cyberpunk-blue .weapon-range-table-wrap {
+  margin-top: 0.9rem;
+  overflow-x: auto;
+}
+
+.cyberpunk-blue .weapon-range-table {
+  border-collapse: collapse;
+  display: table;
+  min-width: 32rem;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.cyberpunk-blue .weapon-range-table th,
+.cyberpunk-blue .weapon-range-table td {
+  background: var(--cpb-panel);
+  border: 1px solid var(--cpb-panel-border);
+  padding: 0.25rem;
+  text-align: center;
+}
+
+.cyberpunk-blue .weapon-range-table td.is-blocked,
+.cyberpunk-blue .weapon-range-table td.is-blocked input {
+  background: #000;
+  color: #000;
+}
+
+.cyberpunk-blue .weapon-range-table input {
+  min-height: 30px;
+  width: 100%;
+}
+
+.cyberpunk-blue .readonly-value,
+.cyberpunk-blue .readonly-icon,
+.cyberpunk-blue .manufacturer-display {
+  align-items: center;
+  color: var(--cpb-text);
+  display: inline-flex;
+  min-height: 34px;
+}
+
+.cyberpunk-blue .readonly-value {
+  padding: 0.35rem 0.1rem;
+}
+
+.cyberpunk-blue .numeric-value {
+  justify-content: center;
+  min-width: 30px;
+  text-align: center;
+}
+
+.cyberpunk-blue .manufacturer-display {
+  gap: 0.45rem;
+}
+
+.cyberpunk-blue .mod-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cyberpunk-blue .mod-card {
+  border: 1px solid var(--cpb-panel-border);
+  padding: 0.85rem;
+}
+
+.cyberpunk-blue .mod-card.is-invalid {
+  border-color: var(--cpb-error);
+  color: var(--cpb-error);
+}
+
+.cyberpunk-blue .mod-card.is-invalid .state-chip {
+  border-color: var(--cpb-error);
+  color: var(--cpb-error);
+}
+
+.cyberpunk-blue .mod-heading {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.cyberpunk-blue .weapon-change-list,
+.cyberpunk-blue .mod-effect-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cyberpunk-blue .weapon-change-row,
+.cyberpunk-blue .mod-effect-row {
+  align-items: center;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(120px, 1fr) minmax(110px, 0.9fr) minmax(90px, 0.8fr) 42px;
+}
+
+.cyberpunk-blue .mod-effect-row {
+  grid-template-columns: minmax(160px, 1fr) auto;
+}
+
+.cyberpunk-blue .mod-effect-name {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.45rem;
+}
+
+.cyberpunk-blue .mod-effect-name img {
+  height: 20px;
+  width: 20px;
+}
+
+.cyberpunk-blue .roleCategory {
+  color: var(--cpb-accent);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.6rem;
+  text-transform: uppercase;
+}
+
+.cyberpunk-blue .role-overview-panel,
+.cyberpunk-blue .role-config-block,
+.cyberpunk-blue .role-grant-groups,
+.cyberpunk-blue .role-reference-list,
+.cyberpunk-blue .role-grant-summary-list,
+.cyberpunk-blue .team-member-list,
+.cyberpunk-blue .specialty-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.cyberpunk-blue .role-overview-feature {
+  border-top: 1px solid var(--cpb-panel-border);
+  padding-top: 0.8rem;
+}
+
+.cyberpunk-blue .role-overview-feature:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.cyberpunk-blue .role-focus-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.cyberpunk-blue .role-reference-row {
+  align-items: end;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(180px, 1.5fr) minmax(120px, 1fr) 42px 42px;
+}
+
+.cyberpunk-blue .role-grant-group,
+.cyberpunk-blue .role-config-block,
+.cyberpunk-blue .role-overview-feature {
+  border: 1px solid var(--cpb-panel-border);
+  padding: 0.8rem;
+}
+
+.cyberpunk-blue .role-grant-summary,
+.cyberpunk-blue .specialty-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.cyberpunk-blue .role-overview-feature .protean-tactic-list {
+  columns: 5 300px;
+}
+
+.cyberpunk-blue .protean-tactic-list > * {
+  break-inside: avoid;
+}
+
+.cyberpunk-blue .protean-tactic-list .protean-tactic {
+  background: var(--cpb-panel);
+  padding: 0.45rem;
+  display: grid;
+  grid-template-columns: max-content auto;
+  gap: .5rem;
+}
+
+.cyberpunk-blue .protean-tactic-list .protean-tactic + .protean-tactic {
+  margin-top: 0.5rem;
+}
+
+.cyberpunk-blue .protean-tactic .protean-tactic-name {
+  font-weight: 600;
+  order: 2;
+}
+
+.cyberpunk-blue .protean-tactic .protean-tactic-description {
+  font-size: 0.9rem;
+  order: 3;
+  grid-column: 1 / span 2;
+}
+
+.cyberpunk-blue .protean-tactic .protean-tactic-points {
+  font-size: 0.75rem;
+  font-weight: 700;
+  order: 1;
+}
+
+.cyberpunk-blue .checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.cyberpunk-blue .checkbox-group .checkbox {
+  align-items: center;
+  display: flex;
+  gap: 0.45rem;
+}
+
+.cyberpunk-blue .team-member-list {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.cyberpunk-blue .team-member-link {
+  min-width: 180px;
+}
+
+.cyberpunk-blue .role-focus-table input[type="number"] {
+  width: 4rem;
+}
+
+.cyberpunk-blue .role-overview-html > :first-child {
+  margin-top: 0;
+}
+
+.cyberpunk-blue .role-overview-html > :last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .cyberpunk-blue .notes-grid,
+  .cyberpunk-blue .overview-grid,
+  .cyberpunk-blue .header-stats {
+    grid-template-columns: 1fr;
+  }
+  .cyberpunk-blue .skill-row,
+  .cyberpunk-blue .component-row,
+  .cyberpunk-blue .embedded-row {
+    grid-template-columns: 1fr;
+  }
+
+  .cyberpunk-blue .health-effects {
+    grid-column: auto;
+  }
+
+  .cyberpunk-blue .ability-header,
+  .cyberpunk-blue .ability-header.single-rank,
+  .cyberpunk-blue .cyberware-header {
+    grid-template-columns: 1fr;
+  }
+
+  .cyberpunk-blue .skill-table-container {
+    columns: 1;
+  }
+
+  .cyberpunk-blue .inventory-row,
+  .cyberpunk-blue .weapon-change-row,
+  .cyberpunk-blue .mod-effect-row {
+    grid-template-columns: 1fr;
+  }
+
+  .cyberpunk-blue .traits-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cyberpunk-blue .traits-role-panel,
+  .cyberpunk-blue .traits-role-panel .embedded-table {
+    width: 100%;
+  }
+
+  .cyberpunk-blue .role-reference-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes chromatic-jitter {
+    0%,
+    100% {
+        box-shadow:
+            3px 0 0 rgba(240, 200, 0, 0.4),
+            -3px 0 0 rgba(0, 200, 240, 0.4);
+    }
+    50% {
+        box-shadow:
+            4px 1px 0 rgba(240, 200, 0, 0.4),
+            -4px -1px 0 rgba(0, 200, 240, 0.4);
+    }
+}
+
+/* Future Possibilities folding section */
+.cyberpunk-blue .future-possibilities {
+  border: 1px solid var(--cpb-border);
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.cyberpunk-blue .future-possibilities summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.cyberpunk-blue .future-possibilities summary h3 {
+  display: inline;
+  font-size: var(--font-size-14);
+  color: var(--color-text-light-6);
+}
+
+.cyberpunk-blue .future-possibilities .future-section {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--cpb-border);
+}
+
+.cyberpunk-blue .future-possibilities .future-section h4 {
+  font-size: var(--font-size-12);
+  color: var(--color-text-light-6);
+  margin-bottom: 0.25rem;
+}
+
+/* ============================================================
+   CHARACTER CREATION WIZARD
+   ============================================================ */
+
+/* Sheet highlight border */
+.cyberpunk-blue .char-creation-highlight {
+  outline: 3px solid var(--cpb-accent);
+  outline-offset: 2px;
+}
+
+/* Sheet banner */
+.cyberpunk-blue .cc-sheet-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(39, 176, 255, 0.12);
+  border-bottom: 1px solid var(--cpb-accent);
+  font-size: var(--font-size-12);
+  color: var(--cpb-accent);
+}
+
+.cyberpunk-blue .cc-sheet-banner span {
+  flex: 1;
+}
+
+.cyberpunk-blue .cc-sheet-banner button {
+  padding: 0.2rem 0.6rem;
+  font-size: var(--font-size-11);
+}
+
+.cyberpunk-blue .cc-begin-banner {
+  justify-content: flex-end;
+  background: transparent;
+  border-bottom: none;
+}
+
+/* Wizard window */
+.character-creation-wizard .cc-wizard {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Progress dots */
+.character-creation-wizard .cc-progress {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.character-creation-wizard .cc-step-dot {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--cpb-border);
+  border-radius: 2rem;
+  font-size: var(--font-size-10);
+  color: var(--color-text-light-6);
+  opacity: 0.5;
+}
+
+.character-creation-wizard .cc-step-dot.done {
+  color: var(--cpb-accent);
+  opacity: 0.7;
+  border-color: var(--cpb-accent);
+}
+
+.character-creation-wizard .cc-step-dot.active {
+  color: var(--cpb-accent-strong);
+  opacity: 1;
+  border-color: var(--cpb-accent-strong);
+  font-weight: bold;
+}
+
+/* Content area */
+.character-creation-wizard .cc-content {
+  flex: 1;
+}
+
+.character-creation-wizard .cc-step-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.character-creation-wizard .cc-intro {
+  font-size: var(--font-size-16);
+  text-align: center;
+  color: var(--cpb-accent-strong);
+  padding: 1rem 0;
+}
+
+/* Lifepath */
+.character-creation-wizard .cc-table-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.character-creation-wizard .cc-roll-btn {
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+}
+
+.character-creation-wizard .cc-roll-all {
+  color: var(--cpb-accent-strong);
+  border-color: var(--cpb-accent-strong);
+}
+
+/* Stats */
+.character-creation-wizard .cc-points-counter {
+  text-align: center;
+  font-size: var(--font-size-14);
+  padding: 0.4rem;
+  border: 1px solid var(--cpb-border);
+  border-radius: 3px;
+  color: var(--cpb-accent);
+}
+
+.character-creation-wizard .cc-points-counter.all-spent {
+  color: var(--cpb-accent-strong);
+  border-color: var(--cpb-accent-strong);
+}
+
+.character-creation-wizard .cc-points-counter.over-budget {
+  color: var(--cpb-error, #ff4444);
+  border-color: var(--cpb-error, #ff4444);
+}
+
+.character-creation-wizard .cc-stat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.character-creation-wizard .cc-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.character-creation-wizard .cc-stat-label {
+  width: 4rem;
+  font-size: var(--font-size-12);
+  color: var(--cpb-accent);
+  font-weight: bold;
+}
+
+.character-creation-wizard .cc-stat-btn {
+  width: 1.8rem;
+  height: 1.8rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.character-creation-wizard .cc-stat-value {
+  width: 2rem;
+  text-align: center;
+  font-size: var(--font-size-16);
+  font-weight: bold;
+  color: var(--cpb-accent-strong);
+}
+
+/* Secondary text blocks */
+.character-creation-wizard .cc-text-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: var(--font-size-12);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+/* Languages */
+.character-creation-wizard .cc-language-input input {
+  width: 100%;
+  direction: ltr;
+}
+
+/* Ability list */
+.character-creation-wizard .cc-ability-upgrade {
+  color: var(--cpb-accent-strong);
+  border-color: var(--cpb-accent-strong);
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+}
+
+.character-creation-wizard .cc-ability-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.character-creation-wizard .cc-ability-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--cpb-border);
+}
+
+.character-creation-wizard .cc-ability-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.character-creation-wizard .cc-ability-name {
+  font-size: var(--font-size-12);
+  color: var(--color-text-light-1);
+}
+
+.character-creation-wizard .cc-ability-maxrank,
+.character-creation-wizard .cc-ability-note {
+  font-size: var(--font-size-10);
+  color: var(--color-text-light-6);
+}
+
+/* Role list */
+.character-creation-wizard .cc-role-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.character-creation-wizard .cc-role-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--cpb-border);
+  border-radius: 3px;
+}
+
+.character-creation-wizard .cc-role-name {
+  flex: 1;
+  font-size: var(--font-size-13);
+  color: var(--cpb-accent);
+}
+
+/* Note text */
+.character-creation-wizard .cc-sheet-note {
+  font-size: var(--font-size-12);
+  color: var(--cpb-accent);
+  font-style: italic;
+}
+
+/* Footer navigation */
+.character-creation-wizard .cc-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--cpb-border);
+  margin-top: 0.25rem;
+}
+
+.character-creation-wizard .cc-btn-primary {
+  color: var(--cpb-accent-strong);
+  border-color: var(--cpb-accent-strong);
+}
+
+.character-creation-wizard .cc-btn-secondary {
+  opacity: 0.75;
+}
+
+.character-creation-wizard .cc-btn-small {
+  padding: 0.2rem 0.5rem;
+  font-size: var(--font-size-11);
+  white-space: nowrap;
+}
+
+/* ── Mods Tab ─────────────────────────────────────────────────────────────── */
+
+.cyberpunk-blue .embedded-mods-panel .embedded-mod-import-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem 0 0;
+}
+
+.cyberpunk-blue .embedded-mods-panel .embedded-mod-import-row input {
+  flex: 1;
+  font-size: var(--font-size-11);
+}
+
+.cyberpunk-blue .embedded-mod-card {
+  margin-top: 0.5rem;
+}
+
+.cyberpunk-blue .mod-note {
+  font-style: italic;
+  opacity: 0.8;
+  font-size: var(--font-size-12);
+  margin: 0.25rem 0;
+}
+
+.cyberpunk-blue .mod-description {
+  font-size: var(--font-size-12);
+  margin: 0.25rem 0;
+}
+
+.cyberpunk-blue .mod-changes {
+  margin-top: 0.5rem;
+}
+
+.cyberpunk-blue .mod-changes-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-11);
+}
+
+.cyberpunk-blue .mod-changes-table th,
+.cyberpunk-blue .mod-changes-table td {
+  padding: 2px 6px;
+  border-bottom: 1px solid var(--cpb-panel-border);
+  text-align: left;
+}
+
+.cyberpunk-blue .mod-effect-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.25rem 0;
+  border-top: 1px solid var(--cpb-panel-border);
+}
+
+.cyberpunk-blue .mod-effect-icon {
+  height: 16px;
+  width: 16px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.cyberpunk-blue .mod-effect-label {
+  font-size: var(--font-size-12);
+}
+
+/* ── Computer config fields ─────────────────────────────────────── */
+.cyberpunk-blue .computer-fields-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: center;
+  padding: 4px 0;
+}
+
+/* ── Netrunner tab ──────────────────────────────────────────────── */
+.cyberpunk-blue .netrunner-components-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.cyberpunk-blue .netrunner-component-box {
+  border: 1px solid var(--cpb-border, #999);
+  border-radius: 4px;
+  padding: 6px 8px;
+  min-width: 120px;
+  background: var(--color-bg-option, rgba(0,0,0,0.05));
+}
+
+.cyberpunk-blue .netrunner-comp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+  gap: 6px;
+}
+
+.cyberpunk-blue .netrunner-comp-name {
+  font-weight: bold;
+  font-size: var(--font-size-13);
+}
+
+.cyberpunk-blue .netrunner-comp-mod {
+  font-size: var(--font-size-12);
+  color: var(--color-text-light-secondary, #555);
+  white-space: nowrap;
+}
+
+.cyberpunk-blue .netrunner-comp-uses {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cyberpunk-blue .netrunner-use-btn {
+  width: 100%;
+  text-align: left;
+  padding: 2px 6px;
+  font-size: var(--font-size-12);
+  cursor: pointer;
+  border: 1px solid var(--cpb-border, #bbb);
+  border-radius: 3px;
+  background: var(--color-bg-btn, rgba(255,255,255,0.15));
+}
+
+.cyberpunk-blue .netrunner-use-btn:hover {
+  background: var(--color-bg-btn-hover, rgba(0,0,0,0.1));
+}
+
+/* Computers list */
+.cyberpunk-blue .netrunner-computers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cyberpunk-blue .netrunner-computer-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border: 1px solid var(--color-border-light-tertiary, #ccc);
+  border-radius: 4px;
+  background: var(--color-bg-option, rgba(0,0,0,0.03));
+}
+
+.cyberpunk-blue .netrunner-computer-name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  font-weight: bold;
+  font-size: var(--font-size-13);
+}
+
+.cyberpunk-blue .netrunner-computer-name img.item-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.cyberpunk-blue .netrunner-computer-stats {
+  display: flex;
+  gap: 8px;
+  font-size: var(--font-size-12);
+  color: var(--color-text-light-secondary, #555);
+}
+
+/* Executable tables */
+.cyberpunk-blue .netrunner-exe-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-12);
+}
+
+.cyberpunk-blue .netrunner-exe-table th {
+  text-align: center;
+  padding: 2px 4px;
+  border-bottom: 1px solid var(--cpb-border, #aaa);
+  font-size: var(--font-size-11);
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.cyberpunk-blue .netrunner-exe-table td {
+  padding: 2px 4px;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--cpb-border, #ddd);
+}
+
+.cyberpunk-blue .netrunner-exe-table .exe-name-col {
+  text-align: left;
+  min-width: 100px;
+}
+
+.cyberpunk-blue .exe-computer-name {
+  display: block;
+  font-size: var(--font-size-10);
+}
+
+.cyberpunk-blue .exe-rez-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.cyberpunk-blue .exe-rez-input {
+  width: 36px;
+  text-align: center;
+  padding: 0 2px;
+}
+
+.cyberpunk-blue .exe-roll-btn {
+  padding: 1px 6px;
+  font-size: var(--font-size-11);
+  cursor: pointer;
+  border: 1px solid var(--cpb-border, #bbb);
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.cyberpunk-blue .exe-action-btn {
+  padding: 2px 6px;
+  font-size: var(--font-size-12);
+  cursor: pointer;
+}
+
+/* ─── Critical Injury Chat Card ─────────────────────────────────────────────── */
+
+.cyberpunk-blue .critical-injury-card {
+  padding: 0.5rem;
+}
+
+.cyberpunk-blue .critical-injury-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--font-size-14);
+  font-weight: bold;
+  border-bottom: 2px solid #8b0000;
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.5rem;
+  color: #8b0000;
+}
+
+.cyberpunk-blue .crit-table-label {
+  flex: 1;
+}
+
+.cyberpunk-blue .crit-target-name {
+  font-style: italic;
+  color: var(--color-text-dark-secondary, #555);
+}
+
+.cyberpunk-blue .critical-injury-roll {
+  font-size: var(--font-size-12);
+  color: var(--color-text-dark-secondary, #555);
+  margin-bottom: 0.25rem;
+}
+
+.cyberpunk-blue .critical-injury-name {
+  font-size: var(--font-size-14);
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.cyberpunk-blue .critical-injury-desc {
+  font-size: var(--font-size-12);
+  margin-bottom: 0.4rem;
+  line-height: 1.4;
+}
+
+.cyberpunk-blue .crit-mortal-warning {
+  color: #8b0000;
+  font-size: var(--font-size-12);
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.cyberpunk-blue .crit-instant-death {
+  color: #000;
+  background: #8b0000;
+  color: #fff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  font-size: var(--font-size-12);
+  font-weight: bold;
+  margin-bottom: 0.4rem;
+}
+
+.cyberpunk-blue .critical-injury-actions {
+  margin-top: 0.4rem;
+}
+
+.cyberpunk-blue .remove-critical-injury {
+  font-size: var(--font-size-12);
+  padding: 2px 8px;
+  cursor: pointer;
+  border: 1px solid #8b0000;
+  border-radius: 3px;
+  color: #8b0000;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.cyberpunk-blue .remove-critical-injury:hover {
+  background: #8b0000;
+  color: #fff;
+}
+
+/* ─── Confirm Dialog: Crit block ─────────────────────────────────────────────── */
+
+.cyberpunk-blue .crit-confirm-block {
+  margin-top: 0.5rem;
+  border-top: 1px solid #8b0000;
+  padding-top: 0.5rem;
+}
+
+.cyberpunk-blue .crit-dice-note {
+  color: #8b0000;
+  font-weight: bold;
+  font-size: var(--font-size-12);
+  margin-bottom: 0.3rem;
+}
+
+.cyberpunk-blue .crit-location-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: var(--font-size-13);
+}
+
+.cyberpunk-blue .crit-location-row label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+
+/* ─── Actor Sheet: Critical Injuries Panel ───────────────────────────────────── */
+
+.cyberpunk-blue .critical-injuries-panel {
+  margin-top: 0.5rem;
+}
+
+.cyberpunk-blue .critical-injuries-panel .panel-header {
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid #8b0000;
+  padding-bottom: 0.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.cyberpunk-blue .critical-injuries-panel .panel-header h2 {
+  color: #8b0000;
+  font-size: var(--font-size-14);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cyberpunk-blue .critical-injuries-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.cyberpunk-blue .critical-injury-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--cpb-border, #ccc);
+  border-radius: 4px;
+  background: var(--color-bg-option, #f5f5f5);
+}
+
+.cyberpunk-blue .critical-injury-item.is-mortal {
+  border-color: #8b0000;
+  background: #fff5f5;
+}
+
+.cyberpunk-blue .critical-injury-item .injury-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cyberpunk-blue .critical-injury-item .injury-name {
+  font-weight: bold;
+  font-size: var(--font-size-13);
+  display: block;
+}
+
+.cyberpunk-blue .critical-injury-item .injury-mortal-badge {
+  display: inline-block;
+  font-size: var(--font-size-10);
+  font-weight: bold;
+  color: #8b0000;
+  border: 1px solid #8b0000;
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.cyberpunk-blue .critical-injury-item .injury-desc {
+  font-size: var(--font-size-11);
+  color: var(--color-text-dark-secondary, #555);
+  margin: 0.15rem 0 0;
+  line-height: 1.4;
+}
+
+.cyberpunk-blue .critical-injury-item .injury-remove {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid #8b0000;
+  color: #8b0000;
+  border-radius: 3px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  cursor: pointer;
+  font-size: var(--font-size-11);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+}
+
+.cyberpunk-blue .critical-injury-item .injury-remove:hover {
+  background: #8b0000;
+  color: #fff;
+}
+
+/* ─── Health Effects: critical injury delete button ─────────────────────────── */
+
+.cyberpunk-blue .health-effect-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.cyberpunk-blue .health-effect-row .health-effect {
+  flex: 1;
+  min-width: 0;
+}
+
+.cyberpunk-blue .health-effect-row.is-critical-injury .health-effect {
+  border-color: #8b000044;
+}
+
+.cyberpunk-blue .health-effect-row.is-mortal .health-effect {
+  border-color: #8b0000;
+}
+
+.cyberpunk-blue .effect-mortal-badge {
+  color: #8b0000;
+  font-size: var(--font-size-11);
+  flex-shrink: 0;
+}
+
+.cyberpunk-blue .health-effect-delete {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid #8b0000;
+  color: #8b0000;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: var(--font-size-10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cyberpunk-blue .health-effect-delete:hover {
+  background: #8b0000;
+  color: #fff;
+}
+
+/* ─── Weapon Table: Target Vitals column ─────────────────────────────────────── */
+
+.cyberpunk-blue .target-vitals-cell {
+  text-align: center;
+}
+
+.cyberpunk-blue .target-vitals-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cyberpunk-blue .target-vitals-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: #8b0000;
+}
+
+.cyberpunk-blue .target-vitals-note {
+  color: #8b0000;
+  font-size: var(--font-size-11);
+  margin-bottom: 0.2rem;
+}
+
+/* ─── Weapon Table: jammed state ─────────────────────────────────────────────── */
+
+.cyberpunk-blue .weapon-unjam-btn {
+  background: transparent;
+  border: 1px solid #c89500;
+  color: #c89500;
+  border-radius: 3px;
+  padding: 1px 6px;
+  cursor: pointer;
+  font-size: var(--font-size-11);
+  margin-left: 2px;
+}
+
+.cyberpunk-blue .weapon-unjam-btn:hover {
+  background: #c89500;
+  color: #000;
+}
+
+/* ─── Weapon Table: calibration button ──────────────────────────────────────── */
+
+.cyberpunk-blue .weapon-calibrate-btn {
+  background: transparent;
+  border: 1px solid var(--cpb-accent);
+  color: var(--cpb-accent);
+  border-radius: 3px;
+  padding: 1px 4px;
+  cursor: pointer;
+  font-size: var(--font-size-11);
+  margin-left: 2px;
+}
+
+.cyberpunk-blue .weapon-calibrate-btn:hover {
+  background: var(--cpb-accent);
+  color: #000;
+}
+
+.cyberpunk-blue .weapon-calibrate-btn.calibration-active {
+  background: var(--cpb-accent);
+  color: #000;
+  font-weight: bold;
+}
+
+/* ─── Weapon Table: ricochet button ─────────────────────────────────────────── */
+
+.cyberpunk-blue .weapon-ricochet-btn {
+  background: transparent;
+  border: 1px solid #44aaff;
+  color: #44aaff;
+  border-radius: 3px;
+  padding: 1px 4px;
+  cursor: pointer;
+  font-size: var(--font-size-11);
+  margin-left: 2px;
+}
+
+.cyberpunk-blue .weapon-ricochet-btn:hover {
+  background: #44aaff;
+  color: #000;
+}
+
+.cyberpunk-blue .weapon-ricochet-btn.ricochet-active {
+  background: #44aaff;
+  color: #000;
+  font-weight: bold;
+}
+
+/* ─── Tech Weapon Charge button ─────────────────────────────────────────────── */
+
+.cyberpunk-blue .weapon-charge-btn {
+  background: transparent;
+  border: 1px solid #00d4ff;
+  color: #00d4ff;
+  border-radius: 3px;
+  padding: 1px 4px;
+  cursor: pointer;
+  font-size: var(--font-size-11);
+  margin-left: 2px;
+}
+
+.cyberpunk-blue .weapon-charge-btn:hover {
+  background: #00d4ff;
+  color: #000;
+}
+
+.cyberpunk-blue .weapon-charge-btn.charge-active {
+  background: #00d4ff;
+  color: #000;
+  font-weight: bold;
+  box-shadow: 0 0 6px #00d4ff;
+}
+
+.cyberpunk-blue .weapon-charge-btn.charge-cooldown {
+  border-color: #ff9900;
+  color: #ff9900;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.cyberpunk-blue .weapon-charge-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Martial Arts ──────────────────────────────────────────────────────────── */
+
+.cyberpunk-blue .martial-arts-panel .section-header {
+  font-size: var(--font-size-14);
+  margin: 0.3rem 0 0.4rem;
+}
+
+.cyberpunk-blue .ma-specials-grid {
+  columns: 4 450px;
+  column-gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.cyberpunk-blue .ma-special-entry {
+  break-inside: avoid;
+  background: var(--cpb-panel);
+  border: 1px solid var(--cpb-border);
+  border-radius: 3px;
+  padding: 0.35rem 0.45rem;
+  margin-bottom: 0.35rem;
+}
+
+.cyberpunk-blue .ma-special-header {
+  margin-bottom: 0.2rem;
+}
+
+.cyberpunk-blue .ma-special-btn {
+  background: transparent;
+  border: 1px solid var(--cpb-border);
+  border-radius: 3px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: var(--font-size-12);
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  text-align: left;
+}
+
+.cyberpunk-blue .ma-special-btn:hover {
+  background: var(--cpb-highlight);
+  border-color: var(--cpb-accent);
+}
+
+.cyberpunk-blue .ma-special-desc {
+  font-size: var(--font-size-11);
+  color: var(--color-text-dark-secondary);
+  line-height: 1.3;
+}
+
+/* ─── Combat state panel (in the combat tracker sidebar) ──────────────────── */
+
+.cyber-blue-combat-panel {
+  padding: 6px 8px 8px;
+  margin: 4px 4px 0;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(39, 176, 255, 0.35);
+  border-radius: 4px;
+  font-family: 'Share Tech', monospace;
+  font-size: var(--font-size-11);
+  color: #ddd;
+}
+
+.cyber-blue-combat-panel .cbcp-name {
+  font-size: var(--font-size-12);
+  font-weight: bold;
+  color: var(--cpb-accent);
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cyber-blue-combat-panel .cbcp-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.cyber-blue-combat-panel .cbcp-label {
+  min-width: 42px;
+  color: #aaa;
+  font-size: var(--font-size-10);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Movement progress bar */
+.cyber-blue-combat-panel .cbcp-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.cyber-blue-combat-panel .cbcp-bar {
+  height: 100%;
+  background: var(--cpb-accent);
+  border-radius: 3px;
+  transition: width 0.25s ease;
+  min-width: 2px;
+}
+
+.cyber-blue-combat-panel .cbcp-value {
+  min-width: 54px;
+  text-align: right;
+  font-size: var(--font-size-10);
+  color: #bbb;
+}
+
+/* Action state label */
+.cyber-blue-combat-panel .cbcp-action-state {
+  font-size: var(--font-size-11);
+  font-weight: bold;
+}
+.cyber-blue-combat-panel .cbcp-action-state.available {
+  color: #4cff8a;
+}
+.cyber-blue-combat-panel .cbcp-action-state.used {
+  color: #888;
+  text-decoration: line-through;
+}
+
+/* Sprint button */
+.cyber-blue-sprint-btn {
+  margin-left: auto;
+  padding: 1px 7px;
+  background: rgba(39, 176, 255, 0.15);
+  border: 1px solid rgba(39, 176, 255, 0.5);
+  border-radius: 3px;
+  color: var(--cpb-accent);
+  font-family: 'Share Tech', monospace;
+  font-size: var(--font-size-10);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.cyber-blue-sprint-btn:hover {
+  background: rgba(39, 176, 255, 0.3);
+  border-color: var(--cpb-accent);
+}
