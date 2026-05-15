@@ -1,0 +1,307 @@
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Share+Tech&family=Share+Tech+Mono&display=swap');
+
+:root {
+  /* ---- Use --cpb-bg-solid for chat cards, exports, anything offscreen. ---- */
+  --cpb-bg-solid-top: rgb(7, 2, 10);
+  --cpb-bg-solid-bottom: rgb(15, 6, 18);
+  --cpb-bg-solid: linear-gradient(180deg, var(--cpb-bg-solid-top), var(--cpb-bg-solid-bottom));
+  --cpb-bg-translucent: linear-gradient(180deg, rgba(7,2,10,0.8),rgba(15,6,18,0.7));
+  --cpb-bg-blur: saturate(1.1) blur(10px);
+
+  /* Default --cpb-bg points at the translucent variant; opt out with
+     `background: var(--cpb-bg-solid);` on chat cards / exports. */
+  --cpb-bg: var(--cpb-bg-translucent);
+  --scrollbar-color: #6E00FF;
+
+  --cpb-panel: rgba(4, 7, 14, 0.5);
+  --cpb-panel-deep: rgba(0, 2, 6, 0.78);
+  --cpb-panel-deeper: rgba(0, 1, 4, 0.96);
+  --cpb-panel-border: rgba(0, 240, 255, 0.32);
+  --cpb-table-alt-bg: rgba(0, 240, 255, 0.05);
+
+  /* ---- Foreground / accents — ELECTRIC dystopia ---- */
+  --cpb-text: rgb(234, 252, 255);            /* near-white, cool */
+  --cpb-muted: rgb(111, 133, 151);            /* desaturated blue-grey */
+  --cpb-accent: rgb(0, 240, 255);           /* CYAN — electric, primary signal */
+  --cpb-accent-strong: rgb(198, 255, 0);    /* LIME — acid neon, dice & always-on */
+  --cpb-accent-warm: rgb(196, 107, 255);      /* WARM VIOLET — secondary accent reserved
+                                     for BORDERS, hairlines, dividers, and
+                                     decorative ticks/glyphs. NEVER for body
+                                     text or runs longer than a single short
+                                     word — at this saturation against the
+                                     near-black bg the contrast falls under
+                                     the legibility floor. Use cyan for text
+                                     in violet-bordered surfaces. */
+  --cpb-warning: #ff9500;          /* hot amber */
+  --cpb-error: #ff2350;            /* hot blood red */
+  --cpb-magenta: #ff2bd6;          /* high-energy glitch (sparingly) */
+
+  /* Tinted accent washes (used as fills on chips / toggles / highlights) */
+  --cpb-accent-wash: rgba(0, 240, 255, 0.18);
+  --cpb-accent-wash-soft: rgba(0, 240, 255, 0.10);
+  --cpb-accent-wash-border: rgba(0, 240, 255, 0.45);
+  --cpb-accent-strong-wash: rgba(198, 255, 0, 0.16);
+  --cpb-accent-strong-border: rgba(198, 255, 0, 0.40);
+  --cpb-accent-warm-wash: rgba(196, 107, 255, 0.16);
+  --cpb-accent-warm-wash-soft: rgba(196, 107, 255, 0.08);
+  --cpb-accent-warm-border: rgba(196, 107, 255, 0.42);
+
+  /* Semantic */
+  --cpb-fg-1: var(--cpb-text);
+  --cpb-fg-2: var(--cpb-muted);
+  --cpb-border: var(--cpb-panel-border);
+  --cpb-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+  --cpb-shadow-lift: 0 6px 18px rgba(0, 0, 0, 0.45);
+
+  /* ---- Type ---- */
+  --cpb-font-display: 'Chakra Petch', 'Share Tech', system-ui, sans-serif;
+  --cpb-font-body: 'Share Tech', system-ui, sans-serif;
+  --cpb-font-mono: 'Share Tech Mono', ui-monospace, 'Courier New', monospace;
+
+  /* Sizes — sheet runs at 14px base; headers use a tight scale. */
+  --cpb-fs-h1: 2rem;       /* charname input */
+  --cpb-fs-h2: 1rem;       /* uppercase panel label */
+  --cpb-fs-h3: 1rem;       /* HP, big stat label */
+  --cpb-fs-value: 1.4rem;  /* health-value, big numbers */
+  --cpb-fs-body: 0.95rem;
+  --cpb-fs-sm: 0.9rem;     /* hint, sheet-subtitle */
+  --cpb-fs-xs: 0.82rem;    /* component pill, state chip */
+  --cpb-fs-xxs: 0.78rem;   /* skill / table headers */
+
+  /* Weights */
+  --cpb-fw-regular: 400;
+  --cpb-fw-medium: 500;
+  --cpb-fw-bold: 700;
+
+  /* Letter-spacing — uppercase headers always tracked open */
+  --cpb-tracking-h1: 0.04em;
+  --cpb-tracking-h2: 0.08em;
+  --cpb-tracking-stat: 0.12em;
+
+  /* ---- Shape — lines and angles. Just enough radius to soften the
+     corner so 1px hairlines don't visually fray. Never round for
+     decoration. No pills. ---- */
+  --cpb-radius-input: 2px;
+  --cpb-radius-card: 2px;
+  --cpb-radius-panel: 3px;
+  --cpb-radius-pill: 2px;   /* legacy alias — used to be 999px, now squared */
+
+  /* ---- Spacing — typically 0.35 / 0.5 / 0.7 / 1rem rhythm ---- */
+  --cpb-space-1: 0.2rem;
+  --cpb-space-2: 0.35rem;
+  --cpb-space-3: 0.5rem;
+  --cpb-space-4: 0.7rem;
+  --cpb-space-5: 1rem;
+  --cpb-space-6: 1.4rem;
+
+  /* ---- Shapes — clip-path polygons for panels and controls. ---- */
+  --cpb-border-shape: polygon(0 0, 24% 0, calc(24% + 10px) 10px, calc(76% - 10px) 10px, 76% 0, 100% 0, 100% 100%, 62% 100%, calc(62% - 9px) calc(100% - 9px), calc(38% + 9px) calc(100% - 9px), 38% 100%, 0 100%);
+  --cpb-control-shape: polygon(0 0, 11% 0, 11% 100%, 0 100%, 0 76%, 3% 69%, 3% 31%, 0 24%, 0 0, 89% 0, 89% 100%, 100% 100%, 100% 76%, 97% 69%, 97% 31%, 100% 24%, 100% 0);
+  
+  /* ---- Motion ---- */
+  --cpb-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --cpb-dur: 0.25s;
+
+  /* ---- Iconography — the bundled glyph set ships as bk_*.svg (black
+     ink on transparent). Apply --cpb-icon-invert to render them in the
+     cool near-white text color against the dark surface. Drop the
+     filter where you want them to appear muted (over a bright panel)
+     or recolour with `filter: var(--cpb-icon-tint-*)`. ---- */
+  --cpb-icon-invert: invert(1) brightness(1.05);
+  --cpb-icon-tint-cyan: invert(0.78) sepia(1) saturate(8) hue-rotate(155deg) brightness(1.05);
+  --cpb-icon-tint-lime: invert(1) sepia(1) saturate(20) hue-rotate(20deg) brightness(1);
+  --cpb-icon-tint-warm: invert(67%) sepia(46%) saturate(6854%) hue-rotate(237deg) brightness(100%) contrast(102%);
+}
+
+/* ===== Glitch micro-animations =============================
+ * CSS-only. The "data" variant is a slow horizontal RGB-split shimmer
+ * suited to long info readouts and tickers in the background. The
+ * "portrait" variant adds a low-amplitude vertical scan jitter with
+ * an occasional clip-path tear — runs at random-feeling phase via a
+ * staggered animation-delay. Both fall back gracefully under
+ * prefers-reduced-motion. */
+@keyframes cpb-glitch-shift {
+  0%, 92%, 100% { text-shadow: none; transform: none; }
+  93%  { text-shadow: -1px 0 var(--cpb-accent), 1px 0 var(--cpb-magenta); transform: translateX(0.4px); }
+  94%  { text-shadow:  1px 0 var(--cpb-accent), -1px 0 var(--cpb-magenta); transform: translateX(-0.4px); }
+  95%  { text-shadow: -1px 0 var(--cpb-accent-strong), 1px 0 var(--cpb-accent-warm); transform: translateX(0.6px); }
+  96%  { text-shadow: none; transform: none; }
+}
+@keyframes cpb-glitch-flicker {
+  0%, 96%, 100% { opacity: 1; }
+  97% { opacity: 0.55; }
+  98% { opacity: 1; }
+  99% { opacity: 0.7; }
+}
+@keyframes cpb-glitch-tear {
+  0%, 88%, 100% { clip-path: inset(0 0 0 0); transform: translate(0,0); filter: none; }
+  89% { clip-path: inset(18% 0 64% 0); transform: translate(2px,0); filter: hue-rotate(20deg) saturate(1.4); }
+  90% { clip-path: inset(72% 0 14% 0); transform: translate(-3px,0); filter: hue-rotate(-20deg) saturate(1.4); }
+  91% { clip-path: inset(38% 0 48% 0); transform: translate(1px,0); }
+  92% { clip-path: inset(0 0 0 0); transform: translate(0,0); filter: none; }
+}
+@keyframes cpb-glitch-scan {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100%; }
+}
+.cpb-glitch--data {
+  animation: cpb-glitch-shift 7.3s steps(60) infinite, cpb-glitch-flicker 11s steps(40) infinite;
+}
+.cpb-glitch--portrait {
+  position: relative;
+  animation: cpb-glitch-tear 9.7s steps(50) infinite;
+}
+.cpb-glitch--portrait::after {
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(to bottom,
+      rgba(0,240,255,0.05) 0 1px,
+      transparent 1px 3px);
+  mix-blend-mode: screen;
+  animation: cpb-glitch-scan 6s linear infinite;
+  background-size: 100% 200%;
+  opacity: 0.6;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cpb-glitch--data, .cpb-glitch--portrait { animation: none; }
+  .cpb-glitch--portrait::after { animation: none; opacity: 0.25; }
+}
+
+/* ===== Chrome — angular violet bracket decorations ============
+ * CSS-only mood detail for filling negative space along panel edges.
+ * Apply `.cpb-chrome` to any element with `position: relative` and at
+ * least ~16px of breathing room on its sides — adds two pseudo-element
+ * brackets (left + right) with notched, asymmetric profiles. Violet
+ * lives here as ornament, not text. Modifiers `--l`, `--r` and `--lr`
+ * pick sides. `--minimal` swaps to thin spine-only brackets for tight
+ * spaces. Use sparingly — these are flavour, not structure. */
+.cpb-chrome { position: relative; }
+.cpb-chrome::before,
+.cpb-chrome::after {
+  content: "";
+  position: absolute;
+  top: 6%; bottom: 6%;
+  width: 14px;
+  pointer-events: none;
+  background: var(--cpb-accent-warm);
+  opacity: 0.78;
+}
+.cpb-chrome::before {
+  left: -18px;
+  /* tall arrow bracket pointing inward */
+  clip-path: polygon(
+    0% 0%, 100% 0%,
+    55% 6%, 55% 36%,
+    100% 38%, 100% 42%,
+    55% 44%, 55% 60%,
+    100% 62%, 100% 66%,
+    55% 68%, 55% 94%,
+    100% 100%, 0% 100%
+  );
+}
+.cpb-chrome::after {
+  right: -18px;
+  width: 10px;
+  top: 14%; bottom: 48%;
+  /* smaller chevron / fin on the right, near the top */
+  clip-path: polygon(
+    0% 0%, 100% 6%,
+    45% 12%, 45% 36%,
+    0% 40%, 0% 46%,
+    45% 50%, 45% 88%,
+    0% 100%
+  );
+}
+.cpb-chrome--r::before { display: none; }
+.cpb-chrome--l::after { display: none; }
+.cpb-chrome--minimal::before {
+  width: 3px;
+  left: -8px;
+  clip-path: polygon(
+    0% 0%, 100% 6%,
+    100% 44%, 0% 46%,
+    0% 54%, 100% 56%,
+    100% 94%, 0% 100%
+  );
+  opacity: 0.85;
+}
+.cpb-chrome--minimal::after {
+  width: 3px;
+  right: -8px;
+  top: 22%; bottom: 22%;
+  clip-path: polygon(
+    0% 0%, 100% 8%,
+    100% 92%, 0% 100%
+  );
+  opacity: 0.85;
+}
+/* Optional flicker — same mood as the glitch motions, ride on its
+ * keyframes so the page reads as a coherent system. */
+.cpb-chrome--alive::before,
+.cpb-chrome--alive::after {
+  animation: cpb-glitch-flicker 9s steps(40) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cpb-chrome--alive::before,
+  .cpb-chrome--alive::after { animation: none; }
+}
+
+/* ===== Semantic element styles ============================== */
+.cyberpunk-blue h1, .cpb-h1 {
+  font-family: var(--cpb-font-display);
+  font-size: var(--cpb-fs-h1);
+  font-weight: var(--cpb-fw-bold);
+  letter-spacing: var(--cpb-tracking-h1);
+  color: var(--cpb-text);
+  margin: 0;
+}
+
+.cyberpunk-blue h2, .cpb-h2 {
+  font-family: var(--cpb-font-display);
+  font-size: var(--cpb-fs-h2);
+  font-weight: var(--cpb-fw-bold);
+  letter-spacing: var(--cpb-tracking-h2);
+  text-transform: uppercase;
+  color: var(--cpb-accent);
+  margin: 0 0 0.85rem;
+}
+
+.cyberpunk-blue h3, .cpb-h3 {
+  font-family: var(--cpb-font-display);
+  font-size: var(--cpb-fs-h3);
+  font-weight: var(--cpb-fw-bold);
+  text-transform: uppercase;
+  color: var(--cpb-accent);
+  margin: 0;
+}
+
+.cpb-stat-short {
+  font-family: var(--cpb-font-mono);
+  font-size: var(--cpb-fs-xs);
+  font-weight: var(--cpb-fw-regular);
+  letter-spacing: var(--cpb-tracking-stat);
+  color: var(--cpb-accent-strong);
+  text-transform: uppercase;
+}
+
+/* Use the mono face for any short value (numbers, abbrevs, codes). */
+.cpb-value, .cpb-readout {
+  font-family: var(--cpb-font-mono);
+  font-weight: var(--cpb-fw-regular);
+  letter-spacing: 0.04em;
+  color: var(--cpb-text);
+}
+
+.cpb-table-header {
+  font-size: var(--cpb-fs-xxs);
+  font-weight: var(--cpb-fw-bold);
+  letter-spacing: var(--cpb-tracking-h2);
+  color: var(--cpb-accent);
+  text-transform: uppercase;
+}
+
+.cyberpunk-blue p, .cpb-body { font-size: var(--cpb-fs-body); color: var(--cpb-text); line-height: 1.45; }
+.cpb-hint, .cpb-muted { font-size: var(--cpb-fs-sm); color: var(--cpb-muted); }
+.cpb-mono { font-family: var(--cpb-font-mono); }

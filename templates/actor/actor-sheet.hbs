@@ -322,6 +322,11 @@
             <section class="role-overview-feature" data-item-id="{{feature.roleId}}">
               <h4 class="roleCategory">{{feature.roleName}}</h4>
               {{#unless (eq feature.kind "protean")}}
+                {{#unless (eq feature.kind "specialist")}}
+                  {{#if feature.enrichedAbilityOverview}}
+                    <div class="role-overview-html role-ability-overview">{{{feature.enrichedAbilityOverview}}}</div>
+                  {{/if}}
+                {{/unless}}
                 {{#if feature.sections.length}}
                   {{#each feature.sections as |section|}}
                     <div class="role-overview-html">{{{section.enrichedContent}}}</div>

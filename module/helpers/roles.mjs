@@ -719,8 +719,22 @@ export async function syncAllProteanFociAEs(actor) {
         break;
       }
 
-      // Precision Attack, Pummel, Poison, Precision Kill — combat-code hooks
-      // not yet implemented; displayed on sheet as text only.
+      // ── Precision Attack (Solo): +1 to all attacks per 3 pts (max +3) ────────
+      case 'Precision Attack': {
+        const bonus = Math.min(Math.floor(pts / 3), 3);
+        if (bonus > 0) {
+          toCreate.push({
+            name: `${roleName}: Precision Attack (+${bonus} all attacks)`,
+            disabled: false, transfer: false,
+            flags: { 'cyberpunk-blue': { ...baseCpbFlags, soloPrecisionAttack: bonus } },
+            changes: [],
+          });
+        }
+        break;
+      }
+
+      // Pummel, Poison, Precision Kill — combat-code hooks not yet implemented;
+      // displayed on sheet as text only.
       default:
         break;
     }

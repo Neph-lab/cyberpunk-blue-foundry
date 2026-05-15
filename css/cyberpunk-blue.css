@@ -1,109 +1,114 @@
+/* ============================================================
+   IMPORTS
+   ============================================================ */
 @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Rubik+Glitch&family=Rubik+Iso&family=Share+Tech&family=Share+Tech+Mono&display=swap');
+@import url('./colors_and_type.css');
+
+/* ============================================================
+   GENERAL / ROOT VARIABLES & PROPERTIES
+   ============================================================ */
+
+:root, body, .window-app, .application {
+  scrollbar-color: var(--scrollbar-color) !important;
+  --cpb-shadow: 0 0 7px rgba(110, 0, 255, 0.4);
+  --terminal-text: #27B0FF;
+  --cpb-glow: 0 0 2px rgba(255, 252, 50, 0.9), 0 0 4px rgba(255, 252, 150,0.8), 0 0 8px rgba(255, 255, 200,0.6);
+  --cpb-text-shadow: 0 0 1px rgba(110, 0, 255, 0.4);
+  --font-h1: var(--cpb-font-display) !important;
+  --font-h2: var(--cpb-font-display) !important;
+  --font-h3: var(--cpb-font-mono) !important;
+  --font-h4: var(--cpb-font-mono) !important;
+  --font-h5: var(--cpb-font-mono) !important;
+  --color-tabs-border: var(--cpb-border);
+  --color-text-primary: var(--cpb-text);
+  --color-text-selection-bg: var(--cpb-accent);
+  --color-text-selection: var(--cpb-text);
+  --input-background-color: var(--cpb-bg);
+  --hr-gradient: linear-gradient(90deg, transparent 0%, var(--cpb-accent) 50%, transparent 100%);
+  --color-data-background: var(--cpb-bg);
+  --input-text-color: var(--cpb-accent);
+  --input-placeholder-color: var(--cpb-muted);
+}
+
+/* ============================================================
+   GENERAL ELEMENTS
+   ============================================================ */
 
 body {
   font-family: 'Share Tech', monospace;
-  scrollbar-color: #6E00FF !important;
-}
-
-:root, body, .window-app, .application{
-  scrollbar-color: #6E00FF;
-  --cpb-bg: linear-gradient(180deg, rgba(0, 0, 0, 0.94), rgba(2, 2, 2, 0.87));
-  --cpb-sidebar-bg: linear-gradient(180deg, rgba(0,0,0,0.8),rgba(2,2,2,0.7));
-  --cpb-table-alt-bg: rgba(110, 0, 255, 0.2);
-  --cpb-panel: rgba(12, 20, 30, 0.2);
-  --cpb-panel-border: rgba(0, 0, 0, 0.22);
-  --cpb-accent: #27B0FF;
-  --cpb-accent-strong: rgb(255, 251, 0);
-  --cpb-text: #ffffff;
-  --cpb-muted: #6E00FF;
-  --cpb-shadow: 0 0 7px rgba(110, 0, 255, 0.4);
-  --terminal-text: #27B0FF;
-  --cpb-warning: #FFA901;
-  --cpb-error: #cc0000;
-  --cpb-border: #27B0FF;
-  --cpb-font: 'Share Tech', monospace;
-  --cpb-glow: 0 0 2px rgba(255, 252, 50, 0.9), 0 0 4px rgba(255, 252, 150,0.8), 0 0 8px rgba(255, 255, 200,0.6);
-  --cpb-text-shadow: 0 0 1px rgba(110, 0, 255, 0.4);
-  --cpb-font-size: 22px;
-  --glitch-red: #ff4757;
-  --glitch-cyan: #00d9ff;
-  --font-h1: 'Rubik Glitch', system-ui !important;
-  --font-h2: 'Share Tech Mono', monospace !important;
-  --font-h3: 'Share Tech Mono', monospace !important;
-  --font-h4: 'Share Tech Mono', monospace !important;
-  --font-h5: 'Share Tech Mono', monospace !important;
-  --color-border:var(--cpb-border);
-  --color-tabs-border:var(--cpb-border);
-  --color-text-primary:var(--cpb-text);
-  --color-text-selection-bg: var(--cpb-accent);
-  --color-text-selection: var(--cpb-text);
-  --input-background-color:var(--cpb-bg);
-  --hr-gradient: linear-gradient(90deg, transparent 0%, #27B0FF 50%, transparent 100%);
-  --sidebar-background:var(--cpb-sidebar-bg)
-  --color-text-emphatic: #00c500;
-  --color-data-background:var(--cpb-bg);
-  --input-text-color:var(--cpb-accent);
-  --input-placeholder-color:var(--cpb-muted);
-  --color-scrollbar: #6E00FF !important;
-  scrollbar-color: #6E00FF !important;
 }
 
 *, div, section {
-  scrollbar-color: #6E00FF !important;
+  scrollbar-color: var(--scrollbar-color) !important;
 }
 
-h1,h2,h3,h4,h5,h6 {
+h1, h2, h3, h4, h5, h6 {
   color: var(--cpb-accent-strong);
   font-weight: 300;
 }
 
 .journal-entry-pages h1 {
-  font-family: 'Rubik Iso', 'Rubik Glitch' monospace;
-}
-.journal-entry-pages h2, .journal-entry-pages h3 {
-  font-family: 'Rubik Glitch', monospace;
-}
-.journal-entry-pages h4, .journal-entry-pages h5, .journal-entry-pages h6 {
-  font-family: 'Pixelify Sans', monospace;
+  font-family: var(--cpb-font-display);
 }
 
-.sheet.journal-entry.application .journal-sidebar .toc li.category strong
-{
+.journal-entry-pages h2,
+.journal-entry-pages h3,
+.journal-entry-pages h4,
+.journal-entry-pages h5,
+.journal-entry-pages h6 {
+  font-family: var(--cpb-font-mono);
+}
+
+.sheet.journal-entry.application .journal-sidebar .toc li.category strong {
   font-weight: 300;
 }
 
-.application {
-  color: var(--cpb-text);
-  background: var(--cpb-bg);
-}
-
-.dice-roll .dice-formula, .dice-roll .dice-total {
+.dice-roll .dice-formula,
+.dice-roll .dice-total {
   color: var(--cpb-accent-strong);
-  border: none;
+  border: 0 solid transparent;
   border-radius: 0;
+  box-shadow: none;
 }
 
-.window-app {
-  font-family: 'Share Tech', monospace;
-  scrollbar-color: #6E00FF !important;
-}
-
-.application .window-header {
+section.tab.sidebar-tab,
+section.chat-sidebar:not(.sidebar-popout),
+#chat.chat-sidebar,
+.sidebar-tab,
+#chat {
+  background-color: transparent;
   background: var(--cpb-bg);
 }
 
-.cyberpunk-blue {
+.chat-message {
   color: var(--cpb-text);
-  scrollbar-color: #6E00FF;
-  scrollbar-color: #6E00FF !important;
+  background: var(--cpb-bg);
+  border-top: 1px solid var(--cpb-border);
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
-section.tab.sidebar-tab, section.chat-sidebar:not(.sidebar-popout), #chat.chat-sidebar, .sidebar-tab, #chat {
-  background-color: transparent;
-  background: var(--cpb-sidebar-bg);
+.chat-message .message-header .message-metadata {
+  color: var(--cpb-muted);
+  font-size: var(--cpb-fs-sm);
 }
 
-.sidebar-tab h2.divider, .sidebar-tab h3.divider, .sidebar-tab h4.divider, .sidebar-tab h5.divider, .sidebar-tab h6.divider {
+.chat-message .message-content .dice-roll {
+  color: var(--cpb-text);
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  border-left: 4px solid var(--cpb-accent-strong);
+}
+
+.sidebar-tab h2.divider,
+.sidebar-tab h3.divider,
+.sidebar-tab h4.divider,
+.sidebar-tab h5.divider,
+.sidebar-tab h6.divider {
   white-space: unset;
 }
 
@@ -111,85 +116,48 @@ section.tab.sidebar-tab, section.chat-sidebar:not(.sidebar-popout), #chat.chat-s
   border-top: 1px solid var(--cpb-muted);
 }
 
-/* === COMPLETE BLACK BACKGROUND FOR CHAT - MAXIMUM AGGRESSIVENESS === */
-/* Force ALL chat to black - nuclear method */
-#chat,
-#chat *,
-#chat-log,
-#chat-log *,
-#chat-log ol,
-#chat-log ol *,
-#chat-log li,
-#chat-log li * {
-  font-size: 1rem;
+.window-app {
+  font-family: var(--cpb-font-body);
+  scrollbar-color: var(--scrollbar-color) !important;
 }
 
-#chat .chat-message .message-header, .chat-message .message-header {
-  color: var(--cpb-accent);
-}
-
-#chat .chat-message, .chat-message {
-  color: var(--cpb-text);
-  border-radius: 0;
+.application .window-header {
   background: var(--cpb-bg);
-  border:var(--cpb-border);
-  --color-whisper-background: var(--cpb-panel);
-  --color-whisper-border: none;
-  --chat-blind-background: none;
-  --chat-blind-border:var(--cpb-panel-border);
-  --chat-emote-background: linear-gradient(180deg,rgba(110, 0, 255, 0.5) 0%, rgba(0,0,0,0.9) 5%, rgba(0,0,0,0.9) 95%,rgba(110, 0, 255, 0.5) 100%);
-  --chat-emote-border:none;
-  --chat-message-background: var(--cpb-panel);
-  --chat-message-border:var(--cpb-panel-border);
-}
-
-#chat .chat-message.whisper, .chat-message.whisper {
-  color: var(--cpb-text);
-  background:var(--cpb-panel);
-  border: none;
-}
-
-#chat .chat-message ,.message-header p {
-  color: var(--cpb-text);
-}
-
-#chat-log {
-  /* color: var(--terminal-text) !important; */
-  font-family: var(--cpb-font) !important;
-  color: var(--cpb-text);
-  font-size: 1.2rem;
 }
 
 .application .window-header .window-title {
-  font-size:1.1rem;
+  font-size: 1.1rem;
   font-weight: 900;
-  color:var(--cpb-accent);
+  color: var(--cpb-accent);
+  font-family: var(--cpb-font-mono);
 }
 
-button, .cyberpunk-blue .button, a.button {
-  --button-background-color:black;
-  --button-border-color: var(--cpb-border);
-  --button-text-color: var(--cpb-accent);
-  --button-focus-outline-color: var(--cpb-glow);
-  --button-hover-background-color: var(--cpb-accent);
-  --button-hover-text-color: black;
-  --button-hover-border-color: none;
+.application {
+  color: var(--cpb-text);
+  background: var(--cpb-bg);
+}
+
+.cyberpunk-blue {
+  color: var(--cpb-text);
+  scrollbar-color: var(--scrollbar-color) !important;
 }
 
 .cyberpunk-blue input,
 .cyberpunk-blue button,
 .cyberpunk-blue textarea,
 .cyberpunk-blue select {
-  font-family: inherit;
+  font-family: var(--cpb-font-mono);
 }
 
 .cyberpunk-blue input[type=text],
 .cyberpunk-blue input[type=number] {
-  border: 1px solid var(--cpb-accent);
+  border: 1px solid rgba(141, 227, 255, 0.2);
+  border-radius: var(--cpb-radius-input);
+  background: var(--cpb-panel-deeper);
   color: var(--cpb-text);
-  font-size: 1.2rem;
+  font-size: var(--cpb-fs-body);
   text-align: center;
-  min-width: 30px;
+  min-width: 34px;
   min-height: 34px;
   padding: 0.35rem 0.55rem;
 }
@@ -198,24 +166,37 @@ button, .cyberpunk-blue .button, a.button {
   text-align: left;
 }
 
-.cyberpunk-blue button, .cyberpunk-blue .button {
+.cyberpunk-blue button,
+.cyberpunk-blue .button {
+  border: 1px solid rgba(0, 240, 255, 0.32);
+  border-radius: var(--cpb-radius-input);
+  background: rgba(8, 16, 26, 0.88);
   color: var(--cpb-text);
+  font: inherit;
   cursor: pointer;
   padding: 0.35rem 0.75rem;
-  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  transition: background var(--cpb-dur) var(--cpb-ease),
+              border-color var(--cpb-dur) var(--cpb-ease),
+              transform var(--cpb-dur) var(--cpb-ease);
 }
 
-.cyberpunk-blue button:hover, .cyberpunk-blue button:focus, .cyberpunk-blue .button:hover, .cyberpunk-blue .button:focus {
-  background: var(--cpb-accent);
-  border-color: var(--cpb-accent-strong);
-  color: black;
+.cyberpunk-blue button:hover,
+.cyberpunk-blue button:focus,
+.cyberpunk-blue .button:hover,
+.cyberpunk-blue .button:focus {
+  background: rgba(25, 51, 72, 0.96);
+  border-color: var(--cpb-accent);
+  transform: translateY(-1px);
+  outline: none;
 }
+
+/* ============================================================
+   .SHEET
+   ============================================================ */
 
 .cyberpunk-blue .window-content,
 .cyberpunk-blue.sheet.actor,
 .cyberpunk-blue.sheet.item {
-  /* background: var(--cpb-bg);
-  border: 1px solid var(--cpb-border); */
   border-radius: 0;
 }
 
@@ -270,7 +251,6 @@ button, .cyberpunk-blue .button, a.button {
 }
 
 .cyberpunk-blue .charname input {
-  font-family: 'Share Tech Mono', monospace;
   font-size: 2rem;
   font-weight: 400;
   letter-spacing: 0.04em;
@@ -283,16 +263,14 @@ button, .cyberpunk-blue .button, a.button {
 .cyberpunk-blue .sheet-subtitle,
 .cyberpunk-blue .hint {
   color: var(--cpb-muted);
-  font-size: 0.9rem;
+  font-size: var(--cpb-fs-sm);
 }
 
 .cyberpunk-blue .sheet-tabs {
   display: flex;
-  gap: 0;
+  gap: 0.35rem;
   margin-top: 1rem;
-  border-top: none;
-  border-bottom: 2px solid var(--cpb-border);
-  padding-bottom: 0;
+  border: none;
   align-items: flex-start;
 }
 
@@ -301,15 +279,21 @@ button, .cyberpunk-blue .button, a.button {
   padding: 0.5rem 0.9rem;
   text-decoration: none;
   overflow: hidden;
+  text-transform: uppercase;
+  border: 2px solid transparent;
+  transition: all 1s var(--cpb-ease);
+}
+
+.cyberpunk-blue .sheet-tabs .item:not(.active):hover {
+  border-bottom: 2px solid var(--cpb-accent);
 }
 
 .cyberpunk-blue .sheet-tabs .item.active {
-  color: var(--cpb-accent-strong);
-  text-shadow: var(--cpb-glow);
+  color: var(--cpb-accent-warm);
 }
 
-.cyberpunk-blue nav.tabs [data-tab].active {
-  text-shadow: var(--cpb-glow);
+.cyberpunk-blue .sheet-tabs .item.active::before {
+  filter: var(--cpb-icon-tint-warm);
 }
 
 .cyberpunk-blue .sheet-body {
@@ -325,21 +309,57 @@ button, .cyberpunk-blue .button, a.button {
   display: block;
 }
 
-.cyberpunk-blue .sheet-panel {
-  padding: 1rem;
+.cyberpunk-blue .sheet-tabs .item::before {
+  background-size: 1.4rem 1.4rem;
+  display: inline-block;
+  width: 1.4rem;
+  height: 1.4rem;
+  content: "";
+  margin-right: var(--cpb-space-2);
+  filter: invert();
+  vertical-align: -0.35rem;
+  filter: var(--cpb-icon-tint-lime);
+}
+
+.cyberpunk-blue .sheet-tabs .item[data-tab="overview"]::before {
+  background: url("../assets/icons/bk_Overview.svg");
+}
+
+.cyberpunk-blue .sheet-tabs .item[data-tab="skills"]::before {
+  background: url("../assets/icons/bk_Skills.svg");
+}
+
+.cyberpunk-blue .sheet-tabs .item[data-tab="cyberware"]::before {
+  background: url("../assets/icons/bk_Cyberware.svg");
+}
+
+.cyberpunk-blue .sheet-tabs .item[data-tab="inventory"]::before {
+  background: url("../assets/icons/bk_Inventory.svg");
+}
+
+.cyberpunk-blue .sheet-tabs .item[data-tab="netrunning"]::before {
+  background: url("../assets/icons/bk_Netrunning.svg");
+}
+
+.cyberpunk-blue .sheet-tabs .item[data-tab="notes"]::before {
+  background: url("../assets/icons/bk_Notes.svg");
 }
 
 .cyberpunk-blue .sheet-panel {
   margin-top: 0.9rem;
+  padding: 1rem;
 }
 
 .cyberpunk-blue .sheet-panel h2 {
-  color: var(--cpb-accent);
+  color: var(--cpb-muted);
   font-size: 1.2rem;
   text-align: center;
   text-transform: uppercase;
 }
 
+/* ============================================================
+   SHEET COMPONENTS: STATS, RESOURCES, GRIDS
+   ============================================================ */
 .cyberpunk-blue .stats-grid,
 .cyberpunk-blue .resources-grid {
   display: grid;
@@ -384,6 +404,18 @@ button, .cyberpunk-blue .button, a.button {
   grid-template-columns: 1fr auto 1fr;
 }
 
+.cyberpunk-blue .numeric-column,
+.cyberpunk-blue .embedded-rank,
+.cyberpunk-blue .skill-stat,
+.cyberpunk-blue .resource-fields input,
+.cyberpunk-blue .health-meta {
+  text-align: center;
+}
+
+/* ============================================================
+   SHEET COMPONENTS: HEALTH SYSTEM
+   ============================================================ */
+
 .cyberpunk-blue .health-group {
   align-self: start;
 }
@@ -419,6 +451,58 @@ button, .cyberpunk-blue .button, a.button {
 .cyberpunk-blue .health-effect.is-tagged {
   color: var(--cpb-accent-strong);
 }
+
+.cyberpunk-blue .health-panel {
+  margin-top: 1rem;
+  background: var(--cpb-accent-wash);
+  clip-path: var(--cpb-border-shape);
+}
+
+.cyberpunk-blue .health-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.cyberpunk-blue .health-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  justify-content: center;
+  min-height: 100%;
+  text-align: center;
+}
+
+.cyberpunk-blue .health-hp {
+  min-width: 220px;
+}
+
+.cyberpunk-blue .health-effects {
+  grid-column: span 2;
+  text-align: left;
+}
+
+.cyberpunk-blue .health-block h3 {
+  color: var(--cpb-accent);
+  font-size: 1rem;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.cyberpunk-blue .health-value {
+  color: var(--cpb-text);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.cyberpunk-blue .health-caption {
+  color: var(--cpb-muted);
+  font-size: 0.9rem;
+}
+
+/* ============================================================
+   SHEET COMPONENTS: SKILLS & ABILITIES
+   ============================================================ */
 
 .cyberpunk-blue .skills-layout {
   display: block;
@@ -507,7 +591,6 @@ button, .cyberpunk-blue .button, a.button {
   text-align: center;
 }
 
-
 .cyberpunk-blue .skill-row {
   grid-template-columns: 88px minmax(120px, 1.2fr) 70px 72px minmax(220px, 2fr) 70px;
 }
@@ -524,12 +607,10 @@ button, .cyberpunk-blue .button, a.button {
   grid-template-columns: minmax(180px, 1.2fr) 80px minmax(140px, 1fr) minmax(220px, 1.4fr) minmax(160px, 0.8fr);
 }
 
-.cyberpunk-blue .component-pill-list,
-.cyberpunk-blue .panel-header,
-.cyberpunk-blue .item-meta-row {
+.cyberpunk-blue .ability-single-sheet {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .cyberpunk-blue .item-meta-row label {
@@ -594,9 +675,24 @@ button, .cyberpunk-blue .button, a.button {
 }
 
 .cyberpunk-blue .roll-button {
-  background: var(--cpb-panel);
-  border-color: var(--cpb-muted);
-  color: var(--cpb-accent-strong);
+  border: 1px solid var(--cpb-accent-warm-border);
+  border-radius: var(--cpb-radius-input);
+  background: var(--cpb-accent-warm-wash-soft);
+  color: var(--cpb-accent-warm);
+  font: inherit;
+  cursor: pointer;
+  padding: 0.35rem 0.75rem;
+  transition: background var(--cpb-dur) var(--cpb-ease),
+              border-color var(--cpb-dur) var(--cpb-ease),
+              transform var(--cpb-dur) var(--cpb-ease);
+}
+
+.cyberpunk-blue .roll-button:hover,
+.cyberpunk-blue .roll-button:focus {
+  background: var(--cpb-accent-warm-wash);
+  border-color: var(--cpb-accent-warm-border);
+  transform: translateY(-1px);
+  outline: none;
 }
 
 .cyberpunk-blue .component-panel {
@@ -644,6 +740,118 @@ button, .cyberpunk-blue .button, a.button {
 
 .cyberpunk-blue .armor-card {
   max-width: 260px;
+}
+
+.cyberpunk-blue .ability-header {
+  align-items: end;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) minmax(240px, 3fr);
+}
+
+.cyberpunk-blue .ability-header.single-rank {
+  grid-template-columns: minmax(160px, 1fr) minmax(240px, 3fr);
+}
+
+.cyberpunk-blue .ability-note-field {
+  min-width: 0;
+}
+
+/* ============================================================
+   SHEET COMPONENTS: EMBEDDED ITEMS & PANELS
+   ============================================================ */
+
+.cyberpunk-blue .component-pill-list,
+.cyberpunk-blue .panel-header,
+.cyberpunk-blue .item-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.cyberpunk-blue .item-meta-row label {
+  display: flex;
+  flex-flow: column;
+}
+
+.cyberpunk-blue .manufacturer-field {
+  min-width: min(100%, 18rem);
+}
+
+.cyberpunk-blue .manufacturer-input-row {
+  align-items: center;
+  display: flex;
+  gap: 0.45rem;
+}
+
+.cyberpunk-blue .manufacturer-logo {
+  height: 35px;
+  object-fit: contain;
+  width: unset;
+}
+
+.cyberpunk-blue .embedded-entry {
+  break-inside: avoid;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cyberpunk-blue .embedded-description {
+  background: var(--cpb-panel);
+  color: white;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.7rem 0.7rem;
+}
+
+.cyberpunk-blue .embedded-entry.is-disabled {
+  opacity: 0.5;
+}
+
+.cyberpunk-blue .embedded-controls {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.cyberpunk-blue .embedded-controls button[title="Edit"] {
+  display: none;
+}
+
+.cyberpunk-blue .panel-header {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cyberpunk-blue .component-pill {
+  background-color: var(--cpb-panel);
+  color: var(--cpb-accent-strong);
+  border: 1px solid var(--cpb-border);
+  font-size: 0.82rem;
+  padding-inline: 0.6rem;
+}
+
+.cyberpunk-blue .component-panel {
+  margin-top: 1rem;
+}
+
+.cyberpunk-blue .component-add {
+  display: flex;
+  break-inside: avoid;
+  flex-wrap: nowrap;
+}
+
+.cyberpunk-blue .component-add select {
+  border: 1px solid var(--cpb-accent);
+  background: var(--cpb-panel);
+  color: var(--cpb-text);
+  min-height: 34px;
+  padding: 0.35rem 0.7rem;
+}
+
+.cyberpunk-blue .component-links,
+.cyberpunk-blue .embedded-summary {
+  color: white;
+  font-size: 0.85rem;
 }
 
 .cyberpunk-blue .embedded-name {
@@ -733,127 +941,16 @@ button, .cyberpunk-blue .button, a.button {
   pointer-events: none;
 }
 
-.cyberpunk-blue .notes-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.cyberpunk-blue .note-panel .editor {
-  min-height: 220px;
-}
-
-.cyberpunk-blue .tox .tox-editor-container,
-.cyberpunk-blue prose-mirror {
-  background: var(--cpb-bg);
-  color: var(--cpb-text);
-}
-
-.cyberpunk-blue prose-mirror,
-.cyberpunk-blue .editor {
-  display: block;
-  min-height: 12rem;
-  overflow: auto;
-  resize: vertical;
-  width: 100%;
-}
-
-.cyberpunk-blue .sheet-panel > prose-mirror:last-child,
-.cyberpunk-blue .sheet-panel > .editor:last-child {
-  flex: 1 1 auto;
-}
-
-.prosemirror .editor-content, prose-mirror .editor-content, .prosemirror menu, prose-mirror menu {
-  position: unset;
-}
-
-.cyberpunk-blue .effects-list .items-header,
-.cyberpunk-blue .effects-list .item {
-  background: rgba(5, 10, 16, 0.5);
-  border: 1px solid var(--cpb-border);
-  margin-bottom: 0.35rem;
-  padding: 0.5rem;
-}
-
-.cyberpunk-blue .quick-stats-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-content: space-between;
-}
-.cyberpunk-blue .traits-grid {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: 1rem;
-  align-items: start;
-}
-
-.cyberpunk-blue .quick-stats-row {
-  align-items: stretch;
-}
-
-.cyberpunk-blue .traits-grid {
-  margin-top: 1rem;
-}
-
-.cyberpunk-blue .skill-columns {
-  grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
-}
-
-.cyberpunk-blue .overview-resources {
-  margin-top: 1rem;
-}
-
-.cyberpunk-blue .health-panel {
-  margin-top: 1rem;
-}
-
-.cyberpunk-blue .health-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
-
-.cyberpunk-blue .health-block {
-  display: flex;
-  flex-direction: column;
+.cyberpunk-blue .embedded-list,
+.cyberpunk-blue .embedded-entries {
   gap: 0.5rem;
-  justify-content: center;
-  min-height: 100%;
-  text-align: center;
 }
 
-.cyberpunk-blue .health-hp {
-  min-width: 220px;
-}
-
-.cyberpunk-blue .health-effects {
-  grid-column: span 2;
-  text-align: left;
-}
-
-.cyberpunk-blue .health-block h3 {
-  color: var(--cpb-accent);
-  font-size: 1rem;
-  margin: 0;
-  text-transform: uppercase;
-}
-
-.cyberpunk-blue .health-value {
-  color: var(--cpb-text);
-  font-size: 1.4rem;
-  font-weight: 700;
-}
-
-.cyberpunk-blue .health-caption {
-  color: var(--cpb-muted);
-  font-size: 0.9rem;
-}
-
-.cyberpunk-blue table.embedded-table {
+.cyberpunk-blue .table.embedded-table {
   border-collapse: separate;
   border-spacing: 0 2px;
   display: table;
-  table-layout:auto;
+  table-layout: auto;
   width: 100%;
 }
 
@@ -899,21 +996,6 @@ button, .cyberpunk-blue .button, a.button {
 
 .cyberpunk-blue .panel-header.panel-actions {
   justify-content: flex-end;
-}
-
-.cyberpunk-blue .ability-header {
-  align-items: end;
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) minmax(240px, 3fr);
-}
-
-.cyberpunk-blue .ability-header.single-rank {
-  grid-template-columns: minmax(160px, 1fr) minmax(240px, 3fr);
-}
-
-.cyberpunk-blue .ability-note-field {
-  min-width: 0;
 }
 
 .cyberpunk-blue .cyberware-header {
@@ -1091,8 +1173,25 @@ button, .cyberpunk-blue .button, a.button {
   background: var(--cpb-table-alt-bg);
 }
 
+.cyberpunk-blue .notes-grid {
+  display: grid;
+  gap: var(--cpb-space-3);
+  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+}
+
 .cyberpunk-blue .notes-grid > .sheet-panel {
   margin-top: 0.9rem;
+}
+
+.cyberpunk-blue .notes-grid .prosemirror {
+  min-height: 400px;
+  resize: vertical;
+}
+
+.cyberpunk-blue .traits-grid {
+  gap: var(--cpb-space-2);
+  display: grid;
+  grid-template-columns: min-content minmax(auto, 2fr);
 }
 
 .cyberpunk-blue .traits-grid .sheet-panel > .embedded-table {
@@ -1127,6 +1226,13 @@ button, .cyberpunk-blue .button, a.button {
 .cyberpunk-blue .inventory-row .embedded-summary {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.cyberpunk-blue .quick-stats-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .cyberpunk-blue .quick-stats-row .stat-card {
@@ -1445,7 +1551,6 @@ button, .cyberpunk-blue .button, a.button {
   text-transform: uppercase;
 }
 
-.cyberpunk-blue .role-overview-panel,
 .cyberpunk-blue .role-config-block,
 .cyberpunk-blue .role-grant-groups,
 .cyberpunk-blue .role-reference-list,
@@ -1457,14 +1562,26 @@ button, .cyberpunk-blue .button, a.button {
   gap: 0.6rem;
 }
 
-.cyberpunk-blue .role-overview-feature {
-  border-top: 1px solid var(--cpb-panel-border);
-  padding-top: 0.8rem;
+.cyberpunk-blue .role-overview-panel {
+  columns: 3 400px;
+  gap: 1rem;
 }
 
-.cyberpunk-blue .role-overview-feature:first-child {
-  border-top: 0;
-  padding-top: 0;
+.cyberpunk-blue .role-overview-feature {
+  break-inside: avoid;
+  margin-bottom: var(--cpb-space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cpb-space-2);
+  background: var(--cpb-accent-wash-soft);
+  padding: var(--cpb-space-3);
+  clip-path: var(--cpb-border-shape);
+}
+
+.cyberpunk-blue .role-overview-feature .role-mechanic-row {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(120px, 1fr) minmax(160px, 1.2fr) minmax(80px, 0.8fr);
 }
 
 .cyberpunk-blue .role-focus-summary {
@@ -1483,7 +1600,6 @@ button, .cyberpunk-blue .button, a.button {
 .cyberpunk-blue .role-grant-group,
 .cyberpunk-blue .role-config-block,
 .cyberpunk-blue .role-overview-feature {
-  border: 1px solid var(--cpb-panel-border);
   padding: 0.8rem;
 }
 
@@ -1556,14 +1672,6 @@ button, .cyberpunk-blue .button, a.button {
   width: 4rem;
 }
 
-.cyberpunk-blue .role-overview-html > :first-child {
-  margin-top: 0;
-}
-
-.cyberpunk-blue .role-overview-html > :last-child {
-  margin-bottom: 0;
-}
-
 @media (max-width: 900px) {
   .cyberpunk-blue .notes-grid,
   .cyberpunk-blue .overview-grid,
@@ -1596,7 +1704,7 @@ button, .cyberpunk-blue .button, a.button {
     grid-template-columns: 1fr;
   }
 
-  .cyberpunk-blue .traits-grid {
+  div.tab.active > section.traits-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1626,7 +1734,7 @@ button, .cyberpunk-blue .button, a.button {
 
 /* Future Possibilities folding section */
 .cyberpunk-blue .future-possibilities {
-  border: 1px solid var(--color-border-dark-tertiary);
+  border: 1px solid var(--cpb-border);
   border-radius: 4px;
   padding: 0.5rem;
 }
@@ -1646,7 +1754,7 @@ button, .cyberpunk-blue .button, a.button {
 .cyberpunk-blue .future-possibilities .future-section {
   margin-top: 0.5rem;
   padding-top: 0.5rem;
-  border-top: 1px solid var(--color-border-dark-tertiary);
+  border-top: 1px solid var(--cpb-border);
 }
 
 .cyberpunk-blue .future-possibilities .future-section h4 {
@@ -2019,16 +2127,16 @@ button, .cyberpunk-blue .button, a.button {
 .cyberpunk-blue .netrunner-components-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 4px 0;
+  justify-content: center;
+  gap: var(--cpb-space-3);
 }
 
 .cyberpunk-blue .netrunner-component-box {
-  border: 1px solid var(--color-border-light-tertiary, #999);
+  border: 1px solid var(--cpb-accent-strong-border);
   border-radius: 4px;
-  padding: 6px 8px;
-  min-width: 120px;
-  background: var(--color-bg-option, rgba(0,0,0,0.05));
+  padding: var(--cpb-space-3) var(--cpb-space-4);
+  min-width: 10rem;
+  background: var(--cpb-accent-strong-wash);
 }
 
 .cyberpunk-blue .netrunner-comp-header {
@@ -2040,35 +2148,37 @@ button, .cyberpunk-blue .button, a.button {
 }
 
 .cyberpunk-blue .netrunner-comp-name {
-  font-weight: bold;
-  font-size: var(--font-size-13);
+  text-transform: uppercase;
+  font-size: var(--cpb-fs-h3);
+  color: var(--cpb-accent-strong);
 }
 
 .cyberpunk-blue .netrunner-comp-mod {
-  font-size: var(--font-size-12);
-  color: var(--color-text-light-secondary, #555);
+  font-size: var(--cpb-fs-body);
+  color: var(--cpb-text);
   white-space: nowrap;
 }
 
 .cyberpunk-blue .netrunner-comp-uses {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: var(--cpb-space-1);
 }
 
 .cyberpunk-blue .netrunner-use-btn {
   width: 100%;
-  text-align: left;
-  padding: 2px 6px;
-  font-size: var(--font-size-12);
+  text-align: center;
+  padding: var(--cpb-space-1) var(--cpb-space-2);
+  font-size: var(--cpb-fs-body);
   cursor: pointer;
-  border: 1px solid var(--color-border-light-tertiary, #bbb);
+  border: 1px solid var(--cpb-accent-strong-border);
   border-radius: 3px;
-  background: var(--color-bg-btn, rgba(255,255,255,0.15));
+  background: var(--cpb-accent-strong-wash);
 }
 
 .cyberpunk-blue .netrunner-use-btn:hover {
-  background: var(--color-bg-btn-hover, rgba(0,0,0,0.1));
+  background: var(--cpb-accent-strong);
+  color: var(--cpb-text);
 }
 
 /* Computers list */
@@ -2120,7 +2230,7 @@ button, .cyberpunk-blue .button, a.button {
 .cyberpunk-blue .netrunner-exe-table th {
   text-align: center;
   padding: 2px 4px;
-  border-bottom: 1px solid var(--color-border-light-tertiary, #aaa);
+  border-bottom: 1px solid var(--cpb-border, #aaa);
   font-size: var(--font-size-11);
   font-weight: bold;
   white-space: nowrap;
@@ -2130,7 +2240,7 @@ button, .cyberpunk-blue .button, a.button {
   padding: 2px 4px;
   text-align: center;
   vertical-align: middle;
-  border-bottom: 1px solid var(--color-border-light-tertiary, #ddd);
+  border-bottom: 1px solid var(--cpb-border, #ddd);
 }
 
 .cyberpunk-blue .netrunner-exe-table .exe-name-col {
@@ -2160,7 +2270,7 @@ button, .cyberpunk-blue .button, a.button {
   padding: 1px 6px;
   font-size: var(--font-size-11);
   cursor: pointer;
-  border: 1px solid var(--color-border-light-tertiary, #bbb);
+  border: 1px solid var(--cpb-border, #bbb);
   border-radius: 3px;
   white-space: nowrap;
 }
@@ -2322,7 +2432,7 @@ button, .cyberpunk-blue .button, a.button {
   align-items: flex-start;
   gap: 0.5rem;
   padding: 0.4rem 0.5rem;
-  border: 1px solid var(--color-border-light-tertiary, #ccc);
+  border: 1px solid var(--cpb-border, #ccc);
   border-radius: 4px;
   background: var(--color-bg-option, #f5f5f5);
 }
@@ -2570,18 +2680,21 @@ button, .cyberpunk-blue .button, a.button {
 }
 
 .cyberpunk-blue .ma-specials-grid {
-  columns: 4 450px;
-  column-gap: 0.5rem;
-  margin-top: 0.5rem;
+  columns: 6 200px;
+  column-gap: var(--cpb-space-4);
+  margin: var(--cpb-space-2) auto;
 }
 
 .cyberpunk-blue .ma-special-entry {
   break-inside: avoid;
-  background: var(--cpb-panel);
-  border: 1px solid var(--color-border-light-tertiary);
+  background: var(--cpb-accent-wash);
+  border: 1px solid var(--cpb-border);
   border-radius: 3px;
   padding: 0.35rem 0.45rem;
-  margin-bottom: 0.35rem;
+  margin-bottom: var(--cpb-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cpb-space-2);
 }
 
 .cyberpunk-blue .ma-special-header {
@@ -2589,29 +2702,7 @@ button, .cyberpunk-blue .button, a.button {
 }
 
 .cyberpunk-blue .ma-special-btn {
-  background: transparent;
-  border: 1px solid var(--color-border-light-secondary);
-  border-radius: 3px;
-  padding: 2px 8px;
-  cursor: pointer;
-  font-size: var(--font-size-12);
-  font-weight: bold;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
   width: 100%;
-  text-align: left;
-}
-
-.cyberpunk-blue .ma-special-btn:hover {
-  background: var(--cpb-highlight);
-  border-color: var(--cpb-accent);
-}
-
-.cyberpunk-blue .ma-special-desc {
-  font-size: var(--font-size-11);
-  color: var(--color-text-dark-secondary);
-  line-height: 1.3;
 }
 
 /* ─── Combat state panel (in the combat tracker sidebar) ──────────────────── */
@@ -2692,13 +2783,13 @@ button, .cyberpunk-blue .button, a.button {
 /* Sprint button */
 .cyber-blue-sprint-btn {
   margin-left: auto;
-  padding: 1px 7px;
-  background: rgba(39, 176, 255, 0.15);
-  border: 1px solid rgba(39, 176, 255, 0.5);
-  border-radius: 3px;
-  color: var(--cpb-accent);
-  font-family: 'Share Tech', monospace;
-  font-size: var(--font-size-10);
+  padding: 0.35rem 0.75rem;
+  background: rgba(8, 16, 26, 0.88);
+  border: 1px solid var(--cpb-border);
+  border-radius: var(--cpb-radius-input);
+  color: var(--cpb-text);
+  font-family: var(--cpb-font-mono);
+  font-size: var(--cpb-fs-xs);
   cursor: pointer;
   white-space: nowrap;
 }
