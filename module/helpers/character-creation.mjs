@@ -452,13 +452,8 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
   async _onChooseAbility(event) {
     const abilityId = event.currentTarget.dataset.abilityId;
 
-    // Support both world items and compendium items (UUID)
-    let source;
-    if (abilityId.startsWith('Compendium.')) {
-      source = await fromUuid(abilityId);
-    } else {
-      source = game.items.get(abilityId);
-    }
+    // Support both world items (Item.ID) and compendium items (Compendium.…) — fromUuid handles both
+    const source = await fromUuid(abilityId).catch(() => null) ?? game.items.get(abilityId);
     if (!source) return;
 
     const existing = this.actor.items.find(i => i.type === 'ability' && i.name === source.name);
@@ -480,13 +475,8 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
   async _onChooseRole(event) {
     const roleId = event.currentTarget.dataset.roleId;
 
-    // Support both world items and compendium items (UUID)
-    let source;
-    if (roleId.startsWith('Compendium.')) {
-      source = await fromUuid(roleId);
-    } else {
-      source = game.items.get(roleId);
-    }
+    // Support both world items (Item.ID) and compendium items (Compendium.…) — fromUuid handles both
+    const source = await fromUuid(roleId).catch(() => null) ?? game.items.get(roleId);
     if (!source) return;
 
     const sysData = source.system.toObject?.() ?? { ...source.system };
