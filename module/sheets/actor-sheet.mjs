@@ -810,10 +810,14 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     });
     const networkerRoleSystem = networkerRole ? normalizeRoleSystemData(networkerRole.system) : null;
     const networkerRank = Number(networkerRoleSystem?.rank) || 0;
-    context.showNetrunningTab = Boolean(networkerRole);
+    // Operatives who've unlocked the "Infiltrate Network" specialty (rank ≥ 5)
+    // also get net actions and should see the Netrunning tab even without the
+    // Netrunner role. We detect this via a nonzero netActionsTotal.
+    context.showNetrunningTab = Boolean(networkerRole)
+      || (this.document.system.netActionsTotal ?? 0) > 0;
 
     // ── Netrunner tab context ──────────────────────────────────────────────
-    if (networkerRole) {
+    if (context.showNetrunningTab) {
       // Component uses (excluding Software)
       const NETRUNNER_COMPONENT_USES = {
         codebreak:   [{ slug: 'breach', label: 'Breach' }, { slug: 'encryptDecrypt', label: 'Encrypt/Decrypt' }],
@@ -2872,7 +2876,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       if (programActorId) {
         const programActor = game.actors.get(programActorId);
         if (programActor) {
-          await programActor.update({ 'system.resources.rez.value': Number(value) || 0 });
+          // Clamp to ≥ 0 — the updateActor hook takes it from here (sync + ##ERROR##)
+          await programActor.update({ 'system.resources.rez.value': Math.max(Number(value) || 0, 0) });
         }
       }
     }

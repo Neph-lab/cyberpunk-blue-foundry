@@ -27,6 +27,16 @@ export function getNetConnection(actor) {
   return actor.getFlag('cyberpunk-blue', NET_CONNECTION_FLAG) ?? null;
 }
 
+/**
+ * Return true if the given Scene is an active Architecture scene — i.e. at
+ * least one Netrunner is currently jacked into it.
+ */
+export function isNetArchitectureScene(scene) {
+  if (!scene) return false;
+  const sid = scene.id ?? scene;
+  return game.actors.some((a) => getNetConnection(a)?.archSceneId === sid);
+}
+
 /** Return true if the actor is currently connected to an architecture. */
 export function isNetConnected(actor) {
   return Boolean(getNetConnection(actor));
@@ -277,6 +287,16 @@ export async function disconnectFromArchitecture(actor, safe = true) {
   // Clear connection flag
   await actor.unsetFlag('cyberpunk-blue', NET_CONNECTION_FLAG);
 
+  // KRASH-Barrier hardware mod: converts unsafe disconnects to safe ones.
+  // Pass cyberdeckId explicitly — connection flag is already cleared above.
+  if (!safe && _hasKrashBarrier(actor, conn.cyberdeckId)) {
+    safe = true;
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-shield-halved"></i> ${game.i18n.format('CYBER_BLUE.Netrunning.KrashBarrierMsg', { name: actor.name })}</p></div>`,
+    });
+  }
+
   if (!safe) {
     // Unsafe disconnect: 1d6 direct HP damage
     const roll = await new Roll('1d6').evaluate();
@@ -394,6 +414,23 @@ export async function spawnProgramActor(actor, exeItem) {
  */
 export async function despawnProgramActor(actor, exeItem, opts = {}) {
   return _despawnProgramActor(actor, exeItem, opts);
+}
+
+/**
+ * Return true if the cyberdeck identified by `cyberdeckId` (or the primary
+ * cyberdeck when omitted) has a KRASH-Barrier hardware mod embedded in it.
+ * KRASH-Barrier converts unsafe disconnects to safe ones.
+ *
+ * @param {Actor}       actor        - The Netrunner
+ * @param {string|null} [cyberdeckId] - Specific cyberdeck item ID; falls back
+ *                                      to the primary cyberdeck.
+ */
+function _hasKrashBarrier(actor, cyberdeckId = null) {
+  const deckId = cyberdeckId ?? getNetConnection(actor)?.cyberdeckId;
+  if (!deckId) return false;
+  const deck = actor.items.get(deckId);
+  if (!deck) return false;
+  return (deck.system.embeddedMods ?? []).some((m) => m.name === 'KRASH-Barrier');
 }
 
 /**

@@ -58,6 +58,8 @@ import {
 import {
   isNetConnected,
   getNetConnection,
+  isNetArchitectureScene,
+  PROGRAM_ACTOR_FLAG,
   getPrimaryCyberdeck,
   getAccessPointsInRange,
   spawnProgramActor,
@@ -927,9 +929,30 @@ Hooks.on('updateActor', async (actor, changes) => {
   if (!actor.getFlag('cyberpunk-blue', 'isTemporaryProgramActor')) return;
   if (!foundry.utils.hasProperty(changes, 'system.resources.rez.value')) return;
 
-  const newRez = foundry.utils.getProperty(changes, 'system.resources.rez.value') ?? 0;
+  let newRez = foundry.utils.getProperty(changes, 'system.resources.rez.value') ?? 0;
+
+  // Clamp: REZ must never be negative. Correct it and re-fire; the re-fire
+  // handles sync + ##ERROR## state (newRez will be 0 on the second pass).
+  if (newRez < 0) {
+    await actor.update({ 'system.resources.rez.value': 0 });
+    return;
+  }
+
   await syncRezToExecutable(actor, newRez);
   if (newRez <= 0) await applyErrorState(actor);
+});
+
+// ─── Netrunning: unsafe disconnect when Netrunner falls unconscious ──────────
+// If a connected Netrunner's HP drops to 0 or below they are knocked out of
+// the NET — the cyberdeck port severs without a graceful handshake.
+// KRASH-Barrier (checked inside disconnectFromArchitecture) may absorb damage.
+Hooks.on('updateActor', async (actor, changes) => {
+  if (!game.user.isGM) return;
+  if (!foundry.utils.hasProperty(changes, 'system.resources.hp.value')) return;
+  const newHp = foundry.utils.getProperty(changes, 'system.resources.hp.value') ?? 1;
+  if (newHp > 0) return;
+  if (!isNetConnected(actor)) return;
+  await disconnectFromArchitecture(actor, false);
 });
 
 // ─── Tech Weapon charge: turn-start housekeeping (GM only) ───────────────────
@@ -1153,7 +1176,21 @@ Hooks.on('createActor', (actor) => {
 
 // ── preMoveToken: enforce turn restriction + budget (cancel on exceed) ────────
 
+// Stores old {x,y} of Architecture-scene tokens that are about to move, keyed
+// by tokenId. Used by the moveToken hook to chain-follow program tokens.
+const _tokenOldPositions = new Map();
+
 Hooks.on('preMoveToken', (tokenDoc, movement) => {
+  // ── Architecture scene: exempt from all budget accounting ─────────────────
+  // Tokens in Architecture/Network scenes move freely — node-to-node movement
+  // in NET space does not consume the combatant's physical movement budget.
+  const scene = tokenDoc.parent;
+  if (isNetArchitectureScene(scene)) {
+    // Record old position so the moveToken hook can chain-follow program tokens.
+    _tokenOldPositions.set(tokenDoc.id, { x: tokenDoc.x, y: tokenDoc.y });
+    return; // no budget enforcement
+  }
+
   if (!game.combat?.started) return;
 
   const activeCombatant = getActiveCombatant();
@@ -1193,9 +1230,44 @@ Hooks.on('preMoveToken', (tokenDoc, movement) => {
   }
 });
 
-// ── moveToken: record actual terrain-adjusted cost for the active combatant ───
+// ── moveToken: record actual cost + Architecture-scene program chain-follow ────
 
-Hooks.on('moveToken', (tokenDoc, movement, userId) => {
+Hooks.on('moveToken', async (tokenDoc, movement, userId) => {
+  const scene = tokenDoc.parent;
+
+  // ── Architecture scene: chain-follow program tokens → netrunner's old pos ──
+  // When a Netrunner's Architecture token moves, all their running program
+  // tokens follow to the netrunner's *previous* position (like a chain).
+  if (isNetArchitectureScene(scene)) {
+    // Read and immediately discard the stored old position.
+    const oldPos = _tokenOldPositions.get(tokenDoc.id) ?? null;
+    _tokenOldPositions.delete(tokenDoc.id);
+
+    // Only the GM moves program tokens (they are always GM-owned temp actors).
+    if (!game.user.isGM || !oldPos) return;
+
+    // Is this token the Architecture token of a connected Netrunner?
+    const netrunnerActor = game.actors.find(
+      (a) => getNetConnection(a)?.archTokenId === tokenDoc.id,
+    );
+    if (!netrunnerActor) return;
+
+    // Gather all running executables that have an active Program Actor with a
+    // token in this scene.
+    const runningExes = netrunnerActor.items.filter(
+      (i) => i.type === 'programExecutable' && i.system.running,
+    );
+    for (const exe of runningExes) {
+      const programActorId = exe.getFlag('cyberpunk-blue', PROGRAM_ACTOR_FLAG);
+      if (!programActorId) continue;
+      const programTok = scene.tokens.find((t) => t.actorId === programActorId);
+      if (!programTok) continue;
+      // Move silently without triggering budget hooks
+      await programTok.update({ x: oldPos.x, y: oldPos.y }, { animate: false });
+    }
+    return;
+  }
+
   if (!game.combat?.started) return;
   if (game.user.id !== userId) return; // only the initiating client writes
 
