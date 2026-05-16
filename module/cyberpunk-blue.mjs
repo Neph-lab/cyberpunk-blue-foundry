@@ -67,6 +67,7 @@ import {
   disconnectFromArchitecture,
   syncRezToExecutable,
   applyErrorState,
+  resolveNetTimers,
 } from './helpers/netrunning.mjs';
 
 Hooks.once('init', function () {
@@ -1300,6 +1301,9 @@ Hooks.on('combatTurn', async (combat, updateData) => {
   for (const actor of [prev?.actor, curr?.actor].filter(Boolean)) {
     actor.sheet?.render(false);
   }
+
+  // Resolve pending NET timers (quickhack activation, encrypt/decrypt completion)
+  await resolveNetTimers(combat, roundNumber);
 });
 
 Hooks.on('combatRound', async (combat) => {
@@ -2214,6 +2218,47 @@ async function _syncGearEntries(catalogue) {
 }
 
 /**
+ * Sync program compendium entries with the current catalogue.
+ * Updates `damageFormula` and any other system fields that may have changed.
+ */
+async function _syncProgramEntries(catalogue) {
+  const PACK_ID = 'cyberpunk-blue.programs';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) return;
+  await pack.getIndex({ fields: ['name', 'type'] });
+
+  const byName = new Map(
+    catalogue
+      .filter((it) => it.type === 'programExecutable')
+      .map((it) => [it.name, it])
+  );
+
+  const updates = [];
+  for (const entry of pack.index) {
+    if (entry.type !== 'programExecutable') continue;
+    const def = byName.get(entry.name);
+    if (!def) continue;
+    const doc = await pack.getDocument(entry._id);
+    if (!doc) continue;
+
+    const newFormula = def.system?.damageFormula ?? '';
+    if ((doc.system?.damageFormula ?? '') === newFormula) continue;
+
+    updates.push({ _id: doc.id, 'system.damageFormula': newFormula });
+  }
+
+  if (updates.length === 0) return;
+
+  await pack.configure({ locked: false });
+  try {
+    await Item.updateDocuments(updates, { pack: PACK_ID });
+    console.log(`Cyberpunk Blue | Synced damageFormula for ${updates.length} programs.`);
+  } finally {
+    await pack.configure({ locked: true });
+  }
+}
+
+/**
  * Populate the gear, drugs, cyberware, and programs compendium packs on first load.
  * Each catalogue entry carries a `_folder` property for folder classification;
  * it is stripped before the item is written to the pack.
@@ -2277,6 +2322,9 @@ async function ensureEquipmentCatalogue() {
 
     // Sync effects and instructions on already-populated drug pack entries
     await _syncDrugEntries(DRUG_CATALOGUE);
+
+    // Sync damageFormula (and future fields) on already-populated program entries
+    await _syncProgramEntries(PROGRAM_CATALOGUE);
 
     // Add armor items that may have been missing in earlier versions
     await _ensureArmorInGearPack(gearItems);

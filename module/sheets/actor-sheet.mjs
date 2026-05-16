@@ -17,6 +17,7 @@ import {
   spawnProgramActor, despawnProgramActor,
   performQuickhackBreach, performQuickhackUpload,
   resolveNetAttack, PROGRAM_ACTOR_FLAG,
+  startEncryptDecryptTimer,
 } from '../helpers/netrunning.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack, resolveDoubleLockAttack } from '../helpers/combat-resolution.mjs';
 import { startRicochetPlacement, clearRicochetPoint, refreshAllRicochetLines } from '../helpers/ricochet-canvas.mjs';
@@ -2024,6 +2025,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     // Consume a NET action if in combat
     const combatant = game.combat?.combatants.find((c) => c.actor?.id === this.document.id);
     if (combatant) await consumeNetAction(combatant);
+
+    // Encrypt/Decrypt: start a 1-round countdown AE (resolves next turn in combatTurn hook)
+    if (useSlug === 'encryptDecrypt' && game.combat?.started) {
+      const opLabel = useLabel ?? 'Encrypt/Decrypt';
+      await startEncryptDecryptTimer(this.document, opLabel);
+    }
   }
 
   async _onNetZap(modifier) {

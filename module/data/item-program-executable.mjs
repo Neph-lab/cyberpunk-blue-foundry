@@ -24,6 +24,9 @@ export default class CyberBlueProgramExecutable extends CyberBlueItemBase {
     });
     schema.running = new fields.BooleanField({ initial: false });
     schema.installedOnId = new fields.StringField({ required: false, nullable: true, blank: true, initial: null });
+    // Optional override for the dice formula used when this program auto-attacks
+    // (Black ICE node-entry attacks). Leave blank to use the ATK-based default.
+    schema.damageFormula = new fields.StringField({ required: true, blank: true, initial: '' });
     schema.notes = new fields.HTMLField({ initial: '' });
 
     return schema;

@@ -406,6 +406,37 @@ export async function applyFirstRoleSetup(actor, roleItem) {
     if (extensions.length) {
       await actor.createEmbeddedDocuments('Item', extensions, opts);
     }
+
+    // ── Auto-install granted programExecutable items onto the primary cyberdeck ──
+    // Program Executables only become usable when installed on a computer
+    // (installedOnId set). After all items are created, find the primary cyberdeck
+    // (gear with isCyberdeck = true, preferring equipped) and wire up any
+    // newly-created executables that have no installedOnId yet.
+    const grantedPrograms = createdItems.filter((d) => d.type === 'programExecutable');
+    if (grantedPrograms.length) {
+      // Pick the cyberdeck: newly granted one OR pre-existing one on the actor.
+      const allCyberdecks = actor.items.filter(
+        (i) => i.type === 'gear' && i.system.computer?.isCyberdeck,
+      );
+      const primaryDeck = allCyberdecks.find((i) => i.system.equipped) ?? allCyberdecks[0] ?? null;
+
+      if (primaryDeck) {
+        // Match newly-created actor item documents by name to the granted programme data
+        const updates = [];
+        for (const progData of grantedPrograms) {
+          // Find the actor item we just created (no installedOnId yet)
+          const created = actor.items.find(
+            (i) => i.type === 'programExecutable'
+              && i.name === progData.name
+              && !i.system.installedOnId,
+          );
+          if (created) updates.push({ _id: created.id, 'system.installedOnId': primaryDeck.id });
+        }
+        if (updates.length) {
+          await actor.updateEmbeddedDocuments('Item', updates);
+        }
+      }
+    }
   }
 }
 

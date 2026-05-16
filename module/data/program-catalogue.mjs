@@ -29,7 +29,7 @@ const FOLDER = {
 
 const h = (text) => `<p>${text}</p>`;
 
-function prog({ name, cost, category, act = 0, atk = 0, def = 0, net = 0, per = 0, rez = 0, ram = 0, description }) {
+function prog({ name, cost, category, act = 0, atk = 0, def = 0, net = 0, per = 0, rez = 0, ram = 0, damageFormula = '', description }) {
   return {
     _folder: FOLDER[category] ?? category,
     name,
@@ -50,6 +50,7 @@ function prog({ name, cost, category, act = 0, atk = 0, def = 0, net = 0, per = 
       ram,
       running: false,
       installedOnId: null,
+      damageFormula,
       description: h(description),
       notes: '',
     },
@@ -119,72 +120,84 @@ export const PROGRAM_CATALOGUE = [
     name: 'Asp',
     cost: 'PR', category: 'black-ice',
     act: 1, atk: 2, def: 12, net: 0, per: 12, rez: 15,
+    damageFormula: '',   // no HP damage (destroys a program instead)
     description: 'Destroys a single program installed on the enemy\'s system.',
   }),
   prog({
     name: 'Dragon',
     cost: 'VEX', category: 'black-ice',
     act: 1, atk: 6, def: 16, net: 2, per: 15, rez: 30,
+    damageFormula: '6d6',
     description: 'Deals 6d6 damage to a program. If the program\'s REZ reaches 0, the program is deleted rather than merely derezzed.',
   }),
   prog({
     name: 'Giant',
     cost: 'VEX', category: 'black-ice',
     act: 1, atk: 8, def: 14, net: 2, per: 14, rez: 25,
+    damageFormula: '3d6',
     description: 'Deals 3d6 HP directly to a netrunner and unsafely disconnects them. This disconnect effect can only happen once per Giant.',
   }),
   prog({
     name: 'Hellhound',
     cost: 'EX', category: 'black-ice',
     act: 1, atk: 6, def: 12, net: 1, per: 15, rez: 20,
+    damageFormula: '3d6',
     description: 'Deals 3d6 HP directly to a netrunner. The runner\'s non-insulated cyberdeck and clothes catch Fire (Mild).',
   }),
   prog({
     name: 'Killer',
     cost: 'EX', category: 'black-ice',
     act: 1, atk: 6, def: 12, net: 1, per: 12, rez: 20,
+    damageFormula: '4d6',
     description: 'Deals 4d6 damage to a program. If the program\'s REZ reaches 0, it is deleted rather than merely derezzed.',
   }),
   prog({
     name: 'Kraken',
     cost: 'VEX', category: 'black-ice',
     act: 1, atk: 8, def: 14, net: 2, per: 14, rez: 30,
+    damageFormula: '4d6',
     description: 'Deals 4d6 HP directly to a netrunner. Until the end of their next turn, the target cannot connect to a different node or safely disconnect.',
   }),
   prog({
     name: 'Liche',
     cost: 'EX', category: 'black-ice',
     act: 1, atk: 6, def: 12, net: 1, per: 13, rez: 25,
+    damageFormula: '',   // no HP damage (stat reduction only)
     description: 'Target netrunner\'s RFLX, TECH, and INT are each reduced by 1d6 (minimum 1) for 1 hour. Effect is non-stacking and psychosomatic.',
   }),
   prog({
     name: 'Raven',
     cost: 'CO', category: 'black-ice',
     act: 1, atk: 4, def: 12, net: 0, per: 14, rez: 15,
+    damageFormula: '1d6',
     description: 'Derezzes a random Defender program from a target netrunner, then deals 1d6 HP directly.',
   }),
   prog({
     name: 'Sabertooth',
     cost: 'EX', category: 'black-ice',
     act: 1, atk: 7, def: 12, net: 3, per: 10, rez: 25,
+    damageFormula: '6d6',
     description: 'Deals 6d6 damage to a program.',
   }),
   prog({
     name: 'Scorpion',
     cost: 'PR', category: 'black-ice',
     act: 1, atk: 3, def: 12, net: 0, per: 8, rez: 15,
+    damageFormula: '',   // no HP damage (MOVE reduction only)
     description: 'Target netrunner\'s MOVE is reduced by 1d6 (minimum 1) for 1 hour. Effect is non-stacking and psychosomatic.',
   }),
   prog({
     name: 'Skunk',
     cost: 'PR', category: 'black-ice',
     act: 1, atk: 0, def: 12, net: 1, per: 10, rez: 10,
+    damageFormula: '',   // no HP damage (penalty aura only)
     description: 'While rezzed: any detected target runner makes all Slide and Cloak checks at −2. Follows one runner; penalties from multiple Skunks stack.',
   }),
   prog({
     name: 'Wisp',
     cost: 'CO', category: 'black-ice',
     act: 1, atk: 4, def: 14, net: 0, per: 9, rez: 15,
+    damageFormula: '1d6',
     description: 'Deals 1d6 HP directly to a target netrunner. Reduces their NET actions by 1 (minimum 2) until they disconnect.',
   }),
 

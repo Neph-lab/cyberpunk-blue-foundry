@@ -909,6 +909,12 @@
       "RangeLabel": "Range",
       "NotConnected": "Not connected",
       "CannotRemoveBackupDriveConnected": "Cannot remove Backup Drive while jacked into an architecture. Jack out first.",
+      "QuickhackActivated": "Quickhack Active: {qh} on {target}",
+      "EncryptDecryptPending": "{op} in progress…",
+      "EncryptDecryptComplete": "{op} operation complete.",
+      "BlackIceEncounter": "{name} enters node '{node}' — Black ICE detected!",
+      "BlackIceEncounterCount": "{count} Black ICE program(s) engage.",
+      "BlackIceAutoAttack": "auto-attacks",
       "NetCombat": {
         "ActionsCounter": "NET actions",
         "NotConnected": "Must be connected to an Architecture to Zap.",
@@ -943,6 +949,7 @@
         "Label": "NET: Network Node",
         "NodeType": "Node Type",
         "NodeLabel": "Node Label",
+        "UnnamedNode": "Unnamed Node",
         "Type": {
           "EXE": "EXE",
           "DATA": "DATA",

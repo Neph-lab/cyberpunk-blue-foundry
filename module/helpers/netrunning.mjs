@@ -686,7 +686,8 @@ export async function performQuickhackUpload(actor, targetActor) {
   // Deduct RAM
   await setCyberdeckRam(actor, deck.id, currentRam - (chosenExe.system.ram ?? 0));
 
-  // Apply a pending AE on the target (lasts 1 round — fires at end of hacker's next turn)
+  // Apply a pending AE on the target (activates at the start of the hacker's next turn).
+  // Store round + target so the combatTurn hook can fire completion.
   const qhDesc = (chosenExe.system.note ?? '') || (chosenExe.system.notes ?? '');
   await targetActor.createEmbeddedDocuments('ActiveEffect', [{
     name:     game.i18n.format('CYBER_BLUE.Netrunning.QuickhackUploading', { name: chosenExe.name }),
@@ -698,10 +699,12 @@ export async function performQuickhackUpload(actor, targetActor) {
     changes:  [],
     flags: {
       'cyberpunk-blue': {
-        quickhackPending:  true,
-        quickhackName:     chosenExe.name,
-        quickhackEffect:   qhDesc,
-        quickhackUploadBy: actor.id,
+        quickhackPending:    true,
+        quickhackName:       chosenExe.name,
+        quickhackEffect:     qhDesc,
+        quickhackUploadBy:   actor.id,
+        quickhackTargetId:   targetActor.id,
+        quickhackRound:      game.combat?.round ?? 0,
       },
     },
   }]);
@@ -710,6 +713,94 @@ export async function performQuickhackUpload(actor, targetActor) {
     speaker: ChatMessage.getSpeaker({ actor }),
     content: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Netrunning.QuickhackUploaded')}</h3><p>${game.i18n.format('CYBER_BLUE.Netrunning.QuickhackUploadedMsg', { qh: chosenExe.name, target: targetActor.name })}</p>${qhDesc ? `<p><em>${qhDesc}</em></p>` : ''}</div>`,
   });
+}
+
+// ── NET Timer resolution ───────────────────────────────────────────────────────
+
+/**
+ * Called from the `combatTurn` hook each time a new combatant's turn begins.
+ * Fires any pending quickhack AEs whose upload round is earlier than the
+ * current combat round, and resolves pending Encrypt/Decrypt operations for
+ * the active combatant.
+ *
+ * @param {Combat} combat      - The active Combat document
+ * @param {number} roundNumber - The round number that just became active
+ */
+export async function resolveNetTimers(combat, roundNumber) {
+  if (!game.user.isGM) return;
+
+  // ── Quickhack activation ──────────────────────────────────────────────────
+  // Scan every actor for pending quickhack AEs whose creation round is
+  // strictly earlier than the current round.
+  for (const actor of game.actors) {
+    const toFire = actor.effects.filter(
+      (e) => e.getFlag('cyberpunk-blue', 'quickhackPending')
+        && (e.getFlag('cyberpunk-blue', 'quickhackRound') ?? 0) < roundNumber,
+    );
+    for (const ae of toFire) {
+      const qhName    = ae.getFlag('cyberpunk-blue', 'quickhackName')    ?? '(unknown)';
+      const qhEffect  = ae.getFlag('cyberpunk-blue', 'quickhackEffect')  ?? '';
+      const uploadBy  = ae.getFlag('cyberpunk-blue', 'quickhackUploadBy') ?? '';
+      const hacker    = game.actors.get(uploadBy);
+      ChatMessage.create({
+        speaker: hacker ? ChatMessage.getSpeaker({ actor: hacker }) : {},
+        content: `<div class="cyberpunk-blue chat-card">
+          <h3><i class="fas fa-microchip"></i> ${game.i18n.format('CYBER_BLUE.Netrunning.QuickhackActivated', { qh: qhName, target: actor.name })}</h3>
+          ${qhEffect ? `<p><em>${qhEffect}</em></p>` : ''}
+        </div>`,
+      });
+      await ae.delete();
+    }
+  }
+
+  // ── Encrypt/Decrypt completion ────────────────────────────────────────────
+  // Each combatant's turn-start: check if they have a pending Encrypt/Decrypt
+  // AE from a previous round — if so, announce completion.
+  for (const combatant of combat.combatants) {
+    const actor = combatant.actor;
+    if (!actor) continue;
+    const toComplete = actor.effects.filter(
+      (e) => e.getFlag('cyberpunk-blue', 'encryptDecryptPending')
+        && (e.getFlag('cyberpunk-blue', 'encryptDecryptRound') ?? 0) < roundNumber,
+    );
+    for (const ae of toComplete) {
+      const opLabel = ae.getFlag('cyberpunk-blue', 'encryptDecryptLabel') ?? 'Encrypt/Decrypt';
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor }),
+        content: `<div class="cyberpunk-blue chat-card">
+          <p><i class="fas fa-lock"></i> <strong>${actor.name}</strong>: ${game.i18n.format('CYBER_BLUE.Netrunning.EncryptDecryptComplete', { op: opLabel })}</p>
+        </div>`,
+      });
+      await ae.delete();
+    }
+  }
+}
+
+/**
+ * Create a pending Encrypt/Decrypt AE on the Netrunner that resolves on the
+ * next combat round.  Call this when the Netrunner uses the encryptDecrypt
+ * component action.
+ *
+ * @param {Actor}  actor    - The Netrunner
+ * @param {string} opLabel  - "Encrypt" or "Decrypt" (display label)
+ */
+export async function startEncryptDecryptTimer(actor, opLabel) {
+  const currentRound = game.combat?.round ?? 0;
+  await actor.createEmbeddedDocuments('ActiveEffect', [{
+    name:     game.i18n.format('CYBER_BLUE.Netrunning.EncryptDecryptPending', { op: opLabel }),
+    icon:     'icons/svg/padlock.svg',
+    disabled: false,
+    transfer: false,
+    duration: { rounds: 1 },
+    changes:  [],
+    flags: {
+      'cyberpunk-blue': {
+        encryptDecryptPending: true,
+        encryptDecryptLabel:   opLabel,
+        encryptDecryptRound:   currentRound,
+      },
+    },
+  }]);
 }
 
 // ── NET Combat helpers ─────────────────────────────────────────────────────────
