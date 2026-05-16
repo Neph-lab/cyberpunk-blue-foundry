@@ -1074,6 +1074,7 @@ Hooks.once('ready', async () => {
   await ensureRoleCatalogue();
   await ensureAbilityCatalogue();
   await ensureLifepathCatalogue();
+  await syncRoleLifepathLinks();
   await ensureMacroCatalogue();
 
   // On the first GM login, sync role starting gear to the compendium
@@ -2571,6 +2572,65 @@ async function ensureLifepathCatalogue() {
     console.error('Cyberpunk Blue | Failed to populate lifepath tables compendium:', err);
   } finally {
     await pack.configure({ locked: true });
+  }
+}
+
+// ─── Sync role lifepath links to actual compendium UUIDs ─────────────────────
+
+async function syncRoleLifepathLinks() {
+  if (!game.user.isGM) return;
+  const LP_PACK_ID = 'cyberpunk-blue.lifepath-tables';
+  const ROLE_PACK_ID = 'cyberpunk-blue.roles';
+  const lpPack = game.packs.get(LP_PACK_ID);
+  const rolePack = game.packs.get(ROLE_PACK_ID);
+  if (!lpPack || !rolePack) return;
+
+  // Build (folderName, tableName) → UUID map keyed as "Folder::Name"
+  await lpPack.getIndex();
+  if (lpPack.index.size === 0) return;
+
+  // Map folder _id → folder name
+  const folderIdToName = new Map(lpPack.folders.map((f) => [f.id, f.name]));
+
+  const keyToUUID = new Map();
+  for (const entry of lpPack.index) {
+    const folderName = folderIdToName.get(entry.folder) ?? '';
+    const key = `${folderName}::${entry.name}`;
+    keyToUUID.set(key, `Compendium.${LP_PACK_ID}.RollTable.${entry._id}`);
+  }
+
+  // Build role → ordered table names from LIFEPATH_CATALOGUE
+  const roleToTables = new Map();
+  for (const table of LIFEPATH_CATALOGUE) {
+    const role = table._folder ?? 'General';
+    if (!roleToTables.has(role)) roleToTables.set(role, []);
+    roleToTables.get(role).push(table.name);
+  }
+
+  // Update each role document in the compendium
+  await rolePack.getIndex();
+  const toUpdate = [];
+  for (const entry of rolePack.index) {
+    const tableNames = roleToTables.get(entry.name);
+    if (!tableNames?.length) continue;
+    const links = tableNames
+      .map((name) => {
+        const uuid = keyToUUID.get(`${entry.name}::${name}`);
+        return uuid ? `<li>@UUID[${uuid}]{${name}}</li>` : `<li>${name}</li>`;
+      })
+      .join('\n');
+    toUpdate.push({ _id: entry._id, 'system.lifepathLinks': `<ul>\n${links}\n</ul>` });
+  }
+
+  if (toUpdate.length === 0) return;
+  await rolePack.configure({ locked: false });
+  try {
+    await Item.updateDocuments(toUpdate, { pack: ROLE_PACK_ID });
+    console.log(`Cyberpunk Blue | Synced lifepath links for ${toUpdate.length} roles.`);
+  } catch (err) {
+    console.error('Cyberpunk Blue | Failed to sync role lifepath links:', err);
+  } finally {
+    await rolePack.configure({ locked: true });
   }
 }
 
