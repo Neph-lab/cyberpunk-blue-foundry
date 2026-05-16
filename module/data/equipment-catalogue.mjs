@@ -237,6 +237,31 @@ export const EQUIPMENT_CATALOGUE = [
     }],
   }),
   gear({
+    name: 'Flashbang Grenade',
+    folder: 'Grenades', cost: 'EX',
+    description: 'Deals no damage. AoE: 10m inner / 12m outer sphere; targets in outer zone get +4 to resist. DV17 REFLEXES+Athletics or become Blinded and Deafened for 1 round. Both radii shrink by 2m after each subsequent turn.',
+    isWeapon: true,
+    weapons: [{
+      type: 'thrown', skill: 'athletics', damage: '0', rateOfFire: 1,
+      magazine: 0, ammoCurrent: 0, shots: 0, hands: 1, concealable: true,
+      damageType: 'affliction-explosion', autofireMultiplier: 1, autofireRangeTable: Array(8).fill(0),
+      coneSpread: 12, coneAngle: 45, coneHalfDamageDistance: 10,
+      rangeTable: [15, 13, 25, 0, 0, 0, 0, 0],
+      ammoTypeUuid: '', autofireDamage: '',
+      isPowerWeapon: false, isSmartWeapon: false, isTechWeapon: false, isExcellentQuality: false,
+      chargeType: '', silenceBuiltIn: false, silenceBuiltInDV: 0,
+      jamOnRoll: 0, jamFiresFirst: false, shellDvModifier: 0, targetVitalsPenalty: 8,
+      payloadDmgBonus: 0, critSlicing: false, critBlunt: false, critCrushing: false, critStun: false,
+      afflictionPrimary: 'reflexes', afflictionSkill: 'athletics', afflictionDv: 17, afflictionEffectId: '',
+      outerZoneResistBonus: 4,
+    }],
+    effects: [{
+      name: 'Flashbang: Blinded and Deafened',
+      disabled: true, transfer: false, changes: [],
+      flags: { 'cyberpunk-blue': { isAfflictionEffect: true } },
+    }],
+  }),
+  gear({
     name: 'Toxic Grenade',
     folder: 'Grenades', cost: 'EX',
     description: 'Deals no damage, no SP ablation, cannot cause Critical Injuries. AoE: 4m inner / 10m outer sphere; targets in outer zone get +2 to resist. DV15 BODY+Endurance or take 2d6 HP; on a successful resist, take half (rounded down). Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind. Quality: Standard (EX), Poor (PR), Excellent (VEX).',
@@ -740,5 +765,11 @@ export const EQUIPMENT_CATALOGUE = [
     folder: 'Body Armor', cost: 'EX',
     isArmor: true, maxSp: 9,
     description: 'Skin-tight suit able to connect to a netrunning chair. Blocks programs from setting the wearer on fire. Reduces damage from Black ICE by 1.',
+  }),
+  gear({
+    name: 'Bulletproof Shield',
+    folder: 'Body Armor', cost: 'EX',
+    isArmor: true, maxSp: 15,
+    description: 'SP 15. Held in one hand; provides frontal cover. While held, cannot use a two-handed weapon or carry anything in that hand.',
   }),
 ];

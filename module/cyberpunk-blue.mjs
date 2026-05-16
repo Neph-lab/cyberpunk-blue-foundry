@@ -17,7 +17,7 @@ import {
   syncActorCyberwareDisableEffects,
 } from './helpers/cyberware-disable.mjs';
 import { syncActorLeaderRoles, syncAllProteanFociAEs, normalizeRoleSystemData } from './helpers/roles.mjs';
-import { CyberBlueJsonImportDialog, CyberBlueMacroCreator, CyberBlueWeaponImportDialog } from './helpers/gm-tools.mjs';
+import { CyberBlueJsonImportDialog, CyberBlueMacroCreator, CyberBlueWeaponImportDialog, CyberBlueResyncStartingGear } from './helpers/gm-tools.mjs';
 import { CharacterCreationWizard } from './helpers/character-creation.mjs';
 import {
   getActiveCombatant,
@@ -46,6 +46,7 @@ import { PROGRAM_CATALOGUE } from './data/program-catalogue.mjs';
 import { AMMO_CATALOGUE } from './data/ammo-catalogue.mjs';
 import { ROLE_CATALOGUE } from './data/role-catalogue.mjs';
 import { registerSocketHandlers, applyDamageWithPermission } from './helpers/socket.mjs';
+import { syncRoleGrantedItemGroups } from './helpers/world-init.mjs';
 import { refreshAllRicochetLines, clearRicochetLine } from './helpers/ricochet-canvas.mjs';
 import { refreshTechChargeHighlights, clearTechChargeHighlights } from './helpers/tech-charge-canvas.mjs';
 import { clearWeaponCharge } from './helpers/tech-charge.mjs';
@@ -203,7 +204,20 @@ Hooks.once('init', function () {
     restricted: true,
   });
 
+  game.settings.registerMenu('cyberpunk-blue', 'resyncStartingGearMenu', {
+    name: 'Re-sync Role Starting Gear',
+    label: 'Re-sync Starting Gear',
+    hint: 'Resolve role starting-gear item names to UUIDs and update the Roles compendium.',
+    icon: 'fas fa-sync',
+    type: CyberBlueResyncStartingGear,
+    restricted: true,
+  });
+
   // ── System settings ────────────────────────────────────────────────────────
+  game.settings.register('cyberpunk-blue', 'worldInitialized', {
+    scope: 'world', config: false, type: Boolean, default: false,
+  });
+
   game.settings.register('cyberpunk-blue', 'areaEffectDuration', {
     name: 'CYBER_BLUE.Settings.AreaEffectDuration.Name',
     hint: 'CYBER_BLUE.Settings.AreaEffectDuration.Hint',
@@ -988,6 +1002,13 @@ Hooks.once('ready', async () => {
   await ensureEquipmentCatalogue();
   await ensureRoleCatalogue();
   await ensureMacroCatalogue();
+
+  // On the first GM login, sync role starting gear to the compendium
+  const worldInitialized = game.settings.get('cyberpunk-blue', 'worldInitialized');
+  if (!worldInitialized) {
+    await syncRoleGrantedItemGroups();
+    await game.settings.set('cyberpunk-blue', 'worldInitialized', true);
+  }
 
   const seen = new Set();
   const allItems = [

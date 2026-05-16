@@ -515,6 +515,13 @@ const melee = [
   weaponItem({ name: 'Budget Arms Cut-O-Matic', manufacturer: 'Budget Arms', cost: 'EX', imgPath: img(W_MELEE, 'Budget Arms Cut-o-Matic.png'),
     weapons: [vhmw({ vicious: true })],
     description: desc('Vicious: while powered on, criticals deal +5 damage. Noisy: stealth impossible while on (toggle as part of another action — but not both same round). Unpowered: if off or out of CHOOH², deals only 3d6.') }),
+
+  weaponItem({ name: 'Bow', manufacturer: '', cost: 'PR', imgPath: img(W_MELEE, 'Katana.png'),
+    weapons: [entry({
+      type: 'bowCrossbow', damage: '4d6', rateOfFire: 1, hands: 2,
+      rangeTable: [17, 15, 13, 15, 20, 0, 0, 0],
+    })],
+    description: desc('Standard recurve bow. Uses arrows. Two-handed; silent.') }),
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -445,3 +445,36 @@ export class CyberBlueWeaponImportDialog extends ApplicationV2 {
     return { created: totalCreated, folders: totalFolders };
   }
 }
+
+/**
+ * Settings-menu action: re-run the role starting-gear sync.
+ * Clicking the menu button shows a confirm dialog, then runs the sync.
+ */
+export class CyberBlueResyncStartingGear extends ApplicationV2 {
+  static DEFAULT_OPTIONS = {
+    id: 'cyberpunk-blue-resync-starting-gear',
+    window: { title: 'Re-sync Role Starting Gear' },
+    position: { width: 360 },
+  };
+
+  async _renderHTML() {
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:1rem;';
+    div.innerHTML = `
+      <p>This will resolve all role starting-gear item names to UUIDs and update the Roles compendium.</p>
+      <p>Items not yet in the world will be imported from their compendiums.</p>
+      <p>Safe to run multiple times.</p>
+      <div style="text-align:right; margin-top:0.75rem;">
+        <button id="cpb-resync-btn" type="button">
+          <i class="fas fa-sync"></i> Run Sync
+        </button>
+      </div>
+    `;
+    div.querySelector('#cpb-resync-btn').addEventListener('click', async () => {
+      const { syncRoleGrantedItemGroups } = await import('./world-init.mjs');
+      await syncRoleGrantedItemGroups();
+      this.close();
+    });
+    return div;
+  }
+}

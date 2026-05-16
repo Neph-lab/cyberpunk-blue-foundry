@@ -361,17 +361,31 @@ export async function applyFirstRoleSetup(actor, roleItem) {
   const createdItems = [];
 
   for (const group of system.grantedItemGroups ?? []) {
-    const resolved = (await Promise.all((group.items ?? []).map(resolveGrantReference))).filter(Boolean);
+    // Resolve each item reference to a pair { item, quantity } — filter out nulls
+    const resolved = (await Promise.all(
+      (group.items ?? []).map(async (ref) => {
+        const item = await resolveGrantReference(ref);
+        return item ? { item, quantity: ref.quantity ?? 1 } : null;
+      })
+    )).filter(Boolean);
     if (!resolved.length) {
       continue;
     }
 
+    const resolvedItems = resolved.map((r) => r.item);
     const chosen = group.mode === 'choice'
-      ? await promptForGrantChoices(group, resolved)
-      : resolved;
+      ? await promptForGrantChoices(group, resolvedItems)
+      : resolvedItems;
+
     for (const sourceItem of chosen) {
       const data = sourceItem.toObject();
       delete data._id;
+      // Apply quantity from the grant reference for items that track quantity
+      const pair = resolved.find((r) => r.item === sourceItem);
+      const qty = pair?.quantity ?? 1;
+      if (qty > 1 && data.system && 'quantity' in data.system) {
+        data.system.quantity = qty;
+      }
       createdItems.push(data);
     }
   }

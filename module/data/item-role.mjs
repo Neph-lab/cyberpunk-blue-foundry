@@ -11,6 +11,7 @@ export default class CyberBlueRole extends CyberBlueItemBase {
       name: new fields.StringField({ required: true, blank: true }),
       type: new fields.StringField({ required: true, blank: true, initial: 'item' }),
       img: new fields.StringField({ required: true, blank: true }),
+      quantity: new fields.NumberField({ required: true, nullable: false, integer: true, initial: 1, min: 1 }),
     });
     const buildGrantedItemGroupField = () => new fields.SchemaField({
       id: new fields.StringField({ required: true, blank: false, initial: '' }),

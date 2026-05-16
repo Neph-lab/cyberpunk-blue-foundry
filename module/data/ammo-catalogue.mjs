@@ -8,7 +8,7 @@
 
 const ASSET_BASE = 'systems/cyberpunk-blue/assets/items/ammo';
 
-function ammoItem({ name, ammoTypes = {}, quantity = 10, note = '', img = '' }) {
+function ammoItem({ name, ammoTypes = {}, quantity = 10, note = '', img = '', cost = '€$10 (Cheap)' }) {
   return {
     name,
     type: 'ammo',
@@ -16,7 +16,7 @@ function ammoItem({ name, ammoTypes = {}, quantity = 10, note = '', img = '' }) 
     _folder: 'Ammo',
     system: {
       quantity,
-      cost: '€$10 (Cheap)',
+      cost,
       note,
       ammoTypes: {
         mediumPistol:  !!ammoTypes.mediumPistol,
@@ -118,5 +118,19 @@ export const AMMO_CATALOGUE = [
     quantity: 1,
     img: `${ASSET_BASE}/Basic Rifle.png`,
     note: '€$50; fully recharges a stun gun (12 shots); 1 hour to recharge from empty',
+  }),
+  ammoItem({
+    name: 'Incendiary Shotgun Shells',
+    ammoTypes: { shotgunShell: true },
+    img: `${ASSET_BASE}/Basic Rifle.png`,
+    cost: '€$500 (Expensive)',
+    note: '+2 damage past SP; target and adjacent objects may catch fire on a hit.',
+  }),
+  ammoItem({
+    name: 'Incendiary Rifle Ammo',
+    ammoTypes: { assault: true },
+    img: `${ASSET_BASE}/Basic Rifle.png`,
+    cost: '€$500 (Expensive)',
+    note: '+2 damage past SP; target and adjacent objects may catch fire on a hit.',
   }),
 ];
