@@ -1109,6 +1109,7 @@
                       class="netrunner-use-btn"
                       data-action="netrunner-component-roll"
                       data-component-slug="{{use.componentSlug}}"
+                      data-use-slug="{{use.slug}}"
                       data-use-label="{{use.label}}"
                       data-modifier="{{use.modifier}}"
                       title="Roll 1d10 {{use.modLabel}}">
@@ -1141,6 +1142,12 @@
             <button type="button" class="net-action-btn" data-action="net-defrag" title="{{localize "CYBER_BLUE.Netrunning.Defrag"}}">
               <i class="fas fa-broom"></i> {{localize "CYBER_BLUE.Netrunning.Defrag"}}
             </button>
+            {{#if netActionsTurnTotal}}
+              <span class="net-actions-counter {{#if (eq netActionsRemaining 0)}}net-actions-exhausted{{/if}}" title="NET actions remaining this turn">
+                <i class="fas fa-microchip"></i>
+                {{netActionsRemaining}}/{{netActionsTurnTotal}} {{localize "CYBER_BLUE.Netrunning.NetCombat.ActionsCounter"}}
+              </span>
+            {{/if}}
           </div>
         </section>
 

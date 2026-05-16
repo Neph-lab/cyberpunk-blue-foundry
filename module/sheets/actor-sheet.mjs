@@ -16,6 +16,7 @@ import {
   defrag,
   spawnProgramActor, despawnProgramActor,
   performQuickhackBreach, performQuickhackUpload,
+  resolveNetAttack, PROGRAM_ACTOR_FLAG,
 } from '../helpers/netrunning.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack, resolveDoubleLockAttack } from '../helpers/combat-resolution.mjs';
 import { startRicochetPlacement, clearRicochetPoint, refreshAllRicochetLines } from '../helpers/ricochet-canvas.mjs';
@@ -961,6 +962,21 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       context.executablesOnShards = executablesOnShards;
       context.diskColVis   = buildColVis(executablesOnDisk, true);
       context.shardsColVis = buildColVis(executablesOnShards, false);
+
+      // ── NET actions combat counter ─────────────────────────────────────────
+      const netCombatant = game.combat?.combatants.find(
+        (c) => c.actor?.id === this.document.id,
+      );
+      if (netCombatant) {
+        const ts = getTurnState(netCombatant);
+        context.netActionsUsed       = ts.netActionsUsed  ?? 0;
+        context.netActionsTurnTotal  = ts.netActionsTotal ?? 0;
+        context.netActionsRemaining  = Math.max((ts.netActionsTotal ?? 0) - (ts.netActionsUsed ?? 0), 0);
+      } else {
+        context.netActionsUsed      = 0;
+        context.netActionsTurnTotal = 0;
+        context.netActionsRemaining = 0;
+      }
     } else {
       context.netrunnerComponents  = [];
       context.netrunnerComputers   = [];
@@ -974,6 +990,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       context.canQuickhack              = false;
       context.quickhackTarget           = '';
       context.quickhackTargetBreached   = false;
+      context.netActionsUsed      = 0;
+      context.netActionsTurnTotal = 0;
+      context.netActionsRemaining = 0;
     }
 
     // Character creation state
@@ -1978,9 +1997,15 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
   async _onNetrunnerComponentRoll(event) {
     event.preventDefault();
     const componentSlug = event.currentTarget.dataset.componentSlug;
-    const useLabel = event.currentTarget.dataset.useLabel;
-    const modifier = Number(event.currentTarget.dataset.modifier) || 0;
+    const useLabel      = event.currentTarget.dataset.useLabel;
+    const useSlug       = event.currentTarget.dataset.useSlug;
+    const modifier      = Number(event.currentTarget.dataset.modifier) || 0;
     if (!componentSlug) return;
+
+    // Zap has a full combat-resolution path
+    if (useSlug === 'zap') {
+      return this._onNetZap(modifier);
+    }
 
     const componentLabel = CONFIG.CYBER_BLUE.components[componentSlug]?.label ?? componentSlug;
     const formula = modifier >= 0 ? `1d10+${modifier}` : `1d10${modifier}`;
@@ -1994,6 +2019,28 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
     // Consume a NET action if in combat
     const combatant = game.combat?.combatants.find((c) => c.actor?.id === this.document.id);
+    if (combatant) await consumeNetAction(combatant);
+  }
+
+  async _onNetZap(modifier) {
+    const actor = this.document;
+
+    if (!isNetConnected(actor)) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.NotConnected'));
+      return;
+    }
+
+    const targetToken = [...(game.user?.targets ?? [])][0];
+    if (!targetToken?.actor) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.NoTarget'));
+      return;
+    }
+
+    const label = game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.ZapLabel');
+    const result = await resolveNetAttack(actor, targetToken.actor, modifier, label, '1d6');
+    if (!result) return;
+
+    const combatant = game.combat?.combatants.find((c) => c.actor?.id === actor.id);
     if (combatant) await consumeNetAction(combatant);
   }
 
@@ -2815,6 +2862,18 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         await spawnProgramActor(this.document, exeDoc);
       } else {
         await despawnProgramActor(this.document, exeDoc);
+      }
+    }
+
+    // Bidirectional REZ sync: if REZ value is edited on the Netrunning tab,
+    // push the change through to the running Program Actor as well.
+    if (field === 'system.rez.value') {
+      const programActorId = exeDoc.getFlag('cyberpunk-blue', PROGRAM_ACTOR_FLAG);
+      if (programActorId) {
+        const programActor = game.actors.get(programActorId);
+        if (programActor) {
+          await programActor.update({ 'system.resources.rez.value': Number(value) || 0 });
+        }
       }
     }
   }

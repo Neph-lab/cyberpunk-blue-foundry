@@ -1,5 +1,6 @@
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
+import { resolveNetAttack } from '../helpers/netrunning.mjs';
 
 const PROGRAM_TYPES = [
   { value: 'antipersonnel', label: 'Anti-Personnel' },
@@ -43,14 +44,33 @@ export class CyberBlueProgramSheet extends HandlebarsApplicationMixin(ActorSheet
     const { system } = actorData;
     const isGM = game.user.isGM;
 
-    let executable = null;
-    if (system.executableId) {
-      const execItem = this.document.items?.find((i) => i.type === 'programExecutable' && i.id === system.executableId)
-        ?? game.items?.get(system.executableId);
-      if (execItem) {
-        executable = { id: execItem.id, name: execItem.name };
-      }
+    // Resolve the linked executable — for temp Program Actors look it up via
+    // flags on the actor; for world actors fall back to system.executableId.
+    let executable     = null;
+    let exeItemDoc     = null;
+    const netActorId   = this.document.getFlag('cyberpunk-blue', 'programActorFor');
+    const exeItemId    = this.document.getFlag('cyberpunk-blue', 'programExecutableId')
+      ?? system.executableId;
+
+    if (netActorId && exeItemId) {
+      const netActor = game.actors.get(netActorId);
+      exeItemDoc = netActor?.items.get(exeItemId) ?? null;
+    } else if (exeItemId) {
+      exeItemDoc = game.items?.get(exeItemId) ?? null;
     }
+
+    if (exeItemDoc) {
+      executable = { id: exeItemDoc.id, name: exeItemDoc.name };
+    }
+
+    // Attack context — available to GM for temp program actors with ATK > 0
+    const isTempProgram  = Boolean(this.document.getFlag('cyberpunk-blue', 'isTemporaryProgramActor'));
+    const inErrorState   = this.document.effects.some(
+      (e) => e.getFlag('cyberpunk-blue', 'isErrorState'),
+    );
+    context.canAttack    = isGM && isTempProgram && (system.stats?.atk?.value ?? 0) > 0 && !inErrorState;
+    context.inErrorState = inErrorState;
+    context.isTempProgram = isTempProgram;
 
     context.actor = actorData;
     context.system = system;
@@ -86,6 +106,8 @@ export class CyberBlueProgramSheet extends HandlebarsApplicationMixin(ActorSheet
       ?.addEventListener('click', this._onDeleteExecutable.bind(this));
     this.element.querySelector('[data-edit="img"]')
       ?.addEventListener('click', this._onEditProfileImage.bind(this));
+    this.element.querySelector('[data-action="program-attack"]')
+      ?.addEventListener('click', this._onProgramAttack.bind(this));
   }
 
   async _rollStat(stat) {
@@ -97,6 +119,27 @@ export class CyberBlueProgramSheet extends HandlebarsApplicationMixin(ActorSheet
       flavor: `<div class="cyberpunk-blue chat-card"><h3>${this.document.name}: ${statLabel}</h3></div>`,
       rollMode: game.settings.get('core', 'rollMode'),
     });
+  }
+
+  async _onProgramAttack(event) {
+    event.preventDefault();
+    if (!game.user.isGM) return;
+
+    const actor = this.document;
+    const atk   = Number(actor.system.stats?.atk?.value) || 0;
+
+    // Must have a targeted token
+    const targetToken = [...(game.user?.targets ?? [])][0];
+    if (!targetToken?.actor) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.NoTarget'));
+      return;
+    }
+
+    // Determine damage formula from button data-attribute (set in template)
+    const damageFormula = event.currentTarget.dataset.damage || '1d6';
+    const label = `${actor.name} ${game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.ProgramAttackLabel')}`;
+
+    await resolveNetAttack(actor, targetToken.actor, atk, label, damageFormula);
   }
 
   async _onDeleteExecutable(event) {

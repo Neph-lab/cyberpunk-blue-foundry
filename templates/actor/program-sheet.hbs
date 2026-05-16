@@ -60,16 +60,44 @@
   </div>
 
   <section class="sheet-body program-body">
-    <div class="sheet-panel">
-      <h2>Description</h2>
-      {{#if isGM}}
-        <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{actor.uuid}}" compact>
-          {{{enrichedDescription}}}
-        </prose-mirror>
-      {{else}}
-        <div class="editor"><div class="editor-content">{{{enrichedDescription}}}</div></div>
-      {{/if}}
-    </div>
+
+    {{!-- ##ERROR## banner --}}
+    {{#if inErrorState}}
+      <div class="sheet-panel program-error-banner">
+        <i class="fas fa-triangle-exclamation"></i>
+        <strong>##ERROR##</strong> — REZ 0. Cannot move, act, or provide bonuses. Skipped in encounter order.
+      </div>
+    {{/if}}
+
+    {{!-- Attack panel (GM only, temp programs with ATK > 0) --}}
+    {{#if canAttack}}
+      <div class="sheet-panel program-attack-panel">
+        <h2>{{localize "CYBER_BLUE.Netrunning.NetCombat.AttackPanel"}}</h2>
+        <p class="hint">{{localize "CYBER_BLUE.Netrunning.NetCombat.AttackHint"}}</p>
+        <div class="program-attack-row">
+          <button type="button" class="net-action-btn" data-action="program-attack" data-damage="1d6">
+            <i class="fas fa-bolt"></i> 1d6 {{localize "CYBER_BLUE.Netrunning.NetCombat.StandardDamage"}}
+          </button>
+        </div>
+        {{#if enrichedDescription}}
+          <div class="program-attack-function enriched-html">{{{enrichedDescription}}}</div>
+        {{/if}}
+      </div>
+    {{/if}}
+
+    {{!-- Description (non-GM or non-temp programs show it normally) --}}
+    {{#unless canAttack}}
+      <div class="sheet-panel">
+        <h2>Description</h2>
+        {{#if isGM}}
+          <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{actor.uuid}}" compact>
+            {{{enrichedDescription}}}
+          </prose-mirror>
+        {{else}}
+          <div class="enriched-html">{{{enrichedDescription}}}</div>
+        {{/if}}
+      </div>
+    {{/unless}}
 
     {{#if executable}}
       <div class="sheet-panel program-executable-slot">

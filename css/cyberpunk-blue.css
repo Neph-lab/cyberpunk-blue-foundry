@@ -2350,6 +2350,59 @@ section.chat-sidebar:not(.sidebar-popout),
   cursor: pointer;
 }
 
+/* ─── Netrunning: NET actions counter & attack panel ────────────────────────── */
+
+.cyberpunk-blue .net-actions-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: var(--font-size-12);
+  background: var(--cpb-panel-bg, #e8e8e0);
+  border: 1px solid var(--cpb-border, #bbb);
+  color: var(--color-text-dark-primary, #222);
+}
+
+.cyberpunk-blue .net-actions-counter.net-actions-exhausted {
+  background: #ffe0e0;
+  border-color: #c00;
+  color: #900;
+}
+
+.cyberpunk-blue .program-error-banner {
+  background: #330000;
+  color: #ff4444;
+  border: 2px solid #ff0000;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.cyberpunk-blue .program-attack-panel {
+  border: 2px solid var(--cpb-border, #bbb);
+  border-radius: 4px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+}
+
+.cyberpunk-blue .program-attack-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.cyberpunk-blue .program-attack-function {
+  font-size: var(--font-size-12);
+  padding: 4px 6px;
+  background: var(--cpb-panel-bg, #e8e8e0);
+  border-radius: 3px;
+}
+
 /* ─── Critical Injury Chat Card ─────────────────────────────────────────────── */
 
 .cyberpunk-blue .critical-injury-card {

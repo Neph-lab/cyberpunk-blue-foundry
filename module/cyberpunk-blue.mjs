@@ -63,6 +63,8 @@ import {
   spawnProgramActor,
   despawnProgramActor,
   disconnectFromArchitecture,
+  syncRezToExecutable,
+  applyErrorState,
 } from './helpers/netrunning.mjs';
 
 Hooks.once('init', function () {
@@ -915,6 +917,19 @@ Hooks.on('updateToken', async (tokenDoc, change) => {
 
   // No longer in range — unsafe disconnect
   await disconnectFromArchitecture(actor, false);
+});
+
+// ─── Netrunning: REZ sync & ##ERROR## state ──────────────────────────────────
+// When a temporary Program Actor's REZ is updated, sync the value back to the
+// originating Executable item and apply the ##ERROR## state if REZ hits 0.
+Hooks.on('updateActor', async (actor, changes) => {
+  if (!game.user.isGM) return;
+  if (!actor.getFlag('cyberpunk-blue', 'isTemporaryProgramActor')) return;
+  if (!foundry.utils.hasProperty(changes, 'system.resources.rez.value')) return;
+
+  const newRez = foundry.utils.getProperty(changes, 'system.resources.rez.value') ?? 0;
+  await syncRezToExecutable(actor, newRez);
+  if (newRez <= 0) await applyErrorState(actor);
 });
 
 // ─── Tech Weapon charge: turn-start housekeeping (GM only) ───────────────────

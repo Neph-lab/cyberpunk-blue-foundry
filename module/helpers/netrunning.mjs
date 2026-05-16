@@ -18,7 +18,7 @@
  */
 
 const NET_CONNECTION_FLAG = 'netConnection';
-const PROGRAM_ACTOR_FLAG  = 'programActorId';
+export const PROGRAM_ACTOR_FLAG  = 'programActorId';
 
 // ── Accessors ──────────────────────────────────────────────────────────────────
 
@@ -672,5 +672,162 @@ export async function performQuickhackUpload(actor, targetActor) {
   ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
     content: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Netrunning.QuickhackUploaded')}</h3><p>${game.i18n.format('CYBER_BLUE.Netrunning.QuickhackUploadedMsg', { qh: chosenExe.name, target: targetActor.name })}</p>${qhDesc ? `<p><em>${qhDesc}</em></p>` : ''}</div>`,
+  });
+}
+
+// ── NET Combat helpers ─────────────────────────────────────────────────────────
+
+/**
+ * Resolve a NET combat attack: roll vs DEF (program) or a GM-supplied DV (human/NPC).
+ * Applies damage on hit and posts the result to chat.
+ *
+ * @param {Actor}  attackerActor  - Actor making the attack (Netrunner or Program)
+ * @param {Actor}  targetActor    - Target (program actor, character, NPC, or mook)
+ * @param {number} atkModifier    - Flat modifier added to 1d10 attack roll
+ * @param {string} attackerLabel  - Display label for the attacker action (e.g. "Zap", "Sword")
+ * @param {string} damageFormula  - Damage roll formula (e.g. "1d6", "2d6+1")
+ * @param {string} [dvOverride]   - If set, skip the DV dialog and use this value directly
+ * @returns {Promise<{hit: boolean, roll: Roll, damage: Roll|null}|null>}
+ *   null if the action was cancelled.
+ */
+export async function resolveNetAttack(attackerActor, targetActor, atkModifier, attackerLabel, damageFormula, dvOverride = null) {
+  // Determine DV
+  let dv;
+  if (dvOverride !== null) {
+    dv = Number(dvOverride);
+  } else if (targetActor.type === 'program') {
+    dv = Number(targetActor.system.stats?.def?.value) || 0;
+  } else {
+    // Human/NPC target — ask for their NET(Cracker) roll or a flat DV
+    const result = await _promptNetDv(targetActor.name);
+    if (result === null) return null;
+    dv = result;
+  }
+
+  // Attack roll
+  const formula = atkModifier >= 0 ? `1d10+${atkModifier}` : `1d10${atkModifier}`;
+  const roll = await new Roll(formula).evaluate();
+  const hit = roll.total >= dv;
+
+  // Damage
+  let damage = null;
+  if (hit) {
+    damage = await new Roll(damageFormula).evaluate();
+    const isProgram = targetActor.type === 'program';
+    if (isProgram) {
+      const curRez = Number(targetActor.system.resources?.rez?.value) || 0;
+      await targetActor.update({ 'system.resources.rez.value': Math.max(curRez - damage.total, 0) });
+    } else {
+      await targetActor.applyDamage(damage.total, { ignoreArmor: true });
+    }
+  }
+
+  // Chat
+  const dvLabel = targetActor.type === 'program'
+    ? game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.DefLabel', { dv })
+    : game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.DvLabel', { dv });
+  const hitStr  = hit ? game.i18n.localize('CYBER_BLUE.Combat.Hit') : game.i18n.localize('CYBER_BLUE.Combat.Miss');
+  const dmgStr  = damage
+    ? ` — ${damage.total} ${targetActor.type === 'program' ? 'REZ' : 'HP'}`
+    : '';
+
+  await roll.toMessage({
+    speaker: ChatMessage.getSpeaker({ actor: attackerActor }),
+    flavor: `<div class="cyberpunk-blue chat-card">
+      <h3><i class="fas fa-bolt"></i> ${attackerLabel}: ${targetActor.name}</h3>
+      <p>${game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.RollVs', { formula, dvLabel })}</p>
+      <p><strong>${hitStr}</strong>${dmgStr}</p>
+    </div>`,
+    rollMode: game.settings.get('core', 'rollMode'),
+  });
+
+  return { hit, roll, damage };
+}
+
+/**
+ * Show a dialog prompting for the target's NET(Cracker) roll or a flat DV.
+ * Returns the numeric value, or null if cancelled.
+ */
+async function _promptNetDv(targetName) {
+  const { promise, resolve } = Promise.withResolvers();
+  const dialog = new foundry.applications.api.DialogV2({
+    window: { title: game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.DvDialogTitle') },
+    content: `<div class="cyberpunk-blue">
+      <p>${game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.DvDialogHint', { target: targetName })}</p>
+      <label>${game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.DvDialogLabel')}
+        <input type="number" id="net-dv-input" value="15" min="0" style="width:4rem;margin-left:.4rem;" />
+      </label>
+    </div>`,
+    buttons: [
+      {
+        action: 'ok',
+        label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Confirm'),
+        icon: 'fas fa-bolt',
+        default: true,
+        callback: (event, button, html) => resolve(Number(html.querySelector('#net-dv-input')?.value) || 0),
+      },
+      {
+        action: 'cancel',
+        label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Cancel'),
+        icon: 'fas fa-times',
+        callback: () => resolve(null),
+      },
+    ],
+    submit: (result) => resolve(result),
+  });
+  dialog.addEventListener('close', () => resolve(null), { once: true });
+  dialog.render(true);
+  return promise;
+}
+
+/**
+ * Sync the REZ value from a temporary Program Actor back to its source Executable item.
+ * Returns false if the actor is not a temp program actor.
+ */
+export async function syncRezToExecutable(programActor, newRezValue) {
+  const netrunnerActorId = programActor.getFlag('cyberpunk-blue', 'programActorFor');
+  const exeItemId        = programActor.getFlag('cyberpunk-blue', 'programExecutableId');
+  if (!netrunnerActorId || !exeItemId) return false;
+
+  const netrunnerActor = game.actors.get(netrunnerActorId);
+  const exeItem        = netrunnerActor?.items.get(exeItemId);
+  if (!exeItem || exeItem.type !== 'programExecutable') return false;
+
+  await exeItem.update({ 'system.rez.value': Math.max(Number(newRezValue) || 0, 0) });
+  return true;
+}
+
+/**
+ * Apply the ##ERROR## state to a Program Actor whose REZ has reached 0.
+ * Idempotent — safe to call if the state is already applied.
+ */
+export async function applyErrorState(programActor) {
+  if (!programActor) return;
+  const existing = programActor.effects.find(
+    (e) => e.getFlag('cyberpunk-blue', 'isErrorState'),
+  );
+  if (existing) return;
+
+  await programActor.createEmbeddedDocuments('ActiveEffect', [{
+    name: '##ERROR##',
+    icon: 'icons/svg/skull.svg',
+    disabled: false,
+    transfer: false,
+    changes: [],
+    statuses: ['dead'],
+    flags: { 'cyberpunk-blue': { isErrorState: true } },
+  }]);
+
+  // Tint the token red in any scene it appears in
+  for (const scene of game.scenes) {
+    const tok = scene.tokens.find((t) => t.actorId === programActor.id);
+    if (tok) await tok.update({ 'light.color': '#ff0000', 'light.alpha': 0.4, disposition: CONST.TOKEN_DISPOSITIONS.HOSTILE });
+  }
+
+  ChatMessage.create({
+    content: `<div class="cyberpunk-blue chat-card">
+      <h3><i class="fas fa-triangle-exclamation"></i> ##ERROR##</h3>
+      <p><strong>${programActor.name}</strong> ${game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.ErrorStateMsg')}</p>
+    </div>`,
   });
 }
