@@ -148,13 +148,14 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     context.canManageRestricted = canManageRestricted;
     context.isNPC = actorData.type === 'npc';
     context.itemTypes = CONFIG.CYBER_BLUE.itemTypes;
-    const moveEntry = { slug: 'move', ...CONFIG.CYBER_BLUE.stats.move, value: system.stats.move.value };
+    const moveEntry = { slug: 'move', ...CONFIG.CYBER_BLUE.stats.move, value: system.stats.move.value, iconPath: 'systems/cyberpunk-blue/assets/icons/bk_MOVE.svg' };
     context.stats = Object.entries(CONFIG.CYBER_BLUE.stats)
       .filter(([slug]) => slug !== 'move')
       .map(([slug, data]) => ({
         slug,
         ...data,
         value: system.stats[slug].value,
+        iconPath: `systems/cyberpunk-blue/assets/icons/bk_${slug.toUpperCase()}.svg`,
       }));
     if (context.isNPC) {
       context.stats = [...context.stats, moveEntry];

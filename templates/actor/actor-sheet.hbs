@@ -5,13 +5,20 @@
       <h1 class="charname">
         <input name="name" type="text" value="{{actor.name}}" placeholder="Name" />
       </h1>
-      <div class="header-stats {{#if charCreation.highlightStats}}char-creation-highlight{{/if}}">
-        {{#each stats as |stat|}}
-          <label class="header-stat" title="{{stat.label}}">
-            <span class="stat-short">{{stat.shortLabel}}</span>
-            <input type="number" name="system.stats.{{stat.slug}}.value" value="{{stat.value}}" data-dtype="Number" {{#unless ../charCreation.statsWritable}}disabled{{/unless}} />
-          </label>
-        {{/each}}
+      <div class="header-stats-row">
+        <div class="header-stats {{#if charCreation.highlightStats}}char-creation-highlight{{/if}}">
+          {{#each stats as |stat|}}
+            <label class="header-stat" title="{{stat.label}}">
+              <img class="stat-icon" src="{{stat.iconPath}}" alt="{{stat.shortLabel}}" />
+              <span class="stat-short">{{stat.shortLabel}}</span>
+              <input type="number" name="system.stats.{{stat.slug}}.value" value="{{stat.value}}" data-dtype="Number" {{#unless ../charCreation.statsWritable}}disabled{{/unless}} />
+            </label>
+          {{/each}}
+        </div>
+        <div class="header-money">
+          <span class="stat-short">€$</span>
+          <input type="text" data-action="update-money" value="{{system.money}}" placeholder="0" title="Eurobucks — arithmetic OK (e.g. 500-50)" />
+        </div>
       </div>
     </div>
   </header>
@@ -170,10 +177,6 @@
           </div>
         {{/if}}
 
-        <div class="sheet-panel stat-card money-card">
-          <span class="stat-short">€$</span>
-          <input type="text" data-action="update-money" value="{{system.money}}" placeholder="0" title="Eurobucks — arithmetic OK (e.g. 500-50)" style="width:5rem;text-align:right;" />
-        </div>
       </section>
 
       {{#if combatWeapons.length}}

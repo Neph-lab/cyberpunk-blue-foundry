@@ -231,11 +231,20 @@ section.chat-sidebar:not(.sidebar-popout),
   gap: 0.35rem;
 }
 
+.cyberpunk-blue .header-stats-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.cyberpunk-blue .header-stats-row .header-stats {
+  flex: 1;
+}
+
 .cyberpunk-blue .header-stats {
   display: grid;
   gap: 0.35rem;
   grid-template-columns: repeat(5, minmax(72px, 1fr));
-  max-width: 560px;
 }
 
 .cyberpunk-blue .header-stat {
@@ -243,6 +252,33 @@ section.chat-sidebar:not(.sidebar-popout),
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+}
+
+.cyberpunk-blue .stat-icon {
+  filter: invert(1);
+  height: 26px;
+  opacity: 0.85;
+  width: 26px;
+}
+
+.cyberpunk-blue .header-money {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 5.5rem;
+}
+
+.cyberpunk-blue .header-money .stat-short {
+  color: var(--cpb-accent-strong);
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.cyberpunk-blue .header-money input {
+  text-align: right;
+  width: 5rem;
 }
 
 .cyberpunk-blue .charname {
@@ -1677,6 +1713,9 @@ section.chat-sidebar:not(.sidebar-popout),
   .cyberpunk-blue .overview-grid,
   .cyberpunk-blue .header-stats {
     grid-template-columns: 1fr;
+  }
+  .cyberpunk-blue .header-stats-row {
+    flex-wrap: wrap;
   }
   .cyberpunk-blue .skill-row,
   .cyberpunk-blue .component-row,
