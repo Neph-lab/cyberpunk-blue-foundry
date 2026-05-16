@@ -475,6 +475,136 @@ ChatMessage.create({
 })();
 `;
 
+// ─── Apply Table Effect macro ─────────────────────────────────────────────────
+
+export const APPLY_TABLE_EFFECT_MACRO = `
+(async () => {
+// ── Apply Table Effect ────────────────────────────────────────────────────────
+// GM macro. Select one or more tokens, then run.
+// Rolls on a chosen world Roll Table and applies an AE named after the result
+// to every selected token's actor. The AE carries a rollTableEffect flag so it
+// can be bulk-removed with the "Remove Table Effects" macro.
+
+if (!game.user.isGM) { ui.notifications.warn('This macro is for GMs only.'); return; }
+
+const tokens = canvas.tokens.controlled;
+if (!tokens.length) { ui.notifications.warn('Select one or more tokens first.'); return; }
+
+const tables = game.tables.contents;
+if (!tables.length) { ui.notifications.warn('No Roll Tables found in this world.'); return; }
+
+// Build table picker options
+const tableOptions = tables
+  .sort((a, b) => a.name.localeCompare(b.name))
+  .map(t => \`<option value="\${t.id}">\${t.name}</option>\`)
+  .join('');
+
+const chosenId = await new Promise((resolve) => {
+  const dialog = new foundry.applications.api.DialogV2({
+    window: { title: 'Apply Table Effect' },
+    content: \`<div class="cyberpunk-blue" style="padding:.5rem 0;">
+      <label style="display:flex;gap:.5rem;align-items:center;">
+        <span style="min-width:6rem;">Roll Table:</span>
+        <select name="tableId" style="flex:1;">\${tableOptions}</select>
+      </label>
+    </div>\`,
+    buttons: [
+      { action: 'roll', label: 'Roll & Apply', default: true,
+        callback: (_e, btn) => btn.form.elements.tableId.value },
+      { action: 'cancel', label: 'Cancel', callback: () => null },
+    ],
+    submit: resolve,
+  });
+  dialog.addEventListener('close', () => resolve(null), { once: true });
+  dialog.render(true);
+});
+if (!chosenId) return;
+
+const table = game.tables.get(chosenId);
+if (!table) return;
+
+// Roll on the table (suppress default chat message — we'll make our own)
+const draw = await table.draw({ displayChat: false });
+const result = draw.results[0];
+if (!result) { ui.notifications.warn('Table returned no result.'); return; }
+
+const effectName = result.text || result.description || 'Unknown Effect';
+
+// Apply AE to each selected token's actor
+const applied = [];
+for (const token of tokens) {
+  const actor = token.actor;
+  if (!actor) continue;
+  await actor.createEmbeddedDocuments('ActiveEffect', [{
+    name: effectName,
+    icon: 'icons/svg/aura.svg',
+    changes: [],
+    flags: {
+      'cyberpunk-blue': {
+        rollTableEffect: true,
+        rollTableId: table.id,
+        rollTableName: table.name,
+      },
+    },
+  }]);
+  applied.push(actor.name);
+}
+
+if (!applied.length) { ui.notifications.warn('No valid actors on selected tokens.'); return; }
+
+ChatMessage.create({
+  content: \`<div class="cyberpunk-blue chat-card">
+    <h3><i class="fas fa-dice"></i> \${table.name}</h3>
+    <p><strong>Result:</strong> \${effectName}</p>
+    <p><em>Applied to: \${applied.join(', ')}</em></p>
+  </div>\`,
+});
+})();
+`;
+
+// ─── Remove Table Effects macro ───────────────────────────────────────────────
+
+export const REMOVE_TABLE_EFFECTS_MACRO = `
+(async () => {
+// ── Remove Table Effects ──────────────────────────────────────────────────────
+// GM macro. Select one or more tokens, then run.
+// Removes all AEs that were applied by the "Apply Table Effect" macro
+// (identified by the rollTableEffect flag on the AE).
+
+if (!game.user.isGM) { ui.notifications.warn('This macro is for GMs only.'); return; }
+
+const tokens = canvas.tokens.controlled;
+if (!tokens.length) { ui.notifications.warn('Select one or more tokens first.'); return; }
+
+let totalRemoved = 0;
+const summary = [];
+
+for (const token of tokens) {
+  const actor = token.actor;
+  if (!actor) continue;
+  const toDelete = actor.effects
+    .filter(e => e.getFlag('cyberpunk-blue', 'rollTableEffect'))
+    .map(e => e.id);
+  if (!toDelete.length) continue;
+  await actor.deleteEmbeddedDocuments('ActiveEffect', toDelete);
+  totalRemoved += toDelete.length;
+  summary.push(\`\${actor.name}: \${toDelete.length} removed\`);
+}
+
+if (!totalRemoved) {
+  ui.notifications.warn('No table effects found on selected tokens.');
+  return;
+}
+
+ChatMessage.create({
+  content: \`<div class="cyberpunk-blue chat-card">
+    <h3><i class="fas fa-eraser"></i> Table Effects Removed</h3>
+    <ul style="margin:.3rem 0 0 1rem;">\${summary.map(s => \`<li>\${s}</li>\`).join('')}</ul>
+  </div>\`,
+});
+})();
+`;
+
 // ─── Catalogue ────────────────────────────────────────────────────────────────
 
 export const MACRO_CATALOGUE = [
@@ -505,5 +635,19 @@ export const MACRO_CATALOGUE = [
     img: 'icons/svg/sun.svg',
     command: NATURAL_HEALING_MACRO,
     _folder: 'Medical',
+  },
+  {
+    name: 'Apply Table Effect',
+    type: 'script',
+    img: 'icons/svg/dice-target.svg',
+    command: APPLY_TABLE_EFFECT_MACRO,
+    _folder: 'Combat Effects',
+  },
+  {
+    name: 'Remove Table Effects',
+    type: 'script',
+    img: 'icons/svg/cancel.svg',
+    command: REMOVE_TABLE_EFFECTS_MACRO,
+    _folder: 'Combat Effects',
   },
 ];

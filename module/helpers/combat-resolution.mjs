@@ -606,11 +606,48 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     return;
   }
 
-  if (!hit) return;
+  // ── ISA miss-redirect (Malorian Arms Sonnet beacon system) ───────────────
+  // Smart weapons that miss by ≤5 check if the target has a Beacon Tag AE.
+  // If so the ISA round self-guides: consume the tag and treat the attack as a hit.
+  let beaconRedirected = false;
+  if (!hit && weapon.isSmartWeapon && resolvedDV !== null) {
+    const missMargin = resolvedDV - attackRoll.total;
+    if (missMargin > 0 && missMargin <= 5 && targetActor) {
+      const beaconAE = targetActor.effects.find((e) => e.getFlag('cyberpunk-blue', 'beaconTagged'));
+      if (beaconAE) {
+        beaconRedirected = true;
+        await beaconAE.delete();
+        ChatMessage.create({
+          speaker: ChatMessage.getSpeaker({ actor: attacker }),
+          content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-crosshairs"></i> <strong>${game.i18n.localize('CYBER_BLUE.Combat.BeaconRedirect')}</strong> — ${item.name} ${game.i18n.format('CYBER_BLUE.Combat.BeaconRedirectDetail', { target: targetActor.name, margin: missMargin })}</p></div>`,
+        });
+      }
+    }
+  }
+  if (!hit && !beaconRedirected) return;
 
   // ── Chomp Ammo (KTech Terrier): stick ammo to target on SS hit ────────────
   if ((weapon.chompAmmo ?? false) && targetToken) {
     await _setChompPending(attacker, targetToken);
+  }
+
+  // ── Beacon weapon: tag the target with a Beacon Tag AE ───────────────────
+  // When a Tracker Dart (isBeaconWeapon) hits, apply a Beacon Tag AE to the
+  // target. The tag is consumed by the first ISA near-miss from any smart weapon.
+  if ((weapon.isBeaconWeapon ?? false) && targetActor) {
+    const existingTag = targetActor.effects.find((e) => e.getFlag('cyberpunk-blue', 'beaconTagged'));
+    if (!existingTag) {
+      await targetActor.createEmbeddedDocuments('ActiveEffect', [{
+        name: game.i18n.localize('CYBER_BLUE.Combat.BeaconTagName'),
+        icon: 'icons/svg/target.svg',
+        changes: [],
+        flags: { 'cyberpunk-blue': { beaconTagged: true } },
+      }]);
+    }
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-location-crosshairs"></i> <strong>${targetActor.name}</strong> ${game.i18n.localize('CYBER_BLUE.Combat.BeaconTagApplied')}</p></div>`,
+    });
   }
 
   // ── Solo Spot Weakness / Ninja Weak-Spot: SP bypass on first hit ──────────

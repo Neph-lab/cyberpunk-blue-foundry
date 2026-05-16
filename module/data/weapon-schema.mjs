@@ -42,6 +42,7 @@ export function buildWeaponField() {
     isSmartWeapon: new fields.BooleanField({ initial: false }),
     isTechWeapon: new fields.BooleanField({ initial: false }),
     isExcellentQuality: new fields.BooleanField({ initial: false }),
+    isBeaconWeapon: new fields.BooleanField({ initial: false }),
 
     // ── Tech Weapon charge mechanic ───────────────────────────────────────
     // 'keep' (most TW): charges without consuming Move; holds 60s/20rnd

@@ -142,6 +142,7 @@ function entry(opts = {}) {
     afflictionDv: opts.afflictionDv ?? 13,
     afflictionEffectId: opts.afflictionEffectId ?? '',
     outerZoneResistBonus: opts.outerZoneResistBonus ?? 2,
+    isBeaconWeapon: !!opts.isBeaconWeapon,
   };
 }
 
@@ -235,9 +236,9 @@ const pistols = [
   weaponItem({ name: 'Malorian Arms Sonnet', manufacturer: 'Malorian Arms', cost: 'EX', imgPath: img(W_PISTOL, 'Maloran Arms Sonnet.png'),
     weapons: [
       entry({ ...HP_BASE, magazine: 12, smart: true }),
-      entry({ type: 'heavyPistol', damage: '1d6', rateOfFire: 1, magazine: 2, hands: 1, concealable: true, rangeTable: R.pistol, shots: 1, smart: true }),
+      entry({ type: 'heavyPistol', damage: '1d6', rateOfFire: 1, magazine: 2, hands: 1, concealable: true, rangeTable: R.pistol, shots: 1, smart: true, isBeaconWeapon: true }),
     ],
-    description: desc('Smart Weapon. Mode 2: tracker dart (1d6, ammo 2) — tags target for ISA miss-redirect (ISA miss ≤5 vs beacon-tagged target: roll 1d10+15 to redirect; GM-handled).') }),
+    description: desc('Smart Weapon. Mode 2: Tracker Dart (1d6, ammo 2) — on hit, applies Beacon Tag to target. ISA mode (mode 1): misses by ≤5 vs a Beacon Tagged target automatically redirect to hit.') }),
   weaponItem({ name: 'Sanroo Hello Cutie+', manufacturer: 'Sanroo', cost: 'VEX', imgPath: img(W_PISTOL, 'Sanroo-Hello-Cutie.png'),
     weapons: [entry({ ...HP_BASE, magazine: 12, tech: true, chargeType: 'hold', cs3: true, cs3FallbackDamage: '2d6', chargedAttackBonus: 2 })],
     description: desc('Tech Weapon (HOLD charge). Charged Shot 3. Stabilizers: +2 attacks while charged.') }),

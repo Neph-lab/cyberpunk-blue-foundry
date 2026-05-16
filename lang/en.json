@@ -626,6 +626,10 @@
       "ElectricChargeDepleted": "{weapon}: electric charge battery depleted.",
       "HomingGuidance": "{weapon} missed by ≤7 ({scatter}m scatter) — homing guidance active; rocket may still detonate near target (GM discretion).",
       "MinAmmoToFire": "{weapon} requires at least {min} ammo to fire (currently {current}).",
+      "BeaconRedirect": "ISA Miss-Redirect!",
+      "BeaconRedirectDetail": "missed {target} by {margin} — Beacon Tag consumed. Round self-guides to target!",
+      "BeaconTagApplied": "is now Beacon Tagged. The next ISA near-miss (≤5) will self-guide to this target.",
+      "BeaconTagName": "Beacon Tagged",
       "ChompAmmoStuck": "Chomp ammo stuck to {target} — detonates at end of attacker's next turn.",
       "ChompAmmoDetonate": "Chomp Ammo Detonation!",
       "ChompAmmoDmg": "1d6 ({dmg}) damage to everyone within 2m of {target}."

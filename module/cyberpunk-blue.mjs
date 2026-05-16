@@ -1758,8 +1758,13 @@ async function _syncWeaponEntries(catalogue) {
         (cur.outerZoneResistBonus ?? 2) !== (cw.outerZoneResistBonus ?? 2)
       );
     });
+    // Batch 13: isBeaconWeapon
+    const batch13FieldsChanged = catalogueWeapons.some((cw, i) => {
+      const cur = currentWeapons[i] ?? {};
+      return !!cur.isBeaconWeapon !== !!cw.isBeaconWeapon;
+    });
 
-    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged || batch9FieldsChanged || batch10FieldsChanged || batch11FieldsChanged || batch12FieldsChanged) {
+    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged || batch9FieldsChanged || batch10FieldsChanged || batch11FieldsChanged || batch12FieldsChanged || batch13FieldsChanged) {
       updates.push({ _id: doc.id, 'system.weapons': catalogueWeapons });
     }
 
