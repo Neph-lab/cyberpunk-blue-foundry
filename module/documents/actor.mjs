@@ -9,6 +9,23 @@ export class CyberBlueActor extends Actor {
   prepareDerivedData() {
     super.prepareDerivedData();
 
+    // ── Ability-item bonuses ──────────────────────────────────────────────────
+    // Sanity: +3 PSYCHE max per rank (added on top of the base-actor computed max).
+    // Reaction Speed: +1 initiative-only bonus per rank (stacks with AE contributions).
+    if (this.type === 'character' || this.type === 'npc') {
+      let sanityPsyche = 0;
+      let reactionSpeedInit = 0;
+      for (const item of (this.items?.contents ?? [])) {
+        if (item.type !== 'ability') continue;
+        const rank = Number(item.system?.rank) || 0;
+        if (rank <= 0) continue;
+        if (item.name === 'Sanity') sanityPsyche += rank * 3;
+        if (item.name === 'Reaction Speed') reactionSpeedInit += rank;
+      }
+      if (sanityPsyche > 0) this.system.resources.psyche.max += sanityPsyche;
+      if (reactionSpeedInit > 0) this.system.initiativeBonus += reactionSpeedInit;
+    }
+
     // Compute netActionsTotal from role items (on top of any AE-applied base).
     // Netrunner: +1 + ceil(rank/3). Operative Infiltration ≥ 5: +1.
     // AEs (e.g. Runner-speed) add to the schema-default 0 before this runs,

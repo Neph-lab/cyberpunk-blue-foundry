@@ -32,8 +32,14 @@
           </button>
         {{/if}}
         {{#if lifepath.tables.length}}
+          {{#if lifepath.fromCompendium}}
+            <p class="hint cc-compendium-note"><i class="fas fa-book"></i> {{localize "CYBER_BLUE.CC.Lifepath.FromCompendium"}}</p>
+          {{/if}}
           <div class="cc-table-list">
             {{#each lifepath.tables as |t|}}
+              {{#if t.groupLabel}}
+                <span class="cc-table-group-label">{{t.groupLabel}}</span>
+              {{/if}}
               <button type="button" class="cc-roll-btn" data-action="roll-table" data-table-id="{{t.id}}">
                 <i class="fas fa-dice-d6"></i> {{t.name}}
               </button>
@@ -201,6 +207,9 @@
         {{#if roles.noRoles}}
           <p class="hint">{{localize "CYBER_BLUE.CC.Role.NoRoles"}}</p>
         {{else}}
+          {{#if roles.fromCompendium}}
+            <p class="hint cc-compendium-note"><i class="fas fa-book"></i> {{localize "CYBER_BLUE.CC.Role.FromCompendium"}}</p>
+          {{/if}}
           <div class="cc-role-list">
             {{#each roles.list as |r|}}
               <div class="cc-role-row">
@@ -215,6 +224,25 @@
         <div class="cc-footer">
           <button type="button" class="cc-btn-secondary" data-action="cc-back">
             <i class="fas fa-arrow-left"></i> {{localize "CYBER_BLUE.CC.Button.Back"}}
+          </button>
+        </div>
+      </div>
+    {{/if}}
+
+    {{!-- NAME --}}
+    {{#if (eq step "name")}}
+      <div class="cc-step-panel cc-name">
+        <p>{{localize "CYBER_BLUE.CC.Name.Prompt"}}</p>
+        <div class="cc-name-input">
+          <input type="text" id="cc-name-input" value="{{characterName}}"
+            placeholder="{{localize "CYBER_BLUE.CC.Name.Placeholder"}}" autocomplete="off" />
+        </div>
+        <div class="cc-footer">
+          <button type="button" class="cc-btn-secondary" data-action="cc-back">
+            <i class="fas fa-arrow-left"></i> {{localize "CYBER_BLUE.CC.Button.Back"}}
+          </button>
+          <button type="button" class="cc-btn-primary" data-action="cc-finish">
+            <i class="fas fa-check"></i> {{localize "CYBER_BLUE.CC.Button.Finish"}}
           </button>
         </div>
       </div>

@@ -215,9 +215,25 @@
       "path": "packs/roles",
       "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
       "flags": {}
+    },
+    {
+      "name": "abilities",
+      "label": "Abilities",
+      "type": "Item",
+      "path": "packs/abilities",
+      "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
+      "flags": {}
+    },
+    {
+      "name": "lifepath-tables",
+      "label": "Lifepath Tables",
+      "type": "RollTable",
+      "path": "packs/lifepath-tables",
+      "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
+      "flags": {}
     }
   ],
-  "initiative": "1d10 + @stats.rflx.value",
+  "initiative": "1d10 + @stats.rflx.value + @initiativeBonus",
   "manifest": "https://raw.githubusercontent.com/Neph-lab/cyberpunk-blue-foundry/main/system.json",
   "download": "https://github.com/Neph-lab/cyberpunk-blue-foundry/archive/refs/heads/main.zip",
   "background": "systems/cyberpunk-blue/assets/anvil-impact.png",

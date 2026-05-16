@@ -1,0 +1,54 @@
+/**
+ * Ability item definitions for the cyberpunk-blue.abilities compendium.
+ * Seeded on first load by ensureAbilityCatalogue() in cyberpunk-blue.mjs.
+ */
+export const ABILITY_CATALOGUE = [
+  {
+    _id: 'AbilLanguage000000',
+    name: 'Language',
+    type: 'ability',
+    img: 'icons/skills/social/diplomacy-handshake.webp',
+    system: {
+      rank: 0,
+      maxRank: 2,
+      description: '<p>The first rank in a language represents a partial understanding and expression. The second rank represents a full understanding and fluency.</p><p>When added, rename this ability to <strong>Language: [name]</strong> (e.g. "Language: English").</p>',
+      note: '',
+    },
+  },
+  {
+    _id: 'AbilSanity00000000',
+    name: 'Sanity',
+    type: 'ability',
+    img: 'icons/magic/life/heart-glowing-green.webp',
+    system: {
+      rank: 0,
+      maxRank: 10,
+      description: '<p>When gaining a rank in this Ability, both current and max PSYCHE increase by 3.</p>',
+      note: '',
+    },
+  },
+  {
+    _id: 'AbilLipReading0000',
+    name: 'Lip-Reading',
+    type: 'ability',
+    img: 'icons/magic/perception/eye-ringed-glow-yellow.webp',
+    system: {
+      rank: 0,
+      maxRank: 10,
+      description: '<p>This ability has 10 levels and acts as if it was a component wired to the Perception skill. Successfully observing someone\'s lips as they speak allows you to know what they\'re saying.</p>',
+      note: '',
+    },
+  },
+  {
+    _id: 'AbilReactSpeed0000',
+    name: 'Reaction Speed',
+    type: 'ability',
+    img: 'icons/skills/movement/arrow-upward-yellow.webp',
+    system: {
+      rank: 0,
+      maxRank: 3,
+      description: '<p>This ability can be increased to a total of three ranks. Each rank adds +1 to Initiative rolls. This bonus applies only to Initiative — not to other uses of RFLX.</p>',
+      note: '',
+    },
+  },
+];

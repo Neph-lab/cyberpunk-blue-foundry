@@ -45,6 +45,8 @@ import { DRUG_CATALOGUE } from './data/drug-catalogue.mjs';
 import { PROGRAM_CATALOGUE } from './data/program-catalogue.mjs';
 import { AMMO_CATALOGUE } from './data/ammo-catalogue.mjs';
 import { ROLE_CATALOGUE } from './data/role-catalogue.mjs';
+import { ABILITY_CATALOGUE } from './data/ability-catalogue.mjs';
+import { LIFEPATH_CATALOGUE } from './data/lifepath-catalogue.mjs';
 import { registerSocketHandlers, applyDamageWithPermission } from './helpers/socket.mjs';
 import { syncRoleGrantedItemGroups } from './helpers/world-init.mjs';
 import { refreshAllRicochetLines, clearRicochetLine } from './helpers/ricochet-canvas.mjs';
@@ -98,7 +100,9 @@ Hooks.once('init', function () {
   CONFIG.CYBER_BLUE = CYBER_BLUE;
   CONFIG.Combat.initiative = {
     // Include rollMod so AEs (Seriously Wounded, Kerenzikov, tactic bonuses) affect initiative.
-    formula: '1d10 + @stats.rflx.value + @stats.rflx.rollMod',
+    // initiativeBonus is separate from RFLX rollMod so it only affects initiative rolls,
+    // not other RFLX-based checks (e.g. Reaction Speed ability).
+    formula: '1d10 + @stats.rflx.value + @stats.rflx.rollMod + @initiativeBonus',
     decimals: 0,
   };
 
@@ -1068,6 +1072,8 @@ Hooks.once('ready', async () => {
   await ensureAmmoCatalogue();
   await ensureEquipmentCatalogue();
   await ensureRoleCatalogue();
+  await ensureAbilityCatalogue();
+  await ensureLifepathCatalogue();
   await ensureMacroCatalogue();
 
   // On the first GM login, sync role starting gear to the compendium
@@ -1146,6 +1152,36 @@ Handlebars.registerHelper('and', function (...args) {
 
 Handlebars.registerHelper('or', function (...args) {
   return args.slice(0, -1).some(Boolean);
+});
+
+// ── Language ability: prompt for language name when one is added to an actor ──
+Hooks.on('preCreateItem', (document, _data, options, _userId) => {
+  // Only intercept embedded ability items named exactly 'Language'
+  if (document.type !== 'ability') return;
+  if (document.name !== 'Language') return;
+  if (!document.parent) return;                // not embedded on an actor
+  if (options._languageNamed) return;          // recursion guard
+
+  // Cancel the current creation, then prompt and re-create asynchronously.
+  setTimeout(async () => {
+    const result = await foundry.applications.api.DialogV2.prompt({
+      window: { title: game.i18n.localize('CYBER_BLUE.Ability.Language.ChooseTitle') },
+      content: `<p>${game.i18n.localize('CYBER_BLUE.Ability.Language.ChoosePrompt')}</p>
+        <input type="text" name="language" autofocus placeholder="${game.i18n.localize('CYBER_BLUE.Ability.Language.ChoosePlaceholder')}" />`,
+      ok: {
+        label: game.i18n.localize('CYBER_BLUE.Ability.Language.ChooseConfirm'),
+        callback: (_event, button) => button.form.elements.language.value.trim(),
+      },
+    });
+    if (!result) return;
+    const newName = `Language: ${result}`;
+    const base = foundry.utils.deepClone(document.toObject());
+    base.name = newName;
+    delete base._id;
+    await document.parent.createEmbeddedDocuments('Item', [base], { _languageNamed: true });
+  }, 0);
+
+  return false; // cancel original creation
 });
 
 Hooks.once('ready', () => {
@@ -2426,6 +2462,113 @@ async function _syncRoleEntries() {
   try {
     await Item.updateDocuments(toUpdate, { pack: PACK_ID });
     console.log(`Cyberpunk Blue | Role entries synced: ${toUpdate.length} roles updated.`);
+  } finally {
+    await pack.configure({ locked: true });
+  }
+}
+
+// ─── Ability catalogue ────────────────────────────────────────────────────────
+
+async function ensureAbilityCatalogue() {
+  if (!game.user.isGM) return;
+  const PACK_ID = 'cyberpunk-blue.abilities';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) {
+    console.warn('Cyberpunk Blue | Abilities compendium not found — skipping auto-populate.');
+    return;
+  }
+  await pack.getIndex();
+
+  if (pack.index.size > 0) {
+    // Sync description and maxRank fields from catalogue
+    const byId = new Map(ABILITY_CATALOGUE.map((a) => [a._id, a]));
+    const toUpdate = [];
+    for (const entry of pack.index) {
+      const cat = byId.get(entry._id);
+      if (!cat) continue;
+      toUpdate.push({
+        _id: entry._id,
+        img: cat.img,
+        'system.maxRank': cat.system.maxRank,
+        'system.description': cat.system.description,
+      });
+    }
+    if (toUpdate.length > 0) {
+      await pack.configure({ locked: false });
+      try {
+        await Item.updateDocuments(toUpdate, { pack: PACK_ID });
+      } finally {
+        await pack.configure({ locked: true });
+      }
+    }
+    return;
+  }
+
+  console.log('Cyberpunk Blue | Populating abilities compendium…');
+  await pack.configure({ locked: false });
+  try {
+    const cleaned = ABILITY_CATALOGUE.map((a) => {
+      const copy = foundry.utils.deepClone(a);
+      // Keep _id so the UUID links in wizard code remain stable
+      return copy;
+    });
+    const docs = await Item.createDocuments(cleaned, { pack: PACK_ID });
+    console.log(`Cyberpunk Blue | Abilities compendium populated: ${docs.length} abilities.`);
+    if (docs.length > 0) ui.notifications.info(`Cyberpunk Blue: Abilities catalogue imported (${docs.length} abilities).`);
+  } catch (err) {
+    console.error('Cyberpunk Blue | Failed to populate abilities compendium:', err);
+  } finally {
+    await pack.configure({ locked: true });
+  }
+}
+
+// ─── Lifepath table catalogue ─────────────────────────────────────────────────
+
+async function _ensureRollTableFolderInPack(pack, name) {
+  const existing = pack.folders.find((f) => f.name === name);
+  if (existing) return existing;
+  return Folder.create({ name, type: 'RollTable', sorting: 'a', color: null }, { pack: pack.collection });
+}
+
+async function ensureLifepathCatalogue() {
+  if (!game.user.isGM) return;
+  const PACK_ID = 'cyberpunk-blue.lifepath-tables';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) {
+    console.warn('Cyberpunk Blue | Lifepath tables compendium not found — skipping auto-populate.');
+    return;
+  }
+  await pack.getIndex();
+  if (pack.index.size > 0) return; // already populated
+
+  console.log('Cyberpunk Blue | Populating lifepath tables compendium…');
+
+  // Group by folder (role name)
+  const byFolder = new Map();
+  for (const table of LIFEPATH_CATALOGUE) {
+    const folderName = table._folder ?? 'General';
+    if (!byFolder.has(folderName)) byFolder.set(folderName, []);
+    byFolder.get(folderName).push(table);
+  }
+
+  let created = 0;
+  await pack.configure({ locked: false });
+  try {
+    for (const [folderName, tables] of byFolder.entries()) {
+      const folder = await _ensureRollTableFolderInPack(pack, folderName);
+      const cleaned = tables.map((t) => {
+        const copy = foundry.utils.deepClone(t);
+        delete copy._folder;
+        copy.folder = folder?.id ?? null;
+        return copy;
+      });
+      const docs = await RollTable.createDocuments(cleaned, { pack: PACK_ID });
+      created += docs.length;
+    }
+    console.log(`Cyberpunk Blue | Lifepath tables compendium populated: ${created} tables.`);
+    if (created > 0) ui.notifications.info(`Cyberpunk Blue: Lifepath tables imported (${created} tables).`);
+  } catch (err) {
+    console.error('Cyberpunk Blue | Failed to populate lifepath tables compendium:', err);
   } finally {
     await pack.configure({ locked: true });
   }

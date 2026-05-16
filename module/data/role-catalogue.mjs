@@ -49,50 +49,13 @@ export const BANDIT = role({
   description: `<p>Dealing with street gangs is a fact of life for those living on the Street. Some are hardened veterans who have survived years of street conflict and grown wise and cynical. Others are fresh-faced wannabes who fantasize about a life of violence and crime. In time, a Bandit might actually become a small power in the criminal underworld of a city — maybe even running their own crew, owning turf, and having their name be something whispered about in fear.</p>
 <p>A combination of the Bandit's ability to handle the rough side of The Street and the contacts they have within their gang defines them. Attitude counts for a lot among the criminal element — in a gang, it is all you really have.</p>
 <blockquote><em>Ya strong 'nuff to chrome up? Split some nerves?</em><br>∆ Maelstrom recruiter</blockquote>`,
-  lifepathLinks: `<h3>What kind of gang are you in?</h3>
-<table><thead><tr><th>1d10</th><th>Type of Gang</th></tr></thead><tbody>
-<tr><td>1</td><td>Poser gang for a specific style (1d6: 1: steampunk, 2: glamor/glitter, 3: gothic rock, 4: film noir, 5: classic movie, 6: a specific artist)</td></tr>
-<tr><td>2</td><td>Booster gang that praises cybernetic enhancements.</td></tr>
-<tr><td>3</td><td>A violent power gang where might is the goal.</td></tr>
-<tr><td>4</td><td>Exotic poser gang using body sculpting for a non-human appearance.</td></tr>
-<tr><td>5</td><td>Chemical booster gang. Emphasis on combat drugs and bio-enhancements.</td></tr>
-<tr><td>6</td><td>Idealists who see themselves as ultimate protectors of the innocent.</td></tr>
-<tr><td>7</td><td>Members joined only from disdain for other gangs; temporary alliance.</td></tr>
-<tr><td>8</td><td>The gang is centered around a family or bloodline.</td></tr>
-<tr><td>9</td><td>Doomsday cult or conspiracy theorist group.</td></tr>
-<tr><td>10</td><td>Cult worshipping some obscure entity or alternative religion.</td></tr>
-</tbody></table>
-<h3>When things go wrong, the gang uses...</h3>
-<table><thead><tr><th>1d6</th><th>Methods</th></tr></thead><tbody>
-<tr><td>1</td><td>Murder.</td></tr><tr><td>2</td><td>Blackmail and coercion.</td></tr>
-<tr><td>3</td><td>Fear.</td></tr><tr><td>4</td><td>Dependency (drugs or cyberware).</td></tr>
-<tr><td>5</td><td>Kidnapping.</td></tr><tr><td>6</td><td>Framing.</td></tr>
-</tbody></table>
-<h3>How does the gang make money?</h3>
-<table><thead><tr><th>1d10</th><th>Source</th></tr></thead><tbody>
-<tr><td>1</td><td>Illicit Drugs</td></tr><tr><td>2</td><td>Hacking</td></tr>
-<tr><td>3</td><td>Racketeering</td></tr><tr><td>4</td><td>Gambling</td></tr>
-<tr><td>5</td><td>Robberies</td></tr><tr><td>6</td><td>Fighting/Racing</td></tr>
-<tr><td>7</td><td>Sex Work</td></tr><tr><td>8</td><td>Scams</td></tr>
-<tr><td>9</td><td>Smuggling</td></tr><tr><td>10</td><td>Scavenging</td></tr>
-</tbody></table>
-<h3>Where is the gang's main hangout?</h3>
-<table><thead><tr><th>1d6</th><th>Hangout</th></tr></thead><tbody>
-<tr><td>1</td><td>Nightclub or Bar</td></tr><tr><td>2</td><td>Abandoned Factory</td></tr>
-<tr><td>3</td><td>Thematic to the gang type</td></tr><tr><td>4</td><td>Secret hideout</td></tr>
-<tr><td>5</td><td>Behind a legitimate business</td></tr><tr><td>6</td><td>Privately owned homestead</td></tr>
-</tbody></table>
-<h3>The gang's current boss is...</h3>
-<table><thead><tr><th>1d10</th><th>Boss</th></tr></thead><tbody>
-<tr><td>1</td><td>Violent and ruthless, but fair.</td></tr><tr><td>2</td><td>Leaves almost everything to underlings.</td></tr>
-<tr><td>3</td><td>Self-indulgent but fun.</td></tr><tr><td>4</td><td>Paranoid and scheming but effective.</td></tr>
-<tr><td>5</td><td>Prone to nepotism but caring and friendly.</td></tr>
-<tr><td>6</td><td>Just one in a long line of bosses who never survive long.</td></tr>
-<tr><td>7</td><td>A former Edgerunner until they took a bullet to the knee.</td></tr>
-<tr><td>8</td><td>In the pocket of a megacorp but pulls in eddies.</td></tr>
-<tr><td>9</td><td>A complete creep, but keeps other nasties at bay.</td></tr>
-<tr><td>10</td><td>Unclear — the boss got killed and there is a power vacuum.</td></tr>
-</tbody></table>`,
+  lifepathLinks: `<ul>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.BndtLp0100000000]{What kind of gang are you in?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.BndtLp0200000000]{When things go wrong, the gang uses...}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.BndtLp0300000000]{How does the gang make money?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.BndtLp0400000000]{Where is the gang's main hangout?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.BndtLp0500000000]{The gang's current boss is...}</li>
+</ul>`,
   lifepathQuestions: `<ul>
 <li><em>What trouble with my gang did I get you out of?</em></li>
 <li><em>Who did I attack for you?</em></li>
@@ -119,60 +82,14 @@ export const CORPO = role({
   description: `<p>The corporations rule the world. Everyone knows it, even if some try their best to deny it. It's better to work within that system and turn it to your advantage. Of course, even as a junior executive, there are those who would literally kill to get your job. And those higher up are equally willing to flatline you if they think you're gunning for their position. In some respects, the corporate world is just as bloody as the street gangs, just in nicer clothes and more polite language. The advantage is that you can have others do your dirty work for you. As long as your underlings remain loyal, at least, but if they're not, you can hire someone else to deal with that problem too.</p>
 <p>For all the wealth available to Corpos, the one thing they can rarely afford themselves is ethics. Your life has many layers of manipulation and intrigue, making it difficult to place complete trust in anyone save for a few allies. Anyone could stab you in the back at any time and your only chance to truly survive is to do the same to them as soon as you can get away with it.</p>
 <blockquote><em>We can provide great opportunities for those willing to do whatever it takes to get to the top!</em><br>∆ Alicia Jones, Recruiter for Zetatech</blockquote>`,
-  lifepathLinks: `<h3>What kind of Corp do you work for?</h3>
-<table><thead><tr><th>1d10</th><th>Type</th></tr></thead><tbody>
-<tr><td>1</td><td>Financial (e.g. Asukaga &amp; Finch)</td></tr>
-<tr><td>2</td><td>Media and Communications (e.g. Network 54)</td></tr>
-<tr><td>3</td><td>Cybertech and Medical Technologies (e.g. Kiroshi Opticals)</td></tr>
-<tr><td>4</td><td>Pharmaceuticals and Biotech (e.g. Biotechnica)</td></tr>
-<tr><td>5</td><td>Food, Clothing or General Consumables (e.g. Continental Brands)</td></tr>
-<tr><td>6</td><td>Energy Production (e.g. Petrochem)</td></tr>
-<tr><td>7</td><td>Personal Electronics and Robotics (e.g. Zetatech)</td></tr>
-<tr><td>8</td><td>Corporate Services (e.g. Arasaka)</td></tr>
-<tr><td>9</td><td>Consumer Services (e.g. Danger Girl)</td></tr>
-<tr><td>10</td><td>Real Estate and Construction (e.g. NightCorp)</td></tr>
-</tbody></table>
-<h3>What division do you work in?</h3>
-<table><thead><tr><th>1d6</th><th>Division</th></tr></thead><tbody>
-<tr><td>1</td><td>Procurement</td></tr><tr><td>2</td><td>Manufacturing</td></tr>
-<tr><td>3</td><td>Research and Development</td></tr><tr><td>4</td><td>Human Resources</td></tr>
-<tr><td>5</td><td>Public Affairs / Publicity / Advertising</td></tr>
-<tr><td>6</td><td>Mergers and Acquisitions</td></tr>
-</tbody></table>
-<h3>How ethical is your corp?</h3>
-<table><thead><tr><th>1d6</th><th>Ethics</th></tr></thead><tbody>
-<tr><td>1</td><td>Working for good, supporting ethical practices</td></tr>
-<tr><td>2</td><td>Operates as a fair and honest business</td></tr>
-<tr><td>3</td><td>Occasionally, but rarely, unethical</td></tr>
-<tr><td>4</td><td>Willing to bend the rules to get what it needs</td></tr>
-<tr><td>5</td><td>Ruthless and profit-centered</td></tr>
-<tr><td>6</td><td>Always involved in illegal and unethical business</td></tr>
-</tbody></table>
-<h3>How widespread is your corp?</h3>
-<table><thead><tr><th>1d6</th><th>Location</th></tr></thead><tbody>
-<tr><td>1</td><td>One city</td></tr><tr><td>2</td><td>Several cities</td></tr>
-<tr><td>3</td><td>Statewide</td></tr><tr><td>4</td><td>National</td></tr>
-<tr><td>5</td><td>International, offices in several major cities</td></tr>
-<tr><td>6</td><td>International, offices everywhere</td></tr>
-</tbody></table>
-<h3>Who's gunning for your team?</h3>
-<table><thead><tr><th>1d6</th><th>Enemy</th></tr></thead><tbody>
-<tr><td>1</td><td>Rival Corp in your industry</td></tr>
-<tr><td>2</td><td>Law enforcement is watching you</td></tr>
-<tr><td>3</td><td>Local Media wants to bring you down</td></tr>
-<tr><td>4</td><td>Different divisions in your company are feuding</td></tr>
-<tr><td>5</td><td>Local government doesn't like your Corp</td></tr>
-<tr><td>6</td><td>Another Corp is eyeing you for a hostile takeover</td></tr>
-</tbody></table>
-<h3>How is your boss?</h3>
-<table><thead><tr><th>1d6</th><th>Boss</th></tr></thead><tbody>
-<tr><td>1</td><td>Mentors you, but watch out for their enemies</td></tr>
-<tr><td>2</td><td>Gives you free reins and doesn't want to know what you're up to</td></tr>
-<tr><td>3</td><td>A micro-manager trying to meddle in your work</td></tr>
-<tr><td>4</td><td>Unpredictable outbursts offset by quiet paranoia</td></tr>
-<tr><td>5</td><td>Cool and has your back against rivals</td></tr>
-<tr><td>6</td><td>Feels threatened and is planning to zero you</td></tr>
-</tbody></table>`,
+  lifepathLinks: `<ul>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.CrpoLp0100000000]{What kind of Corp do you work for?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.CrpoLp0200000000]{What division do you work in?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.CrpoLp0300000000]{How ethical is your corp?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.CrpoLp0400000000]{How widespread is your corp?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.CrpoLp0500000000]{Who's gunning for your team?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.CrpoLp0600000000]{How is your boss?}</li>
+</ul>`,
   lifepathQuestions: `<ul>
 <li><em>What job did I first hire you for?</em></li>
 <li><em>What did I get my corporation to cover up for you?</em></li>
@@ -252,53 +169,13 @@ export const FIXER = role({
 <p>If there's a buzz about a new nightclub in the City, you're already a part of it. If there are military class weapons on The Street, you smuggled 'em in. If there's a faction war going down, you're negotiating between sides with an eye on the main chance. But you might not be solely in it for the bucks.</p>
 <p>If someone needs to get the heat off, you'll hide them. You get people housing when there isn't any, and you bring in food when the streets are blockaded. Maybe you do it because you know they'll owe you later, but you're not sure. You're one part Robin Hood and two parts Al Capone. In the past, they would have called you a crime lord. But in this fragmented, nasty, and deadly time, they call you a Fixer.</p>
 <blockquote><em>I don't need to know what they'll do with them. I'm just the middleman.</em><br>∆ Grease, Fixer</blockquote>`,
-  lifepathLinks: `<h3>What kind of Fixer are you?</h3>
-<table><thead><tr><th>1d10</th><th>Type</th></tr></thead><tbody>
-<tr><td>1</td><td>Broker deals between rival gangs</td></tr>
-<tr><td>2</td><td>Procures atypical resources for an exclusive clientele</td></tr>
-<tr><td>3</td><td>Brokers Solo or Tech services as their agent</td></tr>
-<tr><td>4</td><td>Supplies a regular resource like food or medicine</td></tr>
-<tr><td>5</td><td>Procures illegal resources like street drugs or milspec weapons</td></tr>
-<tr><td>6</td><td>Supplies resources for Techs and Medtechs</td></tr>
-<tr><td>7</td><td>Operates several successful Night Markets</td></tr>
-<tr><td>8</td><td>Brokers use of heavy machinery or vehicles</td></tr>
-<tr><td>9</td><td>Deals in scavenged parts from abandoned areas</td></tr>
-<tr><td>10</td><td>An exclusive agent for a Media, Rocker, or Nomad pack</td></tr>
-</tbody></table>
-<h3>Got a business partner? If so, who?</h3>
-<table><thead><tr><th>1d6</th><th>Partner</th></tr></thead><tbody>
-<tr><td>1</td><td>Family Member</td></tr><tr><td>2</td><td>Old Friend</td></tr>
-<tr><td>3</td><td>Possible Romantic Partner</td></tr><tr><td>4</td><td>Mentor</td></tr>
-<tr><td>5</td><td>Secret with gang connections</td></tr>
-<tr><td>6</td><td>Secret with corpo connections</td></tr>
-</tbody></table>
-<h3>Who are your side-clients?</h3>
-<table><thead><tr><th>1d6</th><th>Clients</th></tr></thead><tbody>
-<tr><td>1</td><td>Local Rockerboys or Medias who need gigs</td></tr>
-<tr><td>2</td><td>Local Bandits who also protect your work or home</td></tr>
-<tr><td>3</td><td>Corpos who use you for "black project" procurement work</td></tr>
-<tr><td>4</td><td>Local Solos or other combat types looking for work</td></tr>
-<tr><td>5</td><td>Local Nomads and Fixers who use you to set up deals</td></tr>
-<tr><td>6</td><td>Local politicos or Corpos who need information</td></tr>
-</tbody></table>
-<h3>What's your "office" like?</h3>
-<table><thead><tr><th>1d6</th><th>Office</th></tr></thead><tbody>
-<tr><td>1</td><td>You don't have one; it's all mobile</td></tr>
-<tr><td>2</td><td>A booth in a local bar</td></tr>
-<tr><td>3</td><td>It's all Data Pool messages and dead drops</td></tr>
-<tr><td>4</td><td>Spare room in a warehouse, shop, or clinic</td></tr>
-<tr><td>5</td><td>An otherwise abandoned building</td></tr>
-<tr><td>6</td><td>The lobby of a cube hotel</td></tr>
-</tbody></table>
-<h3>Who is gunning for you?</h3>
-<table><thead><tr><th>1d6</th><th>Enemy</th></tr></thead><tbody>
-<tr><td>1</td><td>Bandits who want you to work with them exclusively</td></tr>
-<tr><td>2</td><td>Rival Fixers trying to steal your clients</td></tr>
-<tr><td>3</td><td>Corpos or Operatives who want you to work for them exclusively</td></tr>
-<tr><td>4</td><td>Enemy of a former client who wants to tie up loose ends — like you</td></tr>
-<tr><td>5</td><td>Old client who thinks you screwed them over</td></tr>
-<tr><td>6</td><td>Rival Fixers trying to beat you out for resources</td></tr>
-</tbody></table>`,
+  lifepathLinks: `<ul>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.FxrLp01000000000]{What kind of Fixer are you?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.FxrLp02000000000]{Got a business partner? If so, who?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.FxrLp03000000000]{Who are your side-clients?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.FxrLp04000000000]{What's your "office" like?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.FxrLp05000000000]{Who is gunning for you?}</li>
+</ul>`,
   lifepathQuestions: `<ul>
 <li><em>What deal did I broker that saved the life of you or someone you love?</em></li>
 <li><em>What problem of yours did I find a way to get rid of?</em></li>
@@ -333,41 +210,12 @@ export const GUIDE = role({
 <p>In many ways, a Guide has to fight the way the world works. The vast majority of people only believe in fate in the most superficial of ways. You can give into that and coach through business jargon. You can speak to those who still seek meaning in religion and hope their desperation pays for your guidance. For those who can't make up their mind about beliefs, there's always that mix of neo-spirituality and materialistic pseudo-mysticism.</p>
 <p><em>Not all games are suitable for a Guide to be part of, as they risk removing some of the dystopia that is Cyberpunk. If a character has this Role, it should highlight the worst part of the world by either showing how even spirituality is just a commodity, or by providing contrast. They can't do the latter if there isn't enough darkness for the dark future to be dystopian in.</em></p>
 <blockquote><em>We shouldn't fear change itself, but only who we might change into. Knowing one's path is most important.</em><br>∆ Misty Olszewski, Misty's Esoterica</blockquote>`,
-  lifepathLinks: `<h3>What kind of Guide are you?</h3>
-<table><thead><tr><th>1d10</th><th>Type</th></tr></thead><tbody>
-<tr><td>1</td><td>Self-Help Guru</td></tr><tr><td>2</td><td>Cult Leader</td></tr>
-<tr><td>3</td><td>Priest</td></tr><tr><td>4</td><td>Neo-Witch</td></tr>
-<tr><td>5</td><td>Spirit Medium</td></tr><tr><td>6</td><td>Street Prophet</td></tr>
-<tr><td>7</td><td>Life Coach</td></tr><tr><td>8</td><td>Monk</td></tr>
-<tr><td>9</td><td>Card-Reader</td></tr><tr><td>10</td><td>Psychic</td></tr>
-</tbody></table>
-<h3>What's your divining space like?</h3>
-<table><thead><tr><th>1d6</th><th>Space</th></tr></thead><tbody>
-<tr><td>1</td><td>Crystal balls, pseudo-mystical trinkets, and an overwhelming smell of incense</td></tr>
-<tr><td>2</td><td>Ascetic in order to leave room for introspection and contemplation. No distractions.</td></tr>
-<tr><td>3</td><td>A ritual circle on the floor, drawn in blood. Occult symbols on the walls and disturbing chants from speakers.</td></tr>
-<tr><td>4</td><td>A simple office with candles to set the mood and help you get into the right head-space</td></tr>
-<tr><td>5</td><td>A small temple with an altar and room for prayer or contemplation</td></tr>
-<tr><td>6</td><td>A complete mess, cluttered with anything that could provide inspiration and paraphernalia for drugs that help you get into your head-space</td></tr>
-</tbody></table>
-<h3>Who are your usual clients?</h3>
-<table><thead><tr><th>1d6</th><th>Client</th></tr></thead><tbody>
-<tr><td>1</td><td>Superstitious corpos that'll try anything to get an edge over the competition</td></tr>
-<tr><td>2</td><td>Superstitious Fixers who want you to bless their dealings</td></tr>
-<tr><td>3</td><td>Faithful who seek advice and blessings</td></tr>
-<tr><td>4</td><td>People who think that you're a prophet</td></tr>
-<tr><td>5</td><td>Bandits, Ninjas, and Solos who want good luck charms</td></tr>
-<tr><td>6</td><td>Downloads of your advice from the Data Pool</td></tr>
-</tbody></table>
-<h3>Who's gunning for you?</h3>
-<table><thead><tr><th>1d6</th><th>Enemy</th></tr></thead><tbody>
-<tr><td>1</td><td>A former client who blames you for their misfortune</td></tr>
-<tr><td>2</td><td>A corpo who wants to buy you as their permanent lucky charm</td></tr>
-<tr><td>3</td><td>Extremists who claim you're an evil witch</td></tr>
-<tr><td>4</td><td>A charlatan who sees you as competition</td></tr>
-<tr><td>5</td><td>Supposed purists who want to expose you as fake</td></tr>
-<tr><td>6</td><td>A mysterious stranger</td></tr>
-</tbody></table>`,
+  lifepathLinks: `<ul>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.GuidLp0100000000]{What kind of Guide are you?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.GuidLp0200000000]{What's your divining space like?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.GuidLp0300000000]{Who are your usual clients?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.GuidLp0400000000]{Who's gunning for you?}</li>
+</ul>`,
   lifepathQuestions: `<ul>
 <li><em>What path or omen have I warned you about?</em></li>
 <li><em>What prediction for you came true?</em></li>
@@ -415,50 +263,13 @@ export const LAW = role({
 <p>Half of the guys on The Street are freelance Corporate mercs who used to have jobs during the War; hired to enforce Corp armies disbanded by the New United States' goon squads. Now they're the goon squads and you're trying to keep them under control too. Every night is a new firefight and another great opportunity for a messy death. Or you might draw a Psycho Squad berth and get the job of hunting down heavily armed and armored cyborgs who've flipped out. A cyberpsycho can walk through machine gun fire and not even feel it, so a lot of the Psycho Squad become a bit crazy themselves; they load up with boosted reflexes, get some monstrously huge guns, and go hunt the cyborgs solo. But you're not that crazy. Yet.</p>
 <p>Of course, there are areas of the City where not even the Law dare go most of the time. The only reason any of them would willingly enter would be to save one of their own and then get the hell out as quickly as possible.</p>
 <blockquote><em>Someone has to prevent civilians from taking a bullet in the latest gang war.</em><br>∆ Officer Suri "Cavalry" Navarro, NCPD</blockquote>`,
-  lifepathLinks: `<h3>What is your position in the force?</h3>
-<table><thead><tr><th>1d6</th><th>Position</th></tr></thead><tbody>
-<tr><td>1</td><td>Guard</td></tr><tr><td>2</td><td>Standard beat or patrol</td></tr>
-<tr><td>3</td><td>Criminal Investigation</td></tr><tr><td>4</td><td>Special Weapons and Tactics</td></tr>
-<tr><td>5</td><td>Motor Patrol</td></tr><tr><td>6</td><td>Internal Affairs</td></tr>
-</tbody></table>
-<h3>Where is your jurisdiction?</h3>
-<table><thead><tr><th>3d6</th><th>Jurisdiction</th></tr></thead><tbody>
-<tr><td>3</td><td>Pacifica</td></tr><tr><td>4</td><td>Open Highways and the Badlands</td></tr>
-<tr><td>5</td><td>Corporate Plaza</td></tr><tr><td>6</td><td>Charter Hill</td></tr>
-<tr><td>7</td><td>Rancho Coronado</td></tr><tr><td>8</td><td>Arroyo</td></tr>
-<tr><td>9</td><td>Little China</td></tr><tr><td>10</td><td>Kabuki</td></tr>
-<tr><td>11</td><td>Northside Industrial District</td></tr><tr><td>12</td><td>Vista del Rey</td></tr>
-<tr><td>13</td><td>The Glen</td></tr><tr><td>14</td><td>Japantown</td></tr>
-<tr><td>15</td><td>Wellsprings</td></tr><tr><td>16</td><td>Downtown</td></tr>
-<tr><td>17</td><td>North Oak</td></tr><tr><td>18</td><td>Netwatch Liaison</td></tr>
-</tbody></table>
-<h3>How corrupt is your unit?</h3>
-<table><thead><tr><th>1d6</th><th>Corruption</th></tr></thead><tbody>
-<tr><td>1</td><td>Fair, honest policing with strong ethical practices</td></tr>
-<tr><td>2</td><td>Fair and honest policing, but hard on law-breakers</td></tr>
-<tr><td>3</td><td>Will occasionally, but rarely, slip into unethical actions</td></tr>
-<tr><td>4</td><td>Willing to bend any rules to get to the bad guys</td></tr>
-<tr><td>5</td><td>Ruthless to control the Street, even breaking the law to, ostensibly, uphold it</td></tr>
-<tr><td>6</td><td>Corrupt, taking bribes and engaging in illegal and unethical business all the time</td></tr>
-</tbody></table>
-<h3>Who's gunning for your unit?</h3>
-<table><thead><tr><th>1d6</th><th>Enemy</th></tr></thead><tbody>
-<tr><td>1</td><td>Friends of a criminal you helped put away</td></tr>
-<tr><td>2</td><td>An escaped or released criminal who blames you</td></tr>
-<tr><td>3</td><td>Police Accountability Group</td></tr>
-<tr><td>4</td><td>Dirty Politicians</td></tr>
-<tr><td>5</td><td>A powerful gang</td></tr>
-<tr><td>6</td><td>Dirty cops whose plans you're in the way of</td></tr>
-</tbody></table>
-<h3>Who are your unit's major targets?</h3>
-<table><thead><tr><th>1d6</th><th>Target</th></tr></thead><tbody>
-<tr><td>1</td><td>Organized Crime</td></tr>
-<tr><td>2</td><td>Trafficking and kidnapping</td></tr>
-<tr><td>3</td><td>Illicit trade (1d6: 1: Drugs, 2: XBDs, 3: Weapons, 4: Counterfeit luxury items, 5: Organs or Cyberware, 6: Fenced stolen goods)</td></tr>
-<tr><td>4</td><td>Burglars and robbers</td></tr>
-<tr><td>5</td><td>Illegal gambling</td></tr>
-<tr><td>6</td><td>Street Criminals</td></tr>
-</tbody></table>`,
+  lifepathLinks: `<ul>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.LawLp01000000000]{What is your position in the force?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.LawLp02000000000]{Where is your jurisdiction?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.LawLp03000000000]{How corrupt is your unit?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.LawLp04000000000]{Who's gunning for your unit?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.LawLp05000000000]{Who are your unit's major targets?}</li>
+</ul>`,
   lifepathQuestions: `<ul>
 <li><em>What crime did I let you get away with and why?</em></li>
 <li><em>What enemy of yours did I take out?</em></li>
@@ -493,45 +304,13 @@ export const MEDIA = role({
 <p>You've got a vidlink and a press pass, and you're not afraid to use them as a city-wide figure, seen nightly all over. It's not always like the old days, when you had a major Mediacorp behind you; this time, you've gotta depend on your fans, your contacts, and your own reputation. But it's harder for Corps to make you disappear these days. So when you dig down for the dirt and slime the corrupt officials and Corporate lapdogs try to cover up, you can dig deep. The next morning, you can put the details of their crimes all over the screamsheets and vidscreens.</p>
 <p>The bad guys have tried to kill you several times. That's why you need backup, such as a crack Solo bodyguard and the top 'Runners in the business digging through NET Architectures to back your stories. Stay ahead and you'll change the world. Slack off and you'll be flatlined soon enough.</p>
 <blockquote><em>I didn't become a journalist to smile for the camera with some Corpo on synthcoke — I bring the actual News!</em><br>∆ "24/7", Reporter for Never Blink News</blockquote>`,
-  lifepathLinks: `<h3>What kind of Media are you?</h3>
-<table><thead><tr><th>1d6</th><th>Type</th></tr></thead><tbody>
-<tr><td>1</td><td>Blogger</td></tr><tr><td>2</td><td>Writer (Books)</td></tr>
-<tr><td>3</td><td>Videographer</td></tr><tr><td>4</td><td>Documentarian</td></tr>
-<tr><td>5</td><td>Investigative Reporter</td></tr><tr><td>6</td><td>Street Scribe</td></tr>
-</tbody></table>
-<h3>How do you reach the public?</h3>
-<table><thead><tr><th>1d6</th><th>Type</th></tr></thead><tbody>
-<tr><td>1</td><td>Monthly Magazine</td></tr>
-<tr><td>2</td><td>Blog</td></tr>
-<tr><td>3</td><td>Mainstream Vid Feed</td></tr>
-<tr><td>4</td><td>News Channel</td></tr>
-<tr><td>5</td><td>Radio Broadcasts</td></tr>
-<tr><td>6</td><td>Screamsheets</td></tr>
-</tbody></table>
-<h3>What do you report on?</h3>
-<table><thead><tr><th>1d6</th><th>Story</th></tr></thead><tbody>
-<tr><td>1</td><td>Political Intrigue</td></tr><tr><td>2</td><td>Ecological Impact</td></tr>
-<tr><td>3</td><td>Celebrity News</td></tr><tr><td>4</td><td>Corporate Takedowns</td></tr>
-<tr><td>5</td><td>Editorials</td></tr><tr><td>6</td><td>Propaganda</td></tr>
-</tbody></table>
-<h3>How ethical are you?</h3>
-<table><thead><tr><th>1d6</th><th>Ethics</th></tr></thead><tbody>
-<tr><td>1</td><td>Fair, honest reporting. Strong ethical practices. You only report the verifiable truth.</td></tr>
-<tr><td>2</td><td>Fair and honest reporting, but willing to go on hearsay and rumor if that's what it takes</td></tr>
-<tr><td>3</td><td>Will occasionally but rarely slip into unethical things. You have some standards.</td></tr>
-<tr><td>4</td><td>Willing to bend any rules to get the bad guys, but only the bad guys</td></tr>
-<tr><td>5</td><td>Ruthless and determined to make it big, even if it means breaking the law</td></tr>
-<tr><td>6</td><td>Totally corrupt, taking bribes and engaging in illegal and unethical reporting — your pen is for hire</td></tr>
-</tbody></table>
-<h3>Who's gunning for you?</h3>
-<table><thead><tr><th>1d6</th><th>Enemy</th></tr></thead><tbody>
-<tr><td>1</td><td>A corpo or politico you exposed who wants revenge</td></tr>
-<tr><td>2</td><td>Someone who was hurt by others after your reporting</td></tr>
-<tr><td>3</td><td>An informant who blames you for being exposed</td></tr>
-<tr><td>4</td><td>A Ninja or Solo hired to silence you</td></tr>
-<tr><td>5</td><td>A conspiracy theorist convinced you're covering up the actual truth</td></tr>
-<tr><td>6</td><td>Someone sending you secret threats</td></tr>
-</tbody></table>`,
+  lifepathLinks: `<ul>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.MedaLp0100000000]{What kind of Media are you?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.MedaLp0200000000]{How do you reach the public?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.MedaLp0300000000]{What do you report on?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.MedaLp0400000000]{How ethical are you?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.MedaLp0500000000]{Who's gunning for you?}</li>
+</ul>`,
   lifepathQuestions: `<ul>
 <li><em>How did I make you out as the hero of a story?</em></li>
 <li><em>What enemy of yours did I expose?</em></li>
@@ -567,50 +346,13 @@ export const MEDTECH = role({
 <p>If you're really lucky, you've scored a berth in the local Trauma Team franchise. Trauma Teams are groups of licensed paramedicals who patrol the city looking for patients. You operate from an AV-4 Urban Assault Vehicle, redesigned into an ambulance configuration, and armed with a belly-mounted minigun. It's the best of the best — Trauma Team charges some heavy subscription fees to save its clients, and that translates into new medical toys, faster AV ambulances, and hefty salaries for the best surgeons around.</p>
 <p>It doesn't matter how you got here. What matters is that you're here, on The Street, doing the job. And you'd be doing it no matter what the reason. It's what marks you as a Medtech.</p>
 <blockquote><em>I don't have initials after my name, but I can fix that arm. Or you lose it. Your choice.</em><br>∆ Virgil "Redtail" Martinez</blockquote>`,
-  lifepathLinks: `<h3>What kind of Medtech are you?</h3>
-<table><thead><tr><th>1d10</th><th>Type</th></tr></thead><tbody>
-<tr><td>1</td><td>Surgeon</td></tr><tr><td>2</td><td>General Practitioner</td></tr>
-<tr><td>3</td><td>Trauma Medic</td></tr><tr><td>4</td><td>Psychiatrist</td></tr>
-<tr><td>5</td><td>Cyberpsycho Therapist</td></tr><tr><td>6</td><td>Ripperdoc</td></tr>
-<tr><td>7</td><td>Cryosystems Operator</td></tr><tr><td>8</td><td>Pharmacist</td></tr>
-<tr><td>9</td><td>Bodysculptor</td></tr><tr><td>10</td><td>Forensic Pathologist</td></tr>
-</tbody></table>
-<h3>If you have a partner, who?</h3>
-<table><thead><tr><th>1d6</th><th>Partner</th></tr></thead><tbody>
-<tr><td>1</td><td>Trauma Team group</td></tr>
-<tr><td>2</td><td>Old friend</td></tr>
-<tr><td>3</td><td>Possible romantic partner</td></tr>
-<tr><td>4</td><td>Family member</td></tr>
-<tr><td>5</td><td>Secret partner with mob/gang connections</td></tr>
-<tr><td>6</td><td>Secret partner with corporate connections</td></tr>
-</tbody></table>
-<h3>What's your workspace like?</h3>
-<table><thead><tr><th>1d6</th><th>Workspace</th></tr></thead><tbody>
-<tr><td>1</td><td>Sterilized daily in the morning like clockwork</td></tr>
-<tr><td>2</td><td>It's not state-of-the-art anymore, but comfortable to you</td></tr>
-<tr><td>3</td><td>Cryo equipment also keeps drinks cool</td></tr>
-<tr><td>4</td><td>Everything possible is single use and stored compacted until needed</td></tr>
-<tr><td>5</td><td>Not as clean as your patients would have hoped</td></tr>
-<tr><td>6</td><td>Meticulously organized, sharpened, and sterilized</td></tr>
-</tbody></table>
-<h3>Who are your main clients?</h3>
-<table><thead><tr><th>1d6</th><th>Clients</th></tr></thead><tbody>
-<tr><td>1</td><td>Local fixers send you clients</td></tr>
-<tr><td>2</td><td>Local Bandits who protect your work or home in exchange for medical help</td></tr>
-<tr><td>3</td><td>Corporate Corpos and Operatives who use you for "black project" medical work</td></tr>
-<tr><td>4</td><td>Solos and other combat types</td></tr>
-<tr><td>5</td><td>Local Nomads and Fixers bring you wounded clients</td></tr>
-<tr><td>6</td><td>Trauma Team paramedical work</td></tr>
-</tbody></table>
-<h3>Where do you get your supplies?</h3>
-<table><thead><tr><th>1d6</th><th>Type</th></tr></thead><tbody>
-<tr><td>1</td><td>Scavenge stashes of supplies in abandoned city zones</td></tr>
-<tr><td>2</td><td>Strip parts from bodies after firefights</td></tr>
-<tr><td>3</td><td>Have a local Fixer bring you supplies in exchange for medical work</td></tr>
-<tr><td>4</td><td>Corporate Corpos or Trauma Team keeps you supplied in exchange for your services</td></tr>
-<tr><td>5</td><td>You have a backdoor into a few corporate or hospital warehouses</td></tr>
-<tr><td>6</td><td>You hit the Night Markets and score deals whenever you can</td></tr>
-</tbody></table>`,
+  lifepathLinks: `<ul>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.MedtLp0100000000]{What kind of Medtech are you?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.MedtLp0200000000]{If you have a partner, who?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.MedtLp0300000000]{What's your workspace like?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.MedtLp0400000000]{Who are your main clients?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.MedtLp0500000000]{Where do you get your supplies?}</li>
+</ul>`,
   lifepathQuestions: `<ul>
 <li><em>When did I save your life?</em></li>
 <li><em>Who, close to you, did I fail to save?</em></li>
@@ -700,60 +442,14 @@ export const NETRUNNER = role({
 <p>The systems you cracked are smaller, but even deadlier. Now, you're really part of a team, with Solos to cover your back, Medtechs to restart your heart if the ICE gets you, and Techs to help you hot-wire your cyberdeck for more speed and software deployment. As an electronic wraith, you slip into mainframes: stealing, trading, and selling their deepest secrets.</p>
 <p>Of course, the deadliest parts of cyberspace are still out there in the remnants of the old NET. Others might think it's all safe behind the Blackwall, but you know that it's only a matter of time before the AI and ghosts of Soulkiller that live there break free.</p>
 <blockquote><em>Do spiders spin webs? It's time to catch flies.</em><br>∆ Spider Murphy</blockquote>`,
-  lifepathLinks: `<h3>What kind of Netrunner are you?</h3>
-<table><thead><tr><th>1d6</th><th>Type</th></tr></thead><tbody>
-<tr><td>1</td><td>Freelancer who hacks for hire</td></tr>
-<tr><td>2</td><td>Corporate runner, hacking for The Man</td></tr>
-<tr><td>3</td><td>Hacktivist interested in cracking systems and exposing bad guys</td></tr>
-<tr><td>4</td><td>You just like to crack systems for the fun of it</td></tr>
-<tr><td>5</td><td>Part of a regular team of freelancers</td></tr>
-<tr><td>6</td><td>Hack for a Media, politico, or Lawman who hires you as needed</td></tr>
-</tbody></table>
-<h3>If you work with a partner, who?</h3>
-<table><thead><tr><th>1d6</th><th>Partner</th></tr></thead><tbody>
-<tr><td>1</td><td>Family member</td></tr>
-<tr><td>2</td><td>Old friend</td></tr>
-<tr><td>3</td><td>Possible romantic partner</td></tr>
-<tr><td>4</td><td>Secret partner who might be a rogue AI. Might.</td></tr>
-<tr><td>5</td><td>Secret partner with mob/gang connections</td></tr>
-<tr><td>6</td><td>Secret partner with Corporate connections</td></tr>
-</tbody></table>
-<h3>What's your workspace like?</h3>
-<table><thead><tr><th>1d6</th><th>Workspace</th></tr></thead><tbody>
-<tr><td>1</td><td>There are screens everywhere</td></tr>
-<tr><td>2</td><td>It looks better in Virtuality, you swear</td></tr>
-<tr><td>3</td><td>It's a filthy bed covered in wires</td></tr>
-<tr><td>4</td><td>Corporate, modular, and utilitarian</td></tr>
-<tr><td>5</td><td>Minimalist, clean, and organized</td></tr>
-<tr><td>6</td><td>It's taken over your entire living space</td></tr>
-</tbody></table>
-<h3>Who are some of your other clients?</h3>
-<table><thead><tr><th>1d6</th><th>Clients</th></tr></thead><tbody>
-<tr><td>1</td><td>Local fixers who sends you clients</td></tr>
-<tr><td>2</td><td>Local gangers who also protect your work area while you sweep for NET threats</td></tr>
-<tr><td>3</td><td>Corporate Corpos who use you for "black project" work</td></tr>
-<tr><td>4</td><td>Local Solos or other combat types who use you to keep their personal systems secure</td></tr>
-<tr><td>5</td><td>Local Nomads and Fixers who use you to keep their personal systems secure</td></tr>
-<tr><td>6</td><td>You work for yourself and whatever you can find on the NET</td></tr>
-</tbody></table>
-<h3>Where do you get your programs?</h3>
-<table><thead><tr><th>1d6</th><th>Source</th></tr></thead><tbody>
-<tr><td>1</td><td>Dig around in old abandoned city zones</td></tr>
-<tr><td>2</td><td>Steal them from other Netrunners you brain-burn</td></tr>
-<tr><td>3</td><td>Have a local Fixer supply programs in exchange for hack work</td></tr>
-<tr><td>4</td><td>Corporate Corpos supply programs in exchange for work</td></tr>
-<tr><td>5</td><td>You have backdoors into a few Corporate warehouses</td></tr>
-<tr><td>6</td><td>You hit the Night Markets and score programs whenever you can</td></tr>
-</tbody></table>
-<h3>Who's gunning for you?</h3>
-<table><thead><tr><th>1d6</th><th>Enemy</th></tr></thead><tbody>
-<tr><td>1</td><td>You think it might be a rogue AI or a NET ghost. Either way, it's bad news.</td></tr>
-<tr><td>2</td><td>Rival Netrunners who just don't like you</td></tr>
-<tr><td>3</td><td>Corporates who want you to work for them exclusively</td></tr>
-<tr><td>4</td><td>Law who considers you an illegal "black hat" and wants to arrest you</td></tr>
-<tr><td>5</td><td>Old client who thinks you screwed them over</td></tr>
-<tr><td>6</td><td>Fixer or another client who wants you exclusively</td></tr>
-</tbody></table>`,
+  lifepathLinks: `<ul>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.NetrLp0100000000]{What kind of Netrunner are you?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.NetrLp0200000000]{If you work with a partner, who?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.NetrLp0300000000]{What's your workspace like?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.NetrLp0400000000]{Who are some of your other clients?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.NetrLp0500000000]{Where do you get your programs?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.NetrLp0600000000]{Who's gunning for you?}</li>
+</ul>`,
   lifepathQuestions: `<ul>
 <li><em>Why did I break into a corp subnet for you?</em></li>
 <li><em>What is in the file I keep secure for you in my deck?</em></li>
@@ -778,57 +474,14 @@ export const NINJA = role({
 <p>While there are Ninjas out there who have become legends, their real identity is rarely known. It's even possible that they lead unassuming lives as a cover, and not even those closest to them know what brutal deeds they are prepared to do.</p>
 <p>A good Ninja is highly sought after by corporations, governments and Fixers alike. A bad one, someone who gets exposed, will find that they have no friends anywhere. There is no room for failure when discretion is your main weapon.</p>
 <blockquote><em>In a world of neon, holograms and screens, people never seem wary enough of the shadows the lights cast.</em><br>∆ "Rogue Rouge"</blockquote>`,
-  lifepathLinks: `<h3>What kind of Ninja are you?</h3>
-<table><thead><tr><th>1d6</th><th>Type</th></tr></thead><tbody>
-<tr><td>1</td><td>Sniper</td></tr><tr><td>2</td><td>Poisoner</td></tr>
-<tr><td>3</td><td>Assassinates from the shadows</td></tr><tr><td>4</td><td>Masked vigilante</td></tr>
-<tr><td>5</td><td>Hidden in plain sight</td></tr><tr><td>6</td><td>Edgelord</td></tr>
-</tbody></table>
-<h3>Who do you usually work for?</h3>
-<table><thead><tr><th>1d6</th><th>Client</th></tr></thead><tbody>
-<tr><td>1</td><td>Government "black ops"</td></tr>
-<tr><td>2</td><td>A corporation's special operations</td></tr>
-<tr><td>3</td><td>A Fixer sets you up with clients</td></tr>
-<tr><td>4</td><td>You find clients on anonymous Data Pools</td></tr>
-<tr><td>5</td><td>Yourself, according to your own convictions</td></tr>
-<tr><td>6</td><td>An Operative feeds you information</td></tr>
-</tbody></table>
-<h3>If you work with someone, who?</h3>
-<table><thead><tr><th>1d6</th><th>Partner</th></tr></thead><tbody>
-<tr><td>1</td><td>Family member</td></tr>
-<tr><td>2</td><td>Old friend</td></tr>
-<tr><td>3</td><td>Possible romantic partner</td></tr>
-<tr><td>4</td><td>Secret partner with unexpected connections</td></tr>
-<tr><td>5</td><td>Secret partner with mob/gang connections</td></tr>
-<tr><td>6</td><td>Secret partner with corporate connections</td></tr>
-</tbody></table>
-<h3>What's your moral compass like?</h3>
-<table><thead><tr><th>1d6</th><th>Ethics</th></tr></thead><tbody>
-<tr><td>1</td><td>Always working for good, trying to take out what seems like the "bad guys"</td></tr>
-<tr><td>2</td><td>Always try to spare the innocent</td></tr>
-<tr><td>3</td><td>You'll occasionally, but rarely, take on unethical contracts</td></tr>
-<tr><td>4</td><td>Ruthless and profit-centered. You'll work for anyone who's willing to pay.</td></tr>
-<tr><td>5</td><td>Willing to bend any rules (and law) to get the job done</td></tr>
-<tr><td>6</td><td>You often engage in, and enjoy, unethical work</td></tr>
-</tbody></table>
-<h3>What's your M.O.?</h3>
-<table><thead><tr><th>1d6</th><th>MO</th></tr></thead><tbody>
-<tr><td>1</td><td>In and out without a trace</td></tr>
-<tr><td>2</td><td>Spreading death and fear from the shadows</td></tr>
-<tr><td>3</td><td>Blend in, do the job, blend in again</td></tr>
-<tr><td>4</td><td>Fear is a more powerful weapon than anything else</td></tr>
-<tr><td>5</td><td>Close and personal — you want to look into their eyes</td></tr>
-<tr><td>6</td><td>Honor bound and methodical</td></tr>
-</tbody></table>
-<h3>Who's gunning for you?</h3>
-<table><thead><tr><th>1d6</th><th>Enemy</th></tr></thead><tbody>
-<tr><td>1</td><td>Target who got away and wants revenge</td></tr>
-<tr><td>2</td><td>Corp who wants you exclusively</td></tr>
-<tr><td>3</td><td>Fixer who wants you exclusively</td></tr>
-<tr><td>4</td><td>Former client who thinks you screwed them</td></tr>
-<tr><td>5</td><td>Another Ninja who sees you as competition</td></tr>
-<tr><td>6</td><td>Law enforcers who want you for murder charges</td></tr>
-</tbody></table>`,
+  lifepathLinks: `<ul>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.NnjLp01000000000]{What kind of Ninja are you?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.NnjLp02000000000]{Who do you usually work for?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.NnjLp03000000000]{If you work with someone, who?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.NnjLp04000000000]{What's your moral compass like?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.NnjLp05000000000]{What's your M.O.?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.NnjLp06000000000]{Who's gunning for you?}</li>
+</ul>`,
   lifepathQuestions: `<ul>
 <li><em>Who have I killed for you?</em></li>
 <li><em>How did you catch on to what I do?</em></li>
@@ -962,45 +615,12 @@ export const ROCKER = role({
 <p>Rocker have a proud history that includes Dylan, Springsteen, U2, NWA, the Who, Jett, the Stones — the legions of hard-rock heroes who told the truth with screaming guitars or gut-honest lyrics. You have the power to get the people up; to lead, inspire, and inform. Your message can give the timid courage, the weak strength, and the blind vision.</p>
 <p>Rocker legends like Johnny Silverhand, Rockerboy Manson, and Kerry Eurodyne have led armies against Corporations and governments. Rockers have exposed corruption and brought down dictators. It's a lot of power for someone doing gigs every night in another city. But you can handle it. After all: you came to play!</p>
 <blockquote><em>They're not chanting my name in giant concert halls yet, but I've got fans, and I don't have to compromise my message for anyone.</em><br>∆ Forty, Rockerboy</blockquote>`,
-  lifepathLinks: `<h3>What kind of Rocker are you?</h3>
-<table><thead><tr><th>1d10</th><th>Type</th></tr></thead><tbody>
-<tr><td>1</td><td>Musician</td></tr><tr><td>2</td><td>Slam Poet</td></tr>
-<tr><td>3</td><td>Street Artist</td></tr><tr><td>4</td><td>Performance Art</td></tr>
-<tr><td>5</td><td>Comedian</td></tr><tr><td>6</td><td>Orator</td></tr>
-<tr><td>7</td><td>Politico</td></tr><tr><td>8</td><td>Rap Artist</td></tr>
-<tr><td>9</td><td>DJ</td></tr><tr><td>10</td><td>Idoru</td></tr>
-</tbody></table>
-<h3>Have you split with your band?</h3>
-<table><thead><tr><th>1d6</th><th>Reason</th></tr></thead><tbody>
-<tr><td>1</td><td>You were a jerk and the others voted you out</td></tr>
-<tr><td>2</td><td>You slept with another member's partner</td></tr>
-<tr><td>3</td><td>The rest were killed in a tragic "accident"</td></tr>
-<tr><td>4</td><td>The rest of the group were murdered or split up by external enemies</td></tr>
-<tr><td>5</td><td>The group broke up over "creative differences"</td></tr>
-<tr><td>6</td><td>You decided to go solo</td></tr>
-</tbody></table>
-<h3>Where do you usually perform?</h3>
-<table><thead><tr><th>1d6</th><th>Venue</th></tr></thead><tbody>
-<tr><td>1</td><td>Alternative Cafés</td></tr>
-<tr><td>2</td><td>Private Clubs</td></tr>
-<tr><td>3</td><td>Seedy Dive Bars</td></tr>
-<tr><td>4</td><td>Guerrilla Performances</td></tr>
-<tr><td>5</td><td>Nightclubs Around the City</td></tr>
-<tr><td>6</td><td>On the Data Pool</td></tr>
-</tbody></table>
-<h3>Who's gunning for you or your band?</h3>
-<table><thead><tr><th>1d10</th><th>Enemy</th></tr></thead><tbody>
-<tr><td>1</td><td>Old group member who thinks you did them dirty</td></tr>
-<tr><td>2</td><td>Rival group or artist trying to steal market share</td></tr>
-<tr><td>3</td><td>Corporate enemies who don't like your message</td></tr>
-<tr><td>4</td><td>Critic or "influencer" trying to bring you down</td></tr>
-<tr><td>5</td><td>Older star who feels threatened by your fame</td></tr>
-<tr><td>6</td><td>Romantic interest or media figure who wants revenge for personal reasons</td></tr>
-<tr><td>7</td><td>Stalker who won't let anyone else have you if they can't</td></tr>
-<tr><td>8</td><td>Someone who thinks you've taken advantage of a person close to them</td></tr>
-<tr><td>9</td><td>A manager who'll literally kill to secure your contract</td></tr>
-<tr><td>10</td><td>Someone has taken out a contract on you for unknown reasons</td></tr>
-</tbody></table>`,
+  lifepathLinks: `<ul>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.RokrLp0100000000]{What kind of Rocker are you?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.RokrLp0200000000]{Have you split with your band?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.RokrLp0300000000]{Where do you usually perform?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.RokrLp0400000000]{Who's gunning for you or your band?}</li>
+</ul>`,
   lifepathQuestions: `<ul>
 <li><em>What hit of mine is your favorite and why?</em></li>
 <li><em>What have I created that is about you?</em></li>
@@ -1029,41 +649,12 @@ export const SOLO = role({
   description: `<p>You were reborn with a gun in your hand. Whether as a freelance guard and killer-for-hire, or as one of the Corporate cybersoldiers who enforce business deals and the Company's "black operations," you're an elite fighting machine.</p>
 <p>As the battle damage piles up, you might rely more and more upon tech: cyberlimbs for weapons and armor, bio-program chips to increase your reflexes and awareness, combat drugs to give you that edge over your opponents. When you're the best of the best, you might even leave the ranks of Corporate samurai and go ronin — freelancing your lethal talents as a killer, bodyguard, or enforcer to whoever can pay your very high fees. Sounds good? There's a price — a heavy one. You've lost so much of your original meat body that you're almost a machine. Your killing reflexes are so jacked up that you have to restrain yourself from going berserk at any moment. Years of combat drugs taken to keep the edge have given you terrifying addictions. There are few people you can trust anymore. One night you might sleep in a penthouse condo in the City, the next in a filthy alley on The Street. But that's the price of being the best. And you're willing to pay it. Because you're a Solo.</p>
 <blockquote><em>When Militech offered me three squares a day and a cot, you better believe I signed up.</em><br>∆ Abril "Mover" Montella, Private Contractor</blockquote>`,
-  lifepathLinks: `<h3>What kind of Solo are you?</h3>
-<table><thead><tr><th>1d6</th><th>Type</th></tr></thead><tbody>
-<tr><td>1</td><td>Bodyguard</td></tr><tr><td>2</td><td>Street muscle for hire</td></tr>
-<tr><td>3</td><td>Corporate enforcer who takes jobs on the side</td></tr>
-<tr><td>4</td><td>Corporate or freelance Black Ops agent</td></tr>
-<tr><td>5</td><td>Local vigilante for hire</td></tr>
-<tr><td>6</td><td>Hitman for hire</td></tr>
-</tbody></table>
-<h3>What's your moral compass like?</h3>
-<table><thead><tr><th>1d6</th><th>Ethics</th></tr></thead><tbody>
-<tr><td>1</td><td>Always working for good, trying to take out who seem like the "bad guys"</td></tr>
-<tr><td>2</td><td>You always spare the innocent</td></tr>
-<tr><td>3</td><td>You occasionally, but rarely, slip into the unethical</td></tr>
-<tr><td>4</td><td>Ruthless and profit-centered. You'll work for anyone who's willing to pay.</td></tr>
-<tr><td>5</td><td>You're willing to bend any rules (and law) to get the job done</td></tr>
-<tr><td>6</td><td>You engage in, and enjoy, unethical work all the time. It makes it more interesting.</td></tr>
-</tbody></table>
-<h3>What's your operational territory?</h3>
-<table><thead><tr><th>1d6</th><th>Area</th></tr></thead><tbody>
-<tr><td>1</td><td>Corporate Zone</td></tr>
-<tr><td>2</td><td>Combat Zone</td></tr>
-<tr><td>3</td><td>The whole city</td></tr>
-<tr><td>4</td><td>The territory of a single corporation</td></tr>
-<tr><td>5</td><td>The territory of a particular Fixer or contact</td></tr>
-<tr><td>6</td><td>Wherever the money takes you</td></tr>
-</tbody></table>
-<h3>Who's gunning for you?</h3>
-<table><thead><tr><th>1d6</th><th>Enemy</th></tr></thead><tbody>
-<tr><td>1</td><td>A corporation you may have angered</td></tr>
-<tr><td>2</td><td>A boostergang you've tackled</td></tr>
-<tr><td>3</td><td>Law enforcers who think you're guilty of something you may or may not have done</td></tr>
-<tr><td>4</td><td>Rival Solo from another corp</td></tr>
-<tr><td>5</td><td>A Fixer who sees you as a threat</td></tr>
-<tr><td>6</td><td>A rival Solo or Ninja who sees you as a threat</td></tr>
-</tbody></table>`,
+  lifepathLinks: `<ul>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.SoloLp0100000000]{What kind of Solo are you?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.SoloLp0200000000]{What's your moral compass like?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.SoloLp0300000000]{What's your operational territory?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.SoloLp0400000000]{Who's gunning for you?}</li>
+</ul>`,
   lifepathQuestions: `<ul>
 <li><em>How did I save your life?</em></li>
 <li><em>What have you given me that I always have with me?</em></li>
@@ -1093,59 +684,14 @@ export const TECHIE = role({
 <p>You make your living building, fixing, and modifying — a crucial occupation in a technological world recovering from a War that broke the back of the supply chain. You can make some good bucks fixing everyday stuff, but for the serious money you need to tackle the big jobs. Illegal weapons. Illegal or stolen cybertech. Corporate espionage and counter-espionage gear for "black operations." If you're any good, you're making a lot of money. And that money goes into new gadgets, hardware, and information.</p>
 <p>Your black market work isn't just making you friends, it's also racking you up an impressive number of enemies as well — so you invest a lot in defense systems and, if really pushed to the wall, call in a few markers on a Solo or two. You've fixed up tech for everybody from black ops Corporate samurai to Ms. Zepeda down the block. No one's ever come back to you with a complaint, but that might be because of the turrets guarding your front door. You're addicted to technology in all its forms and that's what makes you a Tech.</p>
 <blockquote><em>This City depends on technology to keep everything from going full-on post-apocalypse. And that means everyone depends on me.</em><br>∆ João "Torch" Barbosa Alvés, Owner of Torch's Total Repairs</blockquote>`,
-  lifepathLinks: `<h3>What kind of Tech are you?</h3>
-<table><thead><tr><th>1d10</th><th>Type</th></tr></thead><tbody>
-<tr><td>1</td><td>Cyberware Technician</td></tr><tr><td>2</td><td>Vehicle Mechanic</td></tr>
-<tr><td>3</td><td>Jack of All Trades</td></tr><tr><td>4</td><td>Small Electronics Technician</td></tr>
-<tr><td>5</td><td>Weaponsmith</td></tr><tr><td>6</td><td>Crazy Inventor</td></tr>
-<tr><td>7</td><td>Robot and Drone Mechanic</td></tr><tr><td>8</td><td>Heavy Machinery Mechanic</td></tr>
-<tr><td>9</td><td>Scavenger</td></tr><tr><td>10</td><td>Nautical Mechanic</td></tr>
-</tbody></table>
-<h3>If any, what partner do you have?</h3>
-<table><thead><tr><th>1d6</th><th>Collaborator</th></tr></thead><tbody>
-<tr><td>1</td><td>Family Member</td></tr>
-<tr><td>2</td><td>Old Friend</td></tr>
-<tr><td>3</td><td>Possible Romantic Partner</td></tr>
-<tr><td>4</td><td>Mentor</td></tr>
-<tr><td>5</td><td>Secret with gang connections</td></tr>
-<tr><td>6</td><td>Secret with corpo connections</td></tr>
-</tbody></table>
-<h3>What's your workspace like?</h3>
-<table><thead><tr><th>1d6</th><th>Workspace</th></tr></thead><tbody>
-<tr><td>1</td><td>A mess strewn with blueprint paper</td></tr>
-<tr><td>2</td><td>Everything's color-coded but still a nightmare</td></tr>
-<tr><td>3</td><td>Totally digital and obsessively backed up every day</td></tr>
-<tr><td>4</td><td>Everything is designed in your Neuroport</td></tr>
-<tr><td>5</td><td>You keep everything, just in case</td></tr>
-<tr><td>6</td><td>Only you understand your filing system</td></tr>
-</tbody></table>
-<h3>Who are your main clients?</h3>
-<table><thead><tr><th>1d6</th><th>Client</th></tr></thead><tbody>
-<tr><td>1</td><td>Local Fixers who send you clients</td></tr>
-<tr><td>2</td><td>Local gangers who also protect your work and/or home</td></tr>
-<tr><td>3</td><td>Corporate Corpos who use you for "black projects" of some kind</td></tr>
-<tr><td>4</td><td>Local Solos who use you for weapon upkeep</td></tr>
-<tr><td>5</td><td>Local Nomads and Fixers who bring you "found" tech to repair</td></tr>
-<tr><td>6</td><td>You work for yourself and sell what you make or repair</td></tr>
-</tbody></table>
-<h3>Where do you get supplies?</h3>
-<table><thead><tr><th>1d6</th><th>Supplies</th></tr></thead><tbody>
-<tr><td>1</td><td>Scavenge the wreckage of abandoned zones</td></tr>
-<tr><td>2</td><td>Strip gear from bodies after a firefight</td></tr>
-<tr><td>3</td><td>From a local Fixer in exchange for repair work</td></tr>
-<tr><td>4</td><td>From Corporate Corpos in exchange for your services</td></tr>
-<tr><td>5</td><td>You have a backdoor into a few warehouses</td></tr>
-<tr><td>6</td><td>You hit the Night Markets to score deals when you can</td></tr>
-</tbody></table>
-<h3>Who's gunning for you?</h3>
-<table><thead><tr><th>1d6</th><th>Enemies</th></tr></thead><tbody>
-<tr><td>1</td><td>Combat Zone gangers who want you exclusively</td></tr>
-<tr><td>2</td><td>Rival Tech trying to steal your customers</td></tr>
-<tr><td>3</td><td>Corporates who want you exclusively</td></tr>
-<tr><td>4</td><td>Larger manufacturer trying to bring you down because your mods are a threat</td></tr>
-<tr><td>5</td><td>Old client who thinks you screwed them over</td></tr>
-<tr><td>6</td><td>Rival Tech trying to beat you out for resources</td></tr>
-</tbody></table>`,
+  lifepathLinks: `<ul>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.TechLp0100000000]{What kind of Tech are you?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.TechLp0200000000]{If any, what partner do you have?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.TechLp0300000000]{What's your workspace like?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.TechLp0400000000]{Who are your main clients?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.TechLp0500000000]{Where do you get supplies?}</li>
+<li>@UUID[Compendium.cyberpunk-blue.lifepath-tables.RollTable.TechLp0600000000]{Who's gunning for you?}</li>
+</ul>`,
   lifepathQuestions: `<ul>
 <li><em>What have I built specifically for you?</em></li>
 <li><em>How did you help me get a rare part?</em></li>

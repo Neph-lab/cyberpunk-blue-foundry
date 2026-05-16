@@ -2,7 +2,7 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 const _openWizards = new Map(); // actorId → wizard instance
 
-const CC_STEPS = ['welcome', 'lifepath', 'stats', 'secondary', 'languages', 'ability', 'skills', 'role'];
+const CC_STEPS = ['welcome', 'lifepath', 'stats', 'secondary', 'languages', 'ability', 'skills', 'role', 'name'];
 const PRIMARY_STATS = ['body', 'rflx', 'int', 'tech', 'cool'];
 const STAT_MIN = 3;
 const STAT_MAX = 8;
@@ -113,13 +113,35 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
       const folder = game.folders.find(f => f.type === 'RollTable' && f.name === 'Lifepath');
       const allTables = game.tables?.contents ?? [];
       const rollAllTable = allTables.find(t => t.name?.toLowerCase().includes('roll all lifepath'));
-      const tables = folder
+      let tables = folder
         ? allTables.filter(t => t.folder?.id === folder.id && t.id !== rollAllTable?.id)
         : [];
+
+      // Fallback: if no world Lifepath folder, load tables from system compendium.
+      if (tables.length === 0) {
+        const pack = game.packs.get('cyberpunk-blue.lifepath-tables');
+        if (pack) {
+          await pack.getIndex({ fields: ['name', 'folder'] });
+          // Build flat list; group label comes from the folder name
+          const folders = pack.folders;
+          const folderMap = new Map(folders.map(f => [f.id, f.name]));
+          tables = pack.index.map(e => ({
+            id: `Compendium.cyberpunk-blue.lifepath-tables.RollTable.${e._id}`,
+            name: e.name,
+            groupLabel: folderMap.get(e.folder) ?? '',
+            isCompendium: true,
+          })).sort((a, b) => {
+            const g = (a.groupLabel ?? '').localeCompare(b.groupLabel ?? '');
+            return g !== 0 ? g : a.name.localeCompare(b.name);
+          });
+        }
+      }
+
       context.lifepath = {
         rollAllId: rollAllTable?.id ?? null,
-        tables: tables.map(t => ({ id: t.id, name: t.name })),
+        tables: tables.map(t => ({ id: t.id, name: t.name, groupLabel: t.groupLabel ?? '', isCompendium: t.isCompendium ?? false })),
         hasRolled: this._hasRolledLifepath,
+        fromCompendium: tables.some(t => t.isCompendium),
       };
     }
 
@@ -164,20 +186,41 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
 
     if (step === 'ability') {
       const extraLanguage = this.actor.system.characterCreation?.extraLanguage ?? '';
+
+      // World items first; fall back to system compendium if none found.
       const folder = game.folders.find(f => f.type === 'Item' && f.name === 'Abilities');
-      const abilities = folder
+      let abilityItems = folder
         ? (game.items?.contents ?? []).filter(i => i.type === 'ability' && i.folder?.id === folder.id)
         : [];
+
+      if (abilityItems.length === 0) {
+        const pack = game.packs.get('cyberpunk-blue.abilities');
+        if (pack) {
+          await pack.getIndex({ fields: ['name', 'system.maxRank', 'system.description'] });
+          // We need full documents for description; use index for listing only.
+          abilityItems = pack.index.map(e => ({
+            id: `Compendium.cyberpunk-blue.abilities.Item.${e._id}`,
+            uuid: `Compendium.cyberpunk-blue.abilities.Item.${e._id}`,
+            name: e.name,
+            system: { maxRank: e['system.maxRank'] ?? 10, description: e['system.description'] ?? '' },
+            _fromPack: true,
+          }));
+        }
+      }
+
+      // Exclude 'Language' from the bonus ability list — handled separately via the Upgrade button.
+      const selectableAbilities = abilityItems.filter(a => a.name !== 'Language');
+
       context.ability = {
         extraLanguage,
         upgradeLabel: game.i18n.format('CYBER_BLUE.CC.Ability.UpgradeLanguage', { language: extraLanguage }),
-        abilities: abilities.map(a => ({
-          id: a.id,
+        abilities: selectableAbilities.map(a => ({
+          id: a.uuid ?? a.id,
           name: a.name,
           maxRank: a.system?.maxRank ?? 10,
           note: a.system?.note ?? '',
         })),
-        noAbilities: abilities.length === 0,
+        noAbilities: selectableAbilities.length === 0,
       };
     }
 
@@ -193,14 +236,41 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
     }
 
     if (step === 'role') {
+      // World items first; fall back to system compendium if none found.
       const folder = game.folders.find(f => f.type === 'Item' && f.name === 'Roles');
-      const roles = folder
+      let roles = folder
         ? (game.items?.contents ?? []).filter(i => i.type === 'role' && i.folder?.id === folder.id)
         : [];
+
+      let fromCompendium = false;
+      if (roles.length === 0) {
+        const pack = game.packs.get('cyberpunk-blue.roles');
+        if (pack) {
+          await pack.getIndex({ fields: ['name', 'system.abilitySections'] });
+          roles = pack.index.map(e => ({
+            id: `Compendium.cyberpunk-blue.roles.Item.${e._id}`,
+            uuid: `Compendium.cyberpunk-blue.roles.Item.${e._id}`,
+            name: e.name,
+            system: { abilitySections: e['system.abilitySections'] ?? [] },
+            _fromPack: true,
+          }));
+          fromCompendium = true;
+        }
+      }
+
       context.roles = {
-        list: roles.map(r => ({ id: r.id, name: r.name, note: r.system?.abilitySections?.[0]?.content ?? '' })),
+        list: roles.map(r => ({
+          id: r.uuid ?? r.id,
+          name: r.name,
+          note: r.system?.abilitySections?.[0]?.content ?? '',
+        })),
         noRoles: roles.length === 0,
+        fromCompendium,
       };
+    }
+
+    if (step === 'name') {
+      context.characterName = this.actor.name;
     }
 
     return context;
@@ -238,11 +308,24 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
     this.element.querySelector('[data-action="cc-next"]')?.addEventListener('click', this._onNextStep.bind(this));
     this.element.querySelector('[data-action="cc-back"]')?.addEventListener('click', this._onPrevStep.bind(this));
     this.element.querySelector('[data-action="cc-skip"]')?.addEventListener('click', this._onSkipStep.bind(this));
+    this.element.querySelector('[data-action="cc-finish"]')?.addEventListener('click', this._onFinish.bind(this));
+
+    const nameField = this.element.querySelector('#cc-name-input');
+    if (nameField) {
+      nameField.addEventListener('input', this._onNameInput.bind(this));
+    }
   }
 
   async _onRollTable(event) {
     const tableId = event.currentTarget.dataset.tableId;
-    const table = game.tables.get(tableId);
+
+    // Support both world tables (plain id) and compendium tables (UUID string)
+    let table;
+    if (tableId.startsWith('Compendium.')) {
+      table = await fromUuid(tableId);
+    } else {
+      table = game.tables.get(tableId);
+    }
     if (!table) return;
 
     const result = await table.roll();
@@ -368,7 +451,14 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
 
   async _onChooseAbility(event) {
     const abilityId = event.currentTarget.dataset.abilityId;
-    const source = game.items.get(abilityId);
+
+    // Support both world items and compendium items (UUID)
+    let source;
+    if (abilityId.startsWith('Compendium.')) {
+      source = await fromUuid(abilityId);
+    } else {
+      source = game.items.get(abilityId);
+    }
     if (!source) return;
 
     const existing = this.actor.items.find(i => i.type === 'ability' && i.name === source.name);
@@ -389,7 +479,14 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
 
   async _onChooseRole(event) {
     const roleId = event.currentTarget.dataset.roleId;
-    const source = game.items.get(roleId);
+
+    // Support both world items and compendium items (UUID)
+    let source;
+    if (roleId.startsWith('Compendium.')) {
+      source = await fromUuid(roleId);
+    } else {
+      source = game.items.get(roleId);
+    }
     if (!source) return;
 
     const sysData = source.system.toObject?.() ?? { ...source.system };
@@ -400,11 +497,21 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
       system: sysData,
     }]);
 
+    // Advance to the name step (final step before completion)
+    await this._advanceTo('name');
+  }
+
+  async _onNameInput(event) {
+    this._pendingName = event.currentTarget.value;
+  }
+
+  async _onFinish() {
+    const newName = this._pendingName?.trim() || this.actor.name;
     await this.actor.update({
+      name: newName,
       'system.characterCreation.active': false,
       'system.characterCreation.step': 'welcome',
     });
-
     this.close();
   }
 
