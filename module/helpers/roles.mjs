@@ -563,6 +563,97 @@ export function canEditRoleChoices(item) {
   return isRoleOwnerEditor(item);
 }
 
+// ─── Role condition AE sync ──────────────────────────────────────────────────
+
+/**
+ * Synchronise actor-level AEs derived from role item AEs that carry a
+ * `flags.cyberpunk-blue.isRoleConditionAE` marker.
+ *
+ * Three condition types are supported:
+ *   'rank'      — AE applies when the role's rank >= conditionMinRank
+ *   'specialty' — AE applies when the specialty (conditionSpecialtyId) has
+ *                 rank >= conditionMinRank
+ *   'option'    — AE applies when the specialist option (conditionOptionId)
+ *                 is selected anywhere in the role
+ *
+ * Source AEs on role items should have transfer:false so Foundry doesn't copy
+ * them automatically; this function handles all syncing.
+ *
+ * @param {Actor} actor
+ */
+export async function syncAllRoleConditionAEs(actor) {
+  if (!(actor instanceof Actor) || !actor.isOwner) return;
+
+  // 1. Remove all previously-synced role condition AEs from the actor.
+  const toDelete = actor.effects.contents
+    .filter((e) => e.getFlag?.('cyberpunk-blue', 'isRoleConditionAE') && e.getFlag?.('cyberpunk-blue', 'sourceRoleId'))
+    .map((e) => e.id);
+  if (toDelete.length) {
+    await actor.deleteEmbeddedDocuments('ActiveEffect', toDelete);
+  }
+
+  // 2. Build AEs to (re)create from all role items.
+  const toCreate = [];
+
+  for (const roleItem of actor.items.filter((i) => i.type === 'role')) {
+    const system = normalizeRoleSystemData(roleItem.system);
+    const roleRank = Number(system.rank) || 0;
+
+    for (const ae of roleItem.effects ?? []) {
+      // Only process AEs the GM has explicitly tagged as conditional.
+      if (!ae.getFlag('cyberpunk-blue', 'isRoleConditionAE')) continue;
+
+      const conditionType = ae.getFlag('cyberpunk-blue', 'conditionType') ?? '';
+      const conditionMinRank = Number(ae.getFlag('cyberpunk-blue', 'conditionMinRank') ?? 1);
+      const conditionSpecialtyId = ae.getFlag('cyberpunk-blue', 'conditionSpecialtyId') ?? '';
+      const conditionOptionId = ae.getFlag('cyberpunk-blue', 'conditionOptionId') ?? '';
+
+      let conditionMet = false;
+      switch (conditionType) {
+        case 'rank':
+          conditionMet = roleRank >= conditionMinRank;
+          break;
+        case 'specialty': {
+          if (!conditionSpecialtyId) break;
+          const specialty = (system.specialties ?? []).find((s) => s.id === conditionSpecialtyId);
+          conditionMet = specialty ? (Number(specialty.rank) || 0) >= conditionMinRank : false;
+          break;
+        }
+        case 'option': {
+          if (!conditionOptionId) break;
+          conditionMet = (system.specialties ?? []).some((specialty) =>
+            (specialty.optionGroups ?? []).some((group) =>
+              (group.selectedOptionIds ?? []).includes(conditionOptionId)
+            )
+          );
+          break;
+        }
+        default:
+          continue; // unknown type — skip
+      }
+
+      if (!conditionMet) continue;
+
+      // Clone the AE, mark it as a synced actor-level copy.
+      const aeData = ae.toObject();
+      delete aeData._id;
+      aeData.transfer = false;
+      aeData.disabled = false;
+      aeData.flags ??= {};
+      aeData.flags['cyberpunk-blue'] ??= {};
+      // Preserve isRoleConditionAE flag so cleanup works; add source tracking.
+      aeData.flags['cyberpunk-blue'].isRoleConditionAE = true;
+      aeData.flags['cyberpunk-blue'].sourceRoleId = roleItem.id;
+      aeData.flags['cyberpunk-blue'].sourceAEId = ae.id;
+      toCreate.push(aeData);
+    }
+  }
+
+  if (toCreate.length) {
+    await actor.createEmbeddedDocuments('ActiveEffect', toCreate);
+  }
+}
+
 // ─── Protean tactic AE sync ───────────────────────────────────────────────────
 
 /**

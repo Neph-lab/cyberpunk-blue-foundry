@@ -1579,6 +1579,36 @@ section.chat-sidebar:not(.sidebar-popout),
   width: 20px;
 }
 
+/* ── Role AE condition row ──────────────────────────────────────────────── */
+
+.cyberpunk-blue .effect-condition-row {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid var(--cpb-border);
+  color: var(--cpb-muted);
+  display: flex;
+  font-size: 0.75rem;
+  gap: 0.4rem;
+  padding: 0.1rem 0.5rem 0.1rem 2rem;
+}
+
+.cyberpunk-blue .effect-condition-row .condition-summary.active {
+  color: var(--cpb-accent);
+}
+
+.cyberpunk-blue .effect-condition-btn {
+  cursor: pointer;
+  opacity: 0.5;
+  padding: 0 0.25rem;
+  transition: opacity 0.15s;
+}
+
+.cyberpunk-blue .effect-condition-btn:hover,
+.cyberpunk-blue .effect-condition-btn.cpb-condition-active {
+  color: var(--cpb-accent);
+  opacity: 1;
+}
+
 .cyberpunk-blue .roleCategory {
   color: var(--cpb-accent);
   font-size: 1rem;

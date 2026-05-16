@@ -21,6 +21,11 @@
         <div class="effect-source">{{effect.sourceName}}</div>
         <div class="effect-duration">{{effect.duration.label}}</div>
         <div class="item-controls effect-controls flexrow">
+          {{#if (and @root.isRole @root.canManageRestricted)}}
+            <a class="effect-condition-btn {{#if effect.cpbIsConditional}}cpb-condition-active{{/if}}" data-action="edit-ae-condition" data-effect-id="{{effect.id}}" title="{{#if effect.cpbIsConditional}}{{effect.cpbConditionSummary}}{{else}}Set activation condition{{/if}}">
+              <i class="fas fa-filter"></i>
+            </a>
+          {{/if}}
           <a class="effect-control" data-action="toggle" title="{{localize 'CYBER_BLUE.Effect.Toggle'}}">
             <i class="fas {{#if effect.disabled}}fa-check{{else}}fa-times{{/if}}"></i>
           </a>
@@ -32,6 +37,16 @@
           </a>
         </div>
       </li>
+      {{#if (and @root.isRole @root.canManageRestricted)}}
+      <li class="effect-condition-row" data-effect-id="{{effect.id}}">
+        <i class="fas fa-filter"></i>
+        {{#if effect.cpbIsConditional}}
+          <span class="condition-summary active">{{effect.cpbConditionSummary}}</span>
+        {{else}}
+          <span class="condition-summary muted">No condition — AE transfers normally</span>
+        {{/if}}
+      </li>
+      {{/if}}
     {{/each}}
     </ol>
   {{/each}}

@@ -16,7 +16,7 @@ import {
   syncDisabledCyberwareItemEffects,
   syncActorCyberwareDisableEffects,
 } from './helpers/cyberware-disable.mjs';
-import { syncActorLeaderRoles, syncAllProteanFociAEs, normalizeRoleSystemData } from './helpers/roles.mjs';
+import { syncActorLeaderRoles, syncAllProteanFociAEs, syncAllRoleConditionAEs, normalizeRoleSystemData } from './helpers/roles.mjs';
 import { CyberBlueJsonImportDialog, CyberBlueMacroCreator, CyberBlueWeaponImportDialog, CyberBlueResyncStartingGear } from './helpers/gm-tools.mjs';
 import { CharacterCreationWizard } from './helpers/character-creation.mjs';
 import {
@@ -86,6 +86,7 @@ Hooks.once('init', function () {
     roles: {
       syncLeaderTeams: syncActorLeaderRoles,
       syncProteanFoci: syncAllProteanFociAEs,
+      syncConditionAEs: syncAllRoleConditionAEs,
     },
   };
 
@@ -801,6 +802,33 @@ Hooks.on('createItem', syncProteanFociEffects);
 Hooks.on('updateItem', syncProteanFociEffects);
 Hooks.on('deleteItem', syncProteanFociEffects);
 
+// ─── Role condition AE sync ───────────────────────────────────────────────────
+// Re-sync role-condition AEs whenever any role item is created/updated/deleted.
+// Triggered by the editing client only (userId === game.user.id).
+const syncRoleConditionEffects = (document, ...hookArgs) => {
+  const userId = hookArgs[hookArgs.length - 1];
+  if (userId !== game.user.id) return;
+  if (!(document instanceof Item) || document.type !== 'role') return;
+  if (!(document.parent instanceof CyberBlueActor)) return;
+  return syncAllRoleConditionAEs(document.parent);
+};
+Hooks.on('createItem', syncRoleConditionEffects);
+Hooks.on('updateItem', syncRoleConditionEffects);
+Hooks.on('deleteItem', syncRoleConditionEffects);
+
+// Also re-sync when an AE on a role item changes (condition flags edited).
+const syncRoleConditionOnAEChange = (document, ...hookArgs) => {
+  const userId = hookArgs[hookArgs.length - 1];
+  if (userId !== game.user.id) return;
+  const parent = document.parent;
+  if (!(parent instanceof Item) || parent.type !== 'role') return;
+  if (!(parent.parent instanceof CyberBlueActor)) return;
+  return syncAllRoleConditionAEs(parent.parent);
+};
+Hooks.on('createActiveEffect', syncRoleConditionOnAEChange);
+Hooks.on('updateActiveEffect', syncRoleConditionOnAEChange);
+Hooks.on('deleteActiveEffect', syncRoleConditionOnAEChange);
+
 // ─── Ricochet canvas line hooks ───────────────────────────────────────────────
 // Redraw the ricochet trajectory line whenever the relevant state changes.
 Hooks.on('canvasReady', () => { try { refreshAllRicochetLines(); } catch { /* canvas not ready */ } });
@@ -1041,6 +1069,7 @@ Hooks.once('ready', async () => {
     await syncActorCyberwareDisableEffects(actor, { cyberBlueSyncCyberwareDisable: true });
     await syncActorLeaderRoles(actor);
     await syncAllProteanFociAEs(actor);
+    await syncAllRoleConditionAEs(actor);
     await syncPsycheStateEffect(actor, { cyberBlueSyncPsycheState: false });
   }
 

@@ -240,6 +240,41 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       this.document.effects.filter((effect) => !effect.getFlag('cyberpunk-blue', 'modId'))
     );
 
+    // ── Role condition AE annotations (GM-only) ────────────────────────────
+    // Annotate each AE in the effects categories with its cpb condition flags so
+    // item-effects.hbs can show a summary row and wire the edit button.
+    if (context.isRole && canManageRestricted) {
+      const specialties = itemData.system.specialties ?? [];
+      context.roleConditionSpecialtyOptions = specialties.map((s) => ({
+        id: s.id,
+        name: s.name || '(unnamed)',
+      }));
+      const specialtyNameMap = Object.fromEntries(specialties.map((s) => [s.id, s.name || '(unnamed)']));
+      for (const section of Object.values(context.effects)) {
+        for (const effect of section.effects) {
+          const ct = effect.getFlag('cyberpunk-blue', 'conditionType') ?? '';
+          const mr = Number(effect.getFlag('cyberpunk-blue', 'conditionMinRank') ?? 1);
+          const si = effect.getFlag('cyberpunk-blue', 'conditionSpecialtyId') ?? '';
+          const oi = effect.getFlag('cyberpunk-blue', 'conditionOptionId') ?? '';
+          effect.cpbIsConditional = !!ct;
+          effect.cpbConditionType = ct;
+          effect.cpbConditionMinRank = mr;
+          effect.cpbConditionSpecialtyId = si;
+          effect.cpbConditionOptionId = oi;
+          if (ct === 'rank') {
+            effect.cpbConditionSummary = `Active from role rank ${mr}`;
+          } else if (ct === 'specialty') {
+            const sName = specialtyNameMap[si] ?? si;
+            effect.cpbConditionSummary = `${sName} rank ≥ ${mr}`;
+          } else if (ct === 'option') {
+            effect.cpbConditionSummary = `When option selected`;
+          } else {
+            effect.cpbConditionSummary = '';
+          }
+        }
+      }
+    }
+
     // Disabled AEs on this item — available as targets for Affliction weapons
     context.itemDisabledEffects = this.document.effects
       .filter((e) => e.disabled && !e.getFlag('cyberpunk-blue', 'modId'))
@@ -511,6 +546,9 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
 
     this.element.querySelectorAll('.effect-control').forEach((button) => {
       button.addEventListener('click', (event) => onManageActiveEffect(event, this.document));
+    });
+    this.element.querySelectorAll('[data-action="edit-ae-condition"]').forEach((button) => {
+      button.addEventListener('click', this._onEditAECondition.bind(this));
     });
     this.element.querySelectorAll('[data-action="add-role-section"]').forEach((button) => {
       button.addEventListener('click', this._onAddRoleSection.bind(this));
@@ -1186,6 +1224,113 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     }
     if (changed) await this.document.update({ 'system.embeddedMods': embeddedMods });
     ui.notifications.info(game.i18n.localize('CYBER_BLUE.Sheet.Labels.ModSyncDone'));
+  }
+
+  // ── Role AE condition editor ───────────────────────────────────────────────
+
+  async _onEditAECondition(event) {
+    event.preventDefault();
+    const effectId = event.currentTarget.dataset.effectId;
+    const effect = this.document.effects.get(effectId);
+    if (!effect) return;
+
+    const currentType = effect.getFlag('cyberpunk-blue', 'conditionType') ?? '';
+    const currentMinRank = Number(effect.getFlag('cyberpunk-blue', 'conditionMinRank') ?? 1);
+    const currentSpecialtyId = effect.getFlag('cyberpunk-blue', 'conditionSpecialtyId') ?? '';
+    const currentOptionId = effect.getFlag('cyberpunk-blue', 'conditionOptionId') ?? '';
+
+    const specialties = (this.document.system.specialties ?? []);
+    const specialtyOptions = [
+      '<option value="">— choose specialty —</option>',
+      ...specialties.map((s) => {
+        const name = foundry.utils.escapeHTML(s.name || '(unnamed)');
+        const sel = s.id === currentSpecialtyId ? ' selected' : '';
+        return `<option value="${s.id}"${sel}>${name}</option>`;
+      }),
+    ].join('');
+
+    const typeOptions = [
+      { value: '', label: 'None — Foundry transfers AE unconditionally' },
+      { value: 'rank', label: 'Role rank ≥ N' },
+      { value: 'specialty', label: 'Specialty rank ≥ N' },
+      { value: 'option', label: 'Specialist option selected' },
+    ].map(({ value, label }) => {
+      const sel = value === currentType ? ' selected' : '';
+      return `<option value="${value}"${sel}>${foundry.utils.escapeHTML(label)}</option>`;
+    }).join('');
+
+    const { promise, resolve } = Promise.withResolvers();
+    const dialog = new foundry.applications.api.DialogV2({
+      window: { title: `AE Condition: ${effect.name}` },
+      content: `<form class="cyberpunk-blue ae-condition-form" style="display:flex;flex-direction:column;gap:0.5rem;padding:0.25rem 0;">
+        <div class="form-group">
+          <label>Condition type</label>
+          <select name="conditionType" style="flex:1;">${typeOptions}</select>
+        </div>
+        <div class="form-group" id="cpb-cond-rank-row">
+          <label>Min. rank</label>
+          <input type="number" name="conditionMinRank" value="${currentMinRank}" min="0" max="10" style="width:4rem;" />
+        </div>
+        <div class="form-group" id="cpb-cond-specialty-row" style="display:none;">
+          <label>Specialty</label>
+          <select name="conditionSpecialtyId" style="flex:1;">${specialtyOptions}</select>
+        </div>
+        <div class="form-group" id="cpb-cond-option-row" style="display:none;">
+          <label>Option ID</label>
+          <input type="text" name="conditionOptionId" value="${foundry.utils.escapeHTML(currentOptionId)}" placeholder="Paste option ID from role sheet" style="flex:1;" />
+        </div>
+        <p class="hint" style="margin-top:0.25rem;">Conditional AEs are applied to the actor only when the condition is met. Set type to <em>None</em> to let Foundry transfer the AE normally.</p>
+      </form>`,
+      render: (event, dialog) => {
+        const form = dialog.element?.querySelector('form');
+        if (!form) return;
+        const updateVisibility = () => {
+          const type = form.querySelector('[name="conditionType"]')?.value ?? '';
+          form.querySelector('#cpb-cond-rank-row').style.display = (type === 'rank' || type === 'specialty') ? '' : 'none';
+          form.querySelector('#cpb-cond-specialty-row').style.display = (type === 'specialty') ? '' : 'none';
+          form.querySelector('#cpb-cond-option-row').style.display = (type === 'option') ? '' : 'none';
+        };
+        updateVisibility();
+        form.querySelector('[name="conditionType"]')?.addEventListener('change', updateVisibility);
+      },
+      buttons: [
+        {
+          action: 'save',
+          icon: 'fa-solid fa-save',
+          label: 'Save',
+          default: true,
+          callback: (_ev, _btn, dlg) => {
+            const form = dlg.element?.querySelector('form');
+            if (!form) return null;
+            return new FormDataExtended(form).object;
+          },
+        },
+        { action: 'cancel', label: 'Cancel', callback: () => null },
+      ],
+      submit: (result) => resolve(result),
+    });
+    dialog.addEventListener('close', () => resolve(null), { once: true });
+    dialog.render(true);
+
+    const result = await promise;
+    if (!result) return;
+
+    const conditionType = result.conditionType ?? '';
+    const isConditional = conditionType !== '';
+    await effect.update({
+      transfer: !isConditional,
+      'flags.cyberpunk-blue.isRoleConditionAE': isConditional || null,
+      'flags.cyberpunk-blue.conditionType': conditionType || null,
+      'flags.cyberpunk-blue.conditionMinRank': Number(result.conditionMinRank) || 1,
+      'flags.cyberpunk-blue.conditionSpecialtyId': result.conditionSpecialtyId || null,
+      'flags.cyberpunk-blue.conditionOptionId': result.conditionOptionId || null,
+    });
+
+    // If the role item is embedded on an actor, trigger a condition AE sync.
+    if (this.document.parent instanceof Actor) {
+      const { syncAllRoleConditionAEs } = await import('../helpers/roles.mjs');
+      await syncAllRoleConditionAEs(this.document.parent);
+    }
   }
 
   async _onRemoveEmbeddedMod(event) {
