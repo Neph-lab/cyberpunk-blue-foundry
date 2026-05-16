@@ -2651,11 +2651,36 @@ async function ensureMacroCatalogue() {
     return;
   }
   await pack.getIndex();
-  if (pack.index.size > 0) return; // already populated
 
-  console.log('Cyberpunk Blue | Populating macros compendium…');
-  const byFolder = new Map();
+  // Sync commands for already-existing macros (keeps scripts up to date after edits).
+  const existingByName = new Map(pack.index.map((e) => [e.name, e]));
+  const toUpdate = [];
   for (const item of MACRO_CATALOGUE) {
+    const entry = existingByName.get(item.name);
+    if (!entry) continue;
+    const doc = await pack.getDocument(entry._id);
+    if (doc && doc.command !== item.command) {
+      toUpdate.push({ _id: entry._id, command: item.command });
+    }
+  }
+  if (toUpdate.length) {
+    await pack.configure({ locked: false });
+    try {
+      await Macro.updateDocuments(toUpdate, { pack: PACK_ID });
+      console.log(`Cyberpunk Blue | Updated ${toUpdate.length} macro script(s) in compendium.`);
+    } finally {
+      await pack.configure({ locked: true });
+    }
+  }
+
+  // Build a set of existing macro names so we only create missing ones.
+  const existingNames = new Set(pack.index.map((e) => e.name));
+  const missing = MACRO_CATALOGUE.filter((item) => !existingNames.has(item.name));
+  if (!missing.length) return; // all macros present
+
+  console.log(`Cyberpunk Blue | Adding ${missing.length} missing macro(s) to compendium…`);
+  const byFolder = new Map();
+  for (const item of missing) {
     const folderName = item._folder ?? 'General';
     if (!byFolder.has(folderName)) byFolder.set(folderName, []);
     byFolder.get(folderName).push(item);
@@ -2675,9 +2700,9 @@ async function ensureMacroCatalogue() {
       const docs = await Macro.createDocuments(cleaned, { pack: PACK_ID });
       created += docs.length;
     }
-    console.log(`Cyberpunk Blue | Macros compendium populated: ${created} macros.`);
+    console.log(`Cyberpunk Blue | Macros compendium updated: ${created} macro(s) added.`);
   } catch (err) {
-    console.error('Cyberpunk Blue | Failed to populate macros compendium:', err);
+    console.error('Cyberpunk Blue | Failed to add macros to compendium:', err);
   } finally {
     await pack.configure({ locked: true });
   }
