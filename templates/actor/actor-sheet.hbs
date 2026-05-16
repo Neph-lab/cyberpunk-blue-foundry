@@ -179,7 +179,7 @@
 
       </section>
 
-      {{#if combatWeapons.length}}
+      {{#if (or combatWeapons.length martialArtsAttacks.length)}}
         <section class="sheet-panel combat-weapon-panel">
           <table class="embedded-table combat-weapon-table">
             <colgroup>
@@ -310,13 +310,60 @@
                   </td>
                 </tr>
               {{/each}}
+              {{#each martialArtsAttacks as |ma|}}
+                <tr class="weapon-row ma-row{{#if ma.attackDisabled}} weapon-rof-locked{{/if}}">
+                  <td>
+                    <span class="embedded-name">
+                      {{#if ma.componentLabel}}{{ma.componentLabel}}{{else}}{{localize "CYBER_BLUE.MartialArts.Generic"}}{{/if}}
+                    </span>
+                  </td>
+                  <td class="numeric-column">
+                    <button type="button"
+                      data-action="ma-attack"
+                      data-ma-index="{{ma.maIndex}}"
+                      data-component-slug="{{ma.componentSlug}}"
+                      title="{{ma.attackTooltip}}"
+                      {{#if ma.attackDisabled}}disabled{{/if}}>
+                      {{ma.attackLabel}}
+                    </button>
+                  </td>
+                  <td class="numeric-column target-vitals-cell">
+                    <label class="target-vitals-label" title="{{localize 'CYBER_BLUE.Combat.TargetVitalsHint'}}">
+                      <input type="checkbox"
+                        data-action="ma-toggle-vitals"
+                        data-ma-index="{{ma.maIndex}}"
+                        {{#if ma.targetVitals}}checked{{/if}} />
+                    </label>
+                  </td>
+                  <td>{{localize "CYBER_BLUE.MartialArts.Title"}}</td>
+                  <td class="numeric-column">{{ma.damage}}</td>
+                  <td class="numeric-column" title="{{localize "CYBER_BLUE.Combat.RateOfFireTitle"}}">{{#if ma.attacksUsed}}{{ma.attacksUsed}}/{{/if}}{{ma.rateOfFire}}</td>
+                  <td class="numeric-column">&mdash;</td>
+                  <td class="numeric-column"></td>
+                  <td class="numeric-column"></td>
+                </tr>
+              {{/each}}
             </tbody>
           </table>
+          {{#if martialArtsSpecialMoves.length}}
+            <div class="ma-specials-grid">
+              {{#each martialArtsSpecialMoves as |move|}}
+                <div class="ma-special-entry">
+                  <div class="ma-special-header">
+                    <button type="button"
+                      class="ma-special-btn"
+                      data-action="ma-special"
+                      data-move-id="{{move.id}}">
+                      <i class="fas fa-fist-raised"></i>
+                      {{move.name}}
+                    </button>
+                  </div>
+                  <div class="ma-special-desc">{{move.desc}}</div>
+                </div>
+              {{/each}}
+            </div>
+          {{/if}}
         </section>
-      {{/if}}
-
-      {{#if martialArtsAttacks.length}}
-        {{> "systems/cyberpunk-blue/templates/actor/parts/actor-martial-arts.hbs"}}
       {{/if}}
 
       {{#if enrichedRoleOverviewFeatures.length}}
