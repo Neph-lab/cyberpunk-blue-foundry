@@ -4,7 +4,7 @@
  */
 export const ABILITY_CATALOGUE = [
   {
-    _id: 'AbilLanguage000000',
+    _id: 'AbilLanguage0000',
     name: 'Language',
     type: 'ability',
     img: 'icons/skills/social/diplomacy-handshake.webp',
@@ -16,7 +16,7 @@ export const ABILITY_CATALOGUE = [
     },
   },
   {
-    _id: 'AbilSanity00000000',
+    _id: 'AbilSanity000000',
     name: 'Sanity',
     type: 'ability',
     img: 'icons/magic/life/heart-glowing-green.webp',
@@ -28,7 +28,7 @@ export const ABILITY_CATALOGUE = [
     },
   },
   {
-    _id: 'AbilLipReading0000',
+    _id: 'AbilLipReading00',
     name: 'Lip-Reading',
     type: 'ability',
     img: 'icons/magic/perception/eye-ringed-glow-yellow.webp',
@@ -40,7 +40,7 @@ export const ABILITY_CATALOGUE = [
     },
   },
   {
-    _id: 'AbilReactSpeed0000',
+    _id: 'AbilReactSpeed00',
     name: 'Reaction Speed',
     type: 'ability',
     img: 'icons/skills/movement/arrow-upward-yellow.webp',
