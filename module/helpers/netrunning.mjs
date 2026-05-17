@@ -261,6 +261,10 @@ export async function connectToArchitecture(actor, apRegion) {
  * @param {boolean} safe  - true for a graceful disconnect; false triggers trauma
  */
 export async function disconnectFromArchitecture(actor, safe = true) {
+  // Only the active GM should execute disconnect logic.  If multiple GM-level
+  // users are connected (e.g. a stale host session), ensure exactly one client
+  // runs the authoritative cleanup.
+  if (game.user !== game.users.activeGM) return;
   const conn = getNetConnection(actor);
   if (!conn) return;
 
