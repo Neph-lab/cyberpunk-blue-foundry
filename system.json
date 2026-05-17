@@ -231,6 +231,14 @@
       "path": "packs/lifepath-tables",
       "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
       "flags": {}
+    },
+    {
+      "name": "tarot-deck",
+      "label": "Guide Tarot Deck",
+      "type": "Cards",
+      "path": "packs/tarot-deck",
+      "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
+      "flags": {}
     }
   ],
   "initiative": "1d10 + @stats.rflx.value + @initiativeBonus",

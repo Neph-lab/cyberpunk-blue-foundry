@@ -37,6 +37,7 @@ import {
 import * as models from './data/_module.mjs';
 import { CRITICAL_INJURY_FLAG, buildCritBodyTableData, buildCritHeadTableData } from './helpers/critical-injury.mjs';
 import { MACRO_CATALOGUE } from './helpers/critical-injury-macros.mjs';
+import { ensureTarotDeck, registerTarotHooks } from './helpers/guide-tarot.mjs';
 import { WEAPON_CATALOGUE } from './data/weapon-catalogue.mjs';
 import { MOD_CATALOGUE } from './data/mod-catalogue.mjs';
 import { EQUIPMENT_CATALOGUE } from './data/equipment-catalogue.mjs';
@@ -410,6 +411,7 @@ Hooks.once('init', function () {
     },
   ];
 
+  registerTarotHooks();
   return preloadHandlebarsTemplates();
 });
 
@@ -1076,6 +1078,7 @@ Hooks.once('ready', async () => {
   await ensureLifepathCatalogue();
   await syncRoleLifepathLinks();
   await ensureMacroCatalogue();
+  await ensureTarotDeck();
 
   // On the first GM login, sync role starting gear to the compendium
   const worldInitialized = game.settings.get('cyberpunk-blue', 'worldInitialized');
