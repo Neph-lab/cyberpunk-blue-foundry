@@ -238,17 +238,17 @@ export async function ensureTarotDeck() {
 // ── Play-dialog patch ─────────────────────────────────────────────────────────
 
 /**
- * Patches Cards.prototype.playDialog so that when the source hand carries the
- * isTarotHand flag, a custom dialog is shown that:
- *   1. Displays the card image + full description (meaning / trigger / effect).
- *   2. Lets the player pick a destination pile (or defaults to the only option).
- *   3. On confirm, passes the card and fires any automated effect.
+ * Patches Cards.prototype.playDialog so that playing any card whose flags carry
+ * a tarotNumber shows a custom dialog with the card description instead of
+ * Foundry's default name+image-only dialog. No hand setup or flags required —
+ * any hand that happens to contain tarot cards gets the enhanced dialog.
  */
 export function registerTarotHooks() {
   const _orig = Cards.prototype.playDialog;
 
   Cards.prototype.playDialog = async function(card, destinations) {
-    if (!this.getFlag?.(GUIDE_FLAG, 'isTarotHand')) {
+    const tarotNum = card?.getFlag?.(GUIDE_FLAG, 'tarotNumber');
+    if (tarotNum === undefined || tarotNum === null) {
       return _orig.call(this, card, destinations);
     }
     return _tarotPlayDialog.call(this, card, destinations);
@@ -305,19 +305,32 @@ async function _tarotPlayDialog(card, destinations) {
   // Pass the card
   await this.pass(dest, [card.id]);
 
-  // Fire automated effect
+  // Identify the Guide actor: prefer the current user's character if it has a Guide role,
+  // otherwise any character actor they own with a Guide role.
+  const guideActor = _findGuideActor();
+
+  const tarotNum = card.getFlag(GUIDE_FLAG, 'tarotNumber') ?? -1;
+  const cardDef  = TAROT_CARDS.find(c => c.n === tarotNum);
   const automation = card.getFlag(GUIDE_FLAG, 'automation');
+
   if (automation) {
-    // Identify the Guide actor from the hand's actorId flag
-    const actorId  = this.getFlag(GUIDE_FLAG, 'actorId');
-    const guideActor = actorId ? game.actors.get(actorId) : null;
-    const cardDef  = TAROT_CARDS.find(c => c.n === (card.getFlag(GUIDE_FLAG, 'tarotNumber') ?? -1));
     await _applyTarotEffect(automation, guideActor, cardDef);
-  } else {
-    // GM-handled: post a reminder chat card
-    const cardDef = TAROT_CARDS.find(c => c.n === (card.getFlag(GUIDE_FLAG, 'tarotNumber') ?? -1));
-    if (cardDef) _postChatCard(card, cardDef, null);
+  } else if (cardDef) {
+    _postChatCard(card, cardDef, guideActor);
   }
+}
+
+/** Find the Guide actor for the current user (owns a character with a Guide role). */
+function _findGuideActor() {
+  const character = game.user.character;
+  if (character && character.items.some(i => i.type === 'role' && i.name === 'Guide')) {
+    return character;
+  }
+  return game.actors.find(a =>
+    a.type === 'character'
+    && a.isOwner
+    && a.items.some(i => i.type === 'role' && i.name === 'Guide')
+  ) ?? null;
 }
 
 // ── Effect dispatcher ─────────────────────────────────────────────────────────
