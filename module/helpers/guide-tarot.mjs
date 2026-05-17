@@ -263,7 +263,7 @@ async function _tarotPlayDialog(card, destinations) {
     .filter(p => p.id !== this.id);
 
   if (!piles.length) {
-    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Guide.NoPile'));
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Role.Guide.NoPile'));
     return;
   }
 
@@ -277,13 +277,13 @@ async function _tarotPlayDialog(card, destinations) {
   const destOptions = piles.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
   const destHtml = piles.length > 1
     ? `<label style="display:flex;gap:.5rem;align-items:center;margin-top:.75rem;">
-         <span style="white-space:nowrap;">${game.i18n.localize('CYBER_BLUE.Guide.PlayTo')}:</span>
+         <span style="white-space:nowrap;">${game.i18n.localize('CYBER_BLUE.Role.Guide.PlayTo')}:</span>
          <select name="dest" style="flex:1;">${destOptions}</select>
        </label>`
     : `<input type="hidden" name="dest" value="${piles[0].id}" />`;
 
   const chosenDestId = await foundry.applications.api.DialogV2.prompt({
-    window: { title: `${game.i18n.localize('CYBER_BLUE.Guide.Play')}: ${cardNum}. ${card.name}` },
+    window: { title: `${game.i18n.localize('CYBER_BLUE.Role.Guide.Play')}: ${cardNum}. ${card.name}` },
     content: `<div class="cyberpunk-blue" style="padding:.5rem 0;">
       <div style="display:flex;gap:.75rem;align-items:flex-start;">
         <img src="${faceImg}" style="width:90px;border-radius:4px;flex-shrink:0;border:1px solid var(--color-border-dark,#999);" />
@@ -292,7 +292,7 @@ async function _tarotPlayDialog(card, destinations) {
       ${destHtml}
     </div>`,
     ok: {
-      label: game.i18n.localize('CYBER_BLUE.Guide.PlayCard'),
+      label: game.i18n.localize('CYBER_BLUE.Role.Guide.PlayCard'),
       callback: (_e, btn) => btn.form.elements.dest.value,
     },
     rejectClose: false,
