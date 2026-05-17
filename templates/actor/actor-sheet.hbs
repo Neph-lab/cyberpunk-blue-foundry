@@ -1252,6 +1252,19 @@
           </section>
         {{/if}}
 
+        {{!-- ── Self-ICE Passwall layers ── --}}
+        {{#if selfIcePasswalls.length}}
+          <section class="sheet-panel self-ice-panel">
+            <h2><i class="fas fa-shield-halved"></i> {{localize "CYBER_BLUE.Netrunning.SelfICELabel"}}</h2>
+            <p class="hint">{{localize "CYBER_BLUE.Netrunning.SelfICEHint"}}</p>
+            <div class="self-ice-passwalls">
+              {{#each selfIcePasswalls as |layer|}}
+                <span class="state-chip self-ice-chip">{{localize "CYBER_BLUE.Netrunning.Passwall"}} {{layer.layer}}: DV {{layer.dv}}</span>
+              {{/each}}
+            </div>
+          </section>
+        {{/if}}
+
         {{!-- ── On Disk executables ── --}}
         <section class="sheet-panel">
           <h2>{{localize "CYBER_BLUE.Combat.ExecutablesOnDisk"}}</h2>

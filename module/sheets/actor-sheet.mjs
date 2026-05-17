@@ -968,6 +968,21 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       context.diskColVis   = buildColVis(executablesOnDisk, true);
       context.shardsColVis = buildColVis(executablesOnShards, false);
 
+      // ── Self-ICE Passwall DVs ─────────────────────────────────────────────
+      // Any character may have Self-ICE installed (neuralware cyberware).
+      // Each install adds one Passwall layer; DV starts at 10 and rises by 2
+      // per additional install.  Expose a sorted DV list for the sheet.
+      {
+        const selfIceCount = embeddedItems.filter((i) =>
+          i.type === 'cyberware'
+          && i.system.installed !== false
+          && i.name.toLowerCase().includes('self-ice'),
+        ).length;
+        context.selfIcePasswalls = selfIceCount > 0
+          ? Array.from({ length: selfIceCount }, (_, k) => ({ layer: k + 1, dv: 10 + 2 * k }))
+          : [];
+      }
+
       // ── NET actions combat counter ─────────────────────────────────────────
       const netCombatant = game.combat?.combatants.find(
         (c) => c.actor?.id === this.document.id,
@@ -998,6 +1013,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       context.netActionsUsed      = 0;
       context.netActionsTurnTotal = 0;
       context.netActionsRemaining = 0;
+      context.selfIcePasswalls    = [];
     }
 
     // Character creation state
