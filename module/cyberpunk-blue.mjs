@@ -890,8 +890,10 @@ Hooks.on('updateItem', async (item, change) => {
 // ─── Netrunning: unsafe disconnect when token leaves AP region ────────────────
 // If a connected netrunner's token moves out of every AP region that contains
 // their linked access point, trigger an unsafe disconnect (1d6 HP damage).
+// Guard with activeGM so only one client fires the automation when multiple
+// GM-level users are connected simultaneously.
 Hooks.on('updateToken', async (tokenDoc, change) => {
-  if (!game.user.isGM) return;
+  if (game.user !== game.users.activeGM) return;
   // Only fire when position changes
   if (change.x === undefined && change.y === undefined) return;
 
@@ -933,7 +935,7 @@ Hooks.on('updateToken', async (tokenDoc, change) => {
 // When a temporary Program Actor's REZ is updated, sync the value back to the
 // originating Executable item and apply the ##ERROR## state if REZ hits 0.
 Hooks.on('updateActor', async (actor, changes) => {
-  if (!game.user.isGM) return;
+  if (game.user !== game.users.activeGM) return;
   if (!actor.getFlag('cyberpunk-blue', 'isTemporaryProgramActor')) return;
   if (!foundry.utils.hasProperty(changes, 'system.resources.rez.value')) return;
 
@@ -955,7 +957,7 @@ Hooks.on('updateActor', async (actor, changes) => {
 // the NET — the cyberdeck port severs without a graceful handshake.
 // KRASH-Barrier (checked inside disconnectFromArchitecture) may absorb damage.
 Hooks.on('updateActor', async (actor, changes) => {
-  if (!game.user.isGM) return;
+  if (game.user !== game.users.activeGM) return;
   if (!foundry.utils.hasProperty(changes, 'system.resources.hp.value')) return;
   const newHp = foundry.utils.getProperty(changes, 'system.resources.hp.value') ?? 1;
   if (newHp > 0) return;

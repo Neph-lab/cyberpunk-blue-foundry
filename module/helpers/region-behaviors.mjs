@@ -97,8 +97,9 @@ export class CyberBlueNetNodeBehavior extends foundry.data.regionBehaviors.Regio
    * @this {CyberBlueNetNodeBehavior}
    */
   static async _onNetrunnerEntersNode(event) {
-    // Only the GM client handles Black ICE attacks
-    if (!game.user.isGM) return;
+    // Only the active GM client handles Black ICE attacks (guards against
+    // multiple simultaneous GM-level users both processing the hook).
+    if (game.user !== game.users.activeGM) return;
 
     const enteringToken = event.data.token;
     if (!enteringToken?.actor) return;
