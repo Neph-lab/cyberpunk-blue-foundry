@@ -284,12 +284,12 @@ async function _tarotPlayDialog(card, destinations) {
 
   const chosenDestId = await foundry.applications.api.DialogV2.prompt({
     window: { title: `${game.i18n.localize('CYBER_BLUE.Role.Guide.Play')}: ${cardNum}. ${card.name}` },
-    content: `<div class="cyberpunk-blue" style="padding:.5rem 0;">
-      <div style="display:flex;gap:.75rem;align-items:flex-start;">
-        <img src="${faceImg}" style="width:90px;border-radius:4px;flex-shrink:0;border:1px solid var(--color-border-dark,#999);" />
-        <div style="font-size:.85rem;line-height:1.5;">${faceText}</div>
+    content: `<div class="cyberpunk-blue tarot-play-dialog">
+      <div class="tarot-play-card-image">
+        <img class="tarot-play-img" src="${faceImg}" />
       </div>
-      ${destHtml}
+      <div class="tarot-play-description">${faceText}</div>
+      <div class="tarot-play-destination">${destHtml}</div>
     </div>`,
     ok: {
       label: game.i18n.localize('CYBER_BLUE.Role.Guide.PlayCard'),
