@@ -50,6 +50,11 @@
     }
   ],
   "documentTypes": {
+    "RegionBehavior": {
+      "accessPoint": {},
+      "accNode": {},
+      "netNode": {}
+    },
     "Actor": {
       "character": {
         "htmlFields": [
