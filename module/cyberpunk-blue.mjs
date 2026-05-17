@@ -901,13 +901,11 @@ Hooks.on('updateToken', async (tokenDoc, change) => {
   const conn = getNetConnection(actor);
   if (!conn?.apSceneId || !conn?.apRegionId) return;
 
-  // Check if the AP is still reachable from the new token position
+  // Only monitor the physical-world token (the one on the AP scene).
+  // The arch-scene token shares the same actor but lives on a different scene;
+  // its movement must NOT trigger a disconnect.
   const scene = tokenDoc.parent;
-  if (!scene || scene.id !== conn.apSceneId) {
-    // Actor's physical-world token is on a different scene — disconnect
-    await disconnectFromArchitecture(actor, false);
-    return;
-  }
+  if (!scene || scene.id !== conn.apSceneId) return;
 
   const apRegion = scene.regions.get(conn.apRegionId);
   if (!apRegion) {
