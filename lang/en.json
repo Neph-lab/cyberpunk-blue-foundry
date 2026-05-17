@@ -155,7 +155,7 @@
         "InstallExecutable": "Install to Disk",
         "UninstallExecutable": "Move to Shards"
       },
-        "Buttons": {
+      "Buttons": {
         "AddRole": "Add Role",
         "AddAbility": "Add Ability",
         "AddCyberware": "Add Cyberware",
@@ -858,32 +858,6 @@
       "Terminates": "End sequence after this step",
       "EffectName": "Effect name",
       "EffectNameHint": "e.g. Boost - Usage"
-    }
-  },
-  "TYPES": {
-    "Actor": {
-      "character": "Character",
-      "npc": "NPC",
-      "mook": "Mook",
-      "program": "Program",
-      "vehicle": "Vehicle"
-    },
-    "Item": {
-      "role": "Role",
-      "ability": "Ability",
-      "cyberware": "Cyberware",
-      "gear": "Gear",
-      "ammo": "Ammo",
-      "programExecutable": "Executable",
-      "drug": "Drug",
-      "mod": "Mod"
-    },
-    "Drug": {
-      "PrimaryEffect": "Primary effect",
-      "Duration": "Duration",
-      "SecondaryDV": "Secondary DV",
-      "SecondaryEffect": "Secondary effect (on fail)",
-      "AddictionPenalty": "Addiction penalty"
     },
     "Netrunning": {
       "Connected": "Connected to Architecture",
@@ -932,6 +906,9 @@
       "QuickhackActivated": "Quickhack Active: {qh} on {target}",
       "EncryptDecryptPending": "{op} in progress…",
       "EncryptDecryptComplete": "{op} operation complete.",
+      "SelfICELabel": "Self-ICE Defense",
+      "SelfICEHint": "Passwall layers protecting your neuroport against quickhacks.",
+      "Passwall": "Passwall",
       "BlackIceEncounter": "{name} enters node '{node}' — Black ICE detected!",
       "BlackIceEncounterCount": "{count} Black ICE program(s) engage.",
       "BlackIceAutoAttack": "auto-attacks",
@@ -951,6 +928,32 @@
         "ProgramAttackLabel": "Attack",
         "ErrorStateMsg": "has been reduced to 0 REZ — it cannot move, act, or provide bonuses and is skipped in encounter order."
       }
+    }
+  },
+  "TYPES": {
+    "Actor": {
+      "character": "Character",
+      "npc": "NPC",
+      "mook": "Mook",
+      "program": "Program",
+      "vehicle": "Vehicle"
+    },
+    "Item": {
+      "role": "Role",
+      "ability": "Ability",
+      "cyberware": "Cyberware",
+      "gear": "Gear",
+      "ammo": "Ammo",
+      "programExecutable": "Executable",
+      "drug": "Drug",
+      "mod": "Mod"
+    },
+    "Drug": {
+      "PrimaryEffect": "Primary effect",
+      "Duration": "Duration",
+      "SecondaryDV": "Secondary DV",
+      "SecondaryEffect": "Secondary effect (on fail)",
+      "AddictionPenalty": "Addiction penalty"
     },
     "RegionBehavior": {
       "AccessPoint": {
