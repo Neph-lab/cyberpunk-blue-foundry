@@ -65,7 +65,7 @@ export function getPrimaryCyberdeck(actor) {
 
 /**
  * Find all Access Point regions in `scene` within `rangeMeters` of `point`.
- * Only considers regions that have a `cyberpunk-blue.accessPoint` behavior.
+ * Only considers regions that have an `accessPoint` behavior.
  *
  * @param {Scene}                  scene       - Foundry Scene document
  * @param {{x: number, y: number}} point       - Canvas pixel coordinates
@@ -91,10 +91,10 @@ export function getAccessPointsInRange(scene, point, rangeMeters) {
   return results;
 }
 
-/** Extract the `cyberpunk-blue.accessPoint` behavior from a region, or null. */
+/** Extract the `accessPoint` behavior from a region, or null. */
 export function _getApBehavior(region) {
   for (const b of (region.behaviors ?? [])) {
-    if (b.type === 'cyberpunk-blue.accessPoint') return b;
+    if (b.type === 'accessPoint') return b;
   }
   return null;
 }

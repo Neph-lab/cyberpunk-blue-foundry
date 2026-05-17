@@ -154,12 +154,15 @@ Hooks.once('init', function () {
   CONFIG.ActiveEffect.legacyTransferral = false;
 
   // ── Region Behavior Types ──────────────────────────────────────────────────
-  CONFIG.RegionBehavior.dataModels['cyberpunk-blue.accessPoint'] = CyberBlueAccessPointBehavior;
-  CONFIG.RegionBehavior.dataModels['cyberpunk-blue.accNode']     = CyberBlueAccNodeBehavior;
-  CONFIG.RegionBehavior.dataModels['cyberpunk-blue.netNode']     = CyberBlueNetNodeBehavior;
-  CONFIG.RegionBehavior.typeLabels['cyberpunk-blue.accessPoint'] = 'CYBER_BLUE.RegionBehavior.AccessPoint.Label';
-  CONFIG.RegionBehavior.typeLabels['cyberpunk-blue.accNode']     = 'CYBER_BLUE.RegionBehavior.AccNode.Label';
-  CONFIG.RegionBehavior.typeLabels['cyberpunk-blue.netNode']     = 'CYBER_BLUE.RegionBehavior.NetNode.Label';
+  // Note: system.json registers these under documentTypes.RegionBehavior without
+  // the system-id prefix (Foundry does NOT auto-prefix for systems, only modules).
+  // All client-side registrations must match the unprefixed keys.
+  CONFIG.RegionBehavior.dataModels['accessPoint'] = CyberBlueAccessPointBehavior;
+  CONFIG.RegionBehavior.dataModels['accNode']     = CyberBlueAccNodeBehavior;
+  CONFIG.RegionBehavior.dataModels['netNode']     = CyberBlueNetNodeBehavior;
+  CONFIG.RegionBehavior.typeLabels['accessPoint'] = 'CYBER_BLUE.RegionBehavior.AccessPoint.Label';
+  CONFIG.RegionBehavior.typeLabels['accNode']     = 'CYBER_BLUE.RegionBehavior.AccNode.Label';
+  CONFIG.RegionBehavior.typeLabels['netNode']     = 'CYBER_BLUE.RegionBehavior.NetNode.Label';
 
   Actors.registerSheet('cyberpunk-blue', CyberBlueActorSheet, {
     makeDefault: true,
