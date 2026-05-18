@@ -7,7 +7,7 @@ export const ABILITY_CATALOGUE = [
     _id: 'AbilLanguage0000',
     name: 'Language',
     type: 'ability',
-    img: 'icons/skills/social/diplomacy-handshake.webp',
+    img: 'systems/cyberpunk-blue/assets/items/abilities/language.png',
     system: {
       rank: 0,
       maxRank: 2,
@@ -19,7 +19,7 @@ export const ABILITY_CATALOGUE = [
     _id: 'AbilSanity000000',
     name: 'Sanity',
     type: 'ability',
-    img: 'icons/magic/life/heart-glowing-green.webp',
+    img: 'systems/cyberpunk-blue/assets/items/abilities/Sanity (1).png',
     system: {
       rank: 0,
       maxRank: 10,
@@ -31,7 +31,7 @@ export const ABILITY_CATALOGUE = [
     _id: 'AbilLipReading00',
     name: 'Lip-Reading',
     type: 'ability',
-    img: 'icons/magic/perception/eye-ringed-glow-yellow.webp',
+    img: 'systems/cyberpunk-blue/assets/items/abilities/lip-reading.png',
     system: {
       rank: 0,
       maxRank: 10,
@@ -43,7 +43,7 @@ export const ABILITY_CATALOGUE = [
     _id: 'AbilReactSpeed00',
     name: 'Reaction Speed',
     type: 'ability',
-    img: 'icons/skills/movement/arrow-upward-yellow.webp',
+    img: 'systems/cyberpunk-blue/assets/items/abilities/reaction-time.png',
     system: {
       rank: 0,
       maxRank: 3,

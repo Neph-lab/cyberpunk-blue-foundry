@@ -109,7 +109,7 @@ export const AMMO_CATALOGUE = [
   ammoItem({
     name: 'Basic Fuel',
     ammoTypes: { flamethrower: true },
-    img: `${ASSET_BASE}/Basic Rifle.png`,
+    img: `${ASSET_BASE}/fuel.png`,
     note: 'Standard accelerant',
   }),
   ammoItem({
@@ -122,14 +122,14 @@ export const AMMO_CATALOGUE = [
   ammoItem({
     name: 'Incendiary Shotgun Shells',
     ammoTypes: { shotgunShell: true },
-    img: `${ASSET_BASE}/Basic Rifle.png`,
+    img: `${ASSET_BASE}/Incendiary.png`,
     cost: '€$500 (Expensive)',
     note: '+2 damage past SP; target and adjacent objects may catch fire on a hit.',
   }),
   ammoItem({
     name: 'Incendiary Rifle Ammo',
     ammoTypes: { assault: true },
-    img: `${ASSET_BASE}/Basic Rifle.png`,
+    img: `${ASSET_BASE}/Incendiary.png`,
     cost: '€$500 (Expensive)',
     note: '+2 damage past SP; target and adjacent objects may catch fire on a hit.',
   }),

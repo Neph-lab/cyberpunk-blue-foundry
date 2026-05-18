@@ -132,6 +132,7 @@ export const CYBERWARE_CATALOGUE = [
 
   cw({
     name: 'Neuroport',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/neuroport.png`,
     folder: 'Neuroport',
     cyberwareType: 'neuralware', integration: 'platform', slotsProvided: 5,
     cost: 'PR', facilities: 'hospital', installationCost: 'EX', installationDv: 17,
@@ -143,6 +144,7 @@ export const CYBERWARE_CATALOGUE = [
 
   cw({
     name: 'Braindance Recorder',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/braindance-recorder.png`,
     folder: 'Neuralware',
     cyberwareType: 'neuralware', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'hospital', installationCost: 'EX', installationDv: 17,
@@ -151,6 +153,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Ex-Disk',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/ex-disk.png`,
     folder: 'Neuralware',
     cyberwareType: 'neuralware', integration: 'extension', slotsUsed: 1,
     cost: 'VEX', facilities: 'hospital', installationCost: 'EX', installationDv: 17,
@@ -159,6 +162,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Neuroport Cyberdeck Port',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/cyberdeck-port.png`,
     folder: 'Neuralware',
     cyberwareType: 'neuralware', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'hospital', installationCost: 'EX', installationDv: 19,
@@ -167,6 +171,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Self-ICE',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/self-ice.png`,
     folder: 'Neuralware',
     cyberwareType: 'neuralware', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'mall', installationCost: 'CO', installationDv: 13,
@@ -209,6 +214,7 @@ export const CYBERWARE_CATALOGUE = [
 
   cw({
     name: 'Standard Cybereye',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/cybereye.png`,
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'platform', slotsProvided: 3,
     cost: 'CO', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -292,6 +298,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Virtuality',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/virtuality.png`,
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'mall', installationCost: 'CO', installationDv: 12,
@@ -311,6 +318,7 @@ export const CYBERWARE_CATALOGUE = [
 
   cw({
     name: 'Standard Cyberaudio Suite',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/cyberaudio-suite.png`,
     folder: 'Cyberaudio',
     cyberwareType: 'cyberaudio', integration: 'platform', slotsProvided: 3,
     cost: 'CO', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -388,6 +396,7 @@ export const CYBERWARE_CATALOGUE = [
 
   cw({
     name: 'Standard Cyberarm',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/cyberarm.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'platform', slotsProvided: 4,
     cost: 'EX', facilities: 'hospital', installationCost: 'EX', installationDv: 19,
@@ -489,6 +498,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Rippers',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/Rippers.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -693,6 +703,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Toxin Binders',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/toxin-binders.png`,
     folder: 'Internal Cyberware',
     cyberwareType: 'internal', integration: 'standalone',
     cost: 'CO', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -856,6 +867,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'MultiOptic Mount',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/MultiOptic-Mount.png`,
     folder: 'Borgware',
     cyberwareType: 'borgware', integration: 'standalone', slotsProvided: 5,
     cost: 'EX', facilities: 'hospital', installationCost: 'EX', installationDv: 20,

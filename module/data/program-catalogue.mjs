@@ -29,12 +29,12 @@ const FOLDER = {
 
 const h = (text) => `<p>${text}</p>`;
 
-function prog({ name, cost, category, act = 0, atk = 0, def = 0, net = 0, per = 0, rez = 0, ram = 0, damageFormula = '', description }) {
+function prog({ name, cost, category, img = '', act = 0, atk = 0, def = 0, net = 0, per = 0, rez = 0, ram = 0, damageFormula = '', description }) {
   return {
     _folder: FOLDER[category] ?? category,
     name,
     type: 'programExecutable',
-    img: '',
+    img,
     system: {
       manufacturer: '',
       cost: COST[cost] ?? cost,
@@ -101,6 +101,7 @@ export const PROGRAM_CATALOGUE = [
   }),
   prog({
     name: 'Sword',
+    img: `systems/cyberpunk-blue/assets/items/programs/Sword program.png`,
     cost: 'CO', category: 'attack',
     atk: 2, def: 10, rez: 5,
     description: 'Attack a program. Deals 2d6 damage (+1d6 extra against Black ICE).',
@@ -205,6 +206,7 @@ export const PROGRAM_CATALOGUE = [
 
   prog({
     name: 'Armor',
+    img: `systems/cyberpunk-blue/assets/items/programs/Armor program.png`,
     cost: 'CO', category: 'defender',
     def: 12, rez: 5,
     description: 'Damage dealt to the netrunner from an attack is lowered by Armor\'s current REZ. If the netrunner still takes damage, Armor loses 1 REZ. Only one copy protects against any single attack.',

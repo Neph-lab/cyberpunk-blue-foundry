@@ -106,12 +106,12 @@ const S = {
  * @param {Array}    [opts.effects]   — ActiveEffect create-data
  * @param {Array}    [opts.instructions] — instruction step sequence
  */
-function drug({ name, cost, duration, primary, secDv, secondary, addiction = '', description = '', effects = [], instructions = [] }) {
+function drug({ name, cost, duration, img = '', primary, secDv, secondary, addiction = '', description = '', effects = [], instructions = [] }) {
   return {
     _folder: 'Drugs',
     name,
     type: 'drug',
-    img: '',
+    img,
     system: {
       manufacturer: '',
       cost:              COST[cost] ?? cost,
@@ -216,7 +216,7 @@ export const DRUG_CATALOGUE = [
   // ── Boost ───────────────────────────────────────────────────────────────────
   // Clean AE: INT +2. Addiction AE: INT −2.
   drug({
-    name:      'Boost',
+    name:      'Boost', img: `systems/cyberpunk-blue/assets/items/drugs/boost.png`,
     cost:      'CO',
     duration:  '20 hours',
     primary:   'INT +2 (maximum of 8 total).',
@@ -351,7 +351,7 @@ export const DRUG_CATALOGUE = [
   // ── Synthcoke ───────────────────────────────────────────────────────────────
   // Clean AE: RFLX +1. Addiction AE: RFLX −2.
   drug({
-    name:      'Synthcoke',
+    name:      'Synthcoke', img: `systems/cyberpunk-blue/assets/items/drugs/synth-coke.png`,
     cost:      'EV',
     duration:  '4 hours',
     primary:   'RFLX +1. Constant sense of paranoia and being watched.',

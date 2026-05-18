@@ -22,6 +22,29 @@ const COST = {
 
 const h = (text) => `<p>${text}</p>`;
 
+// ── Asset paths ───────────────────────────────────────────────────────────────
+const ASSET_BASE = 'systems/cyberpunk-blue/assets/items';
+const A_GEAR     = `${ASSET_BASE}/gear`;
+const A_AMMO     = `${ASSET_BASE}/ammo`;
+const A_ARMOR    = `${ASSET_BASE}/armor`;
+const A_CHIPWARE = `${ASSET_BASE}/chipware`;
+const A_CLOTHES  = `${ASSET_BASE}/clothes`;
+
+const CLOTHING_IMG = {
+  'Bottoms/Entropism': `${A_CLOTHES}/entropism-bottoms.png`,
+  'Top/Entropism':     `${A_CLOTHES}/entropism-vest.png`,
+  'Jacket/Entropism':  `${A_CLOTHES}/entropism-jacket.png`,
+  'Footwear/Kitch':    `${A_CLOTHES}/kitsch-footwear.png`,
+  'Jacket/Kitch':      `${A_CLOTHES}/kitsch-jacket.png`,
+  'Top/Kitch':         `${A_CLOTHES}/kitsch-vest.png`,
+  'Jewelry/Neokitch':  `${A_CLOTHES}/neokitsch-jewelery.png`,
+  '_/Entropism':       `${A_CLOTHES}/Entropism.png`,
+  '_/Kitch':           `${A_CLOTHES}/Kitsch.png`,
+  '_/Neomilitarism':   `${A_CLOTHES}/Neomilitarism.png`,
+  '_/Neokitch':        `${A_CLOTHES}/Neokitsch.png`,
+};
+
+
 // ── AE helpers ─────────────────────────────────────────────────────────────
 const ae      = (name, changes) => ({ name, disabled: false, transfer: true, changes });
 const aeOff   = (name, changes) => ({ name, disabled: true,  transfer: true, changes, flags: { 'cyberpunk-blue': { noGearStateSync: true } } });
@@ -47,7 +70,7 @@ const S = {
  * Build a standard Gear item.
  */
 function gear({
-  name, manufacturer = '', cost, folder, description = '',
+  name, manufacturer = '', cost, folder, description = '', imgPath = '',
   isArmor = false, maxSp = 0, quantity = 1,
   isComputer = false, computer = {},
   isWeapon = false, weapons = [],
@@ -57,7 +80,7 @@ function gear({
     _folder: folder,
     name,
     type: 'gear',
-    img: '',
+    img: imgPath,
     effects,
     system: {
       manufacturer,
@@ -114,10 +137,12 @@ const STYLE_DESC = {
 };
 
 function clothing(type, style, cost) {
+  const imgPath = CLOTHING_IMG[`${type}/${style}`] ?? CLOTHING_IMG[`_/${style}`] ?? '';
   return gear({
     name: `${type} (${style})`,
     folder: 'Outfit',
     cost,
+    imgPath,
     description: `${type}. ${STYLE_DESC[style]}`,
   });
 }
@@ -163,7 +188,7 @@ export const EQUIPMENT_CATALOGUE = [
 
   gear({
     name: 'Knock-Out Grenade',
-    folder: 'Grenades', cost: 'EX',
+    folder: 'Grenades', imgPath: `${A_AMMO}/Knock-out Gas Grenade.png`,, cost: 'EX',
     description: 'Deals no damage. AoE: 4m inner / 8m outer sphere; targets in outer zone get +5 to resist. DV13 BODY+Endurance or fall unconscious for a number of minutes equal to the margin of failure (waking from damage or an action taken to rouse them). No SP ablation. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind. Quality: Standard (EX), Poor (PR), Excellent (VEX).',
     isWeapon: true,
     weapons: [{
@@ -188,7 +213,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Smoke Grenade',
-    folder: 'Grenades', cost: 'CO',
+    folder: 'Grenades', imgPath: `${A_AMMO}/Smoke Grenade.png`,, cost: 'CO',
     description: 'Deals no damage. AoE: 16m inner / 22m outer sphere. DV13 BODY+Endurance or suffer Damaged Eye Critical Injury for 1 minute. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind. Quality: Standard (CO), Poor (EV), Excellent (PR).',
     isWeapon: true,
     weapons: [{
@@ -213,7 +238,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Teargas Grenade',
-    folder: 'Grenades', cost: 'CO',
+    folder: 'Grenades', imgPath: `${A_AMMO}/Teargas Grenade.png`,, cost: 'CO',
     description: 'Deals no damage. AoE: 10m inner / 12m outer sphere; targets in outer zone get +4 to resist. DV13 BODY+Endurance or suffer Damaged Eye Critical Injury for 1 minute. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind. Quality: Standard (CO), Poor (EV), Excellent (PR).',
     isWeapon: true,
     weapons: [{
@@ -238,7 +263,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Flashbang Grenade',
-    folder: 'Grenades', cost: 'EX',
+    folder: 'Grenades', imgPath: `${A_AMMO}/Flasgbang Grenade.png`,, cost: 'EX',
     description: 'Deals no damage. AoE: 10m inner / 12m outer sphere; targets in outer zone get +4 to resist. DV17 REFLEXES+Athletics or become Blinded and Deafened for 1 round. Both radii shrink by 2m after each subsequent turn.',
     isWeapon: true,
     weapons: [{
@@ -263,7 +288,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Toxic Grenade',
-    folder: 'Grenades', cost: 'EX',
+    folder: 'Grenades', imgPath: `${A_AMMO}/Toxic Gas Grenade.png`,, cost: 'EX',
     description: 'Deals no damage, no SP ablation, cannot cause Critical Injuries. AoE: 4m inner / 10m outer sphere; targets in outer zone get +2 to resist. DV15 BODY+Endurance or take 2d6 HP; on a successful resist, take half (rounded down). Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind. Quality: Standard (EX), Poor (PR), Excellent (VEX).',
     isWeapon: true,
     weapons: [{
@@ -286,7 +311,7 @@ export const EQUIPMENT_CATALOGUE = [
 
   gear({
     name: 'Audio Recorder',
-    folder: 'Media Gear', cost: 'CO',
+    folder: 'Media Gear', imgPath: `${A_GEAR}/audio-recorder.png`,, cost: 'CO',
     description: '24-hour recording capacity per shard (1 shard included).',
   }),
   gear({
@@ -296,17 +321,17 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Braindance Wreath',
-    folder: 'Media Gear', cost: 'EX',
+    folder: 'Media Gear', imgPath: `${A_GEAR}/braindance-wreath.png`,, cost: 'EX',
     description: 'Required to experience a Braindance recording.',
   }),
   gear({
     name: 'Drum Synthesizer',
-    folder: 'Media Gear', cost: 'EX',
+    folder: 'Media Gear', imgPath: `${A_GEAR}/drum-synthesizer.png`,, cost: 'EX',
     description: 'Plastic pads that simulate a drum kit; includes pre-programmed beats and loops. Requires a pocket amplifier or amp.',
   }),
   gear({
     name: 'Electric Guitar',
-    folder: 'Media Gear', cost: 'EX',
+    folder: 'Media Gear', imgPath: `${A_GEAR}/electric-guitar.png`,, cost: 'EX',
     description: 'Requires a pocket amplifier or amp.',
   }),
   gear({
@@ -321,17 +346,17 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Pocket Amplifier',
-    folder: 'Media Gear', cost: 'PR',
+    folder: 'Media Gear', imgPath: `${A_GEAR}/pocket-amp.png`,, cost: 'PR',
     description: 'Large-book sized amplifier. Connects up to 2 instruments; up to 90dB output.',
   }),
   gear({
     name: 'Radio / Music Player',
-    folder: 'Media Gear', cost: 'CO',
+    folder: 'Media Gear', imgPath: `${A_GEAR}/music-player.png`,, cost: 'CO',
     description: 'Can play audio from the Data Pool, memory chip, or radio broadcast.',
   }),
   gear({
     name: 'Video Camera',
-    folder: 'Media Gear', cost: 'PR',
+    folder: 'Media Gear', imgPath: `${A_GEAR}/video-camera.png`,, cost: 'PR',
     description: '10-hour recording capacity per shard (1 shard included).',
   }),
 
@@ -339,34 +364,34 @@ export const EQUIPMENT_CATALOGUE = [
 
   gear({
     name: 'Anti-Smog Breathing Mask',
-    folder: 'Survival & Exploration', cost: 'PR',
+    folder: 'Survival & Exploration', imgPath: `${A_GEAR}/amti-smog breathing mask.png`,, cost: 'PR',
     description: 'Immune to airborne toxins that require inhalation while worn.',
     effects: [reminder('Immune to inhaled toxins while worn')],
   }),
   gear({
     name: 'Auto-Level Ear Protectors',
-    folder: 'Survival & Exploration', cost: 'PR',
+    folder: 'Survival & Exploration', imgPath: `${A_GEAR}/auto-level-ear-protectors.png`,, cost: 'PR',
     description: 'Immune to deafness effects and damage from loud noises while worn.',
     effects: [reminder('Immune to deafness / loud-noise damage while worn')],
   }),
   gear({
     name: 'Backpack',
-    folder: 'Survival & Exploration', cost: 'CO',
+    folder: 'Survival & Exploration', imgPath: `${A_GEAR}/backpack.png`,, cost: 'CO',
     description: 'Spacious and sturdy.',
   }),
   gear({
     name: 'Binoculars',
-    folder: 'Survival & Exploration', cost: 'CO',
+    folder: 'Survival & Exploration', imgPath: `${A_GEAR}/binoculars.png`,, cost: 'CO',
     description: 'Magnifies up to ×5.',
   }),
   gear({
     name: 'Duct Tape',
-    folder: 'Survival & Exploration', cost: 'EV',
+    folder: 'Survival & Exploration', imgPath: `${A_GEAR}/duct-tape.png`,, cost: 'EV',
     description: '100m roll. Available in glow-in-the-dark color options.',
   }),
   gear({
     name: 'Flashlight',
-    folder: 'Survival & Exploration', cost: 'EV',
+    folder: 'Survival & Exploration', imgPath: `${A_GEAR}/flashlight.png`,, cost: 'EV',
     description: '100m illumination beam.',
   }),
   gear({
@@ -376,37 +401,37 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Grapple Gun',
-    folder: 'Survival & Exploration', cost: 'PR',
+    folder: 'Survival & Exploration', imgPath: `${A_GEAR}/grappling-gun.png`,, cost: 'PR',
     description: 'Rocket-propelled grapple that embeds in thick cover within 30m. Action to fire or fully retract. 30m rope, 2-person capacity, rope has 10 HP.',
   }),
   gear({
     name: 'Inflatable Bed & Sleeping Bag',
-    folder: 'Survival & Exploration', cost: 'EV',
+    folder: 'Survival & Exploration', imgPath: `${A_GEAR}/inflatable-bed-and-sleeping-bag.png`,, cost: 'EV',
     description: 'Folds down to a 15×15×10cm package.',
   }),
   gear({
     name: 'Personal Care Pack',
-    folder: 'Survival & Exploration', cost: 'EV',
+    folder: 'Survival & Exploration', imgPath: `${A_GEAR}/personal-care-pack.png`,, cost: 'EV',
     description: 'Toothbrush, towel, soap, and other basic hygiene items.',
   }),
   gear({
     name: 'Radar Detector',
-    folder: 'Survival & Exploration', cost: 'EX',
+    folder: 'Survival & Exploration', imgPath: `${A_GEAR}/radar-detector.png`,, cost: 'EX',
     description: 'Detects radar, ladar, and echo scan in the area; triangulates the source within a 10% margin.',
   }),
   gear({
     name: 'Road Flare',
-    folder: 'Survival & Exploration', cost: 'CH',
+    folder: 'Survival & Exploration', imgPath: `${A_GEAR}/road-flare.png`,, cost: 'CH',
     description: '100m radius illumination, lasts 1 hour, single use. Available in various colors.',
   }),
   gear({
     name: 'Rope',
-    folder: 'Survival & Exploration', cost: 'EV',
+    folder: 'Survival & Exploration', imgPath: `${A_GEAR}/rope.png`,, cost: 'EV',
     description: '60m nylon rope with 400kg capacity.',
   }),
   gear({
     name: 'Tent & Camping Equipment',
-    folder: 'Survival & Exploration', cost: 'CO',
+    folder: 'Survival & Exploration', imgPath: `${A_GEAR}/tent-and-camping-equipment.png`,, cost: 'CO',
     description: 'Small tent, self-heating pot (2-hour use with 5-minute recharge), and basic utensils.',
   }),
 
@@ -438,17 +463,17 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Chemical Analyzer',
-    folder: 'Scientific & Medical', cost: 'VEX',
+    folder: 'Scientific & Medical', imgPath: `${A_GEAR}/chemical-analyzer.png`,, cost: 'VEX',
     description: 'Action to insert a sample; identifies the compound on the following round.',
   }),
   gear({
     name: 'Cryopump',
-    folder: 'Scientific & Medical', cost: 'LUX',
+    folder: 'Scientific & Medical', imgPath: `${A_GEAR}/cryobag.png`,, cost: 'LUX',
     description: 'Medtech only. Briefcase that unfolds into a body-bag and coolant pump (Action). DV12 TECH+Medicine (Cryotech) to place a person in stasis for up to 1 week (Action). The bag has 15 HP. Recharge costs CO.',
   }),
   gear({
     name: 'Cryotank',
-    folder: 'Scientific & Medical', cost: 'LUX',
+    folder: 'Scientific & Medical', imgPath: `${A_GEAR}/cryotank.png`,, cost: 'LUX',
     description: 'Medtech only. DV15 TECH+Medicine (Cryotech) for indefinite stasis, or conscious suspension with 2× the natural healing rate.',
   }),
   gear({
@@ -459,7 +484,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Medtech Bag',
-    folder: 'Scientific & Medical', cost: 'PR',
+    folder: 'Scientific & Medical', imgPath: `${A_GEAR}/med-pack.png`,, cost: 'PR',
     description: 'Complete set of basic medicine tools; equivalent to mall-level medical facilities.',
   }),
   gear({
@@ -475,28 +500,28 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Techtool',
-    folder: 'Scientific & Medical', cost: 'PR',
+    folder: 'Scientific & Medical', imgPath: `${A_GEAR}/techtool.png`,, cost: 'PR',
     description: 'Multi-tool containing pliers, blade, screwdrivers, files, and clippers.',
   }),
 
   // ── Computer Hardware ─────────────────────────────────────────────────────
 
   gear({
-    name: 'Cyberdeck, Poor',
+    name: 'Cyberdeck, Poor', imgPath: `${A_GEAR}/poor-cyberdeck.png`,
     folder: 'Computer Hardware', cost: 'PR',
     isComputer: true,
     computer: { generalSlots: 5, ram: 4, isCyberdeck: true, canQuickhack: true },
     description: '5 program slots, 4 RAM, 10m wireless range. Requires a Neuroport Cyberdeck Port or Interface Plugs to use.',
   }),
   gear({
-    name: 'Cyberdeck, Standard',
+    name: 'Cyberdeck, Standard', imgPath: `${A_GEAR}/standard-cyberdeck.png`,
     folder: 'Computer Hardware', cost: 'EX',
     isComputer: true,
     computer: { generalSlots: 7, ram: 6, isCyberdeck: true, canQuickhack: true },
     description: '7 program slots, 6 RAM, 10m wireless range. Requires a Neuroport Cyberdeck Port or Interface Plugs to use.',
   }),
   gear({
-    name: 'Cyberdeck, Excellent',
+    name: 'Cyberdeck, Excellent', imgPath: `${A_GEAR}/excellent-cyberdeck.png`,
     folder: 'Computer Hardware', cost: 'VEX',
     isComputer: true,
     computer: { generalSlots: 9, ram: 8, isCyberdeck: true, canQuickhack: true },
@@ -652,23 +677,23 @@ export const EQUIPMENT_CATALOGUE = [
   // Chipware is treated as Gear. Active while equipped in a shard socket.
 
   gear({
-    name: 'Chemical Sniffer Chip',
+    name: 'Chemical Sniffer Chip', imgPath: `${A_CHIPWARE}/chemical-sniffer.png`,
     folder: 'Chipware', cost: 'EX',
     description: 'Chipware — equipped in a shard socket. Identifies most compounds by comparing smell and touch against an onboard database.',
   }),
   gear({
-    name: 'Language Chip',
+    name: 'Language Chip', imgPath: `${A_CHIPWARE}/language.png`,
     folder: 'Chipware', cost: 'EX',
     description: 'Chipware — equipped in a shard socket. Full language comprehension while installed; sub-second processing lag.',
   }),
   gear({
-    name: 'Olfactory Boost Chip',
+    name: 'Olfactory Boost Chip', imgPath: `${A_CHIPWARE}/olfactory-boost.png`,
     folder: 'Chipware', cost: 'PR',
     description: 'Chipware — equipped in a shard socket. Scent-based tracking using Survival; +2 to scent-based Perception checks.',
     effects: [reminder('Scent Perception +2 (situational)')],
   }),
   gear({
-    name: 'Pain Editor Chip',
+    name: 'Pain Editor Chip', imgPath: `${A_CHIPWARE}/pain-editor.png`,
     folder: 'Chipware', cost: 'EX',
     description: 'Chipware — equipped in a shard socket. Ignore Seriously Wounded penalties while installed.',
     effects: [{
@@ -678,12 +703,12 @@ export const EQUIPMENT_CATALOGUE = [
     }],
   }),
   gear({
-    name: 'Skill Chip',
+    name: 'Skill Chip', imgPath: `${A_CHIPWARE}/skill-chip.png`,
     folder: 'Chipware', cost: 'EX',
     description: 'Chipware — equipped in a shard socket. Covers one Skill or Component. While installed: if the user has fewer than 3 ranks in that Skill or Component, it is treated as 3.',
   }),
   gear({
-    name: 'Tactile Boost Chip',
+    name: 'Tactile Boost Chip', imgPath: `${A_CHIPWARE}/tactile-boost.png`,
     folder: 'Chipware', cost: 'PR',
     description: 'Chipware — equipped in a shard socket. Detects motion within 20 units on any surface being touched.',
   }),
@@ -756,19 +781,19 @@ export const EQUIPMENT_CATALOGUE = [
   // ── Body Armor ─────────────────────────────────────────────────────────────
   gear({
     name: 'Light Armorjack',
-    folder: 'Body Armor', cost: 'PR',
+    folder: 'Body Armor', imgPath: `${A_ARMOR}/light-armorjack.png`,, cost: 'PR',
     isArmor: true, maxSp: 11,
     description: 'Kevlar® and plastics woven into reinforced fabric fibers that can be part of, or under, clothes.',
   }),
   gear({
     name: 'Light Bodyweight Suit',
-    folder: 'Body Armor', cost: 'EX',
+    folder: 'Body Armor', imgPath: `${A_ARMOR}/light-bodyweight-suit.png`,, cost: 'EX',
     isArmor: true, maxSp: 9,
     description: 'Skin-tight suit able to connect to a netrunning chair. Blocks programs from setting the wearer on fire. Reduces damage from Black ICE by 1.',
   }),
   gear({
     name: 'Bulletproof Shield',
-    folder: 'Body Armor', cost: 'EX',
+    folder: 'Body Armor', imgPath: `${A_ARMOR}/bulletproof-shield.png`,, cost: 'EX',
     isArmor: true, maxSp: 15,
     description: 'SP 15. Held in one hand; provides frontal cover. While held, cannot use a two-handed weapon or carry anything in that hand.',
   }),
