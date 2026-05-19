@@ -1130,6 +1130,16 @@ Hooks.once('ready', async () => {
     await syncPsycheStateEffect(actor, { cyberBlueSyncPsycheState: false });
   }
 
+  // Remove orphaned "Jacked In" AEs — actors that still have the AE but no
+  // active connection flag (e.g. after a server crash mid-session).
+  for (const actor of game.actors.contents) {
+    const hasConnection = Boolean(actor.getFlag('cyberpunk-blue', 'netConnection'));
+    if (!hasConnection) {
+      const staleAe = actor.effects.find((e) => e.getFlag('cyberpunk-blue', 'jackedInEffect'));
+      if (staleAe) await staleAe.delete();
+    }
+  }
+
   // Auto-create a character for any player who doesn't have one yet
   await ensurePlayerCharacters();
 });

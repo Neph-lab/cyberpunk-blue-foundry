@@ -17,7 +17,8 @@
  *   flags['cyberpunk-blue'][`netRam.${cyberdeckId}`] = number
  */
 
-const NET_CONNECTION_FLAG = 'netConnection';
+const NET_CONNECTION_FLAG  = 'netConnection';
+const JACKED_IN_AE_FLAG    = 'jackedInEffect';
 export const PROGRAM_ACTOR_FLAG  = 'programActorId';
 
 /**
@@ -278,6 +279,17 @@ export async function connectToArchitecture(actor, apRegion, { forUserId } = {})
     cyberdeckId: deck?.id ?? '',
   });
 
+  // Create a "Jacked In" Active Effect so all tokens across scenes show the
+  // connected status, and the actor sheet reliably rerenders on connect/disconnect.
+  await actor.createEmbeddedDocuments('ActiveEffect', [{
+    name:     game.i18n.localize('CYBER_BLUE.Netrunning.Connected'),
+    img:      'systems/cyberpunk-blue/assets/icons/bk_Netrunning.svg',
+    disabled: false,
+    transfer: false,
+    statuses: ['jackedIn'],
+    flags:    { 'cyberpunk-blue': { [JACKED_IN_AE_FLAG]: true } },
+  }]);
+
   // Switch the netrunner's active scene to the architecture.
   // If the GM is acting on behalf of a player, emit a socket message so that
   // the player's client (not the GM's) performs the scene switch.
@@ -354,8 +366,10 @@ export async function disconnectFromArchitecture(actor, safe = true, { forUserId
     if (apScene) emitSceneSwitchForUser(apScene.id, disconnectingUserId);
   }
 
-  // Clear connection flag
+  // Clear connection flag and remove "Jacked In" AE
   await actor.unsetFlag('cyberpunk-blue', NET_CONNECTION_FLAG);
+  const jackedInAe = actor.effects.find((e) => e.getFlag('cyberpunk-blue', JACKED_IN_AE_FLAG));
+  if (jackedInAe) await jackedInAe.delete();
 
   // KRASH-Barrier hardware mod: converts unsafe disconnects to safe ones.
   // Pass cyberdeckId explicitly — connection flag is already cleared above.
