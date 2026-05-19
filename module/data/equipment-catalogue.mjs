@@ -794,6 +794,14 @@ export const EQUIPMENT_CATALOGUE = [
     description: 'Woven into clothes; from business suits to bikinis.',
   }),
   gear({
+    name: 'Heavy Armorjack',
+    manufacturer: 'Militech',
+    folder: 'Body Armor', imgPath: `${A_ARMOR}/heavy-armorjack.png`, cost: 'EX',
+    isArmor: true, maxSp: 13,
+    description: 'Metal-supported heavy Kevlar with layered polymer meshes.',
+    effects: [ae('Heavy Armorjack', [stat('rflx', -2), stat('move', -1)])],
+  }),
+  gear({
     name: 'Medium Armorjack',
     manufacturer: 'Militech',
     folder: 'Body Armor', imgPath: `${A_ARMOR}/medium-armorjack.png`, cost: 'PR',
