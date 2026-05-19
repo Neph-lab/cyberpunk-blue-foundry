@@ -250,7 +250,16 @@ export async function connectToArchitecture(actor, apRegion, { forUserId } = {})
 
   let accNodeRegion = null;
   if (accNodeUuid) {
-    try { accNodeRegion = await fromUuid(accNodeUuid); } catch { /* bad UUID */ }
+    try {
+      const resolved = await fromUuid(accNodeUuid);
+      // The UUID picker in Foundry sometimes selects the RegionBehavior document
+      // rather than the Region itself.  Walk up to the parent Region if needed.
+      if (resolved?.documentName === 'RegionBehavior') {
+        accNodeRegion = resolved.parent ?? null;
+      } else if (resolved?.documentName === 'Region') {
+        accNodeRegion = resolved;
+      }
+    } catch { /* bad UUID */ }
   }
   if (!accNodeRegion) {
     // Auto-discover: use the first region in the arch scene that has an accNode behavior.

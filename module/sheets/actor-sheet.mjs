@@ -282,8 +282,11 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
               disabledBy: cyberwareDisableState.byItemId.get(item.id)?.effectNames ?? [],
               disabledTooltip: cyberwareDisableState.byItemId.get(item.id)?.tooltip ?? '',
               manufacturerLogo: manufacturerLogoMap.get(item.system.manufacturer) ?? null,
-              integrationLabel: CONFIG.CYBER_BLUE.cyberware.integrations
-                ?.find((entry) => entry.value === item.system.integration)?.label ?? item.system.integration,
+              integrationLabel: game.i18n.localize(
+                CONFIG.CYBER_BLUE.cyberware.integrations
+                  ?.find((entry) => entry.value === item.system.integration)?.label
+                ?? item.system.integration,
+              ),
               slotText: item.system.integration === 'platform'
                 ? `${Math.max((item.system.slotsProvided ?? 0) - usedSlots, 0)}/${item.system.slotsProvided ?? 0}`
                 : `${item.system.slotsUsed ?? 0}`,
@@ -327,6 +330,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
         return {
           ...typeConfig,
+          label: game.i18n.localize(typeConfig.label),
           items,
         };
       })
