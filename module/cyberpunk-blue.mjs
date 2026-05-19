@@ -1738,14 +1738,16 @@ async function _syncModEntries(catalogue) {
     // Batch 9 fields
     const requiresLightMeleeChanged = !!sys.requiresLightMelee !== !!defSys.requiresLightMelee;
 
-    if (weaponChangesChanged || burstChanged || beginnerChanged || vitalsChanged ||
+    const modDataChanged = weaponChangesChanged || burstChanged || beginnerChanged || vitalsChanged ||
         trajectoryChanged || closeRangeChanged || steadyChanged || handlingComputerChanged ||
         calibrationChanged || recoilBonusChanged || recoilAFOnlyChanged ||
         barrierPenChanged || improvedRicochetChanged ||
         improvedChargeChanged || srCapacityChanged ||
-        accidentalDischargeChanged || bayonetChanged || requiresLightMeleeChanged) {
-      updates.push({
-        _id: doc.id,
+        accidentalDischargeChanged || bayonetChanged || requiresLightMeleeChanged;
+    const modImgChanged = def.img && doc.img !== def.img;
+    if (modDataChanged || modImgChanged) {
+      const update = { _id: doc.id };
+      if (modDataChanged) Object.assign(update, {
         'system.weaponChanges': defSys.weaponChanges ?? [],
         'system.burstControlAmmoReduction': defSys.burstControlAmmoReduction ?? 0,
         'system.beginnerFriendly': !!defSys.beginnerFriendly,
@@ -1765,6 +1767,8 @@ async function _syncModEntries(catalogue) {
         'system.bayonet': !!defSys.bayonet,
         'system.requiresLightMelee': !!defSys.requiresLightMelee,
       });
+      if (modImgChanged) update.img = def.img;
+      updates.push(update);
     }
   }
 
@@ -1898,8 +1902,13 @@ async function _syncWeaponEntries(catalogue) {
       return !!cur.isBeaconWeapon !== !!cw.isBeaconWeapon;
     });
 
-    if (countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged || batch9FieldsChanged || batch10FieldsChanged || batch11FieldsChanged || batch12FieldsChanged || batch13FieldsChanged) {
-      updates.push({ _id: doc.id, 'system.weapons': catalogueWeapons });
+    const weaponDataChanged = countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged || batch9FieldsChanged || batch10FieldsChanged || batch11FieldsChanged || batch12FieldsChanged || batch13FieldsChanged;
+    const weaponImgChanged = def.img && doc.img !== def.img;
+    if (weaponDataChanged || weaponImgChanged) {
+      const update = { _id: doc.id };
+      if (weaponDataChanged) update['system.weapons'] = catalogueWeapons;
+      if (weaponImgChanged)  update.img = def.img;
+      updates.push(update);
     }
 
     // Sync missing affliction AEs (e.g. stun weapons converted to affliction damageType)
@@ -1951,23 +1960,42 @@ async function ensureAmmoCatalogue() {
 
   try {
     await pack.getIndex({ fields: ['name', 'type', 'folder'] });
-    const existingNames = new Set(pack.index.filter((e) => e.type === 'ammo').map((e) => e.name));
+    const ammoIndex = pack.index.filter((e) => e.type === 'ammo');
+    const existingNames = new Set(ammoIndex.map((e) => e.name));
+    const byName = new Map(AMMO_CATALOGUE.map((it) => [it.name, it]));
     const missing = AMMO_CATALOGUE.filter((it) => !existingNames.has(it.name));
-    if (missing.length === 0) return;
+
+    // Sync images on already-existing ammo items
+    const imgUpdates = [];
+    for (const entry of ammoIndex) {
+      const def = byName.get(entry.name);
+      if (!def?.img) continue;
+      const doc = await pack.getDocument(entry._id);
+      if (!doc || doc.img === def.img) continue;
+      imgUpdates.push({ _id: doc.id, img: def.img });
+    }
+
+    if (missing.length === 0 && imgUpdates.length === 0) return;
 
     await pack.configure({ locked: false });
     try {
-      const ammoFolder = await _ensureFolderInPack(pack, 'Ammo');
-      const cleaned = missing.map((it) => {
-        const copy = foundry.utils.deepClone(it);
-        delete copy._folder;
-        copy.folder = ammoFolder?.id ?? null;
-        return copy;
-      });
-      const docs = await Item.createDocuments(cleaned, { pack: PACK_ID });
-      console.log(`Cyberpunk Blue | Ammo catalogue: ${docs.length} items added.`);
-      if (docs.length > 0) {
-        ui.notifications.info(`Cyberpunk Blue: ${docs.length} basic ammo items added to the Weapons compendium.`);
+      if (missing.length > 0) {
+        const ammoFolder = await _ensureFolderInPack(pack, 'Ammo');
+        const cleaned = missing.map((it) => {
+          const copy = foundry.utils.deepClone(it);
+          delete copy._folder;
+          copy.folder = ammoFolder?.id ?? null;
+          return copy;
+        });
+        const docs = await Item.createDocuments(cleaned, { pack: PACK_ID });
+        console.log(`Cyberpunk Blue | Ammo catalogue: ${docs.length} items added.`);
+        if (docs.length > 0) {
+          ui.notifications.info(`Cyberpunk Blue: ${docs.length} basic ammo items added to the Weapons compendium.`);
+        }
+      }
+      if (imgUpdates.length > 0) {
+        await Item.updateDocuments(imgUpdates, { pack: PACK_ID });
+        console.log(`Cyberpunk Blue | Ammo catalogue: synced images for ${imgUpdates.length} items.`);
       }
     } finally {
       await pack.configure({ locked: true });
@@ -2103,6 +2131,10 @@ async function _syncCyberwareEntries(catalogue) {
       update.effects = catEffects;
       needsUpdate = true;
     }
+    if (def.img && doc.img !== def.img) {
+      update.img = def.img;
+      needsUpdate = true;
+    }
     if (needsUpdate) updates.push(update);
   }
 
@@ -2113,7 +2145,8 @@ async function _syncCyberwareEntries(catalogue) {
     await Item.updateDocuments(updates, { pack: PACK_ID });
     const weaponCount  = updates.filter((u) => 'system.isWeapon' in u).length;
     const effectsCount = updates.filter((u) => 'effects' in u).length;
-    console.log(`Cyberpunk Blue | Synced ${weaponCount} weapon and ${effectsCount} effects updates in cyberware pack.`);
+    const imgCount     = updates.filter((u) => 'img' in u).length;
+    console.log(`Cyberpunk Blue | Synced ${weaponCount} weapon, ${effectsCount} effects, ${imgCount} image updates in cyberware pack.`);
   } finally {
     await pack.configure({ locked: true });
   }
@@ -2169,6 +2202,10 @@ async function _syncDrugEntries(catalogue) {
       update['system.instructions'] = def.system.instructions ?? [];
       needsUpdate = true;
     }
+    if (def.img && doc.img !== def.img) {
+      update.img = def.img;
+      needsUpdate = true;
+    }
     if (needsUpdate) updates.push(update);
   }
 
@@ -2178,8 +2215,9 @@ async function _syncDrugEntries(catalogue) {
   try {
     await Item.updateDocuments(updates, { pack: PACK_ID });
     const effectsCount = updates.filter((u) => 'effects' in u).length;
-    const instrCount = updates.filter((u) => 'system.instructions' in u).length;
-    console.log(`Cyberpunk Blue | Synced ${instrCount} instruction and ${effectsCount} effects updates in drugs pack.`);
+    const instrCount   = updates.filter((u) => 'system.instructions' in u).length;
+    const imgCount     = updates.filter((u) => 'img' in u).length;
+    console.log(`Cyberpunk Blue | Synced ${instrCount} instruction, ${effectsCount} effects, ${imgCount} image updates in drugs pack.`);
   } finally {
     await pack.configure({ locked: true });
   }
@@ -2244,6 +2282,10 @@ async function _syncGearEntries(catalogue) {
       update.effects = catEffects;
       needsUpdate = true;
     }
+    if (def.img && doc.img !== def.img) {
+      update.img = def.img;
+      needsUpdate = true;
+    }
     if (needsUpdate) updates.push(update);
   }
 
@@ -2254,7 +2296,8 @@ async function _syncGearEntries(catalogue) {
     await Item.updateDocuments(updates, { pack: PACK_ID });
     const weaponCount  = updates.filter((u) => 'system.isWeapon' in u).length;
     const effectsCount = updates.filter((u) => 'effects' in u).length;
-    console.log(`Cyberpunk Blue | Synced ${weaponCount} weapon and ${effectsCount} effects updates in gear pack.`);
+    const imgCount     = updates.filter((u) => 'img' in u).length;
+    console.log(`Cyberpunk Blue | Synced ${weaponCount} weapon, ${effectsCount} effects, ${imgCount} image updates in gear pack.`);
   } finally {
     await pack.configure({ locked: true });
   }
@@ -2285,9 +2328,15 @@ async function _syncProgramEntries(catalogue) {
     if (!doc) continue;
 
     const newFormula = def.system?.damageFormula ?? '';
-    if ((doc.system?.damageFormula ?? '') === newFormula) continue;
+    const formulaChanged = (doc.system?.damageFormula ?? '') !== newFormula;
+    const imgChanged = def.img && doc.img !== def.img;
 
-    updates.push({ _id: doc.id, 'system.damageFormula': newFormula });
+    if (!formulaChanged && !imgChanged) continue;
+
+    const update = { _id: doc.id };
+    if (formulaChanged) update['system.damageFormula'] = newFormula;
+    if (imgChanged)     update.img = def.img;
+    updates.push(update);
   }
 
   if (updates.length === 0) return;
@@ -2295,7 +2344,8 @@ async function _syncProgramEntries(catalogue) {
   await pack.configure({ locked: false });
   try {
     await Item.updateDocuments(updates, { pack: PACK_ID });
-    console.log(`Cyberpunk Blue | Synced damageFormula for ${updates.length} programs.`);
+    const imgCount = updates.filter((u) => 'img' in u).length;
+    console.log(`Cyberpunk Blue | Synced damageFormula/images for ${updates.length} programs (${imgCount} images).`);
   } finally {
     await pack.configure({ locked: true });
   }
