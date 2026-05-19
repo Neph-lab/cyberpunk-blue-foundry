@@ -241,34 +241,65 @@ export async function connectToArchitecture(actor, apRegion, { forUserId } = {})
     await archScene.update({ navigation: true, navOrder: maxOrder + 1 });
   }
 
-  // Determine spawn position from the ACC_node region
+  // Determine spawn position from the ACC_node region.
+  // First try the UUID explicitly stored on the behavior; if that isn't set or
+  // can't be resolved, fall back to the first accNode region in the arch scene.
   const accNodeUuid = apBehavior.system?.accNodeRegionUuid;
   const gridSize    = archScene.grid?.size ?? 100;
   let spawnX = 0, spawnY = 0;
 
+  let accNodeRegion = null;
   if (accNodeUuid) {
-    try {
-      const accNodeRegion = await fromUuid(accNodeUuid);
-      if (accNodeRegion) {
-        const centre = _regionCentre(accNodeRegion);
-        if (centre) {
-          // Snap to grid, offset by half a token to top-left corner
-          spawnX = Math.floor((centre.x - gridSize / 2) / gridSize) * gridSize;
-          spawnY = Math.floor((centre.y - gridSize / 2) / gridSize) * gridSize;
-        }
-      }
-    } catch { /* UUID not yet configured — use default */ }
+    try { accNodeRegion = await fromUuid(accNodeUuid); } catch { /* bad UUID */ }
+  }
+  if (!accNodeRegion) {
+    // Auto-discover: use the first region in the arch scene that has an accNode behavior.
+    accNodeRegion = archScene.regions?.find?.((r) =>
+      r.behaviors?.some?.((b) => b.type === 'accNode'),
+    ) ?? null;
+  }
+  if (accNodeRegion) {
+    const centre = _regionCentre(accNodeRegion);
+    if (centre) {
+      // Snap to grid; place token's top-left corner on the nearest grid cell.
+      spawnX = Math.floor((centre.x - gridSize / 2) / gridSize) * gridSize;
+      spawnY = Math.floor((centre.y - gridSize / 2) / gridSize) * gridSize;
+    }
   }
 
-  // Create the actor's token in the architecture scene
-  const protoData = actor.prototypeToken.toObject();
-  delete protoData._id;
-  protoData.actorId   = actor.id;
-  protoData.actorLink = true;
-  protoData.x         = spawnX;
-  protoData.y         = spawnY;
+  // Build token data explicitly from the prototype token rather than using
+  // toObject() wholesale — V14's stricter validation can reject stale embedded
+  // sub-document fields returned by toObject(), causing silent creation failure.
+  const proto = actor.prototypeToken;
+  const tokenData = {
+    actorId:     actor.id,
+    actorLink:   true,
+    name:        proto.name || actor.name,
+    x:           spawnX,
+    y:           spawnY,
+    width:       proto.width  ?? 1,
+    height:      proto.height ?? 1,
+    disposition: proto.disposition ?? CONST.TOKEN_DISPOSITIONS.FRIENDLY,
+    texture:     { src: proto.texture?.src ?? actor.img ?? '' },
+    displayName: proto.displayName ?? CONST.TOKEN_DISPLAY_MODES.OWNER,
+    displayBars: proto.displayBars ?? CONST.TOKEN_DISPLAY_MODES.OWNER,
+    bar1:        { attribute: proto.bar1?.attribute ?? 'resources.hp' },
+    bar2:        { attribute: proto.bar2?.attribute ?? '' },
+  };
 
-  const [tokenDoc] = await archScene.createEmbeddedDocuments('Token', [protoData]);
+  let tokenDoc;
+  try {
+    ([tokenDoc] = await archScene.createEmbeddedDocuments('Token', [tokenData]));
+  } catch (err) {
+    console.error('Cyberpunk Blue | Failed to create netrunner architecture token:', err, tokenData);
+    ui.notifications.error(game.i18n.localize('CYBER_BLUE.Netrunning.TokenCreateFailed'));
+    return;
+  }
+  if (!tokenDoc) {
+    console.error('Cyberpunk Blue | createEmbeddedDocuments returned no token. Data was:', tokenData);
+    ui.notifications.error(game.i18n.localize('CYBER_BLUE.Netrunning.TokenCreateFailed'));
+    return;
+  }
 
   const deck = getPrimaryCyberdeck(actor);
   await actor.setFlag('cyberpunk-blue', NET_CONNECTION_FLAG, {

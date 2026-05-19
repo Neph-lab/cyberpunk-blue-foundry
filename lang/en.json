@@ -842,6 +842,7 @@
       "NoAccessPointBehavior": "No Access Point behavior found on this region.",
       "NoBehaviorScene": "Access Point has no Architecture Scene configured.",
       "SceneNotFound": "Architecture Scene not found.",
+      "TokenCreateFailed": "Failed to create netrunner token in Architecture scene.",
       "AccessPoint": "Access Point",
       "NoAccessPoints": "No access points within cyberdeck range.",
       "ChooseAP": "Choose Access Point",
