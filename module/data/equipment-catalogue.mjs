@@ -780,6 +780,20 @@ export const EQUIPMENT_CATALOGUE = [
 
   // ── Body Armor ─────────────────────────────────────────────────────────────
   gear({
+    name: 'Leather Armor',
+    manufacturer: 'Aldecaldos',
+    folder: 'Body Armor', imgPath: `${A_ARMOR}/leather-armor.png`, cost: 'EV',
+    isArmor: true, maxSp: 4,
+    description: 'Favored by Nomads and \'punks on bikes.',
+  }),
+  gear({
+    name: 'Kevlar',
+    manufacturer: 'Militech',
+    folder: 'Body Armor', imgPath: `${A_ARMOR}/kevlar-armor.png`, cost: 'CO',
+    isArmor: true, maxSp: 7,
+    description: 'Woven into clothes; from business suits to bikinis.',
+  }),
+  gear({
     name: 'Medium Armorjack',
     manufacturer: 'Militech',
     folder: 'Body Armor', imgPath: `${A_ARMOR}/medium-armorjack.png`, cost: 'PR',
