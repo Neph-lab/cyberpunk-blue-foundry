@@ -682,6 +682,11 @@ const syncGearEffectsHook = (document, options = {}) => {
     return;
   }
 
+  // Gear state sync is only meaningful for actor-owned items.
+  // Compendium items have no actor context, and calling syncGearEffects on them
+  // would try to update AEs while the pack is locked (e.g. during _ensureArmorInGearPack).
+  if (item.pack) return;
+
   return item.syncGearEffects(options);
 };
 

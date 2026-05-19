@@ -216,6 +216,8 @@ export class CyberBlueItem extends Item {
     if (this.type !== 'gear') {
       return;
     }
+    // Gear effect states are only meaningful on actor-owned items, not compendium documents.
+    if (this.pack) return;
 
     const shouldApply = this.shouldApplyGearEffects();
     const updates = [];
