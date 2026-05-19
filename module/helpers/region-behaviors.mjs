@@ -65,10 +65,10 @@ export class CyberBlueNetNodeBehavior extends foundry.data.regionBehaviors.Regio
         required: true, blank: false, initial: 'data',
         label: 'CYBER_BLUE.RegionBehavior.NetNode.NodeType',
         choices: {
-          exe:  'CYBER_BLUE.RegionBehavior.NetNode.Type.EXE',
-          data: 'CYBER_BLUE.RegionBehavior.NetNode.Type.DATA',
-          ctrl: 'CYBER_BLUE.RegionBehavior.NetNode.Type.CTRL',
-          root: 'CYBER_BLUE.RegionBehavior.NetNode.Type.ROOT',
+          exe:  'EXE',
+          data: 'DATA',
+          ctrl: 'CTRL',
+          root: 'ROOT',
         },
       }),
       nodeLabel: new fields.StringField({

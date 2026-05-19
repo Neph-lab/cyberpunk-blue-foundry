@@ -20,6 +20,19 @@
 const NET_CONNECTION_FLAG = 'netConnection';
 export const PROGRAM_ACTOR_FLAG  = 'programActorId';
 
+/**
+ * Return the ID of the first non-GM user who has Owner-level permission on
+ * the actor, or null if the actor is only owned by GMs.
+ *
+ * @param {Actor} actor
+ * @returns {string|null}
+ */
+function _actorOwnerUserId(actor) {
+  return game.users.find(
+    (u) => !u.isGM && actor.getUserLevel(u) === CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER,
+  )?.id ?? null;
+}
+
 // ── Accessors ──────────────────────────────────────────────────────────────────
 
 /** Return the actor's current net connection data, or null if not connected. */
@@ -173,10 +186,30 @@ export async function defrag(actor) {
 /**
  * Connect the actor to an architecture via the given Access Point region.
  *
- * @param {Actor}          actor    - The Netrunner character
- * @param {RegionDocument} apRegion - The Access Point region in the current scene
+ * When called from a non-GM client the work is delegated to the active GM via
+ * the system socket (token creation requires GM permission). The GM then emits
+ * a netSwitchScene message back so the player's view updates.
+ *
+ * @param {Actor}          actor           - The Netrunner character
+ * @param {RegionDocument} apRegion        - The Access Point region in the current scene
+ * @param {object}         [opts]
+ * @param {string}         [opts.forUserId] - When called by the GM on behalf of a player,
+ *                                            the ID of the user whose scene should be switched.
  */
-export async function connectToArchitecture(actor, apRegion) {
+export async function connectToArchitecture(actor, apRegion, { forUserId } = {}) {
+  // Non-GM clients cannot create tokens in remote scenes. Delegate to the GM,
+  // who will run the full logic and then tell this user to switch scene.
+  if (!game.user.isGM) {
+    const { emitToGM } = await import('./socket.mjs');
+    emitToGM('netConnect', {
+      actorUuid:  actor.uuid,
+      apSceneId:  canvas.scene?.id ?? '',
+      apRegionId: apRegion.id,
+      userId:     game.user.id,
+    });
+    return;
+  }
+
   if (isNetConnected(actor)) {
     ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Netrunning.AlreadyConnected'));
     return;
@@ -245,8 +278,16 @@ export async function connectToArchitecture(actor, apRegion) {
     cyberdeckId: deck?.id ?? '',
   });
 
-  // Switch the current user's active scene to the architecture
-  await archScene.view();
+  // Switch the netrunner's active scene to the architecture.
+  // If the GM is acting on behalf of a player, emit a socket message so that
+  // the player's client (not the GM's) performs the scene switch.
+  const connectingUserId = forUserId ?? game.user.id;
+  if (connectingUserId === game.user.id) {
+    await archScene.view();
+  } else {
+    const { emitSceneSwitchForUser } = await import('./socket.mjs');
+    emitSceneSwitchForUser(archScene.id, connectingUserId);
+  }
 
   ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor }),
@@ -257,14 +298,31 @@ export async function connectToArchitecture(actor, apRegion) {
 /**
  * Disconnect the actor from the current architecture.
  *
- * @param {Actor}   actor - The Netrunner
- * @param {boolean} safe  - true for a graceful disconnect; false triggers trauma
+ * Token deletion and program-actor cleanup require GM permission. Non-GM
+ * clients delegate to the active GM via the system socket; the GM then
+ * emits a netSwitchScene message so the right user's view updates.
+ *
+ * For forced disconnects triggered by GM-side hooks (token out-of-range,
+ * HP=0), the actor's player-owner is automatically identified so their
+ * scene is switched, not the GM's.
+ *
+ * @param {Actor}   actor           - The Netrunner
+ * @param {boolean} safe            - true for a graceful disconnect; false triggers trauma
+ * @param {object}  [opts]
+ * @param {string}  [opts.forUserId] - Explicit user whose scene should switch;
+ *                                     defaults to the actor's non-GM owner, or the calling user.
  */
-export async function disconnectFromArchitecture(actor, safe = true) {
-  // Only the active GM should execute disconnect logic.  If multiple GM-level
-  // users are connected (e.g. a stale host session), ensure exactly one client
-  // runs the authoritative cleanup.
+export async function disconnectFromArchitecture(actor, safe = true, { forUserId } = {}) {
+  // Non-GM clients cannot delete tokens in remote scenes. Delegate to the GM.
+  if (!game.user.isGM) {
+    const { emitToGM } = await import('./socket.mjs');
+    emitToGM('netDisconnect', { actorUuid: actor.uuid, safe, userId: game.user.id });
+    return;
+  }
+
+  // Guard against multi-GM double-execution.
   if (game.user !== game.users.activeGM) return;
+
   const conn = getNetConnection(actor);
   if (!conn) return;
 
@@ -284,9 +342,17 @@ export async function disconnectFromArchitecture(actor, safe = true) {
     if (tok) await tok.delete();
   }
 
-  // Switch the current user back to the AP scene
+  // Switch the netrunner's view back to the AP scene.
+  // For forced GM-side disconnects (out-of-range, HP=0) identify the player
+  // who owns the actor so their scene switches, not the GM's.
   const apScene = game.scenes.get(conn.apSceneId);
-  if (apScene) await apScene.view();
+  const disconnectingUserId = forUserId ?? _actorOwnerUserId(actor) ?? game.user.id;
+  if (disconnectingUserId === game.user.id) {
+    if (apScene) await apScene.view();
+  } else {
+    const { emitSceneSwitchForUser } = await import('./socket.mjs');
+    if (apScene) emitSceneSwitchForUser(apScene.id, disconnectingUserId);
+  }
 
   // Clear connection flag
   await actor.unsetFlag('cyberpunk-blue', NET_CONNECTION_FLAG);
