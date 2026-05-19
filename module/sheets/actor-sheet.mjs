@@ -1515,7 +1515,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       return;
     }
 
-    const label = CONFIG.CYBER_BLUE.itemTypes[type]?.label ?? type;
+    const labelKey = CONFIG.CYBER_BLUE.itemTypes[type]?.label ?? type;
+    const label = game.i18n.localize(labelKey);
     await this.document.createEmbeddedDocuments('Item', [
       {
         name: `New ${label}`,

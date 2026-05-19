@@ -370,27 +370,27 @@ const MANUFACTURERS = [
 ];
 
 const CYBERWARE_TYPES = [
-  { value: 'neuralware', label: 'Neuralware' },
-  { value: 'cyberoptics', label: 'Cyberoptics' },
-  { value: 'cyberaudio', label: 'Cyberaudio' },
-  { value: 'cyberarms', label: 'Cyberarms' },
-  { value: 'cyberlegs', label: 'Cyberlegs' },
-  { value: 'internal', label: 'Internal' },
-  { value: 'external', label: 'External' },
-  { value: 'fashionware', label: 'Fashionware' },
-  { value: 'borgware', label: 'Borgware' },
+  { value: 'neuralware',  label: 'CYBER_BLUE.Cyberware.Type.neuralware' },
+  { value: 'cyberoptics', label: 'CYBER_BLUE.Cyberware.Type.cyberoptics' },
+  { value: 'cyberaudio',  label: 'CYBER_BLUE.Cyberware.Type.cyberaudio' },
+  { value: 'cyberarms',   label: 'CYBER_BLUE.Cyberware.Type.cyberarms' },
+  { value: 'cyberlegs',   label: 'CYBER_BLUE.Cyberware.Type.cyberlegs' },
+  { value: 'internal',    label: 'CYBER_BLUE.Cyberware.Type.internal' },
+  { value: 'external',    label: 'CYBER_BLUE.Cyberware.Type.external' },
+  { value: 'fashionware', label: 'CYBER_BLUE.Cyberware.Type.fashionware' },
+  { value: 'borgware',    label: 'CYBER_BLUE.Cyberware.Type.borgware' },
 ];
 
 const CYBERWARE_INTEGRATIONS = [
-  { value: 'platform', label: 'Platform' },
-  { value: 'extension', label: 'Extension' },
-  { value: 'standalone', label: 'Stand-Alone' },
+  { value: 'platform',   label: 'CYBER_BLUE.Cyberware.IntegrationType.platform' },
+  { value: 'extension',  label: 'CYBER_BLUE.Cyberware.IntegrationType.extension' },
+  { value: 'standalone', label: 'CYBER_BLUE.Cyberware.IntegrationType.standalone' },
 ];
 
 const CYBERWARE_FACILITIES = [
-  { value: 'mall', label: 'Mall' },
-  { value: 'clinic', label: 'Clinic' },
-  { value: 'hospital', label: 'Hospital' },
+  { value: 'mall',     label: 'CYBER_BLUE.Cyberware.FacilityType.mall' },
+  { value: 'clinic',   label: 'CYBER_BLUE.Cyberware.FacilityType.clinic' },
+  { value: 'hospital', label: 'CYBER_BLUE.Cyberware.FacilityType.hospital' },
 ];
 
 export const CYBER_BLUE = {
@@ -429,12 +429,12 @@ export const CYBER_BLUE = {
     },
   },
   itemTypes: {
-    role: { label: 'Role' },
-    ability: { label: 'Ability' },
-    cyberware: { label: 'Cyberware' },
-    gear: { label: 'Gear' },
-    drug: { label: 'Drug' },
-    programExecutable: { label: 'Program' },
-    mod: { label: 'Mod' },
+    role:              { label: 'TYPES.Item.role' },
+    ability:           { label: 'TYPES.Item.ability' },
+    cyberware:         { label: 'TYPES.Item.cyberware' },
+    gear:              { label: 'TYPES.Item.gear' },
+    drug:              { label: 'TYPES.Item.drug' },
+    programExecutable: { label: 'TYPES.Item.programExecutable' },
+    mod:               { label: 'TYPES.Item.mod' },
   },
 };

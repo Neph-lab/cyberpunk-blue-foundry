@@ -366,14 +366,22 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     context.manufacturers = CONFIG.CYBER_BLUE.manufacturers ?? [];
     context.manufacturerLogo = await getBrandLogoPath(itemData.system.manufacturer);
     context.showReadonlyManufacturer = !canManageRestricted;
-    context.cyberwareConfig = CONFIG.CYBER_BLUE.cyberware ?? {};
+    // Localize the enum labels stored as i18n keys so templates can use {{option.label}} directly.
+    const rawCyberwareConfig = CONFIG.CYBER_BLUE.cyberware ?? {};
+    context.cyberwareConfig = {
+      ...rawCyberwareConfig,
+      types:        (rawCyberwareConfig.types        ?? []).map((e) => ({ ...e, label: game.i18n.localize(e.label) })),
+      integrations: (rawCyberwareConfig.integrations ?? []).map((e) => ({ ...e, label: game.i18n.localize(e.label) })),
+      facilities:   (rawCyberwareConfig.facilities   ?? []).map((e) => ({ ...e, label: game.i18n.localize(e.label) })),
+    };
     context.combatConfig = CONFIG.CYBER_BLUE.combat ?? {};
     context.gearStates = GEAR_STATES;
     context.showSlotsUsed = context.isCyberware && itemData.system.integration === 'extension';
     context.showSlotsProvided = context.isCyberware && itemData.system.integration === 'platform';
-    context.cyberwareTypeLabel = context.cyberwareConfig.types?.find((entry) => entry.value === itemData.system.cyberwareType)?.label ?? itemData.system.cyberwareType;
-    context.cyberwareIntegrationLabel = context.cyberwareConfig.integrations?.find((entry) => entry.value === itemData.system.integration)?.label ?? itemData.system.integration;
-    context.cyberwareFacilityLabel = context.cyberwareConfig.facilities?.find((entry) => entry.value === itemData.system.facilities)?.label ?? itemData.system.facilities;
+    // After localization above the label values are already plain strings, not keys.
+    context.cyberwareTypeLabel        = context.cyberwareConfig.types?.find((e) => e.value === itemData.system.cyberwareType)?.label        ?? itemData.system.cyberwareType;
+    context.cyberwareIntegrationLabel = context.cyberwareConfig.integrations?.find((e) => e.value === itemData.system.integration)?.label   ?? itemData.system.integration;
+    context.cyberwareFacilityLabel    = context.cyberwareConfig.facilities?.find((e) => e.value === itemData.system.facilities)?.label      ?? itemData.system.facilities;
     context.weapons = await Promise.all((itemData.system.weapons ?? []).map(async (weapon, index) => {
       const definition = getWeaponTypeDefinition(weapon.type);
 

@@ -11,12 +11,8 @@
       "Tabs": {
         "Overview": "Overview",
         "Skills": "Skills",
-        "Traits": "Roles & Abilities",
-        "Roles": "Roles",
-        "Abilities": "Abilities",
         "Cyberware": "Cyberware",
         "Inventory": "Inventory",
-        "Combat": "Combat",
         "Advanced": "Advanced",
         "Notes": "Notes",
         "Description": "Description",
@@ -24,22 +20,16 @@
         "Effects": "Effects",
         "Lifepath": "Lifepath",
         "Netrunning": "Netrunning",
-        "Mods": "Mods"
+        "Mods": "Mods",
+        "Abilities": "Abilities"
       },
       "Labels": {
-        "Stats": "Stats",
-        "Resources": "Resources",
         "Components": "Components",
         "Modifier": "Mod",
-        "DifficultyValue": "DV",
         "Roll": "Roll",
         "Rank": "Rank",
         "State": "State",
         "Summary": "Summary",
-        "ProgressionNotes": "Progression Notes",
-        "AlwaysActive": "Always Active",
-        "Active": "Active",
-        "InactiveLowRank": "Inactive (Rank 3 or lower)",
         "SetActive": "Set Active",
         "ClearActive": "Clear Active",
         "Background": "Background",
@@ -48,18 +38,13 @@
         "Style": "Style",
         "LinkedSkills": "Linked Skills",
         "LinkedComponents": "Linked Components",
-        "ActorSkills": "Skill Ratings",
         "ActorComponents": "Component Ratings",
-        "Installed": "Installed",
-        "Equipped": "Equipped",
-        "Carried": "Carried",
         "Name": "Name",
         "Quantity": "Quantity",
         "Manufacturer": "Manufacturer",
         "Armor": "Armor",
         "Weapon": "Weapon",
         "Computer": "Computer",
-        "Move": "MOVE",
         "Health": "Health",
         "Cost": "Cost",
         "MultipleInstalls": "Multiple Installs",
@@ -69,7 +54,6 @@
         "PsycheLoss": "PSYCHE Loss",
         "SuggestedLoss": "Suggested",
         "MaxPsycheReduction": "Max PSYCHE Reduction",
-        "HardwareCost": "Hardware Cost",
         "Facilities": "Facilities",
         "InstallationCost": "Installation Cost",
         "InstallationDv": "Installation DV",
@@ -77,8 +61,6 @@
         "Platform": "Platform",
         "Note": "Note",
         "StoppingPower": "Stopping Power",
-        "CurrentSP": "Current SP",
-        "MaxSP": "Max SP",
         "NoArmor": "No Armor",
         "Weapons": "Weapons",
         "NoWeapons": "No weapons added yet.",
@@ -88,8 +70,6 @@
         "Damage": "Damage",
         "RateOfFire": "RoF",
         "Mag": "Mag",
-        "Magazine": "Magazine",
-        "Loaded": "Loaded",
         "Shots": "Shots",
         "Hands": "Hands",
         "Concealable": "Concealable",
@@ -114,16 +94,11 @@
         "ExplosionSpread": "Outer Radius (m)",
         "AmmoType": "Ammo Type",
         "MaxRank": "Max Rank",
-        "Stored": "Stored",
-        "Owned": "Owned",
         "Details": "Details",
         "DeathSave": "Death Save",
         "SeriousWoundThreshold": "Serious Wound Threshold",
         "HealthEffects": "Health Effects",
         "UnlockRank": "Unlock Rank",
-        "ConnectingQuestions": "Connecting Questions",
-        "Links": "Links",
-        "GeneralAbility": "General Ability",
         "UnlockedAt": "Unlocked at Rank {rank}",
         "FuturePossibilities": "Future Possibilities",
         "ActiveEffects": "Active Effects",
@@ -134,6 +109,7 @@
         "NoEffects": "No effects.",
         "NoItemsInState": "No {state} items.",
         "Cancel": "Cancel",
+        "Confirm": "Confirm",
         "ModImport": "Import Mod",
         "ModImportUuidPlaceholder": "Paste mod UUID here...",
         "ModImportNoUuid": "Please enter a mod UUID before importing.",
@@ -149,16 +125,11 @@
         "ComputerRAM": "RAM",
         "ComputerIsCyberdeck": "Cyberdeck",
         "ComputerCanQuickhack": "Can Quickhack",
-        "ComputerRunning": "Running",
-        "OnDisk": "On Disk",
-        "OnShards": "On Shards",
         "InstallExecutable": "Install to Disk",
-        "UninstallExecutable": "Move to Shards"
+        "UninstallExecutable": "Move to Shards",
+        "CyberwareType": "Type"
       },
       "Buttons": {
-        "AddRole": "Add Role",
-        "AddAbility": "Add Ability",
-        "AddCyberware": "Add Cyberware",
         "AddGear": "Add Gear",
         "AddDrug": "Add Drug",
         "AddComponent": "Add Component",
@@ -189,8 +160,14 @@
         "UsesLowerRank": "Using the lower of skill and component ranks"
       }
     },
+    "Drug": {
+      "PrimaryEffect": "Primary effect",
+      "Duration": "Duration",
+      "SecondaryDV": "Secondary DV",
+      "SecondaryEffect": "Secondary effect (on fail)",
+      "AddictionPenalty": "Addiction penalty"
+    },
     "Cyberware": {
-      "Details": "Installation & PSYCHE",
       "ChoosePsycheLoss": "Choose PSYCHE Loss",
       "UseSuggested": "Use Suggested",
       "RollLoss": "Roll Loss",
@@ -235,7 +212,6 @@
       },
       "Errors": {
         "DuplicateInstall": "This cyberware cannot be installed multiple times on the same actor.",
-        "MissingPlatform": "Extension cyberware must be assigned to a compatible platform.",
         "InvalidPlatform": "The selected platform is not available on this actor.",
         "PlatformRequired": "Extensions must be attached to a platform cyberware item.",
         "TypeMismatch": "Extensions must use a platform of the same cyberware type.",
@@ -251,7 +227,6 @@
       "SelectionCount": "Selections",
       "ProteanTactics": "Protean Tactics",
       "AddProteanTactic": "Add tactic",
-      "Tactic": "Tactic",
       "Pool": "Pool",
       "Remaining": "Remaining",
       "Min": "Min",
@@ -294,8 +269,6 @@
       "Media": {
         "PickUpRumours": "Pick Up Rumours",
         "RumourSkill": "Skill",
-        "RumourPassive": "Passive",
-        "RumourActive": "Active",
         "RumourVague": "Vague",
         "RumourTypical": "Typical",
         "RumourSubstantial": "Substantial",
@@ -456,6 +429,7 @@
       }
     },
     "Combat": {
+      "NoTarget": "No target selected.",
       "Attack": "Attack",
       "DV": "Difficulty Value (DV)",
       "RollAttack": "Roll Attack",
@@ -469,7 +443,6 @@
       "SP": "SP",
       "NetDamage": "Damage",
       "ApplyDamage": "Apply Damage",
-      "ApplyDamagePrompt": "Apply {damage} damage to {target}?",
       "ApplyDamageWithSP": "Apply {damage} damage to {target}? (HP: -{hp}, SP: -1)",
       "Autofire": "Autofire",
       "AutofireConsumes": "Consumes {ammo} ammo",
@@ -502,8 +475,6 @@
       "RicochetClickToPlace": "Left-click to place ricochet point. Right-click to cancel.",
       "RicochetArmed": "{name} has a ricochet point set. Attack with this PW will bounce off it (−4 attack).",
       "RicochetCleared": "{name} cleared the ricochet point.",
-      "RicochetPenalty": "−4 (ricochet)",
-      "RicochetPenaltyDirected": "−3 (ricochet, Directed Recoil)",
       "ImprovedRicochet": "+{n} (Improved Ricochet)",
       "TargetedShotBonus": "+{n} (targeted shot {dice})",
       "BarrierPenetration": "+{n} bypassing SP (Barrier Penetration)",
@@ -544,7 +515,6 @@
       "ExplosionScatterDist": "Scattered {dist} meters in a random direction.",
       "ExplosionNoTargets": "No targets found in blast radius.",
       "ExplosionDamage": "Explosion Damage",
-      "ExplosionTargetCount": "{count} target(s) in blast",
       "NoAmmo": "{weapon} has no ammo remaining in the magazine.",
       "WeaponAlreadyFull": "Weapon magazine is already full.",
       "NoAmmoType": "This weapon type does not use reloadable ammunition.",
@@ -585,7 +555,6 @@
       "AfflictionHitNoTarget": "Affliction hit — no target selected to resolve against.",
       "AfflictionCone": "Affliction Cone",
       "AfflictionExplosion": "Affliction Explosion",
-      "MovementLimitReached": "Movement limit reached ({remaining}m remaining of {max}m).",
       "MovementOutsideTurn": "Not your turn — token movement is locked during encounters.",
       "MovementExhausted": "No movement remaining this turn (budget: {max}m).",
       "MovementExceeded": "Not enough movement remaining ({remaining}m left) — move cancelled.",
@@ -647,7 +616,6 @@
       "ChompAmmoDmg": "1d6 ({dmg}) damage to everyone within 2m of {target}."
     },
     "CriticalInjury": {
-      "Title": "Critical Injuries",
       "Remove": "Remove Injury",
       "RollResult": "Roll: {roll}",
       "CritDetected": "{count} sixes rolled — Critical Hit! (+5 damage)",
@@ -657,9 +625,7 @@
       "MonowirePickHint": "Roll twice — pick the preferred result.",
       "BluntDismemberDowngrade": "Blunt — Dismember downgraded to Broken (+5 damage)",
       "CrushingCascade": "Crushing Cascade",
-      "InjuryLocation": "Injury Location",
       "InjuryLocationBody": "Body",
-      "InjuryLocationHead": "Head",
       "MortalWound": "Mortal Wound — requires stabilization",
       "NoQuickFix": "No quick fix possible",
       "QuickFixDv": "Quick Fix DV {dv}",
@@ -758,7 +724,6 @@
     },
     "MartialArts": {
       "Title": "Martial Arts",
-      "Component": "Component",
       "Generic": "Martial Arts",
       "OutOfRange": "Target is out of range ({dist} m). Must be within 2 m.",
       "TargetRequired": "You must target a token to use this move.",
@@ -862,7 +827,6 @@
     "Netrunning": {
       "Connected": "Connected to Architecture",
       "ConnectedMsg": "{name} jacked into {scene}.",
-      "Disconnected": "Disconnected",
       "DisconnectedMsg": "{name} jacked out.",
       "Connect": "Jack In",
       "Disconnect": "Jack Out",
@@ -888,17 +852,13 @@
       "Upload": "Upload Quickhack",
       "QuickhackNotReady": "Quickhack prerequisites not met.",
       "MustBreachFirst": "Target must be Breached before uploading a quickhack.",
-      "BreachSuccess": "Breach successful — {target} is now Breached.",
-      "BreachFail": "Breach failed (rolled {roll}, needed {dv}).",
       "BreachedStatus": "Breached",
-      "QuickhackPending": "Quickhack Pending",
       "ChooseQuickhack": "Choose Quickhack",
       "ChooseQuickhackHint": "Select a quickhack executable (≤ {ram} RAM) to upload.",
       "NoEligibleQuickhacks": "No eligible quickhacks found for this target.",
       "QuickhackUploading": "{name} uploading…",
       "QuickhackUploaded": "Quickhack Uploaded",
       "QuickhackUploadedMsg": "{qh} uploaded to {target}.",
-      "QuickhackNoRam": "Not enough RAM to upload any quickhack.",
       "RamLabel": "RAM",
       "RangeLabel": "Range",
       "NotConnected": "Not connected",
@@ -928,6 +888,26 @@
         "ProgramAttackLabel": "Attack",
         "ErrorStateMsg": "has been reduced to 0 REZ — it cannot move, act, or provide bonuses and is skipped in encounter order."
       }
+    },
+    "RegionBehavior": {
+      "AccessPoint": {
+        "Label": "NET: Access Point",
+        "ArchitectureScene": "Architecture Scene",
+        "ArchitectureSceneHint": "UUID of the Architecture scene this access point connects to.",
+        "AccNodeRegion": "ACC Node Region",
+        "AccNodeRegionHint": "UUID of the ACC_node Region inside the Architecture where netrunners spawn."
+      },
+      "AccNode": {
+        "Label": "NET: ACC Node",
+        "AccessPointRegion": "Access Point Region",
+        "AccessPointRegionHint": "UUID of the Access Point Region in the physical world."
+      },
+      "NetNode": {
+        "Label": "NET: Network Node",
+        "NodeType": "Node Type",
+        "NodeLabel": "Node Label",
+        "UnnamedNode": "Unnamed Node"
+      }
     }
   },
   "TYPES": {
@@ -947,39 +927,6 @@
       "programExecutable": "Executable",
       "drug": "Drug",
       "mod": "Mod"
-    },
-    "Drug": {
-      "PrimaryEffect": "Primary effect",
-      "Duration": "Duration",
-      "SecondaryDV": "Secondary DV",
-      "SecondaryEffect": "Secondary effect (on fail)",
-      "AddictionPenalty": "Addiction penalty"
-    },
-    "RegionBehavior": {
-      "AccessPoint": {
-        "Label": "NET: Access Point",
-        "ArchitectureScene": "Architecture Scene",
-        "ArchitectureSceneHint": "UUID of the Architecture scene this access point connects to.",
-        "AccNodeRegion": "ACC Node Region",
-        "AccNodeRegionHint": "UUID of the ACC_node Region inside the Architecture where netrunners spawn."
-      },
-      "AccNode": {
-        "Label": "NET: ACC Node",
-        "AccessPointRegion": "Access Point Region",
-        "AccessPointRegionHint": "UUID of the Access Point Region in the physical world."
-      },
-      "NetNode": {
-        "Label": "NET: Network Node",
-        "NodeType": "Node Type",
-        "NodeLabel": "Node Label",
-        "UnnamedNode": "Unnamed Node",
-        "Type": {
-          "EXE": "EXE",
-          "DATA": "DATA",
-          "CTRL": "CTRL",
-          "ROOT": "ROOT"
-        }
-      }
     }
   }
 }
