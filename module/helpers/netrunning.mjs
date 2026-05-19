@@ -271,7 +271,7 @@ export async function connectToArchitecture(actor, apRegion, { forUserId } = {})
 
   const deck = getPrimaryCyberdeck(actor);
   await actor.setFlag('cyberpunk-blue', NET_CONNECTION_FLAG, {
-    apSceneId:   canvas.scene?.id ?? '',
+    apSceneId:   apRegion.parent?.id ?? canvas.scene?.id ?? '',
     apRegionId:  apRegion.id,
     archSceneId: archScene.id,
     archTokenId: tokenDoc.id,
