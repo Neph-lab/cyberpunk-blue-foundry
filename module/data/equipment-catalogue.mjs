@@ -780,6 +780,14 @@ export const EQUIPMENT_CATALOGUE = [
 
   // ── Body Armor ─────────────────────────────────────────────────────────────
   gear({
+    name: 'Medium Armorjack',
+    manufacturer: 'Militech',
+    folder: 'Body Armor', imgPath: `${A_ARMOR}/medium-armorjack.png`, cost: 'PR',
+    isArmor: true, maxSp: 12,
+    description: 'Solid polymer plating, reinforced by a Kevlar® mesh.',
+    effects: [ae('Medium Armorjack', [stat('rflx', -2), stat('move', -1)])],
+  }),
+  gear({
     name: 'Light Armorjack',
     folder: 'Body Armor', imgPath: `${A_ARMOR}/light-armorjack.png`,, cost: 'PR',
     isArmor: true, maxSp: 11,
