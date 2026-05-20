@@ -67,7 +67,8 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
     super(options);
     this.actor = actor;
     this._hasRolledLifepath = false;
-    this._pendingLanguage = null; // typed but not yet flushed to actor
+    this._pendingLanguage = null;    // typed but not yet flushed to actor
+    this._pendingNewLanguage = null; // new-language input on the ability step
     _openWizards.set(actor.id, this);
     this._actorUpdateHookId = Hooks.on('updateActor', (doc) => {
       if (doc.id === this.actor.id) {
@@ -238,6 +239,7 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
       // Exclude 'Language' from the bonus ability list — handled separately via the Upgrade button.
       const selectableAbilities = abilityItems.filter(a => a.name !== 'Language');
 
+      const pendingNewLanguage = this._pendingNewLanguage ?? '';
       context.ability = {
         extraLanguage,
         upgradeLabel: game.i18n.format('CYBER_BLUE.CC.Ability.UpgradeLanguage', { language: extraLanguage }),
@@ -248,6 +250,8 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
           note: a.system?.note ?? '',
         })),
         noAbilities: selectableAbilities.length === 0,
+        pendingNewLanguage,
+        canAddNewLanguage: pendingNewLanguage.trim().length > 0,
       };
     }
 
@@ -328,6 +332,15 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
     }
 
     this.element.querySelector('[data-action="upgrade-language"]')?.addEventListener('click', this._onUpgradeLanguage.bind(this));
+    this.element.querySelector('[data-action="add-new-language"]')?.addEventListener('click', this._onAddNewLanguage.bind(this));
+
+    const newLangField = this.element.querySelector('#cc-new-language-input');
+    if (newLangField) {
+      newLangField.addEventListener('input', this._onNewLanguageInput.bind(this));
+      if (this._pendingNewLanguage !== null) {
+        newLangField.value = this._pendingNewLanguage;
+      }
+    }
 
     this.element.querySelectorAll('[data-action="choose-ability"]').forEach(btn => {
       btn.addEventListener('click', this._onChooseAbility.bind(this));
@@ -410,6 +423,7 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
       await this.actor.update({ 'system.characterCreation.extraLanguage': this._pendingLanguage });
       this._pendingLanguage = null;
     }
+    this._pendingNewLanguage = null;
     if (nextStep === 'secondary') {
       await this._initializeSecondaryStats();
     }
@@ -497,6 +511,51 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
     const existing = this.actor.items.find(i => i.type === 'ability' && i.name === abilityName);
     if (existing) {
       await existing.update({ 'system.rank': 2 });
+    }
+    await this.actor.update({ 'system.characterCreation.step': 'skills' });
+  }
+
+  _onNewLanguageInput(event) {
+    const value = event.currentTarget.value;
+    this._pendingNewLanguage = value;
+    // Enable/disable the Add button in-place without a full re-render.
+    const addBtn = this.element.querySelector('[data-action="add-new-language"]');
+    if (addBtn) addBtn.disabled = value.trim().length === 0;
+  }
+
+  async _onAddNewLanguage() {
+    const lang = (this._pendingNewLanguage ?? '').trim();
+    if (!lang) return;
+    this._pendingNewLanguage = null;
+
+    const abilityName = `Language: ${lang}`;
+    const existing = this.actor.items.find(i => i.type === 'ability' && i.name === abilityName);
+    if (existing) {
+      const newRank = Math.min((existing.system.rank ?? 0) + 1, existing.system.maxRank ?? 10);
+      await existing.update({ 'system.rank': newRank });
+    } else {
+      // Find the base Language ability to use as a template (for img, system shape, etc.)
+      const folder = game.folders.find(f => f.type === 'Item' && f.name === 'Abilities');
+      let langTemplate = folder
+        ? (game.items?.contents ?? []).find(i => i.type === 'ability' && i.name === 'Language')
+        : null;
+      if (!langTemplate) {
+        const pack = game.packs.get('cyberpunk-blue.abilities');
+        if (pack) {
+          await pack.getIndex({ fields: ['name'] });
+          const entry = pack.index.find(e => e.name === 'Language');
+          if (entry) langTemplate = await pack.getDocument(entry._id);
+        }
+      }
+      const sysData = langTemplate
+        ? (langTemplate.system.toObject?.() ?? { ...langTemplate.system })
+        : {};
+      await this.actor.createEmbeddedDocuments('Item', [{
+        name: abilityName,
+        type: 'ability',
+        img: langTemplate?.img ?? 'icons/svg/book.svg',
+        system: { ...sysData, rank: 1 },
+      }]);
     }
     await this.actor.update({ 'system.characterCreation.step': 'skills' });
   }

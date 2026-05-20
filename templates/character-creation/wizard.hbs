@@ -166,6 +166,18 @@
                 </button>
               </div>
             {{/each}}
+            <div class="cc-ability-row cc-new-language-row">
+              <div class="cc-ability-info">
+                <span class="cc-ability-name"><i class="fas fa-language"></i> {{localize "CYBER_BLUE.CC.Ability.NewLanguage"}}</span>
+                <input type="text" id="cc-new-language-input" class="cc-new-language-input"
+                       placeholder="{{localize "CYBER_BLUE.CC.Ability.NewLanguagePlaceholder"}}"
+                       value="{{ability.pendingNewLanguage}}" autocomplete="off" />
+              </div>
+              <button type="button" class="cc-btn-small" data-action="add-new-language"
+                      {{#unless ability.canAddNewLanguage}}disabled{{/unless}}>
+                {{localize "CYBER_BLUE.CC.Ability.Choose"}}
+              </button>
+            </div>
           </div>
         {{/if}}
         <div class="cc-footer">

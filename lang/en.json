@@ -409,7 +409,9 @@
         "UpgradeLanguage": "Make {language} fully fluent",
         "NoAbilities": "No abilities found in the Abilities folder.",
         "Choose": "Choose",
-        "FromCompendium": "Showing abilities from the system compendium."
+        "FromCompendium": "Showing abilities from the system compendium.",
+        "NewLanguage": "New Language (rank 1)",
+        "NewLanguagePlaceholder": "Language name…"
       },
       "Skills": {
         "Prompt": "You have 35 points to distribute among your skills. When you put a rank in a skill that has Components, you get one free rank in one of those Components. You can increase Components by two ranks without raising a Skill by spending 1 skill point. Or, instead of the free Component rank, increase the same skill 2 ranks for 1 point — as long as you don't end up higher than at least one of its Components. Play around, we'll keep track for you.",

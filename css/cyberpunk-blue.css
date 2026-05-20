@@ -2062,6 +2062,23 @@ section.chat-sidebar:not(.sidebar-popout),
   color: var(--color-text-light-6);
 }
 
+/* New Language row in ability list */
+.character-creation-wizard .cc-new-language-row {
+  border-top: 1px dashed var(--cpb-border);
+  padding-top: 0.3rem;
+  margin-top: 0.1rem;
+}
+
+.character-creation-wizard .cc-new-language-input {
+  width: 100%;
+  font-size: var(--font-size-12);
+  padding: 0.15rem 0.3rem;
+  border: 1px solid var(--cpb-border);
+  border-radius: 3px;
+  background: var(--color-bg-input, #fff);
+  color: var(--color-text-input, #333);
+}
+
 /* Role list */
 .character-creation-wizard .cc-role-list {
   display: flex;
