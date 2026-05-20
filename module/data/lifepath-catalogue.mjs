@@ -997,4 +997,323 @@ export const LIFEPATH_CATALOGUE = [
     ],
   },
 
+  // ── General Lifepath ─────────────────────────────────────────────────────────
+  // These tables are shared across all roles and appear in the "General Lifepath"
+  // folder. Sub-tables (_subTable: true) are triggered automatically by Friends /
+  // Enemies and should not be shown as standalone entries in the wizard.
+
+  {
+    _id: 'GenLp0100000000',
+    name: 'Cultural Origins',
+    _folder: 'General Lifepath',
+    formula: '2d6',
+    results: [
+      { range: [2,  2],  text: '', type: 'text' },
+      { range: [3,  3],  text: '', type: 'text' },
+      { range: [4,  4],  text: '', type: 'text' },
+      { range: [5,  5],  text: '', type: 'text' },
+      { range: [6,  6],  text: '', type: 'text' },
+      { range: [7,  7],  text: '', type: 'text' },
+      { range: [8,  8],  text: '', type: 'text' },
+      { range: [9,  9],  text: '', type: 'text' },
+      { range: [10, 10], text: '', type: 'text' },
+      { range: [11, 11], text: '', type: 'text' },
+      { range: [12, 12], text: '', type: 'text' },
+    ],
+  },
+
+  {
+    _id: 'GenLp0200000000',
+    name: 'Your Family Background',
+    _folder: 'General Lifepath',
+    formula: '1d10',
+    results: [
+      { range: [1,  1],  text: 'Wealthy, powerful, with servants and luxury homes. How did you end up edgerunning?', type: 'text' },
+      { range: [2,  2],  text: 'Middle management still meant a decent home and a safe life. Looks like you didn\'t follow in their footsteps.', type: 'text' },
+      { range: [3,  3],  text: 'Long hours and harsh working conditions meant you rarely saw your guardian(s) but at least you had a roof over your head and food in your belly.', type: 'text' },
+      { range: [4,  4],  text: 'You grew up on the road, living in trailers and tents. You learned to drive and fight at an early age but your family was always there to care for you.', type: 'text' },
+      { range: [5,  5],  text: 'Depending on the gang, you were either part of the family or a resource to be exploited. Either way, it was a rough life.', type: 'text' },
+      { range: [6,  6],  text: 'You grew up in a place completely abandoned by the rest of society, like Pacifica. Life was a constant struggle.', type: 'text' },
+      { range: [7,  7],  text: 'You lived in shanty towns, tent villages, abandoned shipping containers, and wherever else you could. Since you\'re still alive, you obviously learned how to survive.', type: 'text' },
+      { range: [8,  8],  text: 'Like so many kids, you grew up in one of the megabuildings. Probably not the top floors, either. A small apartment and two meals of scop a day.', type: 'text' },
+      { range: [9,  9],  text: 'Your home always changed depending on the employment of the person or persons taking care of you. A luxury apartment one day, the back of someone\'s car the next.', type: 'text' },
+      { range: [10, 10], text: 'Not everyone fits neatly into one of the above categories. You could be the kid of shopkeepers, cab drivers, joytoys, or any of a thousand others.', type: 'text' },
+    ],
+  },
+
+  {
+    _id: 'GenLp0300000000',
+    name: 'Childhood Environment',
+    _folder: 'General Lifepath',
+    formula: '1d6',
+    results: [
+      { range: [1, 1], text: '', type: 'text' },
+      { range: [2, 2], text: '', type: 'text' },
+      { range: [3, 3], text: '', type: 'text' },
+      { range: [4, 4], text: '', type: 'text' },
+      { range: [5, 5], text: '', type: 'text' },
+      { range: [6, 6], text: '', type: 'text' },
+    ],
+  },
+
+  {
+    _id: 'GenLp0400000000',
+    name: 'Your Crisis',
+    _folder: 'General Lifepath',
+    formula: '1d6',
+    results: [
+      { range: [1, 1], text: '', type: 'text' },
+      { range: [2, 2], text: '', type: 'text' },
+      { range: [3, 3], text: '', type: 'text' },
+      { range: [4, 4], text: '', type: 'text' },
+      { range: [5, 5], text: '', type: 'text' },
+      { range: [6, 6], text: '', type: 'text' },
+    ],
+  },
+
+  {
+    _id: 'GenLp0500000000',
+    name: 'Personality',
+    _folder: 'General Lifepath',
+    formula: '1d10',
+    results: [
+      { range: [1,  1],  text: '', type: 'text' },
+      { range: [2,  2],  text: '', type: 'text' },
+      { range: [3,  3],  text: '', type: 'text' },
+      { range: [4,  4],  text: '', type: 'text' },
+      { range: [5,  5],  text: '', type: 'text' },
+      { range: [6,  6],  text: '', type: 'text' },
+      { range: [7,  7],  text: '', type: 'text' },
+      { range: [8,  8],  text: '', type: 'text' },
+      { range: [9,  9],  text: '', type: 'text' },
+      { range: [10, 10], text: '', type: 'text' },
+    ],
+  },
+
+  {
+    _id: 'GenLp0600000000',
+    name: 'Motivation You Value',
+    _folder: 'General Lifepath',
+    formula: '1d10',
+    results: [
+      { range: [1,  1],  text: '', type: 'text' },
+      { range: [2,  2],  text: '', type: 'text' },
+      { range: [3,  3],  text: '', type: 'text' },
+      { range: [4,  4],  text: '', type: 'text' },
+      { range: [5,  5],  text: '', type: 'text' },
+      { range: [6,  6],  text: '', type: 'text' },
+      { range: [7,  7],  text: '', type: 'text' },
+      { range: [8,  8],  text: '', type: 'text' },
+      { range: [9,  9],  text: '', type: 'text' },
+      { range: [10, 10], text: '', type: 'text' },
+    ],
+  },
+
+  {
+    _id: 'GenLp0700000000',
+    name: 'Attitude towards People',
+    _folder: 'General Lifepath',
+    formula: '1d10',
+    results: [
+      { range: [1,  1],  text: '', type: 'text' },
+      { range: [2,  2],  text: '', type: 'text' },
+      { range: [3,  3],  text: '', type: 'text' },
+      { range: [4,  4],  text: '', type: 'text' },
+      { range: [5,  5],  text: '', type: 'text' },
+      { range: [6,  6],  text: '', type: 'text' },
+      { range: [7,  7],  text: '', type: 'text' },
+      { range: [8,  8],  text: '', type: 'text' },
+      { range: [9,  9],  text: '', type: 'text' },
+      { range: [10, 10], text: '', type: 'text' },
+    ],
+  },
+
+  {
+    _id: 'GenLp0800000000',
+    name: 'Life Goal',
+    _folder: 'General Lifepath',
+    formula: '1d6',
+    results: [
+      { range: [1, 1], text: '', type: 'text' },
+      { range: [2, 2], text: '', type: 'text' },
+      { range: [3, 3], text: '', type: 'text' },
+      { range: [4, 4], text: '', type: 'text' },
+      { range: [5, 5], text: '', type: 'text' },
+      { range: [6, 6], text: '', type: 'text' },
+    ],
+  },
+
+  {
+    _id: 'GenLp0900000000',
+    name: 'Wardrobe Style',
+    _folder: 'General Lifepath',
+    formula: '1d6',
+    results: [
+      { range: [1, 1], text: 'Functional but haphazard, putting necessity over style.', type: 'text' },
+      { range: [2, 2], text: 'A throwback, putting style over substance with bright colors and flashy fashion.', type: 'text' },
+      { range: [3, 3], text: 'Utilitarian and harsh, putting substance over style. Expensive and favored by corpos.', type: 'text' },
+      { range: [4, 4], text: 'A return to classic fashions, mixing old and new to include both substance and style for luxurious haut couture.', type: 'text' },
+      { range: [5, 5], text: "Rarely actual leather, but rugged and rough, inspired by the wandering life.", type: 'text' },
+      { range: [6, 6], text: 'Keeping up with the latest trends and the labels de jour, no matter what they are.', type: 'text' },
+    ],
+  },
+
+  {
+    _id: 'GenLp1000000000',
+    name: 'Hairstyle',
+    _folder: 'General Lifepath',
+    formula: '1d6',
+    // Note: in the world version each result also rolls the "Hair color" sub-table.
+    // The compendium version stores only the text; wire up the Hair color sub-table
+    // links manually after importing to a new world.
+    results: [
+      { range: [1, 1], text: '', type: 'text' },
+      { range: [2, 2], text: '', type: 'text' },
+      { range: [3, 3], text: '', type: 'text' },
+      { range: [4, 4], text: '', type: 'text' },
+      { range: [5, 5], text: '', type: 'text' },
+      { range: [6, 6], text: '', type: 'text' },
+    ],
+  },
+
+  {
+    _id: 'GenLp1100000000',
+    name: 'Hair color',
+    _folder: 'General Lifepath',
+    formula: '1d6',
+    results: [
+      { range: [1, 1], text: '', type: 'text' },
+      { range: [2, 2], text: '', type: 'text' },
+      { range: [3, 3], text: '', type: 'text' },
+      { range: [4, 4], text: '', type: 'text' },
+      { range: [5, 5], text: '', type: 'text' },
+      { range: [6, 6], text: '', type: 'text' },
+    ],
+  },
+
+  {
+    _id: 'GenLp1200000000',
+    name: 'Friends',
+    _folder: 'General Lifepath',
+    formula: '1d6',
+    // Note: in the world version results 2-6 also roll the "Who's your friend?"
+    // sub-table. Wire those document links up after importing to a new world.
+    results: [
+      { range: [1, 1], text: 'No friends.', type: 'text' },
+      { range: [2, 5], text: 'Someone is your friend.', type: 'text' },
+      { range: [6, 6], text: 'Several people are your friends.', type: 'text' },
+    ],
+  },
+
+  {
+    _id: 'GenLp1300000000',
+    name: 'Enemies',
+    _folder: 'General Lifepath',
+    formula: '1d6',
+    // Note: in the world version results 2-6 also roll the "Who's your enemy?"
+    // sub-table. Wire those document links up after importing to a new world.
+    results: [
+      { range: [1, 1], text: 'No enemies.', type: 'text' },
+      { range: [2, 5], text: 'Someone is out to get you.', type: 'text' },
+      { range: [6, 6], text: 'People are out to get you.', type: 'text' },
+    ],
+  },
+
+  {
+    _id: 'GenLp1400000000',
+    name: 'Your tragic love affair',
+    _folder: 'General Lifepath',
+    formula: '1d6',
+    results: [
+      { range: [1, 1], text: '', type: 'text' },
+      { range: [2, 2], text: '', type: 'text' },
+      { range: [3, 3], text: '', type: 'text' },
+      { range: [4, 4], text: '', type: 'text' },
+      { range: [5, 5], text: '', type: 'text' },
+      { range: [6, 6], text: '', type: 'text' },
+    ],
+  },
+
+  // ── Sub-tables (triggered by Friends / Enemies — not shown directly in wizard) ─
+
+  {
+    _id: 'GenLp1500000000',
+    name: "Who's your friend?",
+    _folder: 'General Lifepath',
+    _subTable: true,
+    formula: '1d6',
+    // Note: in the world version this also rolls "What's their Role?" for all results.
+    results: [
+      { range: [1, 1], text: '', type: 'text' },
+      { range: [2, 2], text: '', type: 'text' },
+      { range: [3, 3], text: '', type: 'text' },
+      { range: [4, 4], text: '', type: 'text' },
+      { range: [5, 5], text: '', type: 'text' },
+      { range: [6, 6], text: '', type: 'text' },
+    ],
+  },
+
+  {
+    _id: 'GenLp1600000000',
+    name: "Who's your enemy?",
+    _folder: 'General Lifepath',
+    _subTable: true,
+    formula: '1d6',
+    // Note: in the world version this also rolls "What's their Role?" for all results.
+    results: [
+      { range: [1, 1], text: '', type: 'text' },
+      { range: [2, 2], text: '', type: 'text' },
+      { range: [3, 3], text: '', type: 'text' },
+      { range: [4, 4], text: '', type: 'text' },
+      { range: [5, 5], text: '', type: 'text' },
+      { range: [6, 6], text: '', type: 'text' },
+    ],
+  },
+
+  {
+    _id: 'GenLp1700000000',
+    name: "What's their Role?",
+    _folder: 'General Lifepath',
+    _subTable: true,
+    formula: '1d18',
+    // Note: in the world version this also rolls "How big is their Circle?" for all results.
+    results: [
+      { range: [1,  4],  text: '', type: 'text' },
+      { range: [5,  5],  text: '', type: 'text' },
+      { range: [6,  6],  text: '', type: 'text' },
+      { range: [7,  7],  text: '', type: 'text' },
+      { range: [8,  8],  text: '', type: 'text' },
+      { range: [9,  9],  text: '', type: 'text' },
+      { range: [10, 10], text: '', type: 'text' },
+      { range: [11, 11], text: '', type: 'text' },
+      { range: [12, 12], text: '', type: 'text' },
+      { range: [13, 13], text: '', type: 'text' },
+      { range: [14, 14], text: '', type: 'text' },
+      { range: [15, 15], text: '', type: 'text' },
+      { range: [16, 16], text: '', type: 'text' },
+      { range: [17, 17], text: '', type: 'text' },
+      { range: [18, 18], text: '', type: 'text' },
+    ],
+  },
+
+  {
+    _id: 'GenLp1800000000',
+    name: 'How big is their Circle?',
+    _folder: 'General Lifepath',
+    _subTable: true,
+    formula: '1d10',
+    results: [
+      { range: [1,  1],  text: '', type: 'text' },
+      { range: [2,  2],  text: '', type: 'text' },
+      { range: [3,  3],  text: '', type: 'text' },
+      { range: [4,  4],  text: '', type: 'text' },
+      { range: [5,  5],  text: '', type: 'text' },
+      { range: [6,  6],  text: '', type: 'text' },
+      { range: [7,  7],  text: '', type: 'text' },
+      { range: [8,  8],  text: '', type: 'text' },
+      { range: [9,  9],  text: '', type: 'text' },
+      { range: [10, 10], text: '', type: 'text' },
+    ],
+  },
+
 ];

@@ -3,6 +3,15 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 const _openWizards = new Map(); // actorId → wizard instance
 
 const CC_STEPS = ['welcome', 'lifepath', 'stats', 'secondary', 'languages', 'ability', 'skills', 'role', 'name'];
+
+// Tables that are triggered automatically as sub-tables by Friends / Enemies and
+// should not be listed as standalone entries the player rolls directly.
+const LIFEPATH_SUB_TABLE_NAMES = new Set([
+  "Who's your friend?",
+  "Who's your enemy?",
+  "What's their Role?",
+  'How big is their Circle?',
+]);
 const PRIMARY_STATS = ['body', 'rflx', 'int', 'tech', 'cool'];
 const STAT_MIN = 3;
 const STAT_MAX = 8;
@@ -143,7 +152,11 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
 
       const rollAllTable = allTables.find(t => t.name?.toLowerCase().includes('roll all lifepath'));
       const tables = folder
-        ? allTables.filter(t => t.folder?.id === folder.id && t.id !== rollAllTable?.id)
+        ? allTables.filter(t =>
+            t.folder?.id === folder.id &&
+            t.id !== rollAllTable?.id &&
+            !LIFEPATH_SUB_TABLE_NAMES.has(t.name)
+          )
         : [];
 
       context.lifepath = {
@@ -337,11 +350,20 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
     }
     if (!table) return;
 
-    const result = await table.roll();
-    const text = result.results.map(r => r.text).join(' ');
-    const current = this.actor.system.details?.background ?? '';
-    const newBg = current ? `${current}<p>${text}</p>` : `<p>${text}</p>`;
-    await this.actor.update({ 'system.details.background': newBg });
+    // draw() rolls the table, posts to chat (including any sub-table chains),
+    // and returns {results, roll}. Use it instead of roll() so the GM and player
+    // see the results in chat and sub-tables are triggered automatically.
+    const drawn = await table.draw();
+    const text = drawn.results
+      .filter(r => r.type === 0 || r.type === 'text') // text results only
+      .map(r => r.text)
+      .filter(Boolean)
+      .join(' ');
+    if (text) {
+      const current = this.actor.system.details?.background ?? '';
+      const newBg = current ? `${current}<p>${text}</p>` : `<p>${text}</p>`;
+      await this.actor.update({ 'system.details.background': newBg });
+    }
 
     this._hasRolledLifepath = true;
     this.render({ force: false });

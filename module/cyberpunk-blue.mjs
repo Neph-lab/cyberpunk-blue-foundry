@@ -2651,34 +2651,42 @@ async function ensureLifepathCatalogue() {
     return;
   }
   await pack.getIndex();
-  if (pack.index.size > 0) return; // already populated
 
-  console.log('Cyberpunk Blue | Populating lifepath tables compendium…');
-
-  // Group by folder (role name)
+  // Group catalogue by folder
   const byFolder = new Map();
   for (const table of LIFEPATH_CATALOGUE) {
-    const folderName = table._folder ?? 'General';
+    const folderName = table._folder ?? 'General Lifepath';
     if (!byFolder.has(folderName)) byFolder.set(folderName, []);
     byFolder.get(folderName).push(table);
   }
 
+  // Only populate folders that are missing from the pack.
+  // This handles both fresh installs (all folders missing) and migrations
+  // where only new folders (e.g. "General Lifepath") need to be added.
+  const existingFolderNames = new Set(pack.folders.map((f) => f.name));
+  const foldersToPopulate = [...byFolder.entries()].filter(([name]) => !existingFolderNames.has(name));
+
+  if (foldersToPopulate.length === 0) return; // already up to date
+
+  console.log(`Cyberpunk Blue | Adding ${foldersToPopulate.length} missing lifepath folder(s) to compendium…`);
+
   let created = 0;
   await pack.configure({ locked: false });
   try {
-    for (const [folderName, tables] of byFolder.entries()) {
+    for (const [folderName, tables] of foldersToPopulate) {
       const folder = await _ensureRollTableFolderInPack(pack, folderName);
       const cleaned = tables.map((t) => {
         const copy = foundry.utils.deepClone(t);
         delete copy._folder;
+        delete copy._subTable;
         copy.folder = folder?.id ?? null;
         return copy;
       });
       const docs = await RollTable.createDocuments(cleaned, { pack: PACK_ID });
       created += docs.length;
     }
-    console.log(`Cyberpunk Blue | Lifepath tables compendium populated: ${created} tables.`);
-    if (created > 0) ui.notifications.info(`Cyberpunk Blue: Lifepath tables imported (${created} tables).`);
+    console.log(`Cyberpunk Blue | Lifepath tables compendium updated: ${created} tables added.`);
+    if (created > 0) ui.notifications.info(`Cyberpunk Blue: Added ${created} lifepath tables to compendium.`);
   } catch (err) {
     console.error('Cyberpunk Blue | Failed to populate lifepath tables compendium:', err);
   } finally {
