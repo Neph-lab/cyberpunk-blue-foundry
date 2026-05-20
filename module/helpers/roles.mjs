@@ -386,6 +386,11 @@ export async function applyFirstRoleSetup(actor, roleItem) {
       if (qty > 1 && data.system && 'quantity' in data.system) {
         data.system.quantity = qty;
       }
+      // Cyberware in the catalogue has installed: false (not yet surgically fitted).
+      // Role grants represent starting gear the character already has installed.
+      if (data.type === 'cyberware' && data.system) {
+        data.system.installed = true;
+      }
       createdItems.push(data);
     }
   }
