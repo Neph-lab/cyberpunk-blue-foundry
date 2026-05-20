@@ -1003,7 +1003,7 @@ export const LIFEPATH_CATALOGUE = [
   // Enemies and should not be shown as standalone entries in the wizard.
 
   {
-    _id: 'GenLp0100000000',
+    _id: 'GenLp01000000000',
     name: 'Cultural Origins',
     _folder: 'General Lifepath',
     formula: '2d6',
@@ -1023,7 +1023,7 @@ export const LIFEPATH_CATALOGUE = [
   },
 
   {
-    _id: 'GenLp0200000000',
+    _id: 'GenLp02000000000',
     name: 'Your Family Background',
     _folder: 'General Lifepath',
     formula: '1d10',
@@ -1042,7 +1042,7 @@ export const LIFEPATH_CATALOGUE = [
   },
 
   {
-    _id: 'GenLp0300000000',
+    _id: 'GenLp03000000000',
     name: 'Childhood Environment',
     _folder: 'General Lifepath',
     formula: '1d6',
@@ -1057,7 +1057,7 @@ export const LIFEPATH_CATALOGUE = [
   },
 
   {
-    _id: 'GenLp0400000000',
+    _id: 'GenLp04000000000',
     name: 'Your Crisis',
     _folder: 'General Lifepath',
     formula: '1d6',
@@ -1072,7 +1072,7 @@ export const LIFEPATH_CATALOGUE = [
   },
 
   {
-    _id: 'GenLp0500000000',
+    _id: 'GenLp05000000000',
     name: 'Personality',
     _folder: 'General Lifepath',
     formula: '1d10',
@@ -1091,7 +1091,7 @@ export const LIFEPATH_CATALOGUE = [
   },
 
   {
-    _id: 'GenLp0600000000',
+    _id: 'GenLp06000000000',
     name: 'Motivation You Value',
     _folder: 'General Lifepath',
     formula: '1d10',
@@ -1110,7 +1110,7 @@ export const LIFEPATH_CATALOGUE = [
   },
 
   {
-    _id: 'GenLp0700000000',
+    _id: 'GenLp07000000000',
     name: 'Attitude towards People',
     _folder: 'General Lifepath',
     formula: '1d10',
@@ -1129,7 +1129,7 @@ export const LIFEPATH_CATALOGUE = [
   },
 
   {
-    _id: 'GenLp0800000000',
+    _id: 'GenLp08000000000',
     name: 'Life Goal',
     _folder: 'General Lifepath',
     formula: '1d6',
@@ -1144,7 +1144,7 @@ export const LIFEPATH_CATALOGUE = [
   },
 
   {
-    _id: 'GenLp0900000000',
+    _id: 'GenLp09000000000',
     name: 'Wardrobe Style',
     _folder: 'General Lifepath',
     formula: '1d6',
@@ -1159,7 +1159,7 @@ export const LIFEPATH_CATALOGUE = [
   },
 
   {
-    _id: 'GenLp1000000000',
+    _id: 'GenLp10000000000',
     name: 'Hairstyle',
     _folder: 'General Lifepath',
     formula: '1d6',
@@ -1177,7 +1177,7 @@ export const LIFEPATH_CATALOGUE = [
   },
 
   {
-    _id: 'GenLp1100000000',
+    _id: 'GenLp11000000000',
     name: 'Hair color',
     _folder: 'General Lifepath',
     formula: '1d6',
@@ -1192,7 +1192,7 @@ export const LIFEPATH_CATALOGUE = [
   },
 
   {
-    _id: 'GenLp1200000000',
+    _id: 'GenLp12000000000',
     name: 'Friends',
     _folder: 'General Lifepath',
     formula: '1d6',
@@ -1206,7 +1206,7 @@ export const LIFEPATH_CATALOGUE = [
   },
 
   {
-    _id: 'GenLp1300000000',
+    _id: 'GenLp13000000000',
     name: 'Enemies',
     _folder: 'General Lifepath',
     formula: '1d6',
@@ -1220,7 +1220,7 @@ export const LIFEPATH_CATALOGUE = [
   },
 
   {
-    _id: 'GenLp1400000000',
+    _id: 'GenLp14000000000',
     name: 'Your tragic love affair',
     _folder: 'General Lifepath',
     formula: '1d6',
@@ -1237,7 +1237,7 @@ export const LIFEPATH_CATALOGUE = [
   // ── Sub-tables (triggered by Friends / Enemies — not shown directly in wizard) ─
 
   {
-    _id: 'GenLp1500000000',
+    _id: 'GenLp15000000000',
     name: "Who's your friend?",
     _folder: 'General Lifepath',
     _subTable: true,
@@ -1254,7 +1254,7 @@ export const LIFEPATH_CATALOGUE = [
   },
 
   {
-    _id: 'GenLp1600000000',
+    _id: 'GenLp16000000000',
     name: "Who's your enemy?",
     _folder: 'General Lifepath',
     _subTable: true,
@@ -1271,7 +1271,7 @@ export const LIFEPATH_CATALOGUE = [
   },
 
   {
-    _id: 'GenLp1700000000',
+    _id: 'GenLp17000000000',
     name: "What's their Role?",
     _folder: 'General Lifepath',
     _subTable: true,
@@ -1297,7 +1297,7 @@ export const LIFEPATH_CATALOGUE = [
   },
 
   {
-    _id: 'GenLp1800000000',
+    _id: 'GenLp18000000000',
     name: 'How big is their Circle?',
     _folder: 'General Lifepath',
     _subTable: true,
