@@ -67,6 +67,7 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
     super(options);
     this.actor = actor;
     this._hasRolledLifepath = false;
+    this._pendingLanguage = null; // typed but not yet flushed to actor
     _openWizards.set(actor.id, this);
     this._actorUpdateHookId = Hooks.on('updateActor', (doc) => {
       if (doc.id === this.actor.id) {
@@ -199,7 +200,11 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
     }
 
     if (step === 'languages') {
-      const extraLanguage = this.actor.system.characterCreation?.extraLanguage ?? '';
+      // Use the locally-buffered value if the user is mid-type, so the rendered
+      // field shows the current input and canAdvance reflects what they've typed.
+      const extraLanguage = this._pendingLanguage
+        ?? this.actor.system.characterCreation?.extraLanguage
+        ?? '';
       context.languages = {
         extraLanguage,
         canAdvance: extraLanguage.trim().length > 0,
@@ -315,6 +320,11 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
     const langField = this.element.querySelector('#cc-language-input');
     if (langField) {
       langField.addEventListener('input', this._onLanguageInput.bind(this));
+      // If a pending value exists (user typed since last actor flush), restore it
+      // so the field shows the current text and the cursor stays at the end.
+      if (this._pendingLanguage !== null) {
+        langField.value = this._pendingLanguage;
+      }
     }
 
     this.element.querySelector('[data-action="upgrade-language"]')?.addEventListener('click', this._onUpgradeLanguage.bind(this));
@@ -383,12 +393,23 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
     await this.actor.update({ [`system.stats.${slug}.value`]: newValue });
   }
 
-  async _onLanguageInput(event) {
+  _onLanguageInput(event) {
     const value = event.currentTarget.value;
-    await this.actor.update({ 'system.characterCreation.extraLanguage': value });
+    // Buffer locally — do NOT call actor.update() here. Calling it would trigger
+    // the updateActor hook → render() → input replaced → cursor jumps to start.
+    // The value is flushed to the actor when the user clicks Next (see _onNextStep).
+    this._pendingLanguage = value;
+    // Keep the Next button enabled/disabled in sync without re-rendering.
+    const nextBtn = this.element.querySelector('[data-action="cc-next"]');
+    if (nextBtn) nextBtn.disabled = value.trim().length === 0;
   }
 
   async _advanceTo(nextStep) {
+    // Flush any buffered language input before advancing so it's persisted.
+    if (this._pendingLanguage !== null) {
+      await this.actor.update({ 'system.characterCreation.extraLanguage': this._pendingLanguage });
+      this._pendingLanguage = null;
+    }
     if (nextStep === 'secondary') {
       await this._initializeSecondaryStats();
     }
