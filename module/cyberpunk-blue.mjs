@@ -2094,7 +2094,7 @@ function _catalogueEffectSig(e) {
   return JSON.stringify({
     name:    (e.name ?? '').trim(),
     disabled: e.disabled ?? false,
-    changes:  (e.changes ?? []).map((c) => ({ key: c.key, mode: c.mode, value: String(c.value) })),
+    changes:  (e.changes ?? []).map((c) => ({ key: c.key, mode: c.type ?? c.mode, value: String(c.value) })),
     flags:   e.flags?.['cyberpunk-blue'] ?? {},
   });
 }
