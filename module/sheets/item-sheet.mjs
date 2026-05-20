@@ -5,6 +5,7 @@ import {
 import { getBrandLogoPath } from '../helpers/branding.mjs';
 import { applyWeaponTypeDefaults, buildWeaponUpdate, createWeaponData, getWeaponTypeDefinition } from '../helpers/combat.mjs';
 import { parsePsycheLossFormula } from '../helpers/cyberware.mjs';
+import { PROGRAM_ACTOR_FLAG } from '../helpers/netrunning.mjs';
 import { GEAR_STATES, getGearStateUpdateData, normalizeGearState } from '../helpers/gear.mjs';
 import {
   createWeaponChangeData,
@@ -331,6 +332,14 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     context.showEffectsTab = !context.isCyberware && !context.isAmmo && !context.isProgramExecutable && !context.isDrug
       && (!(context.isAbility || context.isGear) || canManageRestricted);
     context.showProgramExecutableNotesTab = context.isProgramExecutable && (this.document.isOwner || game.user.isGM);
+
+    // GM-visible linked Program Actor for programExecutable items
+    if (context.isProgramExecutable && game.user.isGM) {
+      const linkedActorId = this.document.getFlag('cyberpunk-blue', PROGRAM_ACTOR_FLAG);
+      const linkedActor   = linkedActorId ? game.actors.get(linkedActorId) : null;
+      context.linkedProgramActorId   = linkedActorId   ?? null;
+      context.linkedProgramActorName = linkedActor?.name ?? null;
+    }
     context.ammoTypeOptions = [
       { value: 'mediumPistol', label: 'Medium Pistol' },
       { value: 'heavyPistol', label: 'Heavy Pistol' },

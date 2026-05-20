@@ -2291,6 +2291,56 @@ section.chat-sidebar:not(.sidebar-popout),
   color: var(--color-text-light-secondary, #555);
 }
 
+.cyberpunk-blue .netrunner-computer-programs {
+  margin: 2px 0 0 0;
+  padding: 0 0 0 16px;
+  font-size: var(--font-size-11);
+  color: var(--color-text-light-secondary, #666);
+  list-style: disc;
+}
+
+/* Net-connection box inside the components row */
+.cyberpunk-blue .net-connection-box {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.cyberpunk-blue .net-connection-row {
+  width: 100%;
+}
+
+/* Executable item sheet — linked program actor */
+.cyberpunk-blue .gm-only-panel {
+  background: rgba(180, 140, 0, 0.08);
+  border: 1px solid rgba(180, 140, 0, 0.3);
+  border-radius: 4px;
+  padding: var(--cpb-space-2) var(--cpb-space-3);
+  margin-bottom: var(--cpb-space-2);
+}
+
+.cyberpunk-blue .program-actor-link {
+  display: flex;
+  align-items: center;
+  gap: var(--cpb-space-2);
+  font-size: var(--cpb-fs-sm);
+}
+
+.cyberpunk-blue .program-actor-link .label {
+  color: var(--cpb-muted);
+  white-space: nowrap;
+}
+
+.cyberpunk-blue .program-actor-link a {
+  color: var(--cpb-accent-strong);
+  text-decoration: none;
+}
+
+.cyberpunk-blue .program-actor-link a:hover {
+  text-decoration: underline;
+}
+
 /* Executable tables */
 .cyberpunk-blue .netrunner-exe-table {
   width: 100%;

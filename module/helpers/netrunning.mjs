@@ -475,7 +475,7 @@ export async function spawnProgramActor(actor, exeItem) {
     img:   exeItem.img,
     prototypeToken: {
       name:        exeItem.name,
-      img:         exeItem.img,
+      texture:     { src: exeItem.img },
       width:       0.5,
       height:      0.5,
       disposition: CONST.TOKEN_DISPOSITIONS.FRIENDLY,
@@ -513,11 +513,12 @@ export async function spawnProgramActor(actor, exeItem) {
   ).length;
   const offsetX = (1 + runningCount) * Math.ceil(gridSize * 0.5);
 
+  // Use the program actor's own image for the token (Task 4: always own image)
   await archScene.createEmbeddedDocuments('Token', [{
     actorId:    programActor.id,
     actorLink:  true,
-    name:       exeItem.name,
-    img:        exeItem.img,
+    name:       programActor.name,
+    texture:    { src: programActor.img },
     x:          (netTok?.x ?? 0) + offsetX,
     y:          netTok?.y  ?? 0,
     width:      0.5,
@@ -1036,6 +1037,36 @@ async function _promptNetDv(targetName) {
  * Sync the REZ value from a temporary Program Actor back to its source Executable item.
  * Returns false if the actor is not a temp program actor.
  */
+/**
+ * Sync stat and REZ changes from a programExecutable item to its linked
+ * Program Actor (if one exists and is live).  Called from the updateItem hook.
+ *
+ * @param {Item}   exeItem - The programExecutable that changed
+ * @param {object} changes - The update delta (Foundry change object)
+ */
+export async function syncExeStatsToActor(exeItem, changes) {
+  const programActorId = exeItem.getFlag('cyberpunk-blue', PROGRAM_ACTOR_FLAG);
+  if (!programActorId) return;
+  const programActor = game.actors.get(programActorId);
+  if (!programActor) return;
+
+  const update = {};
+  const sys = changes.system ?? {};
+
+  // REZ value
+  if (sys.rez?.value !== undefined) update['system.resources.rez.value'] = sys.rez.value;
+  if (sys.rez?.max   !== undefined) update['system.resources.rez.max']   = sys.rez.max;
+
+  // Combat stats
+  for (const stat of ['act', 'atk', 'def', 'net', 'per']) {
+    if (sys[stat]?.value !== undefined) update[`system.stats.${stat}.value`] = sys[stat].value;
+  }
+
+  if (Object.keys(update).length > 0) {
+    await programActor.update(update);
+  }
+}
+
 export async function syncRezToExecutable(programActor, newRezValue) {
   const netrunnerActorId = programActor.getFlag('cyberpunk-blue', 'programActorFor');
   const exeItemId        = programActor.getFlag('cyberpunk-blue', 'programExecutableId');

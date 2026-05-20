@@ -69,6 +69,7 @@ import {
   despawnProgramActor,
   disconnectFromArchitecture,
   syncRezToExecutable,
+  syncExeStatsToActor,
   applyErrorState,
   resolveNetTimers,
 } from './helpers/netrunning.mjs';
@@ -876,20 +877,41 @@ Hooks.on('deleteCombat', () => { try { clearTechChargeHighlights(); } catch { } 
 // ─── Netrunning: program actor lifecycle ─────────────────────────────────────
 // When a programExecutable's `running` flag changes while a netrunner is
 // connected, spawn or despawn its linked program actor accordingly.
+// Also sync stat changes to the live program actor, and keep the actor's token
+// image up-to-date when the actor's own image changes.
 Hooks.on('updateItem', async (item, change) => {
   if (!game.user.isGM) return;
   if (item.type !== 'programExecutable') return;
-  const runningChanged = foundry.utils.hasProperty(change, 'system.running');
-  if (!runningChanged) return;
 
   const actor = item.parent;
-  if (!actor || !isNetConnected(actor)) return;
 
-  if (change.system.running === true) {
-    await spawnProgramActor(actor, item);
-  } else {
-    await despawnProgramActor(actor, item);
+  // ── Running flag: spawn or despawn ─────────────────────────────────────────
+  if (foundry.utils.hasProperty(change, 'system.running') && actor && isNetConnected(actor)) {
+    if (change.system.running === true) {
+      await spawnProgramActor(actor, item);
+    } else {
+      await despawnProgramActor(actor, item);
+    }
   }
+
+  // ── Stats sync: exe → program actor ────────────────────────────────────────
+  // When REZ, ACT, ATK, DEF, NET, or PER changes on the exe, propagate to the
+  // live program actor (if one exists) so both always show the same numbers.
+  if (foundry.utils.hasProperty(change, 'system')) {
+    await syncExeStatsToActor(item, change);
+  }
+});
+
+// ─── Netrunning: exe deletion → despawn program actor ────────────────────────
+// When a programExecutable is deleted, tear down its linked program actor and
+// any tokens so nothing is left orphaned in the Architecture scene.
+Hooks.on('deleteItem', async (item) => {
+  if (!game.user.isGM) return;
+  if (item.type !== 'programExecutable') return;
+  const actor = item.parent;
+  if (!actor) return;
+  // despawnProgramActor will no-op if there's no linked actor
+  await despawnProgramActor(actor, item, { skipRunningUpdate: true });
 });
 
 // ─── Netrunning: unsafe disconnect when token leaves AP region ────────────────

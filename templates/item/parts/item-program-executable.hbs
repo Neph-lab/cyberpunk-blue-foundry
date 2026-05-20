@@ -7,6 +7,16 @@
 
 <section class="sheet-body">
   <div class="tab active" data-group="primary" data-tab="description">
+    {{#if linkedProgramActorId}}
+      <section class="sheet-panel gm-only-panel">
+        <div class="program-actor-link">
+          <span class="label"><i class="fas fa-microchip"></i> {{localize "CYBER_BLUE.Netrunning.LinkedProgramActor"}}</span>
+          <a class="content-link program-actor-open" data-uuid="Actor.{{linkedProgramActorId}}">
+            <i class="fas fa-user-astronaut"></i> {{linkedProgramActorName}}
+          </a>
+        </div>
+      </section>
+    {{/if}}
     <section class="sheet-panel">
       {{#if canEditAsOwner}}
         <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>

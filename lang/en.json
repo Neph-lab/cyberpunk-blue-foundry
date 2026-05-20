@@ -870,6 +870,7 @@
       "SelfICELabel": "Self-ICE Defense",
       "SelfICEHint": "Passwall layers protecting your neuroport against quickhacks.",
       "SelfICEPasswallNote": "Self-ICE Passwall",
+      "LinkedProgramActor": "Spawned Program Actor",
       "Passwall": "Passwall",
       "BlackIceEncounter": "{name} enters node '{node}' — Black ICE detected!",
       "BlackIceEncounterCount": "{count} Black ICE program(s) engage.",
