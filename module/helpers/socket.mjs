@@ -10,11 +10,31 @@
 export const SOCKET_NAME = 'system.cyberpunk-blue';
 
 /**
+ * Tell a specific user to switch their active scene.
+ * Emits to all clients; only the targeted user acts.
+ *
+ * @param {string} sceneId      - ID of the Scene to view
+ * @param {string} targetUserId - ID of the User who should switch
+ */
+export function emitSceneSwitchForUser(sceneId, targetUserId) {
+  game.socket.emit(SOCKET_NAME, { type: 'netSwitchScene', sceneId, targetUserId });
+}
+
+/**
  * Register the socket listener on the GM side.
  * Call this once from the 'ready' hook.
  */
 export function registerSocketHandlers() {
   game.socket.on(SOCKET_NAME, async (message) => {
+    // netSwitchScene is handled by every client (not GM-only) — the handler
+    // guards against acting on messages not addressed to this user.
+    if (message.type === 'netSwitchScene') {
+      if (message.targetUserId !== game.user.id) return;
+      const scene = game.scenes.get(message.sceneId);
+      if (scene) await scene.view();
+      return;
+    }
+
     if (!game.user.isGM) return;
 
     switch (message.type) {
@@ -95,6 +115,27 @@ export function registerSocketHandlers() {
         if (!armor) return;
         const currentSp = Math.max(Math.min(armor.system.armor?.currentSp ?? 0, armor.system.armor?.maxSp ?? 0), 0);
         if (currentSp > 0) await armor.update({ 'system.armor.currentSp': currentSp - 1 });
+        break;
+      }
+      case 'netConnect': {
+        // A player asked the GM to execute the architecture connection on their behalf.
+        const { actorUuid, apSceneId, apRegionId, userId } = message;
+        const actor = await fromUuid(actorUuid);
+        if (!actor) return;
+        const apScene = game.scenes.get(apSceneId);
+        const apRegion = apScene?.regions?.get(apRegionId);
+        if (!apRegion) return;
+        const { connectToArchitecture } = await import('./netrunning.mjs');
+        await connectToArchitecture(actor, apRegion, { forUserId: userId });
+        break;
+      }
+      case 'netDisconnect': {
+        // A player asked the GM to execute the architecture disconnect on their behalf.
+        const { actorUuid, safe, userId } = message;
+        const actor = await fromUuid(actorUuid);
+        if (!actor) return;
+        const { disconnectFromArchitecture } = await import('./netrunning.mjs');
+        await disconnectFromArchitecture(actor, safe ?? true, { forUserId: userId });
         break;
       }
       default:

@@ -89,7 +89,7 @@ export class CyberBlueActor extends Actor {
 
       for (const entry of data) {
         if (entry?.type !== 'role') {
-          const prepared = await this._prepareIncomingItemData(entry);
+          const prepared = await this._prepareIncomingItemData(entry, options);
           if (prepared) {
             filteredData.push(prepared);
           }
@@ -152,7 +152,7 @@ export class CyberBlueActor extends Actor {
     return created;
   }
 
-  async _prepareIncomingItemData(entry) {
+  async _prepareIncomingItemData(entry, options = {}) {
     // ── Ammo stacking: merge into existing item instead of creating a new one ─
     // When ammo of the same name already exists on the actor, increment its
     // quantity rather than adding a duplicate.  Quantity comes from the incoming
@@ -177,6 +177,12 @@ export class CyberBlueActor extends Actor {
     const nextEntry = foundry.utils.deepClone(entry);
     const system = nextEntry.system ?? {};
     if (system.integration !== 'extension' || system.parentCyberwareId) {
+      return nextEntry;
+    }
+
+    // For role grants, skip the interactive platform prompt — _preCreate will
+    // auto-assign to the first eligible platform.
+    if (options?.cyberBlueSkipRoleGrant) {
       return nextEntry;
     }
 

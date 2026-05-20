@@ -176,7 +176,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'neuralware', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'mall', installationCost: 'CO', installationDv: 13,
     psycheLoss: '', multipleInstalls: true,
-    description: 'Adds a Passwall layer protecting your neuroport. Each successive Self-ICE install increases the Passwall DV by +2 (base DV10, then DV12, DV14, etc.). Can be installed by a Netrunner (Electronics/Cybernetics) or a Medtech.',
+    description: 'Adds a Passwall protecting your neuroport against Quickhacking. The Passwall DV = 15 + (2 × total number of Self-ICE installs). Installing a second Self-ICE raises the DV to 19, a third to 21, and so on. Can be installed by a Netrunner (Electronics/Cybernetics) or a Medtech.',
   }),
   cw({
     name: 'Shard Socket',
@@ -218,8 +218,8 @@ export const CYBERWARE_CATALOGUE = [
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'platform', slotsProvided: 3,
     cost: 'CO', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
-    psycheLoss: '1d6',
-    description: 'Replaces one eye. Can appear as desired. Perfect 20/20 vision. Provides 3 cyberoptic slots for extensions.',
+    psycheLoss: '1d6', multipleInstalls: true,
+    description: 'Replaces one eye. Can appear as desired. Perfect 20/20 vision. Provides 3 cyberoptic slots for extensions. Can be installed a second time (second eye) — the pair is renamed to Left/Right automatically.',
   }),
   cw({
     name: 'Anti-Dazzle',

@@ -36,11 +36,11 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
     classes: ['cyberpunk-blue', 'character-creation-wizard'],
     window: {
       title: 'CYBER_BLUE.CC.Title',
-      resizable: false,
+      resizable: true,
     },
     position: {
       width: 560,
-      height: 'auto',
+      height: 700,
     },
   };
 
@@ -110,38 +110,47 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
     }
 
     if (step === 'lifepath') {
-      const folder = game.folders.find(f => f.type === 'RollTable' && f.name === 'Lifepath');
-      const allTables = game.tables?.contents ?? [];
-      const rollAllTable = allTables.find(t => t.name?.toLowerCase().includes('roll all lifepath'));
-      let tables = folder
-        ? allTables.filter(t => t.folder?.id === folder.id && t.id !== rollAllTable?.id)
-        : [];
+      const FOLDER_NAME = 'General Lifepath';
+      let folder = game.folders.find(f => f.type === 'RollTable' && f.name === FOLDER_NAME);
+      let allTables = game.tables?.contents ?? [];
 
-      // Fallback: if no world Lifepath folder, load tables from system compendium.
-      if (tables.length === 0) {
+      // If the world folder doesn't exist yet, import from the system compendium.
+      if (!folder && game.user?.isGM) {
         const pack = game.packs.get('cyberpunk-blue.lifepath-tables');
         if (pack) {
-          await pack.getIndex({ fields: ['name', 'folder'] });
-          // Build flat list; group label comes from the folder name
-          const folders = pack.folders;
-          const folderMap = new Map(folders.map(f => [f.id, f.name]));
-          tables = pack.index.map(e => ({
-            id: `Compendium.cyberpunk-blue.lifepath-tables.RollTable.${e._id}`,
-            name: e.name,
-            groupLabel: folderMap.get(e.folder) ?? '',
-            isCompendium: true,
-          })).sort((a, b) => {
-            const g = (a.groupLabel ?? '').localeCompare(b.groupLabel ?? '');
-            return g !== 0 ? g : a.name.localeCompare(b.name);
-          });
+          try {
+            await pack.getIndex({ fields: ['name', 'folder'] });
+            // Create the world folder
+            folder = await Folder.create({ name: FOLDER_NAME, type: 'RollTable' });
+            // Import all tables from the pack into the new folder
+            const toImport = pack.index.map(e => e._id);
+            for (const entryId of toImport) {
+              const doc = await pack.getDocument(entryId);
+              if (doc) {
+                await RollTable.create({
+                  ...doc.toObject(),
+                  folder: folder.id,
+                });
+              }
+            }
+            allTables = game.tables?.contents ?? [];
+            ui.notifications.info(`Imported ${toImport.length} lifepath tables to "${FOLDER_NAME}".`);
+          } catch (err) {
+            console.error('Cyberpunk Blue | Failed to import lifepath tables:', err);
+          }
         }
       }
 
+      const rollAllTable = allTables.find(t => t.name?.toLowerCase().includes('roll all lifepath'));
+      const tables = folder
+        ? allTables.filter(t => t.folder?.id === folder.id && t.id !== rollAllTable?.id)
+        : [];
+
       context.lifepath = {
         rollAllId: rollAllTable?.id ?? null,
-        tables: tables.map(t => ({ id: t.id, name: t.name, groupLabel: t.groupLabel ?? '', isCompendium: t.isCompendium ?? false })),
+        tables: tables.map(t => ({ id: t.id, name: t.name, groupLabel: '', isCompendium: false })),
         hasRolled: this._hasRolledLifepath,
-        fromCompendium: tables.some(t => t.isCompendium),
+        fromCompendium: false,
       };
     }
 

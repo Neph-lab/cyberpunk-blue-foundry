@@ -862,12 +862,17 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         (item.type === 'gear' || item.type === 'cyberware') && item.system.isComputer
       );
 
-      // Count executables installed on each computer
+      // Count executables installed on each computer and track their names
       const allExecutables = embeddedItems.filter((item) => item.type === 'programExecutable');
       const execsPerComputer = new Map();
+      const execNamesPerComputer = new Map();
       for (const exe of allExecutables) {
         const cid = exe.system.installedOnId;
-        if (cid) execsPerComputer.set(cid, (execsPerComputer.get(cid) ?? 0) + 1);
+        if (cid) {
+          execsPerComputer.set(cid, (execsPerComputer.get(cid) ?? 0) + 1);
+          if (!execNamesPerComputer.has(cid)) execNamesPerComputer.set(cid, []);
+          execNamesPerComputer.get(cid).push(exe.name);
+        }
       }
 
       context.netrunnerComputers = computerItems
@@ -891,6 +896,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
             running: comp.running ?? false,
             usedSlots,
             freeSlots: Math.max(totalSlots - usedSlots, 0),
+            installedPrograms: execNamesPerComputer.get(c.id) ?? [],
           };
         })
         .sort((a, b) => {
@@ -972,19 +978,18 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       context.diskColVis   = buildColVis(executablesOnDisk, true);
       context.shardsColVis = buildColVis(executablesOnShards, false);
 
-      // ── Self-ICE Passwall DVs ─────────────────────────────────────────────
-      // Any character may have Self-ICE installed (neuralware cyberware).
-      // Each install adds one Passwall layer; DV starts at 10 and rises by 2
-      // per additional install.  Expose a sorted DV list for the sheet.
+      // ── Self-ICE Passwall DV ──────────────────────────────────────────────
+      // Self-ICE cyberware (neuralware) provides a single Passwall against
+      // Quickhacking: DV = 15 + (2 × number of Self-ICE installs).
+      // Shown as a note on the cyberware tab and used by the Quickhacking panel.
       {
         const selfIceCount = embeddedItems.filter((i) =>
           i.type === 'cyberware'
           && i.system.installed !== false
           && i.name.toLowerCase().includes('self-ice'),
         ).length;
-        context.selfIcePasswalls = selfIceCount > 0
-          ? Array.from({ length: selfIceCount }, (_, k) => ({ layer: k + 1, dv: 10 + 2 * k }))
-          : [];
+        context.selfIceCount = selfIceCount;
+        context.selfIceDv    = selfIceCount > 0 ? 15 + (2 * selfIceCount) : null;
       }
 
       // ── NET actions combat counter ─────────────────────────────────────────

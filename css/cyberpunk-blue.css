@@ -1875,6 +1875,8 @@ section.chat-sidebar:not(.sidebar-popout),
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 /* Progress dots */

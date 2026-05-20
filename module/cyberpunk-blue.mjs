@@ -2132,6 +2132,11 @@ async function _syncCyberwareEntries(catalogue) {
     })).sort().join('\n');
     const effectsChanged = catSig !== docSig;
 
+    const catMultipleInstalls = def.system?.multipleInstalls ?? false;
+    const catDescription      = def.system?.description      ?? '';
+    const multipleInstallsChanged = doc.system.multipleInstalls !== catMultipleInstalls;
+    const descriptionChanged      = catDescription && doc.system.description !== catDescription;
+
     const update = { _id: doc.id };
     let needsUpdate = false;
     if (weaponCountChanged || isWeaponChanged || critDoublePickChanged) {
@@ -2148,6 +2153,14 @@ async function _syncCyberwareEntries(catalogue) {
     }
     if (def.img && doc.img !== def.img) {
       update.img = def.img;
+      needsUpdate = true;
+    }
+    if (multipleInstallsChanged) {
+      update['system.multipleInstalls'] = catMultipleInstalls;
+      needsUpdate = true;
+    }
+    if (descriptionChanged) {
+      update['system.description'] = catDescription;
       needsUpdate = true;
     }
     if (needsUpdate) updates.push(update);
@@ -2176,7 +2189,7 @@ async function _syncDrugEntries(catalogue) {
   const PACK_ID = 'cyberpunk-blue.drugs';
   const pack = game.packs.get(PACK_ID);
   if (!pack) return;
-  await pack.getIndex({ fields: ['name', 'type'] });
+  await pack.getIndex({ fields: ['name', 'type', 'folder'] });
 
   const byName = new Map(
     catalogue
@@ -2219,6 +2232,12 @@ async function _syncDrugEntries(catalogue) {
     }
     if (def.img && doc.img !== def.img) {
       update.img = def.img;
+      needsUpdate = true;
+    }
+    // Migrate out of any subfolder — Foundry creates a world folder named after
+    // the compendium on import, so a subfolder inside is unnecessary.
+    if (entry.folder) {
+      update.folder = null;
       needsUpdate = true;
     }
     if (needsUpdate) updates.push(update);
@@ -2464,29 +2483,22 @@ async function ensureRoleCatalogue() {
     return;
   }
 
+  // Populate at root level (no subfolder) — Foundry creates a world folder named
+  // after the compendium when players import, so a subfolder inside is unnecessary.
   console.log('Cyberpunk Blue | Populating roles compendium…');
-  const byFolder = new Map();
-  for (const item of ROLE_CATALOGUE) {
-    const folderName = item._folder ?? 'Roles';
-    if (!byFolder.has(folderName)) byFolder.set(folderName, []);
-    byFolder.get(folderName).push(item);
-  }
+  const cleaned = ROLE_CATALOGUE.map((it) => {
+    const copy = foundry.utils.deepClone(it);
+    delete copy._id;
+    delete copy._folder;
+    copy.folder = null;
+    return copy;
+  });
 
   let created = 0;
   await pack.configure({ locked: false });
   try {
-    for (const [folderName, group] of byFolder.entries()) {
-      const folder = await _ensureFolderInPack(pack, folderName);
-      const cleaned = group.map((it) => {
-        const copy = foundry.utils.deepClone(it);
-        delete copy._id;
-        delete copy._folder;
-        copy.folder = folder?.id ?? null;
-        return copy;
-      });
-      const docs = await Item.createDocuments(cleaned, { pack: PACK_ID });
-      created += docs.length;
-    }
+    const docs = await Item.createDocuments(cleaned, { pack: PACK_ID });
+    created = docs.length;
     console.log(`Cyberpunk Blue | Roles compendium populated: ${created} roles.`);
     if (created > 0) ui.notifications.info(`Cyberpunk Blue: Roles catalogue imported (${created} roles).`);
   } catch (err) {
@@ -2507,25 +2519,31 @@ async function _syncRoleEntries() {
   await pack.getIndex({ fields: ['name'] });
   const toUpdate = [];
 
+  await pack.getIndex({ fields: ['name', 'folder'] });
+
   for (const entry of pack.index) {
     const catalogueEntry = byName.get(entry.name);
     if (!catalogueEntry) continue;
 
-    // Fields that may change between versions (everything except rank / actor state)
-    toUpdate.push({
+    // Fields that may change between versions (everything except rank / actor state).
+    // Also move items to root level (folder: null) — Foundry creates a world folder
+    // named after the compendium on import, so a subfolder inside is unnecessary.
+    const update = {
       _id: entry._id,
       img: catalogueEntry.img,
-      'system.category':        catalogueEntry.system.category,
-      'system.description':     catalogueEntry.system.description,
-      'system.abilityOverview': catalogueEntry.system.abilityOverview,
-      'system.abilitySections': catalogueEntry.system.abilitySections,
-      'system.lifepathLinks':   catalogueEntry.system.lifepathLinks,
+      'system.category':          catalogueEntry.system.category,
+      'system.description':       catalogueEntry.system.description,
+      'system.abilityOverview':   catalogueEntry.system.abilityOverview,
+      'system.abilitySections':   catalogueEntry.system.abilitySections,
+      'system.lifepathLinks':     catalogueEntry.system.lifepathLinks,
       'system.lifepathQuestions': catalogueEntry.system.lifepathQuestions,
-      'system.leaderFeatures':  catalogueEntry.system.leaderFeatures,
-      'system.proteanFoci':     catalogueEntry.system.proteanFoci,
-      'system.specialties':     catalogueEntry.system.specialties,
-      'system.notes':           catalogueEntry.system.notes,
-    });
+      'system.leaderFeatures':    catalogueEntry.system.leaderFeatures,
+      'system.proteanFoci':       catalogueEntry.system.proteanFoci,
+      'system.specialties':       catalogueEntry.system.specialties,
+      'system.notes':             catalogueEntry.system.notes,
+    };
+    if (entry.folder) update.folder = null; // migrate out of subfolder
+    toUpdate.push(update);
   }
 
   if (toUpdate.length === 0) return;

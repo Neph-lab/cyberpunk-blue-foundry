@@ -1140,9 +1140,8 @@
     {{#if showNetrunningTab}}
       <div class="tab" data-group="primary" data-tab="netrunning">
 
-        {{!-- ── Component interface boxes ── --}}
+        {{!-- ── Component interface boxes + Connection panel (same row, no header) ── --}}
         <section class="sheet-panel">
-          <h2>{{localize "CYBER_BLUE.Combat.NetrunnerComponents"}}</h2>
           <div class="netrunner-components-row">
             {{#each netrunnerComponents as |comp|}}
               <div class="netrunner-component-box">
@@ -1163,38 +1162,41 @@
                       {{use.label}}
                     </button>
                   {{/each}}
+                  {{!-- Defrag lives in the Quickhacking component box --}}
+                  {{#if (eq comp.slug "quickhacking")}}
+                    <button type="button" class="netrunner-use-btn" data-action="net-defrag" title="{{localize "CYBER_BLUE.Netrunning.Defrag"}}">
+                      <i class="fas fa-broom"></i> {{localize "CYBER_BLUE.Netrunning.Defrag"}}
+                    </button>
+                  {{/if}}
                 </div>
               </div>
             {{/each}}
-          </div>
-        </section>
 
-        {{!-- ── Connection Status ── --}}
-        <section class="sheet-panel net-connection-panel">
-          <div class="net-connection-row">
-            {{#if netConnected}}
-              <span class="state-chip net-chip-connected"><i class="fas fa-plug"></i> {{localize "CYBER_BLUE.Netrunning.Connected"}}</span>
-              <button type="button" class="net-action-btn" data-action="net-disconnect">
-                <i class="fas fa-plug-circle-xmark"></i> {{localize "CYBER_BLUE.Netrunning.Disconnect"}}
-              </button>
-            {{else}}
-              <span class="state-chip net-chip-disconnected"><i class="fas fa-plug-circle-xmark"></i> {{localize "CYBER_BLUE.Netrunning.NotConnected"}}</span>
-              {{#if canConnect}}
-                <button type="button" class="net-action-btn" data-action="net-connect">
-                  <i class="fas fa-plug"></i> {{localize "CYBER_BLUE.Netrunning.Connect"}}
-                  {{#if nearbyAccessPoints.length}}({{nearbyAccessPoints.length}}){{/if}}
-                </button>
-              {{/if}}
-            {{/if}}
-            <button type="button" class="net-action-btn" data-action="net-defrag" title="{{localize "CYBER_BLUE.Netrunning.Defrag"}}">
-              <i class="fas fa-broom"></i> {{localize "CYBER_BLUE.Netrunning.Defrag"}}
-            </button>
-            {{#if netActionsTurnTotal}}
-              <span class="net-actions-counter {{#if (eq netActionsRemaining 0)}}net-actions-exhausted{{/if}}" title="NET actions remaining this turn">
-                <i class="fas fa-microchip"></i>
-                {{netActionsRemaining}}/{{netActionsTurnTotal}} {{localize "CYBER_BLUE.Netrunning.NetCombat.ActionsCounter"}}
-              </span>
-            {{/if}}
+            {{!-- ── Net connection panel (inline with components) ── --}}
+            <div class="netrunner-component-box net-connection-box">
+              <div class="net-connection-row">
+                {{#if netConnected}}
+                  <span class="state-chip net-chip-connected"><i class="fas fa-plug"></i> {{localize "CYBER_BLUE.Netrunning.Connected"}}</span>
+                  <button type="button" class="net-action-btn" data-action="net-disconnect">
+                    <i class="fas fa-plug-circle-xmark"></i> {{localize "CYBER_BLUE.Netrunning.Disconnect"}}
+                  </button>
+                {{else}}
+                  <span class="state-chip net-chip-disconnected"><i class="fas fa-plug-circle-xmark"></i> {{localize "CYBER_BLUE.Netrunning.NotConnected"}}</span>
+                  {{#if canConnect}}
+                    <button type="button" class="net-action-btn" data-action="net-connect">
+                      <i class="fas fa-plug"></i> {{localize "CYBER_BLUE.Netrunning.Connect"}}
+                      {{#if nearbyAccessPoints.length}}({{nearbyAccessPoints.length}}){{/if}}
+                    </button>
+                  {{/if}}
+                {{/if}}
+                {{#if netActionsTurnTotal}}
+                  <span class="net-actions-counter {{#if (eq netActionsRemaining 0)}}net-actions-exhausted{{/if}}" title="NET actions remaining this turn">
+                    <i class="fas fa-microchip"></i>
+                    {{netActionsRemaining}}/{{netActionsTurnTotal}} {{localize "CYBER_BLUE.Netrunning.NetCombat.ActionsCounter"}}
+                  </span>
+                {{/if}}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -1224,6 +1226,13 @@
                     {{/if}}
                     {{#if comp.range}}<span title="{{localize "CYBER_BLUE.Netrunning.RangeLabel"}}">{{localize "CYBER_BLUE.Netrunning.RangeLabel"}}: {{comp.range}}m</span>{{/if}}
                   </div>
+                  {{#if comp.installedPrograms.length}}
+                    <ul class="netrunner-computer-programs">
+                      {{#each comp.installedPrograms as |prog|}}
+                        <li>{{prog}}</li>
+                      {{/each}}
+                    </ul>
+                  {{/if}}
                 </div>
               {{/each}}
             </div>
@@ -1249,19 +1258,9 @@
                 </button>
               {{/if}}
             </div>
-          </section>
-        {{/if}}
-
-        {{!-- ── Self-ICE Passwall layers ── --}}
-        {{#if selfIcePasswalls.length}}
-          <section class="sheet-panel self-ice-panel">
-            <h2><i class="fas fa-shield-halved"></i> {{localize "CYBER_BLUE.Netrunning.SelfICELabel"}}</h2>
-            <p class="hint">{{localize "CYBER_BLUE.Netrunning.SelfICEHint"}}</p>
-            <div class="self-ice-passwalls">
-              {{#each selfIcePasswalls as |layer|}}
-                <span class="state-chip self-ice-chip">{{localize "CYBER_BLUE.Netrunning.Passwall"}} {{layer.layer}}: DV {{layer.dv}}</span>
-              {{/each}}
-            </div>
+            {{#if selfIceDv}}
+              <p class="hint self-ice-note"><i class="fas fa-shield-halved"></i> {{localize "CYBER_BLUE.Netrunning.SelfICEPasswallNote"}}: DV {{selfIceDv}}</p>
+            {{/if}}
           </section>
         {{/if}}
 

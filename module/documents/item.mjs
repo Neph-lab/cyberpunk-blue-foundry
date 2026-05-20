@@ -41,10 +41,9 @@ export class CyberBlueItem extends Item {
 
   async _onCreate(data, options, userId) {
     await super._onCreate(data, options, userId);
-    if (this.type === 'role' && this.parent instanceof Actor
-        && userId === game.user.id && !options?.cyberBlueSkipRoleGrant) {
-      await applyFirstRoleSetup(this.parent, this);
-    }
+    // NOTE: first-role setup (applyFirstRoleSetup) is handled exclusively in
+    // CyberBlueActor.createEmbeddedDocuments so we avoid double-calling it.
+    // Do NOT call applyFirstRoleSetup here.
   }
 
   async _preCreate(data, options, user) {

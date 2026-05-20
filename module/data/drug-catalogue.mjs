@@ -108,7 +108,8 @@ const S = {
  */
 function drug({ name, cost, duration, img = '', primary, secDv, secondary, addiction = '', description = '', effects = [], instructions = [] }) {
   return {
-    _folder: 'Drugs',
+    // No _folder — Foundry creates a world folder named after the compendium on
+    // import, so nesting items inside a subfolder would create unnecessary depth.
     name,
     type: 'drug',
     img,
