@@ -19,7 +19,7 @@ export const ABILITY_CATALOGUE = [
     _id: 'AbilSanity000000',
     name: 'Sanity',
     type: 'ability',
-    img: 'systems/cyberpunk-blue/assets/items/abilities/Sanity (1).png',
+    img: 'systems/cyberpunk-blue/assets/items/abilities/Sanity.png',
     system: {
       rank: 0,
       maxRank: 10,
