@@ -21,17 +21,11 @@
 
   /* ---- Foreground / accents — ELECTRIC dystopia ---- */
   --cpb-text: rgb(234, 252, 255);            /* near-white, cool */
+  --cpb-text-inverted: rgb(15, 6, 18); /* for text/icons on bright panels */
   --cpb-muted: rgb(111, 133, 151);            /* desaturated blue-grey */
   --cpb-accent: rgb(0, 240, 255);           /* CYAN — electric, primary signal */
   --cpb-accent-strong: rgb(198, 255, 0);    /* LIME — acid neon, dice & always-on */
-  --cpb-accent-warm: rgb(196, 107, 255);      /* WARM VIOLET — secondary accent reserved
-                                     for BORDERS, hairlines, dividers, and
-                                     decorative ticks/glyphs. NEVER for body
-                                     text or runs longer than a single short
-                                     word — at this saturation against the
-                                     near-black bg the contrast falls under
-                                     the legibility floor. Use cyan for text
-                                     in violet-bordered surfaces. */
+  --cpb-accent-warm: rgb(196, 107, 255);      /* WARM VIOLET — secondary accent reserved for BORDERS, hairlines, dividers, and decorative ticks/glyphs. NEVER for body text or runs longer than a single short word — at this saturation against the legibility floor. Use cyan for text in violet-bordered surfaces. */
   --cpb-warning: #ff9500;          /* hot amber */
   --cpb-error: #ff2350;            /* hot blood red */
   --cpb-magenta: #ff2bd6;          /* high-energy glitch (sparingly) */
@@ -78,13 +72,25 @@
   --cpb-tracking-h2: 0.08em;
   --cpb-tracking-stat: 0.12em;
 
-  /* ---- Shape — lines and angles. Just enough radius to soften the
-     corner so 1px hairlines don't visually fray. Never round for
-     decoration. No pills. ---- */
+  /* ---- Shape — chamfered clip-path vocabulary.
+     Radius aliases kept for legacy rules; new code uses --cpb-cut-*. ---- */
   --cpb-radius-input: 2px;
   --cpb-radius-card: 2px;
   --cpb-radius-panel: 3px;
-  --cpb-radius-pill: 2px;   /* legacy alias — used to be 999px, now squared */
+
+  /* Chamfer scale — diagonal corner cut sizes (xs=chips, sm=buttons/inputs,
+     md=cards/counters, lg=top-level panels). */
+  --cpb-cut-xs: 4px;
+  --cpb-cut-sm: 7px;
+  --cpb-cut-md: 10px;
+  --cpb-cut-lg: 16px;
+
+  /* Frame stroke — uniform 1px hairline; 1.5px only on largest panels. */
+  --cpb-stroke: 1px;
+  --cpb-stroke-thick: 1.5px;
+
+  /* HUD side-stripe on buttons — 3px coloured bar on interior left. */
+  --cpb-stripe: 3px;
 
   /* ---- Spacing — typically 0.35 / 0.5 / 0.7 / 1rem rhythm ---- */
   --cpb-space-1: 0.2rem;
@@ -100,7 +106,7 @@
   
   /* ---- Motion ---- */
   --cpb-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --cpb-dur: 0.25s;
+  --cpb-dur: 0.18s;
 
   /* ---- Iconography — the bundled glyph set ships as bk_*.svg (black
      ink on transparent). Apply --cpb-icon-invert to render them in the

@@ -312,10 +312,10 @@ section.chat-sidebar:not(.sidebar-popout),
   scrollbar-color: var(--scrollbar-color) !important;
 }
 
-.cyberpunk-blue input, input,
-.cyberpunk-blue button, button,
-.cyberpunk-blue textarea, textarea,
-.cyberpunk-blue select, select {
+.cyberpunk-blue input,
+.cyberpunk-blue button,
+.cyberpunk-blue textarea,
+.cyberpunk-blue select {
   font-family: var(--cpb-font-mono);
 }
 
@@ -3077,13 +3077,12 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
    Tint system: --btn-tint / --btn-tint-border / --btn-fill.
    Variants override these tokens; card scopes cascade them.
 
-   The fake-border effect uses CSS layered backgrounds instead of
-   a ::before pseudo-element, so text nodes always render above
-   the inner fill regardless of stacking context:
-     layer 1 (top): solid --btn-fill clipped to padding-box
-     layer 2 (bottom): --btn-tint-border fills border-box
-   A 1px transparent border reveals the tint colour at the edge,
-   and clip-path cuts the whole painted box to the chamfered shape.
+   Fake-border technique: the element itself is painted in the
+   border tint colour; a ::before pseudo fills the interior one
+   pixel smaller with clip-path: inherit, revealing a 1 px ring
+   that perfectly follows the chamfered polygon shape. The pseudo
+   uses z-index: -1 so it renders above the element background
+   but below all text/content within the isolation stacking context.
    ─────────────────────────────────────────────────────────── */
 .cpb-btn {
   --btn-tint: var(--cpb-accent);
@@ -3091,14 +3090,12 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   --btn-fill: rgba(8, 16, 26, 0.92);
   --stripe-color: var(--btn-tint);
   position: relative;
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   --c: var(--cpb-cut-sm);
-  background:
-    linear-gradient(var(--btn-fill), var(--btn-fill)) padding-box,
-    var(--btn-tint-border) border-box;
-  border: 1px solid transparent;
+  background: var(--btn-tint-border);
   color: var(--cpb-text);
   font-family: var(--cpb-font-mono);
   font-size: 0.85rem;
@@ -3106,7 +3103,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   text-transform: uppercase;
   cursor: pointer;
   padding: 0.55rem calc(0.95rem + var(--cpb-stripe) + 6px) 0.55rem 0.95rem;
-  z-index: 1;
   clip-path: polygon(
     0 0, calc(100% - var(--c)) 0, 100% var(--c),
     100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
@@ -3114,6 +3110,15 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   transition: background var(--cpb-dur) var(--cpb-ease),
               color var(--cpb-dur) var(--cpb-ease),
               transform var(--cpb-dur) var(--cpb-ease);
+}
+.cpb-btn::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--btn-fill);
+  clip-path: inherit;
+  z-index: -1;
+  transition: background var(--cpb-dur) var(--cpb-ease);
 }
 .cpb-btn::after {
   content: "";
@@ -3124,13 +3129,13 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   transition: background var(--cpb-dur) var(--cpb-ease);
 }
 .cpb-btn:hover, .cpb-btn:focus-visible {
-  background:
-    linear-gradient(var(--btn-tint), var(--btn-tint)) padding-box,
-    var(--btn-tint-border) border-box;
   color: var(--cpb-bg-solid-top);
   font-weight: 700;
   transform: translateY(-1px);
   outline: none;
+}
+.cpb-btn:hover::before, .cpb-btn:focus-visible::before {
+  background: var(--btn-tint);
 }
 .cpb-btn:hover::after, .cpb-btn:focus-visible::after {
   background: var(--cpb-bg-solid-top);
@@ -3144,11 +3149,11 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   transform: none;
 }
 .cpb-btn[disabled]:hover {
-  background:
-    linear-gradient(var(--btn-fill), var(--btn-fill)) padding-box,
-    var(--btn-tint-border) border-box;
   color: var(--cpb-text);
   transform: none;
+}
+.cpb-btn[disabled]:hover::before {
+  background: var(--btn-fill);
 }
 
 /* Roll — lime (dice). */
@@ -3183,11 +3188,9 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   color: var(--cpb-bg-solid-top);
   font-weight: 700;
 }
-.cpb-btn--solid:hover,
-.cpb-btn--solid:focus-visible {
-  background:
-    linear-gradient(color-mix(in oklab, var(--cpb-accent) 80%, white), color-mix(in oklab, var(--cpb-accent) 80%, white)) padding-box,
-    var(--btn-tint-border) border-box;
+.cpb-btn--solid:hover::before,
+.cpb-btn--solid:focus-visible::before {
+  background: color-mix(in oklab, var(--cpb-accent) 80%, white);
 }
 
 /* Arrow — chevron forward CTA. */
@@ -3245,17 +3248,15 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 
 /* ── Base button override ─────────────────────────────────── */
 /* Scoped to .cyberpunk-blue so Foundry's own UI buttons are untouched.
-   Same layered-background approach as .cpb-btn: no ::before needed. */
+   Same ::before fake-border approach as .cpb-btn. */
 .cyberpunk-blue button,
 .cyberpunk-blue .button {
   --btn-tint: var(--cpb-accent);
   --btn-fill: rgba(8, 16, 26, 0.92);
   position: relative;
+  isolation: isolate;
   --c: var(--cpb-cut-sm);
-  background:
-    linear-gradient(var(--btn-fill), var(--btn-fill)) padding-box,
-    var(--cpb-accent-wash-border) border-box;
-  border: 1px solid transparent;
+  background: var(--cpb-accent-wash-border);
   color: var(--cpb-text);
   font: inherit;
   cursor: pointer;
@@ -3269,17 +3270,30 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
               color var(--cpb-dur) var(--cpb-ease),
               transform var(--cpb-dur) var(--cpb-ease);
 }
+.cyberpunk-blue button::before,
+.cyberpunk-blue .button::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--btn-fill);
+  clip-path: inherit;
+  z-index: -1;
+  transition: background var(--cpb-dur) var(--cpb-ease);
+}
 .cyberpunk-blue button:hover,
 .cyberpunk-blue button:focus,
 .cyberpunk-blue .button:hover,
 .cyberpunk-blue .button:focus {
-  background:
-    linear-gradient(var(--btn-tint), var(--btn-tint)) padding-box,
-    var(--cpb-accent-wash-border) border-box;
   color: var(--cpb-bg-solid-top);
   font-weight: 700;
   transform: translateY(-1px);
   outline: none;
+}
+.cyberpunk-blue button:hover::before,
+.cyberpunk-blue button:focus::before,
+.cyberpunk-blue .button:hover::before,
+.cyberpunk-blue .button:focus::before {
+  background: var(--btn-tint);
 }
 .cyberpunk-blue button:active,
 .cyberpunk-blue .button:active { transform: translateY(0); }
@@ -3289,21 +3303,21 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 .cyberpunk-blue button[disabled]:hover,
 .cyberpunk-blue button:disabled:hover {
-  background:
-    linear-gradient(var(--btn-fill), var(--btn-fill)) padding-box,
-    var(--cpb-accent-wash-border) border-box;
   color: var(--cpb-text);
   transform: none;
 }
+.cyberpunk-blue button[disabled]:hover::before,
+.cyberpunk-blue button:disabled:hover::before {
+  background: var(--btn-fill);
+}
 
-/* Roll button — warm violet variant with HUD stripe. */
+/* Roll button — warm violet variant with HUD stripe.
+   Inherits ::before fake-border from .cyberpunk-blue button;
+   overrides the tint tokens so the 1px ring and fill use warm colours. */
 .cyberpunk-blue .roll-button {
   --btn-tint: var(--cpb-accent-warm);
   --btn-fill: var(--cpb-accent-warm-wash);
-  background:
-    linear-gradient(var(--btn-fill), var(--btn-fill)) padding-box,
-    var(--cpb-accent-warm-border) border-box;
-  border: 1px solid transparent;
+  background: var(--cpb-accent-warm-border);
   color: var(--cpb-accent-warm);
   font-family: var(--cpb-font-mono);
   font-size: 0.85rem;
@@ -3320,9 +3334,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 .cyberpunk-blue .roll-button:hover,
 .cyberpunk-blue .roll-button:focus {
-  background:
-    linear-gradient(var(--btn-tint), var(--btn-tint)) padding-box,
-    var(--cpb-accent-warm-border) border-box;
   color: var(--cpb-bg-solid-top);
 }
 .cyberpunk-blue .roll-button:hover::after,
@@ -3402,14 +3413,16 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   transition: background var(--cpb-dur) var(--cpb-ease),
               color var(--cpb-dur) var(--cpb-ease);
 }
-/* ::after = chamfer inner fill (::before is reserved for icons). */
+/* ::after = chamfer inner fill (::before is reserved for icons).
+   z-index: -1 puts the fill above the element background (border colour)
+   but below text nodes and the icon ::before, so labels stay readable. */
 .cyberpunk-blue .sheet-tabs .item::after {
   content: "";
   position: absolute;
   inset: 1px 1px 0 1px;
   background: rgba(2, 4, 10, 0.88);
   clip-path: inherit;
-  z-index: 0;
+  z-index: -1;
   transition: background var(--cpb-dur) var(--cpb-ease);
 }
 /* Keep icon ::before in normal-flow above ::after fill. */
