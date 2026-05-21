@@ -2602,11 +2602,14 @@ async function ensureAbilityCatalogue() {
   await pack.getIndex();
 
   if (pack.index.size > 0) {
-    // Sync description and maxRank fields from catalogue
-    const byId = new Map(ABILITY_CATALOGUE.map((a) => [a._id, a]));
+    // Sync img, description and maxRank from catalogue.
+    // Match by _id first; fall back to name so compendiums that were
+    // populated before stable IDs were introduced still get updated.
+    const byId   = new Map(ABILITY_CATALOGUE.map((a) => [a._id,   a]));
+    const byName = new Map(ABILITY_CATALOGUE.map((a) => [a.name,  a]));
     const toUpdate = [];
     for (const entry of pack.index) {
-      const cat = byId.get(entry._id);
+      const cat = byId.get(entry._id) ?? byName.get(entry.name);
       if (!cat) continue;
       toUpdate.push({
         _id: entry._id,
@@ -2619,6 +2622,7 @@ async function ensureAbilityCatalogue() {
       await pack.configure({ locked: false });
       try {
         await Item.updateDocuments(toUpdate, { pack: PACK_ID });
+        console.log(`Cyberpunk Blue | Abilities compendium synced: ${toUpdate.length} entries updated.`);
       } finally {
         await pack.configure({ locked: true });
       }
