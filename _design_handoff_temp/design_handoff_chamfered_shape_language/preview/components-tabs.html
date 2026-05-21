@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Tabs</title>
+<link rel="stylesheet" href="../cpb-base.css">
+<style>
+  body { padding: 22px; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tabs img { width: 18px; height: 18px; filter: var(--cpb-icon-invert); opacity: 0.9; }
+  .tabs .is-active img { opacity: 1; }
+  .cpb-tab { display: inline-flex; align-items: center; gap: 6px; }
+  .help { margin-top: 14px; color: var(--cpb-muted); font-size: 12px; }
+</style></head>
+<body>
+  <nav class="tabs">
+    <a class="cpb-tab is-active"><img src="../assets/icons/bk_Overview.svg" alt="">Overview</a>
+    <a class="cpb-tab"><img src="../assets/icons/bk_Skills.svg" alt="">Skills</a>
+    <a class="cpb-tab"><img src="../assets/icons/bk_Cyberware.svg" alt="">Cyberware</a>
+    <a class="cpb-tab"><img src="../assets/icons/bk_Inventory.svg" alt="">Inventory</a>
+    <a class="cpb-tab"><img src="../assets/icons/bk_Notes.svg" alt="">Notes</a>
+  </nav>
+  <p class="help">Active tab: cyan fill (rgba(141,227,255,0.14)), cyan border, cyan text. Inactive: hairline border, white text. No animation between states.</p>
+</body></html>

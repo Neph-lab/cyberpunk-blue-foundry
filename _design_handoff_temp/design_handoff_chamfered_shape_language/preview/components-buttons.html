@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Buttons</title>
+<link rel="stylesheet" href="../cpb-base.css">
+<style>
+  body { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .lbl { font-family: var(--cpb-font-mono); font-size: 11px; color: var(--cpb-muted); width: 92px; }
+</style></head>
+<body>
+  <div class="row"><span class="lbl">default</span>
+    <button class="cpb-btn">Equip</button>
+    <button class="cpb-btn">Open and edit effect</button>
+    <button class="cpb-btn">+ Add Component</button>
+  </div>
+  <div class="row"><span class="lbl">roll</span>
+    <button class="cpb-btn cpb-btn--roll">Roll 1d10 + RFLX</button>
+    <button class="cpb-btn cpb-btn--roll">Roll Death Save</button>
+  </div>
+  <div class="row"><span class="lbl">hover</span>
+    <button class="cpb-btn" style="background:rgba(25,51,72,0.96); border-color: var(--cpb-accent); transform: translateY(-1px);">Equip <span style="opacity:.6">(hover)</span></button>
+  </div>
+  <div class="row"><span class="lbl">disabled</span>
+    <button class="cpb-btn" style="opacity:.5; cursor:not-allowed">Reload</button>
+  </div>
+</body></html>

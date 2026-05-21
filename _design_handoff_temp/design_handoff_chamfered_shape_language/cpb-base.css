@@ -1,0 +1,1790 @@
+/* Base styles for design-system preview cards and UI kit pages.
+   Pulls in tokens from colors_and_type.css + shape primitives
+   from cpb-shapes.css. Components below use chamfered clip-path
+   silhouettes instead of border-radius — the radii tokens are
+   kept at 0–2px purely as legacy escape hatches. */
+@import url('./colors_and_type.css');
+@import url('./cpb-shapes.css');
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--cpb-font-body);
+  color: var(--cpb-text);
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(0,240,255,0.08), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(196,107,255,0.05), transparent 55%),
+    var(--cpb-bg-solid);
+  background-color: #02040a;
+  min-height: 100vh;
+}
+
+/* ============================================================
+ * Panel / card primitives — chamfered silhouettes.
+ * .cpb-panel and .cpb-card extend .cpb-frame internally so
+ * existing markup keeps working with the new shape language.
+ * ============================================================ */
+.cpb-panel {
+  position: relative;
+  isolation: isolate;
+  background: var(--cpb-panel-border);
+  padding: var(--cpb-stroke);
+  --c: var(--cpb-cut-lg);
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c))
+  );
+  box-shadow: var(--cpb-shadow);
+}
+.cpb-panel::before {
+  content: "";
+  position: absolute;
+  inset: var(--cpb-stroke);
+  background: var(--cpb-panel);
+  clip-path: inherit;
+  z-index: 0;
+}
+.cpb-panel > * { position: relative; z-index: 1; }
+.cpb-panel-body { padding: 1rem; }
+
+.cpb-card {
+  position: relative;
+  isolation: isolate;
+  background: rgba(141, 227, 255, 0.14);
+  --c: var(--cpb-cut-md);
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c))
+  );
+}
+.cpb-card::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--cpb-panel-deep);
+  clip-path: inherit;
+  z-index: 0;
+}
+.cpb-card > * { position: relative; z-index: 1; padding: 1.6rem 1.6rem; }
+.cpb-card.cpb-card--bare > * { padding: 0; }
+
+/* ============================================================
+ * Inputs — chamfered text field with corner accent stripe.
+ *
+ * Structure (CSS-only via ::before and ::after on a wrapper):
+ *
+ *   <label class="cpb-field">
+ *     <span class="cpb-field__label">CHARACTER</span>
+ *     <span class="cpb-field__wrap">
+ *       <input class="cpb-input" />
+ *     </span>
+ *   </label>
+ *
+ * The wrapper paints the chamfered "border" + fill via the
+ * same trick as .cpb-frame. The <input> itself is borderless,
+ * sitting on top of the rendered frame. Focus state colour is
+ * driven by `:focus-within` on the wrapper.
+ * ============================================================ */
+.cpb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.cpb-field__label {
+  font-family: var(--cpb-font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cpb-accent);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cpb-field__label::before {
+  content: "▌";
+  color: var(--cpb-accent-strong);
+  font-size: 0.7em;
+  line-height: 1;
+}
+.cpb-field__hint {
+  font-family: var(--cpb-font-mono);
+  font-size: 0.72rem;
+  color: var(--cpb-muted);
+  letter-spacing: 0.04em;
+}
+.cpb-field__hint--error { color: var(--cpb-error); }
+
+.cpb-field__wrap {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: stretch;
+  --c: var(--cpb-cut-sm);
+  background: rgba(0, 240, 255, 0.28);
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c))
+  );
+  transition: background var(--cpb-dur) var(--cpb-ease);
+}
+.cpb-field__wrap::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--cpb-panel-deeper);
+  clip-path: inherit;
+  z-index: 0;
+}
+.cpb-field__wrap:hover { background: rgba(0, 240, 255, 0.55); }
+.cpb-field__wrap:focus-within {
+  /* Brighten the hairline only — DON'T fill the interior with the
+     accent. Text on a saturated cyan plate is unreadable; the focus
+     signal here is "the border lit up", same as how a console field
+     telegraphs caret-active. */
+  background: var(--cpb-accent);
+}
+.cpb-field__wrap:focus-within::before {
+  /* Stay on the deep interior fill. A barely-perceptible cyan
+     tint (3% alpha) sits on top so the field reads as "active"
+     without competing with the typed text. */
+  background:
+    linear-gradient(180deg, rgba(0,240,255,0.04), rgba(0,240,255,0.02)),
+    var(--cpb-panel-deeper);
+}
+
+.cpb-input {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--cpb-text);
+  font: inherit;
+  font-family: var(--cpb-font-mono);
+  letter-spacing: 0.04em;
+  padding: 0.5rem 0.7rem;
+  min-height: 36px;
+}
+.cpb-input::placeholder { color: var(--cpb-muted); }
+.cpb-input:focus { outline: none; }
+
+/* Adornments — icons / suffix labels inside the field. */
+.cpb-field__adorn {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: 0 0.55rem;
+  color: var(--cpb-muted);
+  font-family: var(--cpb-font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  border-left: 1px solid rgba(0,240,255,0.18);
+}
+.cpb-field__adorn--leading {
+  border-left: 0;
+  border-right: 1px solid rgba(0,240,255,0.18);
+}
+.cpb-field__adorn--accent { color: var(--cpb-accent); }
+.cpb-field__adorn--lime { color: var(--cpb-accent-strong); }
+
+/* Error / disabled / readonly states on the wrapper. */
+.cpb-field--error .cpb-field__wrap         { background: var(--cpb-error); }
+.cpb-field--error .cpb-field__label        { color: var(--cpb-error); }
+.cpb-field--error .cpb-field__label::before { color: var(--cpb-error); }
+.cpb-field--warn  .cpb-field__wrap         { background: var(--cpb-warning); }
+.cpb-field--warn  .cpb-field__label        { color: var(--cpb-warning); }
+.cpb-field--warn  .cpb-field__label::before { color: var(--cpb-warning); }
+.cpb-field--lime  .cpb-field__wrap         { background: var(--cpb-accent-strong-border); }
+.cpb-field--lime  .cpb-field__label        { color: var(--cpb-accent-strong); }
+.cpb-field--lime  .cpb-field__label::before { color: var(--cpb-accent-strong); }
+
+.cpb-field--disabled { opacity: 0.5; pointer-events: none; }
+.cpb-field--disabled .cpb-field__wrap { background: rgba(141,227,255,0.10); }
+.cpb-field--disabled .cpb-field__wrap::before { background: rgba(2,4,8,0.85); }
+
+/* Textarea overrides — wrap & taller min-height. */
+textarea.cpb-input {
+  resize: vertical;
+  min-height: 80px;
+  padding: 0.6rem 0.7rem;
+  font-family: var(--cpb-font-body);
+  letter-spacing: 0.02em;
+  line-height: 1.45;
+}
+
+/* Select — uses native + custom caret painted via background. */
+select.cpb-input {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  padding-right: 1.8rem;
+  background-image: linear-gradient(135deg, transparent 50%, var(--cpb-accent) 50%),
+                    linear-gradient(45deg,  var(--cpb-accent) 50%, transparent 50%);
+  background-position: calc(100% - 16px) 50%, calc(100% - 10px) 50%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+}
+
+/* Number input — strip native spinners. */
+input[type="number"].cpb-input { -moz-appearance: textfield; }
+input[type="number"].cpb-input::-webkit-outer-spin-button,
+input[type="number"].cpb-input::-webkit-inner-spin-button {
+  -webkit-appearance: none; margin: 0;
+}
+.cpb-input--num { text-align: center; }
+
+/* Legacy .cpb-input used WITHOUT a wrapper still needs a frame.
+   Add the chamfered fake-border behaviour via a wrapping
+   pseudo-frame when the input is a direct child of nothing.
+   This is the fallback for old markup. */
+.cpb-input:not(.cpb-field__wrap > .cpb-input) {
+  position: relative;
+  isolation: isolate;
+  background: var(--cpb-panel-deeper);
+  border: 0;
+  box-shadow:
+    0 0 0 1px rgba(0,240,255,0.28);
+}
+
+/* ============================================================
+ * Checkbox — the headline form control.
+ *
+ * Markup:
+ *   <label class="cpb-check">
+ *     <input type="checkbox">
+ *     <span class="cpb-check__box" aria-hidden="true"></span>
+ *     <span class="cpb-check__label">Always Active</span>
+ *   </label>
+ *
+ * The native <input> is visually hidden but kept in flow for
+ * focus + a11y. .cpb-check__box draws the chamfered slab.
+ * Checked = filled accent + chevron mark painted via clip-path.
+ * Size and accent are swappable via CSS vars on .cpb-check.
+ * ============================================================ */
+.cpb-check {
+  --check-size: 20px;
+  --check-cut: 5px;
+  --check-accent: var(--cpb-accent);
+  --check-accent-wash: var(--cpb-accent-wash);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
+  font-size: var(--cpb-fs-body);
+  color: var(--cpb-text);
+  -webkit-tap-highlight-color: transparent;
+}
+.cpb-check input[type="checkbox"],
+.cpb-check input[type="radio"] {
+  position: absolute;
+  width: 1px; height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.cpb-check__box {
+  position: relative;
+  isolation: isolate;
+  flex: 0 0 auto;
+  width: var(--check-size);
+  height: var(--check-size);
+  display: inline-grid;
+  place-items: center;
+  background: rgba(0, 240, 255, 0.42);
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--check-cut)) 0,
+    100% var(--check-cut),
+    100% 100%,
+    var(--check-cut) 100%,
+    0 calc(100% - var(--check-cut))
+  );
+  transition: background var(--cpb-dur) var(--cpb-ease);
+}
+.cpb-check__box::before {
+  /* The fill — interior plate. Goes solid on :checked. */
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--cpb-panel-deeper);
+  clip-path: inherit;
+  z-index: 0;
+  transition: background var(--cpb-dur) var(--cpb-ease);
+}
+.cpb-check__box::after {
+  /* The check mark — angular tick drawn with clip-path so it
+     matches the cyber shape language (no round-stroke svg).
+     Hidden by default via scale(0). */
+  content: "";
+  position: relative;
+  z-index: 1;
+  width: 62%;
+  height: 62%;
+  background: var(--cpb-panel-deeper);
+  clip-path: polygon(
+    8% 46%, 22% 32%, 42% 52%, 78% 14%, 92% 28%, 42% 80%
+  );
+  transform: scale(0) rotate(-6deg);
+  transition: transform var(--cpb-dur) var(--cpb-ease);
+}
+
+/* Hover — frame goes accent. */
+.cpb-check:hover .cpb-check__box,
+.cpb-check input:focus-visible + .cpb-check__box {
+  background: var(--check-accent);
+}
+.cpb-check input:focus-visible + .cpb-check__box::before {
+  background: linear-gradient(180deg,
+    color-mix(in oklab, var(--check-accent) 14%, transparent),
+    color-mix(in oklab, var(--check-accent) 5%, transparent));
+}
+
+/* Checked — fill the box, paint the tick in the dark surface
+   colour so it reads against the bright fill. */
+.cpb-check input:checked + .cpb-check__box {
+  background: var(--check-accent);
+}
+.cpb-check input:checked + .cpb-check__box::before {
+  background: var(--check-accent);
+}
+.cpb-check input:checked + .cpb-check__box::after {
+  background: var(--cpb-bg-solid-top);
+  transform: scale(1) rotate(0);
+}
+
+/* Indeterminate — paint a single horizontal bar instead. */
+.cpb-check input:indeterminate + .cpb-check__box {
+  background: var(--check-accent);
+}
+.cpb-check input:indeterminate + .cpb-check__box::before {
+  background: var(--check-accent);
+}
+.cpb-check input:indeterminate + .cpb-check__box::after {
+  background: var(--cpb-bg-solid-top);
+  clip-path: polygon(10% 38%, 90% 38%, 90% 62%, 10% 62%);
+  transform: scale(1);
+}
+
+/* Disabled. */
+.cpb-check--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Intent modifiers. */
+.cpb-check--lime { --check-accent: var(--cpb-accent-strong); }
+.cpb-check--warm { --check-accent: var(--cpb-accent-warm); }
+.cpb-check--warn { --check-accent: var(--cpb-warning); }
+.cpb-check--error { --check-accent: var(--cpb-error); }
+
+/* Size modifiers. */
+.cpb-check--sm { --check-size: 16px; --check-cut: 4px; }
+.cpb-check--lg { --check-size: 26px; --check-cut: 7px; font-size: 1.05rem; }
+
+/* ============================================================
+ * Radio — same skeleton as checkbox but a chamfered-square
+ * marker with all four corners cut (no "circle" — the cyber
+ * language doesn't do circles). Checked state paints a smaller
+ * concentric diamond in the centre.
+ * ============================================================ */
+.cpb-radio {
+  --check-cut: 5px;
+}
+.cpb-radio .cpb-check__box {
+  clip-path: polygon(
+    var(--check-cut) 0,
+    calc(100% - var(--check-cut)) 0,
+    100% var(--check-cut),
+    100% calc(100% - var(--check-cut)),
+    calc(100% - var(--check-cut)) 100%,
+    var(--check-cut) 100%,
+    0 calc(100% - var(--check-cut)),
+    0 var(--check-cut)
+  );
+}
+.cpb-radio .cpb-check__box::after {
+  /* concentric diamond core */
+  width: 52%;
+  height: 52%;
+  background: var(--cpb-panel-deeper);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+.cpb-radio input:checked + .cpb-check__box::after {
+  background: var(--cpb-bg-solid-top);
+}
+
+/* ============================================================
+ * Switch (toggle) — slim horizontal slab with a chamfered
+ * thumb that slides between OFF / ON. No rounded pill.
+ * ============================================================ */
+.cpb-switch {
+  --sw-w: 44px;
+  --sw-h: 22px;
+  --sw-cut: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  font-size: var(--cpb-fs-body);
+  color: var(--cpb-text);
+  user-select: none;
+}
+.cpb-switch input { position: absolute; opacity: 0; pointer-events: none; }
+.cpb-switch__track {
+  position: relative;
+  isolation: isolate;
+  width: var(--sw-w);
+  height: var(--sw-h);
+  background: rgba(0, 240, 255, 0.32);
+  clip-path: polygon(
+    var(--sw-cut) 0,
+    calc(100% - var(--sw-cut)) 0,
+    100% 50%,
+    calc(100% - var(--sw-cut)) 100%,
+    var(--sw-cut) 100%,
+    0 50%
+  );
+  transition: background var(--cpb-dur) var(--cpb-ease);
+}
+.cpb-switch__track::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--cpb-panel-deeper);
+  clip-path: inherit;
+  z-index: 0;
+  transition: background var(--cpb-dur) var(--cpb-ease);
+}
+.cpb-switch__thumb {
+  position: absolute;
+  z-index: 1;
+  top: 3px; left: 3px;
+  width: calc(var(--sw-h) - 6px);
+  height: calc(var(--sw-h) - 6px);
+  background: var(--cpb-muted);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  transition: transform var(--cpb-dur) var(--cpb-ease),
+              background var(--cpb-dur) var(--cpb-ease);
+}
+.cpb-switch input:checked ~ .cpb-switch__track {
+  background: var(--cpb-accent);
+}
+.cpb-switch input:checked ~ .cpb-switch__track::before {
+  /* Solid accent interior — the track reads as one filled slab
+     and the thumb (now dark) pops against it. Old wash bleed
+     made the track and thumb the same colour. */
+  background: var(--cpb-accent);
+}
+.cpb-switch input:checked ~ .cpb-switch__track .cpb-switch__thumb {
+  transform: translateX(calc(var(--sw-w) - var(--sw-h)));
+  background: var(--cpb-bg-solid-top);
+}
+/* Variant: lime (matches roll / always-on semantic). */
+.cpb-switch--lime input:checked ~ .cpb-switch__track { background: var(--cpb-accent-strong); }
+.cpb-switch--lime input:checked ~ .cpb-switch__track::before { background: var(--cpb-accent-strong); }
+.cpb-switch--lime input:checked ~ .cpb-switch__track .cpb-switch__thumb { background: var(--cpb-bg-solid-top); }
+
+/* ============================================================
+ * Slider (range) — angular track, chamfered diamond thumb.
+ * Native <input type="range"> styled per WebKit + Mozilla.
+ * ============================================================ */
+.cpb-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  background: transparent;
+  height: 22px;
+  cursor: pointer;
+}
+.cpb-range::-webkit-slider-runnable-track {
+  height: 6px;
+  background:
+    linear-gradient(90deg,
+      var(--cpb-accent) 0,
+      var(--cpb-accent) var(--val, 50%),
+      rgba(0,240,255,0.18) var(--val, 50%),
+      rgba(0,240,255,0.18) 100%);
+  clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 50%, calc(100% - 3px) 100%, 3px 100%, 0 50%);
+}
+.cpb-range::-moz-range-track {
+  height: 6px;
+  background: rgba(0,240,255,0.18);
+  clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 50%, calc(100% - 3px) 100%, 3px 100%, 0 50%);
+}
+.cpb-range::-moz-range-progress {
+  height: 6px;
+  background: var(--cpb-accent);
+  clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 50%, calc(100% - 3px) 100%, 3px 100%, 0 50%);
+}
+.cpb-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -6px;
+  background: var(--cpb-accent);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  border: 0;
+  box-shadow: 0 0 0 1px var(--cpb-accent),
+              0 0 8px rgba(0,240,255,0.45);
+}
+.cpb-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--cpb-accent);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  border: 0;
+}
+
+/* ============================================================
+ * Buttons — chamfered slab with HUD side-stripe.
+ *
+ * Tint system: each button reads four custom properties for
+ * its colour theme. The variants below (--roll, --atk, --ghost,
+ * --solid) override these tokens; ancestor scopes (like
+ * .cpb-card--lime) can override them too, so a button inside a
+ * lime card auto-tints lime without needing the modifier class.
+ *
+ * Hover behaviour: the inner ::before plate FILLS with --btn-tint
+ * (solid, not wash) and the label flips to bold uppercase BLACK
+ * — same rule as the active tab and .cpb-btn--solid. All state
+ * changes ride a single 0.18s transition so they feel soft, not
+ * snappy. Smooth transitions cover background, color, font-weight,
+ * border-color, transform, and the ::before fill.
+ * ============================================================ */
+.cpb-btn {
+  --btn-tint: var(--cpb-accent);
+  --btn-tint-border: var(--cpb-accent-wash-border);
+  --btn-tint-wash: var(--cpb-accent-wash-soft);
+  --stripe-color: var(--btn-tint);
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  --c: var(--cpb-cut-sm);
+  background: var(--btn-tint-border);
+  color: var(--cpb-text);
+  font: inherit;
+  font-family: var(--cpb-font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0.55rem 0.95rem 0.55rem calc(0.95rem + var(--cpb-stripe) + 6px);
+  border: 0;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c))
+  );
+  transition:
+    background var(--cpb-dur) var(--cpb-ease),
+    color var(--cpb-dur) var(--cpb-ease),
+    transform var(--cpb-dur) var(--cpb-ease);
+}
+.cpb-btn::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: rgba(8, 16, 26, 0.92);
+  clip-path: inherit;
+  z-index: 0;
+  transition: background var(--cpb-dur) var(--cpb-ease);
+}
+.cpb-btn::after {
+  /* The HUD side-stripe — sits inside the inner plate at left. */
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 6px;
+  bottom: 6px;
+  width: var(--cpb-stripe);
+  background: var(--stripe-color);
+  z-index: 1;
+  transition: background var(--cpb-dur) var(--cpb-ease);
+}
+.cpb-btn > * { position: relative; z-index: 1; }
+.cpb-btn:hover,
+.cpb-btn:focus-visible {
+  /* Solid accent fill + black bold uppercase label. The contrast
+     rule: text on accent = bg-solid-top, weight 700. */
+  background: var(--btn-tint);
+  color: var(--cpb-bg-solid-top);
+  font-weight: 700;
+  transform: translateY(-1px);
+  outline: none;
+}
+.cpb-btn:hover::before,
+.cpb-btn:focus-visible::before {
+  background: var(--btn-tint);
+}
+.cpb-btn:hover::after,
+.cpb-btn:focus-visible::after {
+  /* Stripe disappears into the solid fill on hover. */
+  background: var(--cpb-bg-solid-top);
+}
+.cpb-btn:active { transform: translateY(0); }
+
+/* Variants — each variant overrides the tint tokens. The hover
+   behaviour is inherited from the base rule above. */
+.cpb-btn--roll {
+  --btn-tint: var(--cpb-accent-strong);
+  --btn-tint-border: var(--cpb-accent-strong-border);
+  --btn-tint-wash: rgba(198, 255, 0, 0.08);
+  color: var(--cpb-accent-strong);
+}
+.cpb-btn--roll::before { background: var(--cpb-accent-strong-wash); }
+
+.cpb-btn--atk {
+  --btn-tint: var(--cpb-accent-warm);
+  --btn-tint-border: var(--cpb-accent-warm-border);
+  --btn-tint-wash: var(--cpb-accent-warm-wash-soft);
+  color: var(--cpb-accent);
+}
+.cpb-btn--atk::before { background: var(--cpb-accent-warm-wash); }
+
+.cpb-btn--ghost {
+  --btn-tint: var(--cpb-accent);
+  --btn-tint-border: rgba(0, 240, 255, 0.18);
+  background: rgba(0, 240, 255, 0.18);
+  color: var(--cpb-muted);
+}
+.cpb-btn--ghost::before { background: rgba(2, 4, 8, 0.85); }
+
+.cpb-btn--solid {
+  /* Solid is the "primary" state — already on the accent fill
+     with black text by default. Hover lightens the fill slightly
+     for feedback without a colour shift. */
+  --btn-tint: var(--cpb-accent);
+  --stripe-color: var(--cpb-bg-solid-top);
+  background: var(--cpb-accent);
+  color: var(--cpb-bg-solid-top);
+  font-weight: 700;
+}
+.cpb-btn--solid::before { background: var(--cpb-accent); }
+.cpb-btn--solid:hover::before,
+.cpb-btn--solid:focus-visible::before {
+  background: color-mix(in oklab, var(--cpb-accent) 80%, white);
+}
+.cpb-btn--solid:hover::after,
+.cpb-btn--solid:focus-visible::after {
+  background: var(--cpb-bg-solid-top);
+}
+
+/* Arrow-shaped primary action. */
+.cpb-btn--arrow {
+  --c: 14px;
+  padding-right: calc(0.95rem + var(--c));
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--c)) 0,
+    100% 50%,
+    calc(100% - var(--c)) 100%,
+    0 100%
+  );
+}
+
+/* Disabled. */
+.cpb-btn[disabled],
+.cpb-btn--disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.cpb-btn[disabled]:hover { background: var(--cpb-accent-wash-border); color: var(--cpb-text); transform: none; }
+
+/* ============================================================
+ * Button group — buttons that read as ONE connected slab when
+ * placed adjacent. Interlocking peg / notch silhouette per the
+ * same recipe as .cpb-tabs__list: a peg sticks out of the right
+ * of one and a notch carves into the left of the next, with a
+ * 4px flex-gap of negative space between them. First button
+ * gets a TL chamfer (no notch); last button gets a TR chamfer
+ * (no peg).
+ *
+ * Use for true button GROUPS — segmented controls, toolbar
+ * rows, paired CTAs that ship together. Standalone buttons
+ * keep the cleaner TR+BL chamfer.
+ * ============================================================ */
+.cpb-btn-group {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 4px;
+}
+/* Grouped buttons drop the HUD side-stripe — the peg/notch
+   geometry IS the visual identity here. Stripe would conflict
+   with the left notch on middle/last children anyway. */
+.cpb-btn-group .cpb-btn::after { display: none; }
+.cpb-btn-group .cpb-btn {
+  --c: var(--cpb-cut-sm);
+  --peg-w: 5px;
+  --peg-h: 8px;
+  --notch-w: 5px;
+  --notch-h: 9px;
+  padding-left: calc(0.95rem + var(--notch-w));
+  padding-right: calc(0.95rem + var(--peg-w));
+  /* middle: peg right + notch left */
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--peg-w)) 0,
+    calc(100% - var(--peg-w)) calc(50% - var(--peg-h)),
+    100% calc(50% - var(--peg-h)),
+    100% calc(50% + var(--peg-h)),
+    calc(100% - var(--peg-w)) calc(50% + var(--peg-h)),
+    calc(100% - var(--peg-w)) 100%,
+    0 100%,
+    0 calc(50% + var(--notch-h)),
+    var(--notch-w) calc(50% + var(--notch-h)),
+    var(--notch-w) calc(50% - var(--notch-h)),
+    0 calc(50% - var(--notch-h))
+  );
+}
+.cpb-btn-group .cpb-btn:first-child {
+  padding-left: 0.95rem;
+  clip-path: polygon(
+    var(--c) 0,
+    calc(100% - var(--peg-w)) 0,
+    calc(100% - var(--peg-w)) calc(50% - var(--peg-h)),
+    100% calc(50% - var(--peg-h)),
+    100% calc(50% + var(--peg-h)),
+    calc(100% - var(--peg-w)) calc(50% + var(--peg-h)),
+    calc(100% - var(--peg-w)) 100%,
+    0 100%,
+    0 var(--c)
+  );
+}
+.cpb-btn-group .cpb-btn:last-child {
+  padding-right: 0.95rem;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% 100%,
+    0 100%,
+    0 calc(50% + var(--notch-h)),
+    var(--notch-w) calc(50% + var(--notch-h)),
+    var(--notch-w) calc(50% - var(--notch-h)),
+    0 calc(50% - var(--notch-h))
+  );
+}
+.cpb-btn-group .cpb-btn:only-child {
+  /* Falls back to the standalone chamfer when alone. */
+  padding-left: 0.95rem;
+  padding-right: 0.95rem;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c))
+  );
+}
+
+/* ============================================================
+ * Chips / pills — chamfered tag silhouettes (hex by default,
+ * tag-shaped on `.cpb-chip--tag`). 1px hairline + flat fill.
+ * ============================================================ */
+.cpb-chip {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  --c: 4px;
+  background: rgba(0, 240, 255, 0.40);
+  color: var(--cpb-muted);
+  font-family: var(--cpb-font-mono);
+  font-size: var(--cpb-fs-xs);
+  letter-spacing: 0.08em;
+  padding: 0.32rem 0.65rem;
+  transition:
+    background var(--cpb-dur) var(--cpb-ease),
+    color var(--cpb-dur) var(--cpb-ease);
+  clip-path: polygon(
+    var(--c) 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% calc(100% - var(--c)),
+    calc(100% - var(--c)) 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c)),
+    0 var(--c)
+  );
+}
+.cpb-chip::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--cpb-panel-deep);
+  clip-path: inherit;
+  z-index: 0;
+  transition: background var(--cpb-dur) var(--cpb-ease);
+}
+.cpb-chip > * { position: relative; z-index: 1; }
+/* Active / always-on / disabled / error chips — these are
+   high-contrast TAG-style markers. The outer is a solid accent
+   and the inner ::before matches it (no wash) so the whole chip
+   reads as one filled slab; the text flips to bold uppercase
+   BLACK for the same contrast rule that governs filled buttons
+   and active tabs. */
+.cpb-chip--active {
+  background: var(--cpb-accent);
+  color: var(--cpb-bg-solid-top);
+  font-weight: 700;
+}
+.cpb-chip--active::before { background: var(--cpb-accent); }
+.cpb-chip--always {
+  background: var(--cpb-accent-strong);
+  color: var(--cpb-bg-solid-top);
+  font-weight: 700;
+}
+.cpb-chip--always::before { background: var(--cpb-accent-strong); }
+.cpb-chip--disabled {
+  background: var(--cpb-warning);
+  color: var(--cpb-bg-solid-top);
+  font-weight: 700;
+}
+.cpb-chip--disabled::before { background: var(--cpb-warning); }
+.cpb-chip--error {
+  background: var(--cpb-error);
+  color: var(--cpb-bg-solid-top);
+  font-weight: 700;
+}
+.cpb-chip--error::before { background: var(--cpb-error); }
+.cpb-chip--tag {
+  --c: 8px;
+  padding-left: 1.1rem;
+  clip-path: polygon(
+    var(--c) 0,
+    100% 0,
+    100% 100%,
+    var(--c) 100%,
+    0 50%
+  );
+}
+
+.cpb-pill {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  --c: 4px;
+  background: rgba(0, 240, 255, 0.32);
+  color: var(--cpb-accent);
+  font-family: var(--cpb-font-mono);
+  font-size: var(--cpb-fs-xs);
+  padding: 0.28rem 0.7rem;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c))
+  );
+}
+.cpb-pill::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--cpb-accent-wash-soft);
+  clip-path: inherit;
+  z-index: 0;
+}
+.cpb-pill > * { position: relative; z-index: 1; }
+
+/* ============================================================
+ * Tabs — stepped silhouette. Active tab has its own bottom
+ * pip and accent fill so the eye locks onto it.
+ * ============================================================ */
+.cpb-tab {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  --c: var(--cpb-cut-sm);
+  background: rgba(0, 240, 255, 0.30);
+  color: var(--cpb-text);
+  font-family: var(--cpb-font-mono);
+  font-size: var(--cpb-fs-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.55rem 1rem;
+  text-decoration: none;
+  cursor: pointer;
+  border: 0;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% 100%,
+    0 100%
+  );
+  transition:
+    background var(--cpb-dur) var(--cpb-ease),
+    color var(--cpb-dur) var(--cpb-ease);
+}
+.cpb-tab::before {
+  content: "";
+  position: absolute;
+  inset: 1px 1px 0 1px;
+  background: rgba(2, 4, 10, 0.88);
+  clip-path: inherit;
+  z-index: 0;
+  transition: background var(--cpb-dur) var(--cpb-ease);
+}
+.cpb-tab > * { position: relative; z-index: 1; }
+.cpb-tab:hover {
+  background: var(--cpb-accent);
+  color: var(--cpb-bg-solid-top);
+  font-weight: 700;
+}
+.cpb-tab:hover::before { background: var(--cpb-accent); }
+.cpb-tab.is-active {
+  background: var(--cpb-accent);
+  color: var(--cpb-bg-solid-top);
+  font-weight: 700;
+}
+.cpb-tab.is-active::before { background: var(--cpb-accent); }
+
+/* ============================================================
+ * Counter row — small ammo/charge tally panel. Same idea as
+ * before (image / name / qty) but now the outer frame is
+ * chamfered. Internal dividers stay as 1px hairlines.
+ * ============================================================ */
+.cpb-counter {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: stretch;
+  height: 34px;
+  --c: 6px;
+  background: rgba(0, 240, 255, 0.34);
+  font-family: var(--cpb-font-mono);
+  letter-spacing: 0.06em;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c))
+  );
+}
+.cpb-counter::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: rgba(2, 4, 8, 0.88);
+  clip-path: inherit;
+  z-index: 0;
+}
+.cpb-counter > * { position: relative; z-index: 1; }
+.cpb-counter > * + * { border-left: 1px solid rgba(0, 240, 255, 0.18); }
+.cpb-counter__icon {
+  display: grid; place-items: center;
+  width: 34px;
+  background: rgba(0, 240, 255, 0.06);
+  color: var(--cpb-accent);
+}
+.cpb-counter__icon img,
+.cpb-counter__icon svg { width: 18px; height: 18px; display: block; }
+.cpb-counter__name {
+  border: 0;
+  background: transparent;
+  padding: 0 0.8rem;
+  color: var(--cpb-text);
+  font: inherit;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.10em;
+  cursor: pointer;
+}
+.cpb-counter__name:hover { color: var(--cpb-accent); background: rgba(0, 240, 255, 0.06); }
+.cpb-counter__qty {
+  width: 56px;
+  border: 0;
+  background: rgba(0, 240, 255, 0.04);
+  color: var(--cpb-accent-strong);
+  font: inherit;
+  font-size: 0.95rem;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+.cpb-counter__qty:focus { outline: none; background: rgba(0, 240, 255, 0.10); }
+.cpb-counter__qty::-webkit-outer-spin-button,
+.cpb-counter__qty::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.cpb-counter--depleted { background: rgba(255, 35, 80, 0.55); }
+.cpb-counter--depleted .cpb-counter__qty { color: var(--cpb-error); }
+.cpb-counter-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Warm-accent variants (border only, never text). */
+.cpb-chip.cpb-warm,
+.cpb-pill.cpb-warm,
+.cpb-tab.cpb-warm { background: var(--cpb-accent-warm-border); }
+.cpb-chip.cpb-warm::before { background: var(--cpb-accent-warm-wash-soft); }
+.cpb-pill.cpb-warm::before { background: var(--cpb-accent-warm-wash-soft); }
+.cpb-tab.cpb-warm::before  { background: var(--cpb-accent-warm-wash-soft); }
+.cpb-counter.cpb-warm { background: var(--cpb-accent-warm-border); }
+.cpb-counter.cpb-warm > * + * { border-left-color: rgba(196, 107, 255, 0.30); }
+.cpb-counter.cpb-warm .cpb-counter__icon { background: rgba(196, 107, 255, 0.06); }
+.cpb-counter.cpb-warm .cpb-counter__qty { background: rgba(196, 107, 255, 0.04); }
+
+/* ============================================================
+ * Dividers — paint-only chamfered slabs. Each variant is a
+ * single element with a clip-path silhouette: a horizontal
+ * bar across the top with a downward foot on one or both ends
+ * (the CyberTechUI signature divider). The default puts the
+ * foot on the LEFT. Variants flip / mirror / centre / invert.
+ *
+ * Geometry token:
+ *   --d-h     total element height (20px default)
+ *   --d-bar   visible bar height at the top (5px default)
+ *   --d-foot  foot width on the flat edge (60px default)
+ *   --d-slope diagonal length of the foot's cut (10px default)
+ *
+ * USAGE:
+ *   <hr class="cpb-divider">                  <- left foot
+ *   <hr class="cpb-divider cpb-divider--r">   <- right foot
+ *   <hr class="cpb-divider cpb-divider--both">  <- both ends
+ *   <hr class="cpb-divider cpb-divider--up">  <- foot points UP
+ *   <hr class="cpb-divider cpb-divider--mid"> <- centre foot
+ *   <div class="cpb-divider cpb-divider--label">
+ *     <span>SECTION</span>                    <- labelled
+ *   </div>
+ *   <hr class="cpb-divider cpb-divider--plain"> <- flat bar only
+ *   <div class="cpb-divider cpb-divider--v"></div> <- vertical
+ * ============================================================ */
+.cpb-divider {
+  --d-h: 20px;
+  --d-bar: 5px;
+  --d-foot: 60px;
+  --d-slope: 10px;
+  appearance: none;
+  margin: 0;
+  border: 0;
+  display: block;
+  width: 100%;
+  height: var(--d-h);
+  flex: 0 0 auto;
+  background: rgba(0, 240, 255, 0.55);
+  /* Default — bar across the top, foot descending on the LEFT.
+     Exactly the silhouette the user specified. */
+  clip-path: polygon(
+    0% 0%,
+    100% 0%,
+    100% var(--d-bar),
+    calc(var(--d-foot) + var(--d-slope)) var(--d-bar),
+    var(--d-foot) 100%,
+    0% 100%
+  );
+}
+
+/* Right-side foot — mirrored. */
+.cpb-divider--r {
+  clip-path: polygon(
+    0% 0%,
+    100% 0%,
+    100% 100%,
+    calc(100% - var(--d-foot)) 100%,
+    calc(100% - var(--d-foot) - var(--d-slope)) var(--d-bar),
+    0% var(--d-bar)
+  );
+}
+
+/* Both ends — foot on left AND right. */
+.cpb-divider--both {
+  clip-path: polygon(
+    0% 0%,
+    100% 0%,
+    100% 100%,
+    calc(100% - var(--d-foot)) 100%,
+    calc(100% - var(--d-foot) - var(--d-slope)) var(--d-bar),
+    calc(var(--d-foot) + var(--d-slope)) var(--d-bar),
+    var(--d-foot) 100%,
+    0% 100%
+  );
+}
+
+/* Centre foot — descender drops from the middle of the bar.
+   Reads as a section anchor. The label variant builds on this. */
+.cpb-divider--mid {
+  --d-foot: 90px;  /* foot is wider so it reads as a centred slab */
+  clip-path: polygon(
+    0% 0%,
+    100% 0%,
+    100% var(--d-bar),
+    calc(50% + var(--d-foot) / 2 + var(--d-slope)) var(--d-bar),
+    calc(50% + var(--d-foot) / 2) 100%,
+    calc(50% - var(--d-foot) / 2) 100%,
+    calc(50% - var(--d-foot) / 2 - var(--d-slope)) var(--d-bar),
+    0% var(--d-bar)
+  );
+}
+
+/* Up — foot points upward (ascender on the LEFT). Useful when
+   the divider sits above a section it's anchoring. Vertically
+   flipped version of the default. */
+.cpb-divider--up {
+  clip-path: polygon(
+    0% 0%,
+    var(--d-foot) 0%,
+    calc(var(--d-foot) + var(--d-slope)) calc(100% - var(--d-bar)),
+    100% calc(100% - var(--d-bar)),
+    100% 100%,
+    0% 100%
+  );
+}
+.cpb-divider--up.cpb-divider--r {
+  clip-path: polygon(
+    0% calc(100% - var(--d-bar)),
+    calc(100% - var(--d-foot) - var(--d-slope)) calc(100% - var(--d-bar)),
+    calc(100% - var(--d-foot)) 0%,
+    100% 0%,
+    100% 100%,
+    0% 100%
+  );
+}
+
+/* Plain bar — no foot, just a slab. For dense tables. */
+.cpb-divider--plain {
+  --d-h: 5px;
+  clip-path: none;
+}
+
+/* Tone variants — colour the entire slab. */
+.cpb-divider--lime { background: rgba(198, 255, 0, 0.55); }
+.cpb-divider--warm { background: rgba(196, 107, 255, 0.55); }
+.cpb-divider--muted { background: rgba(141, 227, 255, 0.22); }
+
+/* Labelled divider — wider centre foot houses an inline caption.
+   The caption sits inside the foot region; the slab is painted
+   via a ::before so the label can render on top in dark bold text. */
+.cpb-divider--label {
+  --d-h: 24px;
+  --d-bar: 6px;
+  --d-label-w: 200px;
+  background: transparent;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  clip-path: none;
+}
+.cpb-divider--label::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 240, 255, 0.55);
+  clip-path: polygon(
+    0% 0%,
+    100% 0%,
+    100% var(--d-bar),
+    calc(50% + var(--d-label-w) / 2) var(--d-bar),
+    calc(50% + var(--d-label-w) / 2 - var(--d-slope)) 100%,
+    calc(50% - var(--d-label-w) / 2 + var(--d-slope)) 100%,
+    calc(50% - var(--d-label-w) / 2) var(--d-bar),
+    0% var(--d-bar)
+  );
+}
+.cpb-divider--label > span {
+  position: relative;
+  z-index: 1;
+  margin-top: var(--d-bar);
+  height: calc(var(--d-h) - var(--d-bar));
+  display: inline-flex;
+  align-items: center;
+  padding: 0 22px;
+  font-family: var(--cpb-font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cpb-bg-solid-top);
+  font-weight: 700;
+}
+.cpb-divider--label.cpb-divider--lime::before { background: rgba(198, 255, 0, 0.55); }
+.cpb-divider--label.cpb-divider--warm::before { background: rgba(196, 107, 255, 0.55); }
+.cpb-divider--label.cpb-divider--warm > span { color: var(--cpb-bg-solid-top); }
+
+/* Vertical — paint a vertical slab with a side-foot. */
+.cpb-divider--v {
+  --d-h: auto;
+  --d-w: 20px;
+  --d-bar: 5px;
+  --d-foot: 60px;
+  --d-slope: 10px;
+  width: var(--d-w);
+  height: auto;
+  align-self: stretch;
+  background: rgba(0, 240, 255, 0.55);
+  clip-path: polygon(
+    0% 0%,
+    var(--d-bar) 0%,
+    var(--d-bar) var(--d-foot),
+    100% calc(var(--d-foot) + var(--d-slope)),
+    100% 100%,
+    0% 100%
+  );
+}
+.cpb-divider--v.cpb-divider--r {
+  clip-path: polygon(
+    100% 0%,
+    calc(100% - var(--d-bar)) 0%,
+    calc(100% - var(--d-bar)) var(--d-foot),
+    0% calc(var(--d-foot) + var(--d-slope)),
+    0% 100%,
+    100% 100%
+  );
+}
+
+/* ============================================================
+ * Card — richer structure on top of the existing .cpb-card
+ * silhouette. Header / body / footer slots, a top side-stripe,
+ * optional corner brackets, and a status pip.
+ *
+ * Tone cascade: each card variant sets --btn-tint and friends
+ * on the card root so any buttons inside automatically pick up
+ * the card's accent. A button inside .cpb-card--lime renders
+ * lime; a button inside .cpb-card--warm renders warm; etc.
+ * The card-tinted rule excludes buttons that carry their own
+ * dedicated modifier (--roll, --atk, --solid, --ghost) so a
+ * Roll button stays acid lime even inside a warm card.
+ * ============================================================ */
+.cpb-card {
+  --card-tone: var(--cpb-accent);
+}
+.cpb-card--lime  { --card-tone: var(--cpb-accent-strong); }
+.cpb-card--warm  { --card-tone: var(--cpb-accent-warm); }
+.cpb-card--warn  { --card-tone: var(--cpb-warning); }
+.cpb-card--error { --card-tone: var(--cpb-error); }
+
+/* Buttons inside a toned card inherit the card's tone. Any
+   button that opts into a specific tint via its own modifier
+   keeps that tint. */
+.cpb-card .cpb-btn:not(.cpb-btn--roll):not(.cpb-btn--atk):not(.cpb-btn--solid):not(.cpb-btn--ghost) {
+  --btn-tint: var(--card-tone);
+  --btn-tint-border: color-mix(in oklab, var(--card-tone) 42%, transparent);
+  --btn-tint-wash: color-mix(in oklab, var(--card-tone) 8%, transparent);
+}
+.cpb-card .cpb-btn:not(.cpb-btn--roll):not(.cpb-btn--atk):not(.cpb-btn--solid):not(.cpb-btn--ghost)::before {
+  background: color-mix(in oklab, var(--card-tone) 12%, rgba(8, 16, 26, 0.92));
+}
+/* Ghost buttons inside cards still pick up the tone for their
+   hover state — they read as "secondary action, in this card's
+   colour family" rather than a generic cyan. */
+.cpb-card .cpb-btn--ghost { --btn-tint: var(--card-tone); }
+
+/* The slot classes carry their own padding; no global reset on
+   .cpb-card > * is needed when --structured is used. (An earlier
+   `.cpb-card--structured > * { padding: 0 }` reset would beat
+   the slot rules on specificity and collapse them — removed.) */
+
+.cpb-card__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1.3rem 1.6rem;
+  position: relative;
+}
+.cpb-card__header + .cpb-card__body,
+.cpb-card__body + .cpb-card__footer {
+  border-top: 1px solid rgba(0, 240, 255, 0.18);
+}
+
+.cpb-card__title {
+  font-family: var(--cpb-font-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--cpb-accent);
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cpb-card__title::before {
+  content: "▌";
+  color: var(--cpb-accent-strong);
+  font-size: 0.85em;
+  flex: 0 0 auto;
+}
+
+.cpb-card__id {
+  font-family: var(--cpb-font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--cpb-muted);
+}
+
+.cpb-card__status {
+  font-family: var(--cpb-font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cpb-accent);
+  padding: 2px 8px 2px 18px;
+  background: rgba(0, 240, 255, 0.10);
+  position: relative;
+  --c: 3px;
+  clip-path: polygon(
+    var(--c) 0,
+    100% 0,
+    100% 100%,
+    var(--c) 100%,
+    0 50%
+  );
+}
+.cpb-card__status::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin-top: -2px;
+  background: currentColor;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  box-shadow: 0 0 6px currentColor;
+}
+.cpb-card__status--online  { color: var(--cpb-accent-strong); background: rgba(198, 255, 0, 0.10); }
+.cpb-card__status--offline { color: var(--cpb-muted); background: rgba(111, 133, 151, 0.10); }
+.cpb-card__status--warn    { color: var(--cpb-warning); background: rgba(255, 149, 0, 0.10); }
+.cpb-card__status--error   { color: var(--cpb-error); background: rgba(255, 35, 80, 0.10); }
+
+.cpb-card__body {
+  padding: 1.4rem 1.6rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--cpb-text);
+}
+.cpb-card__meta {
+  font-family: var(--cpb-font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--cpb-muted);
+}
+
+.cpb-card__footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1.2rem 1.6rem;
+  justify-content: space-between;
+}
+
+/* Side-stripe variant — adds a 4px vertical accent stripe on
+   the left edge of the card interior. The outer card paints in
+   the solid accent so the visible stripe colour matches; the
+   ::before fills the rest of the interior with an OPAQUE dark
+   (--cpb-bg-solid-bottom) so the solid outer doesn't bleed
+   through the normal translucent panel-deep fill. */
+.cpb-card.cpb-card--stripe {
+  background: var(--cpb-accent);
+}
+.cpb-card.cpb-card--stripe::before {
+  background-color: var(--cpb-bg-solid-bottom);
+  background-image: linear-gradient(90deg, var(--cpb-accent) 0 4px, transparent 4px);
+}
+.cpb-card.cpb-card--stripe .cpb-card__header,
+.cpb-card.cpb-card--stripe .cpb-card__body,
+.cpb-card.cpb-card--stripe .cpb-card__footer {
+  padding-left: calc(1.6rem + 6px);
+}
+.cpb-card.cpb-card--stripe.cpb-card--lime { background: var(--cpb-accent-strong); }
+.cpb-card.cpb-card--stripe.cpb-card--lime::before {
+  background-color: var(--cpb-bg-solid-bottom);
+  background-image: linear-gradient(90deg, var(--cpb-accent-strong) 0 4px, transparent 4px);
+}
+.cpb-card.cpb-card--stripe.cpb-card--warm { background: var(--cpb-accent-warm); }
+.cpb-card.cpb-card--stripe.cpb-card--warm::before {
+  background-color: var(--cpb-bg-solid-bottom);
+  background-image: linear-gradient(90deg, var(--cpb-accent-warm) 0 4px, transparent 4px);
+}
+.cpb-card.cpb-card--stripe.cpb-card--warn { background: var(--cpb-warning); }
+.cpb-card.cpb-card--stripe.cpb-card--warn::before {
+  background-color: var(--cpb-bg-solid-bottom);
+  background-image: linear-gradient(90deg, var(--cpb-warning) 0 4px, transparent 4px);
+}
+.cpb-card.cpb-card--stripe.cpb-card--error { background: var(--cpb-error); }
+.cpb-card.cpb-card--stripe.cpb-card--error::before {
+  background-color: var(--cpb-bg-solid-bottom);
+  background-image: linear-gradient(90deg, var(--cpb-error) 0 4px, transparent 4px);
+}
+
+/* Tone modifiers — outer (border) colour only. All four use
+   translucent variants so the .cpb-card::before dark fill on
+   top still reads as the dominant interior. Solid colours on
+   the outer flood the card through the 22%-translucent
+   --cpb-panel-deep fill, so we use the same ~40% border tokens
+   for warn/error as for lime/warm. */
+.cpb-card.cpb-card--lime  { background: var(--cpb-accent-strong-border); }
+.cpb-card.cpb-card--warm  { background: var(--cpb-accent-warm-border); }
+.cpb-card.cpb-card--warn  { background: rgba(255, 149, 0, 0.42); }
+.cpb-card.cpb-card--error { background: rgba(255, 35, 80, 0.42); }
+
+/* Corner brackets — a pair of L-marks at TL + BR. Decorative.
+   Use on important "selected" or "scanning" cards. Sits above
+   ::before so the brackets paint over the inner fill. */
+.cpb-card.cpb-card--brackets > *:first-child::before {
+  content: "";
+  position: absolute;
+  top: 4px; left: 4px;
+  width: 10px; height: 10px;
+  border-top: 1.5px solid var(--cpb-accent);
+  border-left: 1.5px solid var(--cpb-accent);
+  z-index: 2;
+  pointer-events: none;
+}
+.cpb-card.cpb-card--brackets > *:last-child::after {
+  content: "";
+  position: absolute;
+  bottom: 4px; right: 4px;
+  width: 10px; height: 10px;
+  border-bottom: 1.5px solid var(--cpb-accent);
+  border-right: 1.5px solid var(--cpb-accent);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Hover lift on interactive cards. */
+.cpb-card[role="button"],
+.cpb-card.cpb-card--interactive {
+  cursor: pointer;
+  transition: transform var(--cpb-dur) var(--cpb-ease),
+              background var(--cpb-dur) var(--cpb-ease);
+}
+.cpb-card[role="button"]:hover,
+.cpb-card.cpb-card--interactive:hover {
+  background: var(--cpb-accent);
+  transform: translateY(-1px);
+}
+
+/* ============================================================
+ * Tabs — peg / notch interlocking shape language. Adjacent tabs
+ * interlock with a small peg sticking out of the right edge of
+ * one tab and a notch cut into the left edge of the next, with
+ * a flex gap of 4px between them. The peg fits across the gap;
+ * the notch wraps around the air on the other side. First tab
+ * has no left-notch (TL chamfer instead); last tab has no
+ * right-peg (TR chamfer instead).
+ *
+ * Active tab fills with the accent and inverts the label to
+ * bold uppercase BLACK so it punches against the bright fill.
+ *
+ *   .cpb-tabs            — list container (handles spacing + rail)
+ *   .cpb-tabs__list      — tablist row
+ *   .cpb-tab             — single tab
+ *   .cpb-tabs__panel     — the docked content panel below
+ *   .cpb-tabs--vertical  — sidebar orientation
+ *   .cpb-tabs--lime      — lime accent variant
+ *
+ * SHAPE TOKENS (override on .cpb-tabs__list .cpb-tab):
+ *   --peg-w / --peg-h    — right peg width & half-height
+ *   --notch-w / --notch-h — left notch width & half-height
+ *   --c                  — TL/TR chamfer for end tabs
+ * ============================================================ */
+.cpb-tabs {
+  display: flex;
+  flex-direction: column;
+}
+.cpb-tabs__list {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  position: relative;
+}
+.cpb-tabs__list::after {
+  /* Under-rail. Sits BEHIND tabs (z:0). Active tab's bottom
+     overlaps it so the merge into the panel below reads. */
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: var(--cpb-accent-wash-border);
+  z-index: 0;
+}
+
+/* Override the standalone .cpb-tab rule when inside a list. */
+.cpb-tabs__list .cpb-tab {
+  --c: var(--cpb-cut-sm);
+  --peg-w: 5px;
+  --peg-h: 8px;
+  --notch-w: 5px;
+  --notch-h: 9px;
+  margin: 0;
+  padding: 0.65rem calc(1rem + var(--peg-w) + 2px) 0.65rem calc(1rem + var(--notch-w) + 2px);
+  background: var(--cpb-accent-wash-border);
+  color: var(--cpb-text);
+  font-weight: 500;
+  transition:
+    background var(--cpb-dur) var(--cpb-ease),
+    color var(--cpb-dur) var(--cpb-ease);
+  /* Middle tab: peg sticking out on the right, notch carved into the left. */
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--peg-w)) 0,
+    calc(100% - var(--peg-w)) calc(50% - var(--peg-h)),
+    100% calc(50% - var(--peg-h)),
+    100% calc(50% + var(--peg-h)),
+    calc(100% - var(--peg-w)) calc(50% + var(--peg-h)),
+    calc(100% - var(--peg-w)) 100%,
+    0 100%,
+    0 calc(50% + var(--notch-h)),
+    var(--notch-w) calc(50% + var(--notch-h)),
+    var(--notch-w) calc(50% - var(--notch-h)),
+    0 calc(50% - var(--notch-h))
+  );
+  z-index: 1;
+}
+.cpb-tabs__list .cpb-tab::before {
+  inset: 1px 1px 0 1px;
+  background: rgba(2, 4, 10, 0.88);
+  transition: background var(--cpb-dur) var(--cpb-ease);
+}
+
+/* First tab: no left notch, add a TL chamfer instead. */
+.cpb-tabs__list .cpb-tab:first-child {
+  padding-left: 1rem;
+  clip-path: polygon(
+    var(--c) 0,
+    calc(100% - var(--peg-w)) 0,
+    calc(100% - var(--peg-w)) calc(50% - var(--peg-h)),
+    100% calc(50% - var(--peg-h)),
+    100% calc(50% + var(--peg-h)),
+    calc(100% - var(--peg-w)) calc(50% + var(--peg-h)),
+    calc(100% - var(--peg-w)) 100%,
+    0 100%,
+    0 var(--c)
+  );
+}
+
+/* Last tab: no right peg, add a TR chamfer instead. */
+.cpb-tabs__list .cpb-tab:last-child {
+  padding-right: 1rem;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% 100%,
+    0 100%,
+    0 calc(50% + var(--notch-h)),
+    var(--notch-w) calc(50% + var(--notch-h)),
+    var(--notch-w) calc(50% - var(--notch-h)),
+    0 calc(50% - var(--notch-h))
+  );
+}
+
+/* Only child: both ends chamfered, no peg / notch. */
+.cpb-tabs__list .cpb-tab:only-child {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  clip-path: polygon(
+    var(--c) 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% 100%,
+    0 100%,
+    0 var(--c)
+  );
+}
+
+/* Hover — fill with the accent + black bold uppercase label.
+   Same rule as button hover and active tab: text on accent = black. */
+.cpb-tabs__list .cpb-tab:hover {
+  background: var(--cpb-accent);
+  color: var(--cpb-bg-solid-top);
+  font-weight: 700;
+}
+.cpb-tabs__list .cpb-tab:hover::before {
+  background: var(--cpb-accent);
+}
+
+/* Active — FULLY filled with the accent + bold uppercase BLACK
+   text. The filled-on-filled rule from the user's brief. */
+.cpb-tabs__list .cpb-tab.is-active {
+  background: var(--cpb-accent);
+  color: var(--cpb-bg-solid-top);
+  font-weight: 700;
+  z-index: 2;
+}
+.cpb-tabs__list .cpb-tab.is-active::before {
+  background: var(--cpb-accent);
+}
+
+/* Merge with the panel — ::after paints a 2px strip across the
+   active tab's bottom edge in the surface colour so the rail
+   beneath disappears and the tab "melts" into the panel. */
+.cpb-tabs__list .cpb-tab.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--cpb-accent);
+  z-index: 3;
+}
+
+/* Lime variant. */
+.cpb-tabs--lime .cpb-tabs__list::after { background: var(--cpb-accent-strong-border); }
+.cpb-tabs--lime .cpb-tabs__list .cpb-tab.is-active {
+  background: var(--cpb-accent-strong);
+  color: var(--cpb-bg-solid-top);
+}
+.cpb-tabs--lime .cpb-tabs__list .cpb-tab.is-active::before { background: var(--cpb-accent-strong); }
+.cpb-tabs--lime .cpb-tabs__list .cpb-tab.is-active::after { background: var(--cpb-accent-strong); }
+.cpb-tabs--lime .cpb-tabs__list .cpb-tab:hover { background: var(--cpb-accent-strong); color: var(--cpb-bg-solid-top); font-weight: 700; }
+.cpb-tabs--lime .cpb-tabs__list .cpb-tab:hover::before { background: var(--cpb-accent-strong); }
+
+/* Vertical tabs (sidebar) — peg on the BOTTOM, notch on the TOP. */
+.cpb-tabs--vertical {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+}
+.cpb-tabs--vertical .cpb-tabs__list {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 180px;
+}
+.cpb-tabs--vertical .cpb-tabs__list::after {
+  left: auto;
+  right: 0;
+  top: 0; bottom: 0;
+  width: 1px; height: auto;
+  background: var(--cpb-accent-wash-border);
+}
+.cpb-tabs--vertical .cpb-tabs__list .cpb-tab {
+  --peg-w: 8px;  /* now horizontal half-width — see polygon below */
+  --peg-h: 5px;  /* now vertical depth (down) */
+  --notch-w: 8px;
+  --notch-h: 5px;
+  justify-content: flex-start;
+  text-align: left;
+  padding: calc(0.7rem + var(--notch-h) + 2px) 1rem calc(0.7rem + var(--peg-h) + 2px) 1rem;
+  /* middle vertical tab: notch on top, peg on bottom */
+  clip-path: polygon(
+    0 0,
+    calc(50% - var(--notch-w)) 0,
+    calc(50% - var(--notch-w)) var(--notch-h),
+    calc(50% + var(--notch-w)) var(--notch-h),
+    calc(50% + var(--notch-w)) 0,
+    100% 0,
+    100% 100%,
+    calc(50% + var(--peg-w)) 100%,
+    calc(50% + var(--peg-w)) calc(100% - var(--peg-h)),
+    calc(50% - var(--peg-w)) calc(100% - var(--peg-h)),
+    calc(50% - var(--peg-w)) 100%,
+    0 100%
+  );
+}
+.cpb-tabs--vertical .cpb-tabs__list .cpb-tab::before {
+  inset: 1px 0 1px 1px;
+}
+.cpb-tabs--vertical .cpb-tabs__list .cpb-tab:first-child {
+  /* no top notch, add nothing fancy at top */
+  padding-top: 0.7rem;
+  clip-path: polygon(
+    0 0, 100% 0, 100% 100%,
+    calc(50% + var(--peg-w)) 100%,
+    calc(50% + var(--peg-w)) calc(100% - var(--peg-h)),
+    calc(50% - var(--peg-w)) calc(100% - var(--peg-h)),
+    calc(50% - var(--peg-w)) 100%,
+    0 100%
+  );
+}
+.cpb-tabs--vertical .cpb-tabs__list .cpb-tab:last-child {
+  /* no bottom peg, add a BL chamfer */
+  padding-bottom: 0.7rem;
+  clip-path: polygon(
+    0 0,
+    calc(50% - var(--notch-w)) 0,
+    calc(50% - var(--notch-w)) var(--notch-h),
+    calc(50% + var(--notch-w)) var(--notch-h),
+    calc(50% + var(--notch-w)) 0,
+    100% 0,
+    100% 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c))
+  );
+}
+.cpb-tabs--vertical .cpb-tabs__list .cpb-tab.is-active::after {
+  left: auto;
+  bottom: 0; top: 0;
+  right: -1px;
+  width: 2px; height: auto;
+}
+
+/* The panel — the content area that sits below (or beside) the
+   tab list. Painted as a continuation of the active tab so the
+   visual merge holds. Uses the same chamfered slab as a panel,
+   but with the top-left corner flush so it docks under the tabs. */
+.cpb-tabs__panel {
+  position: relative;
+  isolation: isolate;
+  --c: var(--cpb-cut-md);
+  background: var(--cpb-accent-wash-border);
+  padding: var(--cpb-stroke);
+  margin-top: -1px; /* overlap the rail */
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - var(--c)),
+    calc(100% - var(--c)) 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c))
+  );
+  z-index: 0;
+}
+.cpb-tabs__panel::before {
+  content: "";
+  position: absolute;
+  inset: var(--cpb-stroke);
+  background: var(--cpb-panel);
+  clip-path: inherit;
+  z-index: 0;
+}
+.cpb-tabs__panel > * { position: relative; z-index: 1; padding: 1rem; }
+
+.cpb-tabs--vertical .cpb-tabs__panel {
+  margin-top: 0;
+  margin-left: -1px;
+  flex: 1;
+  --c: var(--cpb-cut-md);
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c))
+  );
+}
+
+/* ============================================================
+ * Icon glyph helpers — unchanged from previous version.
+ * The icon set is black-ink SVG, inverted at render time.
+ * ============================================================ */
+.cpb-icon { filter: var(--cpb-icon-invert); }
+.cpb-icon--cyan  { filter: var(--cpb-icon-tint-cyan); }
+.cpb-icon--lime  { filter: var(--cpb-icon-tint-lime); }
+.cpb-icon--muted { filter: var(--cpb-icon-invert) opacity(0.55); }

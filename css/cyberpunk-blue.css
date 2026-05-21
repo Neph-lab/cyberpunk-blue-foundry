@@ -123,6 +123,45 @@ SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace 
   );
 }
 
+.cpb-divider--header {
+  --d-h: 24px;
+  --d-bar: 6px;
+  --d-label-w: 200px;
+  --d-foot: 60px;
+  --d-slope: 10px;
+  appearance: none;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  clip-path: none;
+}
+.cpb-divider--header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 240, 255, 0.55);
+  clip-path: polygon(0% 0%, 100% 0%, 100% var(--d-bar), calc(50% + var(--d-label-w) / 2) var(--d-bar), calc(50% + var(--d-label-w) / 2 - var(--d-slope)) 100%, calc(50% - var(--d-label-w) / 2 + var(--d-slope)) 100%, calc(50% - var(--d-label-w) / 2) var(--d-bar), 0% var(--d-bar));
+}
+.cpb-divider--header > span {
+    position: relative;
+    z-index: 1;
+    margin-top: var(--d-bar);
+    height: calc(var(--d-h) - var(--d-bar));
+    display: inline-flex;
+    align-items: center;
+    padding: 0 22px;
+    font-family: var(--cpb-font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cpb-bg-solid-top);
+    font-weight: 700;
+}
+
 /* ─── .cpb-frame helper ──────────────────────────────────────
    Pairs with any .cpb-shape--* to paint a 1px hairline border
    + interior fill, working around the border+clip-path limit.
@@ -336,33 +375,14 @@ section.chat-sidebar:not(.sidebar-popout),
   text-align: left;
 }
 
-/* .cyberpunk-blue button, button,
-.cyberpunk-blue .button, .button {
-  border: 1px solid var(--cpb-accent-wash-border);
-  border-radius: var(--cpb-radius-input);
-  background: var(--cpb-accent-wash);
-  color: var(--cpb-text);
-  font-weight: var(--cpb-fw-bold);
-  text-transform: uppercase;
-  font: inherit;
-  cursor: pointer;
-  padding: 0.35rem 0.75rem;
-  transition: background var(--cpb-dur) var(--cpb-ease), border-color var(--cpb-dur) var(--cpb-ease), transform var(--cpb-dur) var(--cpb-ease);
+.cyberpunk-blue .prosemirror, .cyberpunk-blue prose-mirror {
+  resize: vertical;
+  overflow-y: scroll;
 }
 
-.cyberpunk-blue button:hover,
-.cyberpunk-blue button:focus,
-.cyberpunk-blue .button:hover,
-.cyberpunk-blue .button:focus {
-  background: var(--cpb-accent);
-  border-color: var(--cpb-accent);
-  transform: translateY(-1px);
-  outline: none;
-} */
-
-/* ============================================================
+/* ==================================================
    .SHEET
-============================================================ */
+================================================== */
 
 .cyberpunk-blue .window-content,
 .cyberpunk-blue.sheet.actor,
@@ -398,18 +418,20 @@ section.chat-sidebar:not(.sidebar-popout),
 .cyberpunk-blue .header-fields {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: 0.35rem;
 }
 
 .cyberpunk-blue .header-stats-row {
+  margin-top: 1rem;
   display: flex;
   align-items: flex-end;
   gap: 0.5rem;
 }
 
-.cyberpunk-blue .header-stats-row .header-stats {
+/* .cyberpunk-blue .header-stats-row .header-stats {
   flex: 1;
-}
+} */
 
 .cyberpunk-blue .header-stats {
   display: grid;
@@ -422,33 +444,45 @@ section.chat-sidebar:not(.sidebar-popout),
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  max-width: 10rem;
 }
 
 .cyberpunk-blue .stat-icon {
   filter: invert(1);
-  height: 26px;
+  height: 4rem;
   opacity: 0.85;
-  width: 26px;
+  width: 4rem;
 }
 
 .cyberpunk-blue .header-money {
+  justify-self: end;
   align-items: center;
   display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+  flex-direction: row;
   min-width: 5.5rem;
+  margin-left:auto;
 }
 
 .cyberpunk-blue .header-money .stat-short {
   color: var(--cpb-accent-strong);
+  background-color: var(--cpb-accent-strong-wash);
+  padding: 0.35rem;
   font-size: 1.5rem;
   font-weight: 900;
   letter-spacing: 0.12em;
+  white-space: nowrap;
+  padding: 0.2rem 1rem .2rem 1.2rem;
+  --c: 8px;
+  clip-path: polygon(
+    var(--c) 0, 100% 0,
+    100% 100%, var(--c) 100%, 0 50%
+  );
 }
 
 .cyberpunk-blue .header-money input {
   text-align: right;
-  width: 5rem;
+  border-color: var(--cpb-accent-strong-border);
+  width: 6rem;
 }
 
 .cyberpunk-blue .charname {
@@ -488,10 +522,6 @@ section.chat-sidebar:not(.sidebar-popout),
   text-transform: uppercase;
   border: 2px solid transparent;
   transition: all 1s var(--cpb-ease);
-}
-
-.cyberpunk-blue .sheet-tabs .item:not(.active):hover {
-  border-bottom: 2px solid var(--cpb-accent);
 }
 
 .cyberpunk-blue .sheet-tabs .item.active {
@@ -948,6 +978,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   gap: 0.65rem;
   justify-content: flex-start;
   padding: 0;
+  width: 100%;
 }
 
 .cyberpunk-blue .embedded-name-text {
@@ -1091,28 +1122,8 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
 
-.cyberpunk-blue .cyberware-group h2:not(:first-child) {
-  margin-top: 1.5rem;
-}
-
-.cyberpunk-blue .cyberware-group h2 {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.cyberpunk-blue .cyberware-group h2::before {
-  content: '';
-  flex: 1;
-  padding: 3px;
-  margin: 0 10px;
-  background: linear-gradient(90deg, #27B0FF 0%, transparent 100%);
-}
-.cyberpunk-blue .cyberware-group h2::after {
-  content: '';
-  flex: 1;
-  padding: 3px;
-  margin: 0 10px;
-  background: linear-gradient(90deg, transparent 0%, #27B0FF 100%);
+.cyberpunk-blue .cyberware-group {
+  padding-top: 0;
 }
 
 .cyberpunk-blue .cyberware-group .embedded-entry:not(:first-child) .cyberware-row {
@@ -1271,7 +1282,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 
 .cyberpunk-blue .notes-grid .prosemirror {
   min-height: 400px;
-  resize: vertical;
 }
 
 .cyberpunk-blue .traits-grid {
@@ -1339,6 +1349,17 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   min-width: 3rem;
 }
 
+.cyberpunk-blue .inventory-header {
+  margin-top: 1rem;
+  align-items: flex-start;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.cyberpunk-blue .inventory-group {
+  padding-top: 0 !important;
+}
+
 .cyberpunk-blue .inventory-group + .inventory-group {
   margin-top: 1rem;
 }
@@ -1347,14 +1368,11 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .ammo-pills {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0.4rem;
-  margin-bottom: 0.75rem;
-  position: relative;
-  top: -30px;
 }
 
-.cyberpunk-blue .ammo-pill {
+.cyberpunk-blue .ammo-pill, .cyberpunk-blue .ammo-pill button {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -1362,7 +1380,13 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   gap: 0.5rem;
   padding: 0.5rem;
   border-radius: 6px;
-  background: var(--cpb-table-alt-bg);
+  background: var(--cpb-accent-warm-wash);
+  color: var(--cpb-text);
+}
+
+.cyberpunk-blue .ammo-pill:hover, .cyberpunk-blue .ammo-pill button:hover, .cyberpunk-blue .ammo-pill button:hover::before {
+  background: var(--cpb-accent-warm);
+  color: var(--cpb-bg-solid-top);
 }
 
 .cyberpunk-blue .ammo-pill-name {
@@ -2261,9 +2285,10 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 
 /* ── Netrunner tab ────────────────────────────── */
 .cyberpunk-blue .netrunner-components-row {
+  margin-top: 1rem;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: space-evenly;
   gap: var(--cpb-space-3);
 }
 
@@ -2362,14 +2387,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   font-size: var(--font-size-11);
   color: var(--color-text-light-secondary, #666);
   list-style: disc;
-}
-
-/* Net-connection box inside the components row */
-.cyberpunk-blue .net-connection-box {
-  flex: 1;
-  min-width: 160px;
-  display: flex;
-  align-items: flex-start;
 }
 
 .cyberpunk-blue .net-connection-row {
@@ -3377,6 +3394,10 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   border: none;
   align-items: flex-end;
   position: relative;
+}
+
+.cyberpunk-blue nav.sheet-tabs {
+  justify-content: center;
 }
 
 .cyberpunk-blue .sheet-tabs .item {

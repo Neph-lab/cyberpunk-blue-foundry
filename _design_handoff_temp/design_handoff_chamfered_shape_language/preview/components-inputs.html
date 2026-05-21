@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Inputs</title>
+<link rel="stylesheet" href="../cpb-base.css">
+<style>
+  body { padding: 22px; display: flex; flex-direction: column; gap: 12px; max-width: 560px; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cpb-accent); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .num { width: 80px; text-align: center; }
+</style></head>
+<body>
+  <div class="field"><label>Character Name</label><input class="cpb-input" value="V — Lazlo Petrov"></div>
+  <div class="row">
+    <div class="field"><label>BODY</label><input class="cpb-input num" value="7"></div>
+    <div class="field"><label>HP / Max</label><input class="cpb-input" value="35 / 35"></div>
+  </div>
+  <div class="field"><label>Notes</label><textarea class="cpb-input" rows="2">Bring the cyberdeck — Lazlo's already at the gate.</textarea></div>
+  <div class="field"><label>Eurobucks</label><input class="cpb-input" value="500-50"><span style="color:var(--cpb-muted); font-size:11px;">Eurobucks — arithmetic OK (e.g. 500-50)</span></div>
+</body></html>

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"D:\\\\FoundryVTT\\\\Data\\\\systems\\\\cyberpunk-blue\" -Recurse -Directory)",
+      "Bash(Select-Object FullName)",
+      "Bash(xargs grep -l \"data-type\\\\|message\\\\|roll\")"
+    ]
+  }
+}

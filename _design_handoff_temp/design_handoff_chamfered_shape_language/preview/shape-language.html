@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<title>Shape Language — Cyberpunk Blue</title>
+<link rel="stylesheet" href="../cpb-base.css">
+<style>
+  body {
+    padding: 30px 32px 56px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    max-width: 980px;
+  }
+
+  .preview-title {
+    font-family: var(--cpb-font-mono);
+    font-size: 0.72rem;
+    color: var(--cpb-muted);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .preview-title::after {
+    content: ""; flex: 1; height: 1px;
+    background: linear-gradient(90deg, rgba(0,240,255,0.32), transparent);
+  }
+  .preview-title small { color: var(--cpb-accent); font-size: 0.72rem; }
+
+  .lead {
+    font-family: var(--cpb-font-body);
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--cpb-text);
+    margin: 0;
+    max-width: 70ch;
+  }
+  .lead .term {
+    color: var(--cpb-accent);
+    font-family: var(--cpb-font-mono);
+    font-size: 0.86em;
+    letter-spacing: 0.04em;
+  }
+
+  /* Shape catalog grid */
+  .shapes {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .shape-card {
+    position: relative;
+    padding: 18px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+    text-align: left;
+  }
+  .shape-card__visual {
+    position: relative;
+    height: 92px;
+    display: grid;
+    place-items: center;
+  }
+  .shape-card__visual .demo {
+    width: 90%;
+    height: 70%;
+  }
+  .shape-card__name {
+    font-family: var(--cpb-font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--cpb-accent);
+  }
+  .shape-card__desc {
+    font-family: var(--cpb-font-mono);
+    font-size: 0.68rem;
+    line-height: 1.45;
+    letter-spacing: 0.02em;
+    color: var(--cpb-muted);
+  }
+
+  /* Filled demo blocks for the catalog */
+  .demo {
+    position: relative;
+    isolation: isolate;
+    background: var(--cpb-accent);
+  }
+  .demo::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    background: var(--cpb-panel-deep);
+    clip-path: inherit;
+  }
+  .demo--lime { background: var(--cpb-accent-strong); }
+  .demo--warm { background: var(--cpb-accent-warm); }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .ledger {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 10px 22px;
+    font-family: var(--cpb-font-mono);
+    font-size: 0.78rem;
+    color: var(--cpb-text);
+    padding: 16px 20px;
+    line-height: 1.55;
+  }
+  .ledger dt {
+    color: var(--cpb-accent);
+    letter-spacing: 0.06em;
+  }
+  .ledger dt::before {
+    content: "▌";
+    color: var(--cpb-accent-strong);
+    margin-right: 6px;
+    font-size: 0.85em;
+  }
+  .ledger dd {
+    margin: 0;
+    color: var(--cpb-muted);
+  }
+  .ledger dd code {
+    color: var(--cpb-text);
+    background: rgba(0, 240, 255, 0.08);
+    padding: 1px 6px;
+    letter-spacing: 0.04em;
+  }
+
+  /* Scale ramp */
+  .scale-ramp {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    padding: 18px;
+  }
+  .scale-ramp .cell {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+  .scale-ramp .stage {
+    width: 100%;
+    aspect-ratio: 1.7 / 1;
+    background: var(--cpb-accent);
+    position: relative;
+    isolation: isolate;
+  }
+  .scale-ramp .stage::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    background: var(--cpb-panel-deeper);
+    clip-path: inherit;
+  }
+  .scale-ramp .lbl {
+    font-family: var(--cpb-font-mono);
+    font-size: 0.72rem;
+    color: var(--cpb-muted);
+    letter-spacing: 0.06em;
+  }
+  .scale-ramp .lbl b {
+    color: var(--cpb-accent);
+    margin-right: 6px;
+  }
+
+  /* Composition demo */
+  .compose {
+    padding: 20px 22px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .compose__col h4 {
+    font-family: var(--cpb-font-mono);
+    font-size: 0.72rem;
+    color: var(--cpb-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin: 0 0 10px;
+  }
+  .compose .demo-tall {
+    background: var(--cpb-accent);
+    position: relative;
+    isolation: isolate;
+    height: 130px;
+  }
+  .compose .demo-tall::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    background: var(--cpb-panel-deep);
+    clip-path: inherit;
+  }
+  .stack-tabs {
+    display: flex;
+    gap: 4px;
+  }
+  .stack-tabs .cpb-tab { padding: 0.45rem 0.85rem; }
+</style></head>
+<body>
+
+  <p class="preview-title">00 · <small>Shape language</small> — the new geometry vocabulary</p>
+
+  <p class="lead">
+    The Cyberpunk Blue surface previously read as "soft squared" — 2–3px radii. The new shape language replaces that with <span class="term">chamfered polygons</span> built from <code style="font-family: var(--cpb-font-mono); color: var(--cpb-text); background: rgba(0,240,255,0.10); padding: 0 6px;">clip-path</code>. The signature silhouette is an asymmetric cut on the <span class="term">top-right + bottom-left</span> corners that reads as forward-leaning, interactive. The colour palette and typography stay unchanged — only the silhouette is new.
+  </p>
+
+  <!-- 1. SHAPE CATALOG -->
+  <p class="preview-title">01 · <small>Shape catalog</small></p>
+  <div class="shapes">
+
+    <div class="cpb-panel shape-card">
+      <div class="shape-card__visual"><div class="demo cpb-shape" style="--c:12px"></div></div>
+      <div class="shape-card__name">TR-BL · default</div>
+      <div class="shape-card__desc">Top-right + bottom-left cut. The signature interactive silhouette. Used on buttons, inputs, panels.</div>
+    </div>
+
+    <div class="cpb-panel shape-card">
+      <div class="shape-card__visual"><div class="demo cpb-shape--tl-br" style="--c:12px"></div></div>
+      <div class="shape-card__name">TL-BR · mirrored</div>
+      <div class="shape-card__desc">Mirrored chamfer. Pairs with default to form nose-to-nose chevrons. Use on "passive" / readout blocks.</div>
+    </div>
+
+    <div class="cpb-panel shape-card">
+      <div class="shape-card__visual"><div class="demo demo--lime cpb-shape--hex" style="--c:14px"></div></div>
+      <div class="shape-card__name">HEX · all four cut</div>
+      <div class="shape-card__desc">Symmetric. Reads as a data tile / readout plate. Use on stat values, dice readouts, status badges.</div>
+    </div>
+
+    <div class="cpb-panel shape-card">
+      <div class="shape-card__visual"><div class="demo cpb-shape--card" style="--c:14px"></div></div>
+      <div class="shape-card__name">CARD · top corners</div>
+      <div class="shape-card__desc">Cut at top only — bottom edge flat so cards stack. Use for content cards inside scroll regions.</div>
+    </div>
+
+    <div class="cpb-panel shape-card">
+      <div class="shape-card__visual"><div class="demo cpb-shape--panel" style="--c:20px"></div></div>
+      <div class="shape-card__name">PANEL · stepped TL</div>
+      <div class="shape-card__desc">Big TR + BL chamfer, small step at top-left. The "main sheet" silhouette. Use once per screen.</div>
+    </div>
+
+    <div class="cpb-panel shape-card">
+      <div class="shape-card__visual"><div class="demo cpb-shape--notch-tr" style="--c:14px"></div></div>
+      <div class="shape-card__name">NOTCH · single corner</div>
+      <div class="shape-card__desc">One TR cut, three square edges. HUD callout / alert slab. Use sparingly — high-energy.</div>
+    </div>
+
+    <div class="cpb-panel shape-card">
+      <div class="shape-card__visual"><div class="demo demo--warm cpb-shape--tag" style="--c:14px"></div></div>
+      <div class="shape-card__name">TAG · chevron tip</div>
+      <div class="shape-card__desc">Pointed left edge, flat right. Status flags, faction markers. Read as "directional".</div>
+    </div>
+
+    <div class="cpb-panel shape-card">
+      <div class="shape-card__visual"><div class="demo cpb-shape--arrow" style="--c:18px"></div></div>
+      <div class="shape-card__name">ARROW · forward action</div>
+      <div class="shape-card__desc">Right-pointing chevron block. Primary action buttons (Commit, Roll, Continue).</div>
+    </div>
+
+  </div>
+
+  <!-- 2. CHAMFER SCALE -->
+  <p class="preview-title">02 · <small>Chamfer scale</small> — one knob: <code style="font-family:var(--cpb-font-mono); color:var(--cpb-accent); font-size:0.85rem;">--c</code></p>
+  <div class="cpb-panel">
+    <div class="scale-ramp">
+      <div class="cell"><div class="stage cpb-shape" style="--c:4px"></div><div class="lbl"><b>xs</b> 4px · chips</div></div>
+      <div class="cell"><div class="stage cpb-shape" style="--c:7px"></div><div class="lbl"><b>sm</b> 7px · buttons</div></div>
+      <div class="cell"><div class="stage cpb-shape" style="--c:10px"></div><div class="lbl"><b>md</b> 10px · cards</div></div>
+      <div class="cell"><div class="stage cpb-shape" style="--c:16px"></div><div class="lbl"><b>lg</b> 16px · panels</div></div>
+    </div>
+  </div>
+
+  <!-- 3. THE BORDER TRICK -->
+  <p class="preview-title">03 · <small>Frame mechanics</small> — how the 1px stroke survives the clip</p>
+  <div class="cpb-panel">
+    <dl class="ledger">
+      <dt>Problem</dt>
+      <dd>A real <code>border</code> gets clipped away by <code>clip-path</code> at the chamfer corners — the stroke disappears precisely where the eye needs it most.</dd>
+      <dt>Solution</dt>
+      <dd>Paint the outer element in the stroke colour. A <code>::before</code> pseudo-element inset by <code>1px</code> paints the inner fill on top, with <code>clip-path: inherit</code> so the inner shape registers with the outer. The 1px gap reads as the hairline.</dd>
+      <dt>Hover / focus</dt>
+      <dd>Outer background swaps to <code>--cpb-accent</code>. The "border" is just paint, so it animates with a plain background transition. No outline ring (rings get clipped too).</dd>
+      <dt>Filled state</dt>
+      <dd>On <code>:checked</code> / active, the inner <code>::before</code> also swaps to the accent. The element reads as a solid plate, no border.</dd>
+    </dl>
+  </div>
+
+  <!-- 4. COMPONENT COMPOSITION -->
+  <p class="preview-title">04 · <small>In components</small> — buttons · tabs · chips · pills</p>
+  <div class="cpb-panel">
+    <div class="compose">
+      <div class="compose__col">
+        <h4>Buttons</h4>
+        <div class="row">
+          <button class="cpb-btn"><span>Equip</span></button>
+          <button class="cpb-btn cpb-btn--roll"><span>Roll 1d10 + RFLX</span></button>
+          <button class="cpb-btn cpb-btn--atk"><span>Attack</span></button>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="cpb-btn cpb-btn--ghost"><span>Cancel</span></button>
+          <button class="cpb-btn cpb-btn--solid cpb-btn--arrow"><span>Commit</span></button>
+        </div>
+      </div>
+
+      <div class="compose__col">
+        <h4>Tabs</h4>
+        <div class="stack-tabs">
+          <a class="cpb-tab is-active"><span>Overview</span></a>
+          <a class="cpb-tab"><span>Skills</span></a>
+          <a class="cpb-tab"><span>Cyberware</span></a>
+          <a class="cpb-tab"><span>Inventory</span></a>
+        </div>
+      </div>
+
+      <div class="compose__col">
+        <h4>Chips · pills</h4>
+        <div class="row">
+          <span class="cpb-chip cpb-chip--active"><span>Concealable</span></span>
+          <span class="cpb-chip cpb-chip--always"><span>Always Active</span></span>
+          <span class="cpb-chip cpb-chip--disabled"><span>Disabled</span></span>
+          <span class="cpb-chip cpb-chip--tag"><span>ARASAKA</span></span>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <span class="cpb-pill"><span>RoF 2</span></span>
+          <span class="cpb-pill"><span>DV 13</span></span>
+          <span class="cpb-pill"><span>HP 35/35</span></span>
+        </div>
+      </div>
+
+      <div class="compose__col">
+        <h4>Counters</h4>
+        <div class="cpb-counter-row">
+          <div class="cpb-counter">
+            <div class="cpb-counter__icon" style="color:var(--cpb-accent);">⌬</div>
+            <button class="cpb-counter__name">Synth-Coke</button>
+            <input class="cpb-counter__qty" value="3">
+          </div>
+          <div class="cpb-counter cpb-counter--depleted">
+            <div class="cpb-counter__icon" style="color:var(--cpb-error);">⌬</div>
+            <button class="cpb-counter__name">Boost</button>
+            <input class="cpb-counter__qty" value="0">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body></html>

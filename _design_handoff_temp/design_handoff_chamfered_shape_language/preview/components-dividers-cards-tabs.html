@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<title>Dividers · Cards · Tabs — Cyberpunk Blue</title>
+<link rel="stylesheet" href="../cpb-base.css">
+<style>
+  body {
+    padding: 30px 32px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 1040px;
+  }
+
+  .preview-title {
+    font-family: var(--cpb-font-mono);
+    font-size: 0.72rem;
+    color: var(--cpb-muted);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .preview-title::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(0,240,255,0.32), transparent); }
+  .preview-title small { color: var(--cpb-accent); font-size: 0.72rem; }
+
+  .lead {
+    font-family: var(--cpb-font-body);
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--cpb-text);
+    margin: 0;
+    max-width: 70ch;
+  }
+  .lead .term { color: var(--cpb-accent); font-family: var(--cpb-font-mono); font-size: 0.86em; letter-spacing: 0.04em; }
+
+  .panel-pad { padding: 22px 26px; }
+  .stack { display: flex; flex-direction: column; gap: 22px; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+  /* Annotation labels above each demo */
+  .anno {
+    font-family: var(--cpb-font-mono);
+    font-size: 0.66rem;
+    color: var(--cpb-muted);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 8px;
+  }
+  .anno b { color: var(--cpb-accent); font-weight: 500; }
+
+  /* Vertical-divider showcase */
+  .v-stage {
+    display: flex;
+    align-items: stretch;
+    gap: 18px;
+    height: 90px;
+    padding: 0 18px;
+    font-family: var(--cpb-font-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+  }
+  .v-stage .col {
+    flex: 1;
+    display: grid;
+    place-items: center;
+    color: var(--cpb-text);
+  }
+  .v-stage .col b { color: var(--cpb-accent-strong); font-weight: 400; font-size: 1.2rem; display:block; }
+
+  /* Tab body content */
+  .tab-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+  .tab-body[hidden] { display: none; }
+  .tab-body .cpb-h3 { font-size: 0.9rem; margin: 0; }
+  .tab-body p { margin: 0; }
+
+  .card-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 880px) { .card-row { grid-template-columns: 1fr; } }
+</style></head>
+<body>
+
+  <!-- INTRO -->
+  <p class="preview-title">00 · <small>Dividers · Cards · Tabs</small> — structural set v2</p>
+  <p class="lead">
+    Rebuilt to spec. <span class="term">Dividers</span> are now chamfered slab silhouettes — a horizontal bar with a descending foot, painted in the accent colour. <span class="term">Cards</span> ship with generous padding (1.4rem horizontal) on the outer frame and inside each header/body/footer slot. <span class="term">Tabs</span> use an interlocking peg-and-notch geometry: each tab's right edge sticks a peg out, the next tab's left edge bites a notch in, with a 4px flex gap between — irregular negative space reads as the connector. Active tabs fill solid with the accent and switch the label to <strong>bold uppercase BLACK</strong> so it punches through the fill.
+  </p>
+
+  <!-- 1. DIVIDERS -->
+  <p class="preview-title">01 · <small>Dividers</small> — paint-only chamfered slabs</p>
+
+  <div class="cpb-panel">
+    <div class="panel-pad stack">
+
+      <div>
+        <span class="anno"><b>cpb-divider</b> · default · left foot descending — the user's reference shape</span>
+        <hr class="cpb-divider">
+      </div>
+
+      <div>
+        <span class="anno"><b>cpb-divider--r</b> · mirrored — right foot</span>
+        <hr class="cpb-divider cpb-divider--r">
+      </div>
+
+      <div>
+        <span class="anno"><b>cpb-divider--both</b> · foot on both ends — heavy section break</span>
+        <hr class="cpb-divider cpb-divider--both">
+      </div>
+
+      <div>
+        <span class="anno"><b>cpb-divider--mid</b> · centred foot — anchored section marker</span>
+        <hr class="cpb-divider cpb-divider--mid">
+      </div>
+
+      <div>
+        <span class="anno"><b>cpb-divider--up</b> · foot points upward — anchors the section above</span>
+        <hr class="cpb-divider cpb-divider--up">
+      </div>
+
+      <div>
+        <span class="anno"><b>cpb-divider--label</b> · centred caption inside the foot</span>
+        <div class="cpb-divider cpb-divider--label"><span>Combat Skills</span></div>
+        <div class="cpb-divider cpb-divider--label cpb-divider--lime" style="margin-top:10px;"><span>Always-On Augments</span></div>
+        <div class="cpb-divider cpb-divider--label cpb-divider--warm" style="margin-top:10px;"><span>Cybernetics</span></div>
+      </div>
+
+      <div>
+        <span class="anno"><b>cpb-divider--plain</b> · flat bar only — between rows in dense tables</span>
+        <hr class="cpb-divider cpb-divider--plain">
+      </div>
+
+      <div>
+        <span class="anno"><b>cpb-divider--v</b> · vertical with side foot — column dividers in stat rows</span>
+        <div class="v-stage">
+          <div class="col"><span style="color:var(--cpb-muted); font-size:0.7rem; letter-spacing:0.14em;">BODY</span><b>7</b></div>
+          <div class="cpb-divider cpb-divider--v"></div>
+          <div class="col"><span style="color:var(--cpb-muted); font-size:0.7rem; letter-spacing:0.14em;">RFLX</span><b>6</b></div>
+          <div class="cpb-divider cpb-divider--v cpb-divider--r"></div>
+          <div class="col"><span style="color:var(--cpb-muted); font-size:0.7rem; letter-spacing:0.14em;">INT</span><b>5</b></div>
+          <div class="cpb-divider cpb-divider--v"></div>
+          <div class="col"><span style="color:var(--cpb-muted); font-size:0.7rem; letter-spacing:0.14em;">COOL</span><b>8</b></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 2. CARDS -->
+  <p class="preview-title">02 · <small>Cards</small> — comfortable padding · header · body · footer</p>
+
+  <div class="card-row">
+
+    <div class="cpb-card cpb-card--structured">
+      <header class="cpb-card__header">
+        <span class="cpb-card__title">Kiroshi Mk.III Optics</span>
+        <span class="cpb-card__status cpb-card__status--online">ONLINE</span>
+      </header>
+      <div class="cpb-card__body">
+        Smart-targeting overlay. Provides <code style="color:var(--cpb-accent-strong); font-family:var(--cpb-font-mono);">+2 PER</code> when active. Draws 0.4 charges per scene.
+      </div>
+      <footer class="cpb-card__footer">
+        <span class="cpb-card__meta">HUM 3 · CYB 1</span>
+        <div class="cpb-btn-group">
+          <button class="cpb-btn cpb-btn--ghost"><span>Detail</span></button>
+          <button class="cpb-btn"><span>Disable</span></button>
+        </div>
+      </footer>
+    </div>
+
+    <div class="cpb-card cpb-card--structured cpb-card--stripe">
+      <header class="cpb-card__header">
+        <span class="cpb-card__title">Militech "Crusher" Shotgun</span>
+        <span class="cpb-card__status cpb-card__status--warn">JAMMED</span>
+      </header>
+      <div class="cpb-card__body">
+        Pump-action, 8-gauge. <code style="color:var(--cpb-accent); font-family:var(--cpb-font-mono);">2d6 + 3</code> at close range; halves above 4m.
+      </div>
+      <footer class="cpb-card__footer">
+        <span class="cpb-card__meta">DV 13 · RoF 1 · Ammo 0/8</span>
+        <button class="cpb-btn"><span>Unjam</span></button>
+      </footer>
+    </div>
+
+    <div class="cpb-card cpb-card--structured">
+      <header class="cpb-card__header">
+        <span class="cpb-card__title">Subdermal Armour</span>
+        <span class="cpb-card__id">CW-0042</span>
+        <span class="cpb-card__status cpb-card__status--offline">OFFLINE</span>
+      </header>
+      <div class="cpb-card__body">
+        Mesh weave under skin. <code style="color:var(--cpb-muted); font-family:var(--cpb-font-mono);">+4 SP head/body</code>. Currently unpowered — requires servicing.
+      </div>
+      <footer class="cpb-card__footer">
+        <span class="cpb-card__meta">SP 4 · DUR 12 / 30</span>
+        <button class="cpb-btn"><span>Service</span></button>
+      </footer>
+    </div>
+
+    <div class="cpb-card cpb-card--structured cpb-card--stripe cpb-card--error">
+      <header class="cpb-card__header">
+        <span class="cpb-card__title">Cyberpsychosis Risk</span>
+        <span class="cpb-card__status cpb-card__status--error">CRITICAL</span>
+      </header>
+      <div class="cpb-card__body">
+        <span style="color:var(--cpb-error);">EMP HUM &lt; 20.</span> Make a COOL check at the start of every scene or lose control. Strongly consider therapy or a downtime.
+      </div>
+      <footer class="cpb-card__footer">
+        <span class="cpb-card__meta">HUM 18 / 80</span>
+        <button class="cpb-btn cpb-btn--roll"><span>Roll COOL</span></button>
+      </footer>
+    </div>
+
+  </div>
+
+  <!-- 3. TABS -->
+  <p class="preview-title">03 · <small>Tabs</small> — peg/notch interlock · filled-active</p>
+
+  <div class="cpb-tabs">
+    <div class="cpb-tabs__list" role="tablist" id="h-tabs">
+      <button class="cpb-tab is-active" data-target="0"><span>Overview</span></button>
+      <button class="cpb-tab" data-target="1"><span>Skills</span></button>
+      <button class="cpb-tab" data-target="2"><span>Cyberware</span></button>
+      <button class="cpb-tab" data-target="3"><span>Inventory</span></button>
+      <button class="cpb-tab" data-target="4"><span>Notes</span></button>
+    </div>
+    <div class="cpb-tabs__panel">
+      <div class="tab-body" data-pane="0">
+        <h3 class="cpb-h3">Overview</h3>
+        <p>
+          Lazlo Petrov — Solo, age 32, Watson district. Twelve-year veteran. The header carries the character name, the row of stats, the portrait. Tap a tab to switch context; the active tab fills with the accent and prints in bold black, while its bottom edge merges into this panel.
+        </p>
+        <hr class="cpb-divider cpb-divider--mid">
+        <div class="row">
+          <span class="cpb-chip cpb-chip--active"><span>Veteran</span></span>
+          <span class="cpb-chip cpb-chip--always"><span>+2 Passive RFLX</span></span>
+          <span class="cpb-chip cpb-chip--tag"><span>MILITECH</span></span>
+        </div>
+      </div>
+      <div class="tab-body" data-pane="1" hidden>
+        <h3 class="cpb-h3">Skills</h3>
+        <p>Skill list lives here — Brawling, Athletics, Stealth, Handgun, Shoulder Arms, Heavy Weapons, Tactics, First Aid, Streetwise. Three-column reflow on wide; one column on narrow sheets.</p>
+      </div>
+      <div class="tab-body" data-pane="2" hidden>
+        <h3 class="cpb-h3">Cyberware</h3>
+        <p>Installed augmentation list, with humanity cost and component slots.</p>
+      </div>
+      <div class="tab-body" data-pane="3" hidden>
+        <h3 class="cpb-h3">Inventory</h3>
+        <p>Carried items, weight, encumbrance.</p>
+      </div>
+      <div class="tab-body" data-pane="4" hidden>
+        <h3 class="cpb-h3">Notes</h3>
+        <p>Freeform GM notes. Markdown-rendered.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vertical -->
+  <p class="preview-title">04 · <small>Tabs · vertical</small> — peg drops, notch on top</p>
+
+  <div class="cpb-tabs cpb-tabs--vertical">
+    <div class="cpb-tabs__list" role="tablist" id="v-tabs">
+      <button class="cpb-tab is-active" data-target="0"><span>System Status</span></button>
+      <button class="cpb-tab" data-target="1"><span>Net Activity</span></button>
+      <button class="cpb-tab" data-target="2"><span>Companions</span></button>
+      <button class="cpb-tab" data-target="3"><span>Log</span></button>
+    </div>
+    <div class="cpb-tabs__panel">
+      <div class="tab-body" data-pane="0">
+        <h3 class="cpb-h3">System Status</h3>
+        <hr class="cpb-divider cpb-divider--r">
+        <div class="row">
+          <span class="cpb-pill"><span>CPU 42%</span></span>
+          <span class="cpb-pill"><span>RAM 6/8</span></span>
+          <span class="cpb-pill"><span>NET 117ms</span></span>
+          <span class="cpb-pill"><span>HEAT 31°C</span></span>
+        </div>
+        <p>All subsystems nominal. Last cold-boot 14:22 UTC.</p>
+      </div>
+      <div class="tab-body" data-pane="1" hidden>
+        <h3 class="cpb-h3">Net Activity</h3>
+        <p>3 active sessions · 1 tail detected.</p>
+      </div>
+      <div class="tab-body" data-pane="2" hidden>
+        <h3 class="cpb-h3">Companions</h3>
+        <p>No companions linked.</p>
+      </div>
+      <div class="tab-body" data-pane="3" hidden>
+        <h3 class="cpb-h3">Log</h3>
+        <p>— last 24h —</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lime variant -->
+  <p class="preview-title">05 · <small>Tabs · lime variant</small> — passive context</p>
+
+  <div class="cpb-tabs cpb-tabs--lime">
+    <div class="cpb-tabs__list" role="tablist">
+      <button class="cpb-tab is-active"><span>Passive Bonuses</span></button>
+      <button class="cpb-tab"><span>Conditional</span></button>
+      <button class="cpb-tab"><span>Disabled</span></button>
+    </div>
+    <div class="cpb-tabs__panel">
+      <div class="tab-body">
+        <p>Passive bonuses always apply. They render in lime everywhere they appear — chips, dice prompts, the "ALWAYS ACTIVE" toggle on cyberware. Two semantic accents only: cyan for interactive, lime for passive/dice.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. BUTTON GROUPS -->
+  <p class="preview-title">06 · <small>Button group</small> — same interlock for paired CTAs</p>
+
+  <div class="cpb-panel">
+    <div class="panel-pad stack">
+      <div>
+        <span class="anno"><b>cpb-btn-group</b> · two buttons · TL chamfer + peg / notch + TR chamfer</span>
+        <div class="cpb-btn-group">
+          <button class="cpb-btn cpb-btn--ghost"><span>Cancel</span></button>
+          <button class="cpb-btn cpb-btn--solid"><span>Commit</span></button>
+        </div>
+      </div>
+
+      <div>
+        <span class="anno"><b>cpb-btn-group</b> · three buttons · middle tab carries both peg + notch</span>
+        <div class="cpb-btn-group">
+          <button class="cpb-btn cpb-btn--ghost"><span>Equip</span></button>
+          <button class="cpb-btn"><span>Drop</span></button>
+          <button class="cpb-btn cpb-btn--roll"><span>Roll 1d10</span></button>
+        </div>
+      </div>
+
+      <div>
+        <span class="anno"><b>standalone</b> · TR+BL chamfer when not grouped</span>
+        <div class="row">
+          <button class="cpb-btn"><span>Equip</span></button>
+          <button class="cpb-btn cpb-btn--roll"><span>Roll 1d10 + RFLX</span></button>
+          <button class="cpb-btn cpb-btn--atk"><span>Attack</span></button>
+          <button class="cpb-btn cpb-btn--solid cpb-btn--arrow"><span>Commit</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function wire(rootId) {
+      const root = document.getElementById(rootId);
+      if (!root) return;
+      const panes = root.parentElement.querySelectorAll('.tab-body');
+      root.addEventListener('click', e => {
+        const btn = e.target.closest('.cpb-tab');
+        if (!btn) return;
+        root.querySelectorAll('.cpb-tab').forEach(b => b.classList.toggle('is-active', b === btn));
+        const t = btn.dataset.target;
+        panes.forEach(p => p.hidden = (p.dataset.pane !== t));
+      });
+    }
+    wire('h-tabs');
+    wire('v-tabs');
+  </script>
+</body></html>
