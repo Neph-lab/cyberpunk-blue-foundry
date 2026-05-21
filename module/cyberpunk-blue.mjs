@@ -463,6 +463,10 @@ const syncCyberwarePsycheLossEffect = (document, options = {}) => {
     return;
   }
 
+  // Skip compendium items — they are locked and cannot have embedded documents
+  // updated via this hook (the pack is re-locked before the async sync resolves).
+  if (item.pack) return;
+
   return item.syncCyberwarePsycheLossEffect(options);
 };
 
@@ -621,6 +625,9 @@ const syncCyberwareOperationalEffects = (document, options = {}) => {
     return;
   }
 
+  // Skip compendium items — same reason as syncCyberwarePsycheLossEffect above.
+  if (item.pack) return;
+
   return item.syncCyberwareOperationalEffects(options);
 };
 
@@ -708,6 +715,9 @@ const syncSkillChipEffectHook = (document, options = {}) => {
   if (!(item instanceof CyberBlueItem) || item.type !== 'gear' || item.name !== 'Skill Chip') {
     return;
   }
+
+  // Skip compendium items — same reason as syncCyberwarePsycheLossEffect above.
+  if (item.pack) return;
 
   return item.syncSkillChipEffect(options);
 };
