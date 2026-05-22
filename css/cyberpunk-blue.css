@@ -138,6 +138,7 @@ SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace 
   align-items: center;
   justify-content: center;
   clip-path: none;
+  width: 100%;
 }
 .cpb-divider--header::before {
   content: "";
@@ -213,9 +214,9 @@ SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace 
 .cpb-brackets::before { top: 4px; left: 4px; border-top: 1.5px solid var(--cpb-accent); border-left: 1.5px solid var(--cpb-accent); }
 .cpb-brackets::after  { bottom: 4px; right: 4px; border-bottom: 1.5px solid var(--cpb-accent); border-right: 1.5px solid var(--cpb-accent); }
 
-/* ============================================================
+/* =================================================
    GENERAL / ROOT VARIABLES & PROPERTIES
-   ============================================================ */
+================================================== */
 
 :root, body, .window-app, .application {
   scrollbar-color: var(--scrollbar-color) !important;
@@ -237,6 +238,41 @@ SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace 
   --color-data-background: var(--cpb-bg);
   --input-text-color: var(--cpb-accent);
   --input-placeholder-color: var(--cpb-muted);
+}
+
+/* Overrides */
+#sidebar-content section.sidebar-tab, .application .window-content, #sidebar-content section.sidebar-tab button, .application .window-content button {
+  --color-text-emphatic: var(--cpb-accent);
+  --color-text-primary: var(--cpb-text);
+  --color-text-secondary: var(--cpb-accent-strong);
+  --color-text-subtle: var(--cpb-muted);
+  --color-text-selection: var(--cpb-text-inverted);
+  --color-text-selection-bg: var(--cpb-accent-strong);
+  --hr-border: 0;
+  --hr-gradient: linear-gradient(90deg, transparent 0%, var(--cpb-accent) 50%, transparent 100%);
+  --table-background-color: var(--cpb-bg);
+  --table-header-bg-color: var(--cpb-panel);
+  --table-header-text-color: var(--cpb-accent);
+  --table-row-color-even: var(--cpb-accent-wash-soft);
+  --table-row-color-highlight: var(--cpb-accent-strong-wash);
+  --content-link-background: var(--cpb-accent-strong-wash);
+  --content-link-border-color: var(--cpb-accent-strong-border);
+  --content-link-icon-color: var(--cpb-accent-strong);
+  --content-link-text-color: var(--cpb-accent-strong);
+  --sidebar-background: var(--cpb-bg);
+  --sidebar-separator: 1px solid var(--cpb-border);
+  --sidebar-entry-hover-bg: var(--cpb-accent-wash-soft);
+  --font-sans: var(--cpb-font-body);
+  --font-serif: var(--cpb-font-body);
+  --font-mono: var(--cpb-font-mono);
+  --font-blockquote: var(--cpb-font-display);
+  --button-background-color: var(--cpb-accent-wash-soft);
+  --button-border-color: var(--cpb-border);
+  --button-text-color: var(--cpb-accent);
+  --button-hover-background-color: var(--cpb-accent);
+  --button-hover-border-color: var(--cpb-border);
+  --button-hover-text-color: var(--cpb-bg-solid-top);
+  --button-focus-outline-color: var(--cpb-accent-warm);
 }
 
 /* ==================================================
@@ -266,6 +302,8 @@ h1, h2, h3, h4, h5, h6 {
 .journal-entry-pages h5,
 .journal-entry-pages h6 {
   font-family: var(--cpb-font-mono);
+  color: var(--cpb-accent);
+  border: none;
 }
 
 .sheet.journal-entry.application .journal-sidebar .toc li.category strong {
@@ -319,6 +357,34 @@ section.chat-sidebar:not(.sidebar-popout),
 .sidebar-tab h5.divider,
 .sidebar-tab h6.divider {
   white-space: unset;
+  text-align: center;
+  font-family: var(--cpb-font-display);
+  font-size: 1.2rem;
+  margin-top: 1rem;
+}
+
+.sidebar-tab h2.divider::before,
+.sidebar-tab h3.divider::before,
+.sidebar-tab h4.divider::before,
+.sidebar-tab h5.divider::before,
+.sidebar-tab h6.divider::before {
+    content: "";
+    width: 50%;
+    margin-right: 0.5rem;
+    border-top: 2px ridge var(--cpb-accent-strong);
+    mask-image: linear-gradient(90deg, transparent 0%, black 100%);
+}
+
+.sidebar-tab h2.divider::after,
+.sidebar-tab h3.divider::after,
+.sidebar-tab h4.divider::after,
+.sidebar-tab h5.divider::after,
+.sidebar-tab h6.divider::after {
+    content: "";
+    width: 50%;
+    margin-left: 0.5rem;
+    border-top: 2px ridge var(--cpb-accent-strong);
+    mask-image: linear-gradient(90deg, black 0%, transparent 100%);
 }
 
 .directory li.directory-item {
@@ -452,6 +518,13 @@ section.chat-sidebar:not(.sidebar-popout),
   height: 4rem;
   opacity: 0.85;
   width: 4rem;
+}
+
+.cyberpunk-blue .stat-icon-sm {
+  filter: invert(1);
+  height: 3rem;
+  opacity: 0.85;
+  width: 3rem;
 }
 
 .cyberpunk-blue .header-money {
@@ -609,15 +682,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   grid-template-columns: minmax(300px, 1.1fr) minmax(240px, 0.9fr);
 }
 
-.cyberpunk-blue .stat-card,
-.cyberpunk-blue .resource-card {
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-  gap: 0.35rem;
-  padding: 0.8rem;
-}
-
 .cyberpunk-blue .header-stat .stat-short {
   color: var(--cpb-accent-strong);
   font-size: 1.5rem;
@@ -627,8 +691,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 
 .cyberpunk-blue .stat-label,
-.cyberpunk-blue .resource-name,
-.cyberpunk-blue .stat-card .stat-short {
+.cyberpunk-blue .resource-name {
   color: var(--cpb-muted);
   font-size: 0.9rem;
 }
@@ -688,12 +751,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   color: var(--cpb-accent-strong);
 }
 
-.cyberpunk-blue .health-panel {
-  margin-top: 1rem;
-  background: var(--cpb-accent-wash);
-  clip-path: var(--cpb-border-shape);
-}
-
 .cyberpunk-blue .health-grid {
   display: grid;
   gap: 1rem;
@@ -704,9 +761,14 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  justify-content: center;
+  justify-content: flex-start;
   min-height: 100%;
   text-align: center;
+  padding-top: 0 !important;
+}
+
+.cyberpunk-blue .health-block > * {
+  z-index: 1;
 }
 
 .cyberpunk-blue .health-hp {
@@ -716,13 +778,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .health-effects {
   grid-column: span 2;
   text-align: left;
-}
-
-.cyberpunk-blue .health-block h3 {
-  color: var(--cpb-accent);
-  font-size: 1rem;
-  margin: 0;
-  text-transform: uppercase;
 }
 
 .cyberpunk-blue .health-value {
@@ -847,15 +902,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-.cyberpunk-blue .move-panel,
-.cyberpunk-blue .move-card {
-  max-width: 220px;
-}
-
-.cyberpunk-blue .armor-card {
-  max-width: 260px;
 }
 
 .cyberpunk-blue .ability-header {
@@ -1123,7 +1169,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 
 .cyberpunk-blue .cyberware-group {
-  padding-top: 0;
+  padding-top: 0 !important;
 }
 
 .cyberpunk-blue .cyberware-group .embedded-entry:not(:first-child) .cyberware-row {
@@ -1285,7 +1331,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 
 .cyberpunk-blue .traits-grid {
-  gap: var(--cpb-space-2);
+  gap: 1rem;
   display: grid;
   grid-template-columns: min-content minmax(auto, 2fr);
 }
@@ -1325,19 +1371,13 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 
 .cyberpunk-blue .quick-stats-row {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
-.cyberpunk-blue .quick-stats-row .stat-card {
-  justify-content: space-between;
-}
-
-.cyberpunk-blue .quick-stats-row .stat-card > input,
-.cyberpunk-blue .quick-stats-row .stat-card > select,
-.cyberpunk-blue .quick-stats-row .resource-fields,
 .cyberpunk-blue .armor-inline-field .resource-fields,
 .cyberpunk-blue .compact-resource {
   align-items: center;
@@ -2306,7 +2346,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   align-items: baseline;
   margin-bottom: 4px;
   gap: 6px;
-}
+} 
 
 .cyberpunk-blue .netrunner-comp-name {
   text-transform: uppercase;
@@ -3501,26 +3541,20 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 /* ── Stat & resource cards ────────────────────────────────── */
 .cyberpunk-blue .stat-card,
 .cyberpunk-blue .resource-card {
-  position: relative;
-  isolation: isolate;
-  --c: var(--cpb-cut-md);
-  background: rgba(141, 227, 255, 0.14);
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0, 100% var(--c),
-    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
-  );
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: 100%;
+  text-align: center;
+  padding-top: 0 !important;
 }
-.cyberpunk-blue .stat-card::before,
-.cyberpunk-blue .resource-card::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--cpb-panel-deep);
-  clip-path: inherit;
-  z-index: 0;
-}
+
 .cyberpunk-blue .stat-card > *,
-.cyberpunk-blue .resource-card > * { position: relative; z-index: 1; }
+.cyberpunk-blue .resource-card > * {
+  z-index: 1;
+}
 
 /* Derived field (borders → chamfer) */
 .cyberpunk-blue .derived-field {
@@ -3680,27 +3714,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .range-band.is-blocked { background: rgba(0, 0, 0, 0.8); }
 .cyberpunk-blue .range-band.is-blocked::before { background: rgba(0, 0, 0, 0.9); }
 .cyberpunk-blue .range-band.is-blocked input { background: transparent; color: #000; }
-
-/* ── Health panel ─────────────────────────────────────────── */
-.cyberpunk-blue .health-panel {
-  position: relative;
-  isolation: isolate;
-  --c: var(--cpb-cut-lg);
-  background: var(--cpb-panel-border);
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0, 100% var(--c),
-    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
-  );
-}
-.cyberpunk-blue .health-panel::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--cpb-accent-wash);
-  clip-path: inherit;
-  z-index: 0;
-}
-.cyberpunk-blue .health-panel > * { position: relative; z-index: 1; }
 
 /* ── Ammo pill ────────────────────────────────────────────── */
 .cyberpunk-blue .ammo-pill {
@@ -4078,6 +4091,15 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .application .window-header {
   background: var(--cpb-bg);
   border-bottom: 1px solid var(--cpb-accent-wash-border);
+}
+
+.application .window-header button {
+  font-family: var(--_fa-family);
+}
+
+.application .window-header button::before {
+  content: var(--fa) / "";
+  font-family: var(--_fa-family);
 }
 
 /* Remove border-radius from Foundry's own controls to stay consistent */

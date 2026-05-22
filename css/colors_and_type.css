@@ -24,14 +24,14 @@
   --cpb-text-inverted: rgb(15, 6, 18); /* for text/icons on bright panels */
   --cpb-muted: rgb(111, 133, 151);            /* desaturated blue-grey */
   --cpb-accent: rgb(0, 240, 255);           /* CYAN — electric, primary signal */
-  --cpb-accent-strong: rgb(198, 255, 0);    /* LIME — acid neon, dice & always-on */
-  --cpb-accent-warm: rgb(196, 107, 255);      /* WARM VIOLET — secondary accent reserved for BORDERS, hairlines, dividers, and decorative ticks/glyphs. NEVER for body text or runs longer than a single short word — at this saturation against the legibility floor. Use cyan for text in violet-bordered surfaces. */
+  --cpb-accent-strong: #c6ff00;    /* LIME — acid neon, dice & always-on */
+  --cpb-accent-warm: #c46bff;      /* WARM VIOLET — secondary accent reserved for BORDERS, hairlines, dividers, and decorative ticks/glyphs. NEVER for body text or runs longer than a single short word — at this saturation against the legibility floor. Use cyan for text in violet-bordered surfaces. */
   --cpb-warning: #ff9500;          /* hot amber */
   --cpb-error: #ff2350;            /* hot blood red */
   --cpb-magenta: #ff2bd6;          /* high-energy glitch (sparingly) */
 
   /* Tinted accent washes (used as fills on chips / toggles / highlights) */
-  --cpb-accent-wash: rgba(0, 240, 255, 0.18);
+  --cpb-accent-wash: #00f0ff2e;
   --cpb-accent-wash-soft: rgba(0, 240, 255, 0.10);
   --cpb-accent-wash-border: rgba(0, 240, 255, 0.45);
   --cpb-accent-strong-wash: rgba(198, 255, 0, 0.16);

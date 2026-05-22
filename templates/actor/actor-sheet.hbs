@@ -52,79 +52,65 @@
 
   <section class="sheet-body">
     <div class="tab active" data-group="primary" data-tab="overview">
-      <section class="sheet-panel health-panel {{#if charCreation.highlightSecondary}}char-creation-highlight{{/if}}">
-        <h2>{{localize "CYBER_BLUE.Sheet.Labels.Health"}}</h2>
-        <div class="health-grid">
-          <div class="health-block health-hp">
-            <h3>HP</h3>
-            <div class="resource-fields">
-              <input type="number" name="system.resources.hp.value" value="{{health.hp.value}}" data-dtype="Number" />
-              <span>/</span>
-              <input type="number" value="{{health.hp.max}}" disabled />
-            </div>
-          </div>
-
-          <div class="health-block health-threshold">
-            <h3>{{localize "CYBER_BLUE.Sheet.Labels.SeriousWoundThreshold"}}</h3>
-            <div class="health-value">{{health.seriousWoundThreshold}}</div>
-          </div>
-
-          <div class="health-block health-threshold">
-            <h3>{{localize "CYBER_BLUE.Sheet.Labels.DeathSave"}}</h3>
-            <div class="health-value">{{health.deathSave}}</div>
-          </div>
-
-          {{#if isNPC}}
-            <div class="health-block">
-              <h3>{{psyche.label}}</h3>
-              <div class="resource-fields">
-                <input type="number" name="system.resources.psyche.value" value="{{psyche.value}}" data-dtype="Number" />
-                <span>/</span>
-                <input type="number" value="{{psyche.max}}" disabled />
-              </div>
-            </div>
-          {{/if}}
-
-          <div class="health-block health-effects">
-            <h3>{{localize "CYBER_BLUE.Sheet.Labels.HealthEffects"}}</h3>
-            <div class="health-effects-list">
-              {{#if health.effects.length}}
-                {{#each health.effects as |effect|}}
-                  <div class="health-effect-row {{#if effect.isCriticalInjury}}is-critical-injury{{/if}} {{#if effect.mortal}}is-mortal{{/if}}">
-                    <button type="button" class="health-effect" data-action="open-health-effect" data-effect-id="{{effect.id}}" title="{{#if effect.canEdit}}Open and edit effect{{else}}Open effect{{/if}}">
-                      <img src="{{effect.icon}}" alt="{{effect.name}}" />
-                      <span>{{effect.name}}</span>
-                      {{#if effect.duration}}
-                        <span class="effect-duration">{{effect.duration}}</span>
-                      {{/if}}
-                      {{#if effect.mortal}}
-                        <span class="effect-mortal-badge" title="{{localize 'CYBER_BLUE.CriticalInjury.MortalWound'}}"><i class="fas fa-heart-pulse"></i></span>
-                      {{/if}}
+      <section class="quick-stats-row {{#if charCreation.highlightSecondary}}char-creation-highlight{{/if}}">
+        <div class="stat-card sheet-panel health-effects">
+          <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Sheet.Labels.HealthEffects"}}</span></div>
+          <div class="health-effects-list">
+            {{#if health.effects.length}}
+              {{#each health.effects as |effect|}}
+                <div class="health-effect-row {{#if effect.isCriticalInjury}}is-critical-injury{{/if}} {{#if effect.mortal}}is-mortal{{/if}}">
+                  <button type="button" class="health-effect" data-action="open-health-effect" data-effect-id="{{effect.id}}" title="{{#if effect.canEdit}}Open and edit effect{{else}}Open effect{{/if}}">
+                    <img src="{{effect.icon}}" alt="{{effect.name}}" />
+                    <span>{{effect.name}}</span>
+                    {{#if effect.duration}}
+                      <span class="effect-duration">{{effect.duration}}</span>
+                    {{/if}}
+                    {{#if effect.mortal}}
+                      <span class="effect-mortal-badge" title="{{localize 'CYBER_BLUE.CriticalInjury.MortalWound'}}"><i class="fas fa-heart-pulse"></i></span>
+                    {{/if}}
+                  </button>
+                  {{#if (and @root.isGM effect.isCriticalInjury)}}
+                    <button type="button" class="health-effect-delete" data-action="remove-critical-injury" data-effect-id="{{effect.id}}" title="{{localize 'CYBER_BLUE.CriticalInjury.Remove'}}">
+                      <i class="fas fa-trash"></i>
                     </button>
-                    {{#if (and @root.isGM effect.isCriticalInjury)}}
-                      <button type="button" class="health-effect-delete" data-action="remove-critical-injury" data-effect-id="{{effect.id}}" title="{{localize 'CYBER_BLUE.CriticalInjury.Remove'}}">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    {{/if}}
-                    {{#if (and @root.isGM effect.isAffliction)}}
-                      <button type="button" class="health-effect-delete" data-action="remove-affliction" data-effect-id="{{effect.id}}" title="{{localize 'CYBER_BLUE.Combat.AfflictionRemove'}}">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    {{/if}}
-                  </div>
-                {{/each}}
-              {{else}}
-                <p class="hint">No direct health effects on this character.</p>
-              {{/if}}
-            </div>
+                  {{/if}}
+                  {{#if (and @root.isGM effect.isAffliction)}}
+                    <button type="button" class="health-effect-delete" data-action="remove-affliction" data-effect-id="{{effect.id}}" title="{{localize 'CYBER_BLUE.Combat.AfflictionRemove'}}">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  {{/if}}
+                </div>
+              {{/each}}
+            {{else}}
+              <p class="hint">No direct health effects on this character.</p>
+            {{/if}}
           </div>
         </div>
-      </section>
 
+        <div class="stat-card sheet-panel health-hp">
+          <div class="cpb-divider--header"><span>Hit Points (HP)</span></div>
+          <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_HP.svg" alt="HP" />
+          <div class="resource-fields">
+            <input type="number" name="system.resources.hp.value" value="{{health.hp.value}}" data-dtype="Number" />
+            <span>/</span>
+            <input type="number" value="{{health.hp.max}}" disabled />
+          </div>
+        </div>
 
-<section class="quick-stats-row {{#if charCreation.highlightSecondary}}char-creation-highlight{{/if}}">
-        <div class="sheet-panel stat-card armor-card">
-          <span class="stat-short">{{localize "CYBER_BLUE.Sheet.Labels.StoppingPower"}}</span>
+        <div class="stat-card sheet-panel health-threshold">
+          <div class="cpb-divider--header"><span>Serious Wound</span></div>
+          <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_SWT.svg" alt="Serious Wound Threshold" />
+          <div class="health-value">{{health.seriousWoundThreshold}}</div>
+        </div>
+
+        <div class="stat-card sheet-panel health-threshold">
+          <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Sheet.Labels.DeathSave"}}</span></div>
+          <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_Death_Save.svg" alt="Death Save" />
+          <div class="health-value">{{health.deathSave}}</div>
+        </div>
+
+        <div class="stat-card sheet-panel armor-card">
+          <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Sheet.Labels.StoppingPower"}}</span></div>
           <select name="system.combat.activeArmorItemId">
             {{#if armor.options.length}}
               {{#each armor.options as |option|}}
@@ -140,43 +126,34 @@
             <input type="number" value="{{armor.max}}" disabled />
           </div>
         </div>
+        
+        <label class="sheet-panel stat-card move-card">
+          <div class="cpb-divider--header"><span>{{move.shortLabel}}</span></div>
+          <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_MOVE.svg" alt="{{move.label}}" />
+          <input type="number" name="system.stats.move.value" value="{{move.value}}" data-dtype="Number" />
+        </label>
+        
+        <div class="sheet-panel stat-card psyche-card">
+          <div class="cpb-divider--header"><span>{{psyche.label}}</span></div>
+          <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_PSYCHE.svg" alt="{{psyche.label}}" />
+          <div class="resource-fields">
+            <input type="number" name="system.resources.psyche.value" value="{{psyche.value}}" data-dtype="Number" />
+            <span>/</span>
+            <input type="number" value="{{psyche.max}}" disabled />
+          </div>
+        </div>
 
         {{#unless isNPC}}
-          <label class="sheet-panel stat-card move-card">
-            <span class="stat-short">{{move.shortLabel}}</span>
-            <input type="number" name="system.stats.move.value" value="{{move.value}}" data-dtype="Number" />
-          </label>
-        {{/unless}}
-
-        {{#if isNPC}}
-          <div class="sheet-panel stat-card move-card">
-            <span class="stat-short">{{psyche.label}}</span>
-            <div class="resource-fields">
-              <input type="number" name="system.resources.psyche.value" value="{{psyche.value}}" data-dtype="Number" />
-              <span>/</span>
-              <input type="number" value="{{psyche.max}}" disabled />
-            </div>
-          </div>
-        {{else}}
-          <div class="sheet-panel stat-card move-card">
-            <span class="stat-short">{{psyche.label}}</span>
-            <div class="resource-fields">
-              <input type="number" name="system.resources.psyche.value" value="{{psyche.value}}" data-dtype="Number" />
-              <span>/</span>
-              <input type="number" value="{{psyche.max}}" disabled />
-            </div>
-          </div>
-
-          <div class="sheet-panel stat-card move-card luck-card">
-            <span class="stat-short">{{luck.label}}</span>
+          <div class="sheet-panel stat-card luck-card">
+            <div class="cpb-divider--header"><span>{{luck.label}}</span></div>
+            <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_LUCK.svg" alt="{{luck.label}}" />
             <div class="resource-fields">
               <input type="number" name="system.resources.luck.value" value="{{luck.value}}" data-dtype="Number" />
               <span>/</span>
               <input type="number" value="{{luck.max}}" disabled />
             </div>
           </div>
-        {{/if}}
-
+        {{/unless}}
       </section>
 
       {{#if (or combatWeapons.length martialArtsAttacks.length)}}

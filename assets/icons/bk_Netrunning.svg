@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="100%" height="100%" viewBox="0 0 136 131" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
-    <g transform="matrix(1,0,0,1,-1211.212358,-5.870038)">
-        <g transform="matrix(4.166667,0,0,4.166667,1202.1042,0)">
-            <g id="bk_Netrunning">
+<svg width="100%" height="100%" viewBox="0 0 154 154" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,-1202,0)">
+        <g id="bk_Netrunning" transform="matrix(4.166667,0,0,4.166667,1202.1042,0)">
+            <rect x="0" y="0" width="36.85" height="36.85" style="fill:none;"/>
+            <g id="bk_Netrunning1" serif:id="bk_Netrunning">
                 <g transform="matrix(0.210705,0,0,0.210705,-143.16316,-34.147377)">
                     <path d="M689.823,254.475L689.823,211.122C689.823,207.341 691.84,203.846 695.115,201.955L705.083,196.2L710.375,205.367L700.407,211.122L700.407,215.597L696.258,215.597L696.258,242.934L700.407,242.934L700.407,287.894L719.268,298.783L713.976,307.95L695.115,297.06C691.84,295.17 689.823,291.675 689.823,287.894L689.823,281.811L693.872,281.811L693.872,254.475L689.823,254.475ZM843.965,242.934L843.965,287.894C843.965,291.675 841.947,295.17 838.672,297.06L819.974,307.856L814.682,298.689L833.38,287.894L833.38,281.811L837.297,281.811L837.297,254.475L833.38,254.475L833.38,211.122L823.412,205.367L828.704,196.2L838.672,201.955C841.947,203.846 843.965,207.341 843.965,211.122L843.965,215.597L839.683,215.597L839.683,242.934L843.965,242.934ZM748.597,171.077L751.881,169.181L757.174,178.348L753.89,180.244L748.597,171.077ZM748.31,183.466L743.644,186.16L738.351,176.993L743.017,174.299L748.31,183.466ZM781.156,168.749L784.44,170.645L779.148,179.811L775.864,177.915L781.156,168.749ZM790.02,173.866L795.436,176.993L790.143,186.16L784.728,183.033L790.02,173.866Z"/>
                 </g>
