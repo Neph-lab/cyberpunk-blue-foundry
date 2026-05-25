@@ -562,6 +562,78 @@ ChatMessage.create({
 })();
 `;
 
+// ─── Clear Role-Granted Items macro ──────────────────────────────────────────
+
+export const CLEAR_ROLE_GRANTED_ITEMS_MACRO = `
+(async () => {
+// ── Clear Role-Granted Items ──────────────────────────────────────────────────
+// GM macro. Select a token (or set a default character) and run.
+// Finds every item on the actor whose name appears in the role's
+// grantedItemGroups list and offers to delete them, giving a clean slate for
+// manual setup. Delete and re-add the Role item afterwards to re-trigger the
+// automatic gear grant with current behaviour.
+// If the role has no grantedItemGroups data, run
+// Settings → Re-sync Role Starting Gear first.
+
+if (!game.user.isGM) { ui.notifications.warn('GM only.'); return; }
+
+const token = canvas.tokens.controlled[0];
+const actor = token?.actor ?? game.user.character;
+if (!actor) {
+  ui.notifications.warn('Select a token or set a default character first.');
+  return;
+}
+
+const roleItems = actor.items.filter(i => i.type === 'role');
+if (!roleItems.length) {
+  ui.notifications.warn(\`\${actor.name} has no Role items.\`);
+  return;
+}
+
+const grantedNames = new Set();
+let anyGroups = false;
+for (const role of roleItems) {
+  for (const group of role.system?.grantedItemGroups ?? []) {
+    for (const ref of group.items ?? []) {
+      if (ref.name) { grantedNames.add(ref.name); anyGroups = true; }
+    }
+  }
+}
+
+if (!anyGroups) {
+  ui.notifications.warn(
+    'No starting gear data on the role item(s). ' +
+    'Run Settings → Re-sync Role Starting Gear first, then try again.'
+  );
+  return;
+}
+
+const toRemove = actor.items.filter(i => i.type !== 'role' && grantedNames.has(i.name));
+if (!toRemove.length) {
+  ui.notifications.info(\`No role-granted items found on \${actor.name}.\`);
+  return;
+}
+
+const listHtml = toRemove
+  .map(i => \`<li>\${foundry.utils.escapeHTML(i.name)} <em style="opacity:.7">(\${i.type})</em></li>\`)
+  .join('');
+
+const confirmed = await foundry.applications.api.DialogV2.confirm({
+  window: { title: 'Clear Role-Granted Items' },
+  content: \`
+    <p>Remove the following items from <strong>\${foundry.utils.escapeHTML(actor.name)}</strong>?</p>
+    <ul style="margin:.4em 0 .4em 1.2em">\${listHtml}</ul>
+    <p style="margin-top:.5em"><em>Delete and re-add the Role item to re-trigger automatic gear grant.</em></p>
+  \`,
+  rejectClose: false,
+});
+if (!confirmed) return;
+
+await actor.deleteEmbeddedDocuments('Item', toRemove.map(i => i.id));
+ui.notifications.info(\`Cleared \${toRemove.length} role-granted item(s) from \${actor.name}.\`);
+})();
+`;
+
 // ─── Remove Table Effects macro ───────────────────────────────────────────────
 
 export const REMOVE_TABLE_EFFECTS_MACRO = `
@@ -649,5 +721,12 @@ export const MACRO_CATALOGUE = [
     img: 'icons/svg/cancel.svg',
     command: REMOVE_TABLE_EFFECTS_MACRO,
     _folder: 'Combat Effects',
+  },
+  {
+    name: 'Clear Role-Granted Items',
+    type: 'script',
+    img: 'icons/svg/item-bag.svg',
+    command: CLEAR_ROLE_GRANTED_ITEMS_MACRO,
+    _folder: 'GM Tools',
   },
 ];
