@@ -838,6 +838,13 @@ export const EQUIPMENT_CATALOGUE = [
     ],
   }),
   gear({
+    name: 'Flak',
+    folder: 'Body Armor', imgPath: `${A_ARMOR}/flak-armor.png`, cost: 'EX',
+    isArmor: true, maxSp: 15,
+    description: 'Flack vest and pants. Inflexible, solid armor.',
+    effects: [ae('Flak', [stat('rflx', -4), stat('move', -3)])],
+  }),
+  gear({
     name: 'Bulletproof Shield',
     folder: 'Body Armor', imgPath: `${A_ARMOR}/bulletproof-shield.png`, cost: 'EX',
     isArmor: true, maxSp: 15,
