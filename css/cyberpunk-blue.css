@@ -241,7 +241,7 @@ SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace 
 }
 
 /* Overrides */
-#sidebar-content section.sidebar-tab, .application .window-content, #sidebar-content section.sidebar-tab button, .application .window-content button {
+#sidebar-content section.sidebar-tab, .application .window-content, #sidebar-content section.sidebar-tab button, .application .window-content button, .flexcol button.ui-control {
   --color-text-emphatic: var(--cpb-accent);
   --color-text-primary: var(--cpb-text);
   --color-text-secondary: var(--cpb-accent-strong);
@@ -273,6 +273,22 @@ SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace 
   --button-hover-border-color: var(--cpb-border);
   --button-hover-text-color: var(--cpb-bg-solid-top);
   --button-focus-outline-color: var(--cpb-accent-warm);
+  --control-bg-color: var(--cpb-accent-wash-soft);
+  --control-border-color: var(--cpb-border);
+  --control-icon-color: var(--cpb-accent);
+  --control-hover-bg-color: var(--cpb-accent);
+  --control-hover-border-color: var(--cpb-accent);
+  --control-hover-icon-color: var(--cpb-bg-solid-top);
+  --control-active-bg-color: var(--cpb-accent-strong-wash);
+  --control-active-border-color: var(--cpb-accent-strong-border);
+  --control-active-icon-color: var(--cpb-accent-strong);
+  --control-button-border-color: var(--cpb-border);
+  --control-button-hover-bg-color: var(--cpb-accent);
+  --control-button-hover-border-color: var(--cpb-border);
+  --toggle-bg-color: var(--cpb-accent-wash-soft);
+  --toggle-border-color: var(--cpb-accent);
+  --toggle-active-bg-color: var(--cpb-accent-strong-wash);
+  --toggle-active-border-color: var(--cpb-accent-strong-border);
 }
 
 /* ==================================================
@@ -325,6 +341,22 @@ section.chat-sidebar:not(.sidebar-popout),
 #chat {
   background-color: transparent;
   background: var(--cpb-bg);
+}
+
+#settings > section.documentation a.button {
+  --button-hover-background-color: var(--cpb-accent);
+  --button-hover-border-color: var(--cpb-border);
+  --button-hover-text-color: var(--cpb-bg-solid-top);
+  --button-focus-outline-color: var(--cpb-accent-warm);
+  background: var(--cpb-accent-wash-soft);
+  color: var(--cpb-accent);
+  border: var(--cpb-border);
+}
+
+#settings > section.documentation a.button:hover {
+  background: var(--cpb-accent);
+  border: var(--cpb-border);
+  color: var(--cpb-bg-solid-top);
 }
 
 .chat-message {

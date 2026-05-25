@@ -7,6 +7,7 @@ const CC_STEPS = ['welcome', 'lifepath', 'stats', 'secondary', 'languages', 'abi
 // Tables that are triggered automatically as sub-tables by Friends / Enemies and
 // should not be listed as standalone entries the player rolls directly.
 const LIFEPATH_SUB_TABLE_NAMES = new Set([
+  'Hair color',
   "Who's your friend?",
   "Who's your enemy?",
   "What's their Role?",

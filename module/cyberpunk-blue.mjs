@@ -2666,28 +2666,48 @@ async function ensureLifepathCatalogue() {
   }
   await pack.getIndex();
 
-  // Group catalogue by folder
+  // ── Cleanup pass ──────────────────────────────────────────────────────────
+  // Earlier builds had 15-char _ids (GenLp0100000000) which Foundry rejected
+  // with a DataModelValidationError and replaced with auto-generated random IDs
+  // on each world load, creating duplicate tables.  Purge any table whose name
+  // matches a catalogue entry but whose _id doesn't match the expected value.
+  {
+    const expectedIds   = new Set(LIFEPATH_CATALOGUE.map((t) => t._id));
+    const catalogueNames = new Set(LIFEPATH_CATALOGUE.map((t) => t.name));
+    const orphanIds = [...pack.index]
+      .filter((e) => catalogueNames.has(e.name) && !expectedIds.has(e._id))
+      .map((e) => e._id);
+    if (orphanIds.length > 0) {
+      console.log(`Cyberpunk Blue | Removing ${orphanIds.length} orphan lifepath table(s) (stale duplicate IDs)…`);
+      await pack.configure({ locked: false });
+      try { await RollTable.deleteDocuments(orphanIds, { pack: PACK_ID }); }
+      finally { await pack.configure({ locked: true }); }
+      await pack.getIndex(); // refresh after deletion
+    }
+  }
+
+  // Find catalogue entries missing from the pack by _id.
+  // This correctly handles partially-populated folders (including an empty
+  // "General Lifepath" folder that already exists but has no tables yet).
+  const existingIds = new Set(pack.index.map((e) => e._id));
+  const toCreate = LIFEPATH_CATALOGUE.filter((t) => !existingIds.has(t._id));
+
+  if (toCreate.length === 0) return; // already up to date
+
+  console.log(`Cyberpunk Blue | Adding ${toCreate.length} missing lifepath table(s) to compendium…`);
+
+  // Group only the missing tables by folder
   const byFolder = new Map();
-  for (const table of LIFEPATH_CATALOGUE) {
+  for (const table of toCreate) {
     const folderName = table._folder ?? 'General Lifepath';
     if (!byFolder.has(folderName)) byFolder.set(folderName, []);
     byFolder.get(folderName).push(table);
   }
 
-  // Only populate folders that are missing from the pack.
-  // This handles both fresh installs (all folders missing) and migrations
-  // where only new folders (e.g. "General Lifepath") need to be added.
-  const existingFolderNames = new Set(pack.folders.map((f) => f.name));
-  const foldersToPopulate = [...byFolder.entries()].filter(([name]) => !existingFolderNames.has(name));
-
-  if (foldersToPopulate.length === 0) return; // already up to date
-
-  console.log(`Cyberpunk Blue | Adding ${foldersToPopulate.length} missing lifepath folder(s) to compendium…`);
-
   let created = 0;
   await pack.configure({ locked: false });
   try {
-    for (const [folderName, tables] of foldersToPopulate) {
+    for (const [folderName, tables] of byFolder) {
       const folder = await _ensureRollTableFolderInPack(pack, folderName);
       const cleaned = tables.map((t) => {
         const copy = foundry.utils.deepClone(t);
