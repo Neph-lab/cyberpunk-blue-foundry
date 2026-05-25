@@ -229,10 +229,6 @@ Hooks.once('init', function () {
   });
 
   // ── System settings ────────────────────────────────────────────────────────
-  game.settings.register('cyberpunk-blue', 'worldInitialized', {
-    scope: 'world', config: false, type: Boolean, default: false,
-  });
-
   game.settings.register('cyberpunk-blue', 'areaEffectDuration', {
     name: 'CYBER_BLUE.Settings.AreaEffectDuration.Name',
     hint: 'CYBER_BLUE.Settings.AreaEffectDuration.Hint',
@@ -1120,12 +1116,10 @@ Hooks.once('ready', async () => {
   await ensureMacroCatalogue();
   await ensureTarotDeck();
 
-  // On the first GM login, sync role starting gear to the compendium
-  const worldInitialized = game.settings.get('cyberpunk-blue', 'worldInitialized');
-  if (!worldInitialized) {
-    await syncRoleGrantedItemGroups();
-    await game.settings.set('cyberpunk-blue', 'worldInitialized', true);
-  }
+  // Sync role starting gear to the compendium on every GM login so that
+  // additions or renames to ROLE_STARTING_GEAR are always picked up without
+  // requiring a manual "Re-sync Role Starting Gear" from Settings.
+  await syncRoleGrantedItemGroups();
 
   const seen = new Set();
   const allItems = [
