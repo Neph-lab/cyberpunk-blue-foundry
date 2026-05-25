@@ -426,16 +426,24 @@ export async function applyFirstRoleSetup(actor, roleItem) {
       const primaryDeck = allCyberdecks.find((i) => i.system.equipped) ?? allCyberdecks[0] ?? null;
 
       if (primaryDeck) {
-        // Match newly-created actor item documents by name to the granted programme data
+        // Match newly-created actor item documents by name to the granted programme data.
+        // Track already-queued IDs so that multiple programs sharing the same name
+        // (e.g. three Sword programs when a Netrunner picks Sword in multiple pick groups)
+        // each receive their own installedOnId rather than all resolving to the same item.
         const updates = [];
+        const alreadyQueued = new Set();
         for (const progData of grantedPrograms) {
-          // Find the actor item we just created (no installedOnId yet)
+          // Find the actor item we just created (no installedOnId yet, not already queued)
           const created = actor.items.find(
             (i) => i.type === 'programExecutable'
               && i.name === progData.name
-              && !i.system.installedOnId,
+              && !i.system.installedOnId
+              && !alreadyQueued.has(i.id),
           );
-          if (created) updates.push({ _id: created.id, 'system.installedOnId': primaryDeck.id });
+          if (created) {
+            updates.push({ _id: created.id, 'system.installedOnId': primaryDeck.id });
+            alreadyQueued.add(created.id);
+          }
         }
         if (updates.length) {
           await actor.updateEmbeddedDocuments('Item', updates);
