@@ -829,7 +829,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Bodyweight Suit',
     manufacturer: 'Netwatch',
-    folder: 'Body Armor', imgPath: `${A_ARMOR}/light-bodyweight-suit.png`, cost: 'VEX',
+    folder: 'Body Armor', imgPath: `${A_ARMOR}/bodyweight-suit.png`, cost: 'VEX',
     isArmor: true, maxSp: 11,
     description: 'Like the light version, sintered armor-gel layered in key areas. Reduces damage from both Black ICE and remote hacking by 1 and blocks programs from setting the wearer or their equipment on fire.',
     effects: [
