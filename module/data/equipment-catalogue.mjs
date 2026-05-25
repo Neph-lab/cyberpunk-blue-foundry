@@ -845,6 +845,14 @@ export const EQUIPMENT_CATALOGUE = [
     effects: [ae('Flak', [stat('rflx', -4), stat('move', -3)])],
   }),
   gear({
+    name: 'Metalgear',
+    manufacturer: 'Militech',
+    folder: 'Body Armor', imgPath: `${A_ARMOR}/metalgear-armor.png`, cost: 'LUX',
+    isArmor: true, maxSp: 18,
+    description: 'Thick armor-plating. Inflexible.',
+    effects: [ae('Metalgear', [stat('rflx', -4), stat('move', -4)])],
+  }),
+  gear({
     name: 'Bulletproof Shield',
     folder: 'Body Armor', imgPath: `${A_ARMOR}/bulletproof-shield.png`, cost: 'EX',
     isArmor: true, maxSp: 15,
