@@ -12,6 +12,7 @@ import { resolveAfflictionAttack } from './affliction-attack.mjs';
 import { applyDamageWithPermission, rollCriticalInjuryWithPermission, deleteActorItemWithPermission, ablateArmorExtraWithPermission, applyForcedCriticalInjuryWithPermission } from './socket.mjs';
 import { clearWeaponCharge, countWallsBetweenTokens } from './tech-charge.mjs';
 import { getActiveAEFlag } from './effects.mjs';
+import { playUiSound, suppressNextFailSound, playSfx } from './audio.mjs';
 
 /** Count the number of d6s in a damage roll (using their face count, not total). */
 function countDamageDice(roll) {
@@ -147,12 +148,16 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   if (definition.usesMagazine) {
     const ammoCurrent = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
     if (ammoCurrent <= 0) {
+      suppressNextFailSound();
+      playUiSound('gun-empty');
       ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.NoAmmo', { weapon: item.name }));
       return;
     }
     // minimumAmmoToFire (Kang Tao L-69 Zhuo): refuses to fire below threshold
     const minAmmo = weapon.minimumAmmoToFire ?? 0;
     if (minAmmo > 0 && ammoCurrent < minAmmo) {
+      suppressNextFailSound();
+      playUiSound('gun-empty');
       ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.MinAmmoToFire', { weapon: item.name, min: minAmmo, current: ammoCurrent }));
       return;
     }
@@ -429,6 +434,12 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
 
   // ── Solo Precision Attack: +1 to all attacks per 3 pts allocated ─────────
   attackModifier += getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
+
+  if (isMelee) {
+    playSfx('melee-weapon-attack');
+  } else if (isRanged && weapon.type !== 'bowCrossbow' && !isCharged) {
+    playSfx('gunshot');
+  }
 
   const attackRoll = await attacker.rollSkill({ skillSlug, dv: resolvedDV, modifier: attackModifier });
 
@@ -1061,6 +1072,8 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
 
   const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? weapon.ammoCurrent ?? 0;
   if (currentAmmo < AUTOFIRE_AMMO_COST) {
+    suppressNextFailSound();
+    playUiSound('gun-empty');
     ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.AutofireNotEnoughAmmo'));
     return;
   }
@@ -1187,6 +1200,8 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
 
   // ── Solo Precision Attack: +1 to all attacks per 3 pts allocated ─────────
   const autofirePrecisionBonus = getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
+
+  playSfx('autofire');
 
   // Roll attack using custom formula (skill override + recoil mod bonus)
   const autofireTotal = totalBonus + autofirePrecisionBonus;

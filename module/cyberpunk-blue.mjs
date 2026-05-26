@@ -21,6 +21,7 @@ import {
 import { syncActorLeaderRoles, syncAllProteanFociAEs, syncAllRoleConditionAEs, normalizeRoleSystemData } from './helpers/roles.mjs';
 import { CyberBlueJsonImportDialog, CyberBlueMacroCreator, CyberBlueWeaponImportDialog, CyberBlueResyncStartingGear } from './helpers/gm-tools.mjs';
 import { CharacterCreationWizard } from './helpers/character-creation.mjs';
+import { initAudio, playUiSound } from './helpers/audio.mjs';
 import {
   getActiveCombatant,
   getCombatantForToken,
@@ -869,6 +870,20 @@ Hooks.on('createItem', syncProteanFociEffects);
 Hooks.on('updateItem', syncProteanFociEffects);
 Hooks.on('deleteItem', syncProteanFociEffects);
 
+// ─── Cyberware install / uninstall sounds ────────────────────────────────────
+Hooks.on('createItem', (item, _data, _options, userId) => {
+  if (item.type !== 'cyberware') return;
+  if (!(item.parent instanceof Actor)) return;
+  if (userId !== game.user.id) return;
+  playUiSound('install-cyberware');
+});
+Hooks.on('deleteItem', (item, _options, userId) => {
+  if (item.type !== 'cyberware') return;
+  if (!(item.parent instanceof Actor)) return;
+  if (userId !== game.user.id) return;
+  playUiSound('install-cyberware');
+});
+
 // ─── Role condition AE sync ───────────────────────────────────────────────────
 // Re-sync role-condition AEs whenever any role item is created/updated/deleted.
 // Triggered by the editing client only (userId === game.user.id).
@@ -1230,6 +1245,7 @@ Hooks.on('combatTurn', async (combat, updateData) => {
 Hooks.once('ready', async () => {
   // Register socket handlers for all users (handler itself checks isGM where needed)
   registerSocketHandlers();
+  initAudio();
 
   if (!game.user.isGM) {
     return;

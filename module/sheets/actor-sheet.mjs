@@ -21,6 +21,7 @@ import {
 } from '../helpers/netrunning.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack, resolveDoubleLockAttack } from '../helpers/combat-resolution.mjs';
 import { startRicochetPlacement, clearRicochetPoint, refreshAllRicochetLines } from '../helpers/ricochet-canvas.mjs';
+import { playUiSound } from '../helpers/audio.mjs';
 import { clearWeaponCharge } from '../helpers/tech-charge.mjs';
 import { CRITICAL_INJURY_FLAG } from '../helpers/critical-injury.mjs';
 import { AFFLICTION_EFFECT_FLAG } from '../helpers/affliction-attack.mjs';
@@ -1703,6 +1704,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       return;
     }
 
+    playUiSound('equip');
     await item.update(getGearStateUpdateData(state));
   }
 
@@ -1892,6 +1894,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     const newAmmoCurrent = currentAfterUnload + toLoad;
     const newAmmoQty = chosenAmmoDoc.system.quantity - toLoad;
 
+    playUiSound('reload');
     // Update weapon: new ammo count + record which ammo was used
     await item.update(buildWeaponUpdate(item, weaponIndex, {
       ammoCurrent: newAmmoCurrent,

@@ -31,6 +31,7 @@ import {
   createActiveEffectWithPermission,
   applyForcedCriticalInjuryWithPermission,
 } from './socket.mjs';
+import { playSfx } from './audio.mjs';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -294,6 +295,8 @@ export async function resolveMartialArtsAttack(attacker, componentSlug, {
     dialog.render(true);
   });
   if (!dialogResult) return;
+
+  playSfx('martial-arts-attack');
 
   // Evasion: always auto-roll; evasion result IS the DV (no target = no DV, auto-hit).
   let resolvedDV = null;

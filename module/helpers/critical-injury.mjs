@@ -17,6 +17,8 @@
  * in the compendium, and falls back to a pure-JS roll if neither is found.
  */
 
+import { playSfx } from './audio.mjs';
+
 export const CRITICAL_INJURY_FLAG = 'criticalInjury';
 
 export const CRITICAL_BODY_TABLE_NAME = 'Critical Body Injuries';
@@ -603,6 +605,10 @@ const CRUSHING_HEAD_CASCADE_TRIGGER = 'concussion';
 const CRUSHING_HEAD_CASCADE_ESCALATE = 'cracked-skull';
 
 export async function rollCriticalInjury(targetActor, tableType = 'body', { attackerActor, weaponFlags = {} } = {}) {
+  if (['character', 'npc', 'mook'].includes(targetActor?.type)) {
+    playSfx('crit-on-human');
+  }
+
   const hardcodedTable = tableType === 'head' ? CRITICAL_HEAD_INJURY_TABLE : CRITICAL_INJURY_TABLE;
   const tableLabel = tableType === 'head'
     ? game.i18n.localize('CYBER_BLUE.CriticalInjury.Head.Title')

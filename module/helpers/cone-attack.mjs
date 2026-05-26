@@ -1,4 +1,5 @@
 import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
+import { playSfx } from './audio.mjs';
 import { getEffectiveItemWeapons } from './mods.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
 import { rollAfflictionDefense, checkAfflictionSP, applyAfflictionEffect } from './affliction-attack.mjs';
@@ -355,6 +356,7 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
   }
 
   // Roll attack
+  playSfx('explosion');
   const precisionBonus = getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
   const attackRoll = await attacker.rollSkill({ skillSlug, modifier: precisionBonus });
   const hit = attackRoll.total >= resolvedDV;

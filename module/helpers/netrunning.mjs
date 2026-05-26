@@ -17,17 +17,12 @@
  *   flags['cyberpunk-blue'][`netRam.${cyberdeckId}`] = number
  */
 
+import { playSfx } from './audio.mjs';
+
 const NET_CONNECTION_FLAG  = 'netConnection';
 const JACKED_IN_AE_FLAG    = 'jackedInEffect';
 export const PROGRAM_ACTOR_FLAG  = 'programActorId';
 
-/**
- * Return the ID of the first non-GM user who has Owner-level permission on
- * the actor, or null if the actor is only owned by GMs.
- *
- * @param {Actor} actor
- * @returns {string|null}
- */
 function _actorOwnerUserId(actor) {
   return game.users.find(
     (u) => !u.isGM && actor.getUserLevel(u) === CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER,
@@ -944,6 +939,12 @@ export async function startEncryptDecryptTimer(actor, opLabel) {
  *   null if the action was cancelled.
  */
 export async function resolveNetAttack(attackerActor, targetActor, atkModifier, attackerLabel, damageFormula, dvOverride = null) {
+  if (attackerActor?.type === 'program' && attackerActor?.system?.programType === 'blackice') {
+    playSfx('black-ICE-attack');
+  } else {
+    playSfx('NET-action-zap');
+  }
+
   // Determine DV
   let dv;
   if (dvOverride !== null) {
