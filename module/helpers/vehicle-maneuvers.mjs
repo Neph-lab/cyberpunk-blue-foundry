@@ -22,12 +22,13 @@
  * adjust in SHARP_TURN_DV_TABLE without changing any other code.
  *
  * ── Lost Control ──────────────────────────────────────────────────────────────
- * When a Drive check fails on a check-required Maneuver, this module posts a
- * "Lost Control!" warning to chat.  Actual Lost Control table lookup is Phase 7.
+ * When a Drive check fails on a check-required Maneuver, the vehicle rolls on
+ * the appropriate Lost Control table (vehicle-lost-control.mjs).
  */
 
 import { getPendingManeuver, clearPendingManeuver, getVehicleHandling } from './vehicle-combat.mjs';
 import { resolveRammingCollision } from './vehicle-movement.mjs';
+import { rollLostControl } from './vehicle-lost-control.mjs';
 
 const FLAG_SCOPE = 'cyberpunk-blue';
 
@@ -327,7 +328,7 @@ async function _executeSharpTurn(vehicleCombatant, actor, vehicleToken, maneuver
       `<p>Declared: <strong>${bucketLabel}</strong></p>
        <p>Drive check failed (${maneuver.rollResult} &lt; ${maneuver.dv}).</p>`
     );
-    await _postLostControlWarning(actor, vehicleToken);
+    await rollLostControl(actor, vehicleToken, `Sharp Turn drive check failed (${maneuver.rollResult} < ${maneuver.dv})`);
     return;
   }
 
@@ -351,7 +352,7 @@ async function _executeHardBrakes(vehicleCombatant, actor, vehicleToken, maneuve
       `<p>Tier ×${tier} (DV ${maneuver.dv}) — Drive check failed
           (${maneuver.rollResult} &lt; ${maneuver.dv}).</p>`
     );
-    await _postLostControlWarning(actor, vehicleToken);
+    await rollLostControl(actor, vehicleToken, `Hard Brakes drive check failed (${maneuver.rollResult} < ${maneuver.dv})`);
     return;
   }
 
@@ -469,7 +470,7 @@ async function _executeAerobatics(vehicleCombatant, actor, vehicleToken, maneuve
     await _postManeuverChat(actor, vehicleToken, MANEUVER_TYPES.aerobatics.label,
       `<p>Drive check failed (${maneuver.rollResult} &lt; ${maneuver.dv}).</p>`
     );
-    await _postLostControlWarning(actor, vehicleToken);
+    await rollLostControl(actor, vehicleToken, `Aerobatics drive check failed (${maneuver.rollResult} < ${maneuver.dv})`);
     return;
   }
   await _postManeuverChat(actor, vehicleToken, MANEUVER_TYPES.aerobatics.label,
@@ -489,7 +490,7 @@ async function _executeDiveRise(vehicleCombatant, actor, vehicleToken, maneuver)
       `<p>Declared: <strong>${bucketLabel}</strong>, elevation delta ${speedDelta} m.</p>
        <p>Drive check failed (${maneuver.rollResult} &lt; ${maneuver.dv}).</p>`
     );
-    await _postLostControlWarning(actor, vehicleToken);
+    await rollLostControl(actor, vehicleToken, `Dive/Rise drive check failed (${maneuver.rollResult} < ${maneuver.dv})`);
     return;
   }
 
@@ -539,24 +540,3 @@ async function _postManeuverChat(actor, vehicleToken, typeLabel, bodyHtml) {
   });
 }
 
-/**
- * Post a "Lost Control!" warning. Phase 7 will implement the table lookup.
- *
- * @param {Actor}           actor
- * @param {TokenDocument|null} vehicleToken
- */
-async function _postLostControlWarning(actor, vehicleToken) {
-  await ChatMessage.create({
-    speaker: vehicleToken
-      ? ChatMessage.getSpeaker({ token: vehicleToken })
-      : { alias: actor.name },
-    content: `
-      <div class="cyberpunk-blue chat-card">
-        <h3><i class="fas fa-car-burst"></i> ${actor.name} — Lost Control!</h3>
-        <p class="cpb-gm-note">⚠️ Drive check failed — consult the Lost Control table
-           for ${actor.system?.classification?.primary ?? 'land'} vehicles.
-           (Automatic table lookup arrives in Phase 7.)</p>
-      </div>
-    `,
-  });
-}

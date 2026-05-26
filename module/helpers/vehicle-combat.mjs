@@ -35,6 +35,8 @@
  * drift / coast logic and tracker display.
  */
 
+import { rollLostControl } from './vehicle-lost-control.mjs';
+
 const FLAG_SCOPE            = 'cyberpunk-blue';
 const INIT_TIEBREAK_FLAG    = 'initTiebreak';
 export const PENDING_MANEUVER_FLAG = 'pendingManeuver';
@@ -268,14 +270,6 @@ async function _executeDrift(vehicleCombatant, actor, vehicleToken) {
   // Apply speed update to actor
   await actor.update({ 'system.stats.currentSpeed.value': newSpeed });
 
-  const lcLine = lostControlResult
-    ? `<p class="drift-lost-control">
-         ⚠️ <strong>Lost Control!</strong>
-         (1d6 = ${lostControlResult.roll} ≤ threshold ${lostControlResult.threshold})
-         — GM consults Lost Control table.
-       </p>`
-    : '';
-
   await ChatMessage.create({
     speaker: vehicleToken
       ? ChatMessage.getSpeaker({ token: vehicleToken })
@@ -290,8 +284,18 @@ async function _executeDrift(vehicleCombatant, actor, vehicleToken) {
         <p>Speed: ${currentSpeed} → <strong>${newSpeed}</strong>
            (−${speedReduction} from half-ACC)
         </p>
-        ${lcLine}
+        ${lostControlResult ? `<p>⚠️ Drift overshoot — Lost Control triggered
+          (1d6 = ${lostControlResult.roll} ≤ threshold ${lostControlResult.threshold}).</p>` : ''}
       </div>
     `,
   });
+
+  // Roll on the Lost Control table if the drift overshoot check triggered.
+  if (lostControlResult) {
+    await rollLostControl(
+      actor,
+      vehicleToken,
+      `Drift overshoot: veer ${angle}° (1d6 = ${lostControlResult.roll} ≤ threshold ${lostControlResult.threshold})`,
+    );
+  }
 }

@@ -87,6 +87,7 @@ import {
   checkVehicleWreckTransition,
   ensureVehicleCritTables,
 } from './helpers/vehicle-damage.mjs';
+import { ensureLostControlTables } from './helpers/vehicle-lost-control.mjs';
 import {
   isNetConnected,
   getNetConnection,
@@ -1282,6 +1283,7 @@ Hooks.once('ready', async () => {
 
   await ensureCritInjuryTables();
   await ensureVehicleCritTables();
+  await ensureLostControlTables();
   await migrateCostStrings();
   await ensureWeaponCatalogue();
   await ensureAmmoCatalogue();

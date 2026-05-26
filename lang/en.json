@@ -935,7 +935,9 @@
         "DeclareManeuver": "Declare Maneuver",
         "SeriousDamage": "Serious Damage",
         "CritRoll": "Critical Damage Roll",
-        "CritGmNote": "GM applies the critical damage effect."
+        "CritGmNote": "GM applies the critical damage effect.",
+        "LostControlRoll": "Lost Control Roll",
+        "LostControlGmNote": "GM applies the Lost Control consequence."
       }
     }
   },
