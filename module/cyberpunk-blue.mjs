@@ -150,6 +150,8 @@ Hooks.once('init', function () {
     programExecutable: models.CyberBlueProgramExecutable,
     drug: models.CyberBlueDrug,
     mod: models.CyberBlueMod,
+    vehicleMod: models.CyberBlueVehicleMod,
+    vehicleSubsystem: models.CyberBlueVehicleSubsystem,
   };
 
   CONFIG.ActiveEffect.legacyTransferral = false;
@@ -189,7 +191,7 @@ Hooks.once('init', function () {
   Items.registerSheet('cyberpunk-blue', CyberBlueItemSheet, {
     makeDefault: true,
     label: 'CYBER_BLUE.SheetLabels.Item',
-    types: ['role', 'ability', 'cyberware', 'gear', 'ammo', 'programExecutable', 'drug', 'mod'],
+    types: ['role', 'ability', 'cyberware', 'gear', 'ammo', 'programExecutable', 'drug', 'mod', 'vehicleMod', 'vehicleSubsystem'],
   });
 
   game.settings.registerMenu('cyberpunk-blue', 'importItemsMenu', {

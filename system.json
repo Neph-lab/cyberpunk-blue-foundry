@@ -145,6 +145,16 @@
         "htmlFields": [
           "description"
         ]
+      },
+      "vehicleMod": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "vehicleSubsystem": {
+        "htmlFields": [
+          "description"
+        ]
       }
     }
   },

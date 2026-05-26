@@ -2,6 +2,8 @@
 
 ## What AEs Can Do (standard Foundry `add`/`override`/`upgrade`)
 
+### Character / NPC / Mook targets
+
 | AE change key | Effect |
 |---|---|
 | `system.stats.<stat>.rollMod` | Adds to every roll using that stat (and initiative for RFLX). Used by Seriously Wounded, drug boosts, tactic bonuses, Kerenzikov, etc. |
@@ -11,6 +13,24 @@
 | `system.components.<slug>.bonus` | Adds to component (weapon/martial arts) rolls. Target for Ninja Martial Skill, Solo Precision Attack (if applied here), etc. |
 | `system.resources.hp.max` | Modifies maximum HP. |
 | `system.resources.psyche.maxBonus` | Modifies maximum Psyche pool. |
+
+### Vehicle actor targets
+
+| AE change key | Effect | Notes |
+|---|---|---|
+| `system.stats.handling.bonus` | Handling modifier applied to drive checks. | **Aggregate positive cap: +4** (enforced in `prepareDerivedData`). Penalties uncapped. |
+| `system.stats.acc.bonus` | Adds to effective Acceleration. | Uncapped. |
+| `system.stats.maxMove.bonus` | Adds to effective Max Move. | Uncapped. |
+| `system.stats.size.bonus` | Adds to effective Size (to-hit modifier). | Uncapped. |
+| `flags.cyberpunk-blue.driveCheckBonus` | Per-roll bonus on Drive checks only (not the Handling stat). | Uncapped. Applied during Drive check resolution, not data prep. |
+| `flags.cyberpunk-blue.maneuverBonus.<maneuverKey>` | Bonus or penalty for a specific Maneuver type (e.g. `sharpTurn`, `ram`, `hardBrakes`). | Uncapped. Per-Maneuver override. |
+| `flags.cyberpunk-blue.mountedWeaponAttackBonus` | Attack roll bonus for mounted weapons (sights, stabilisers). | Uncapped. |
+
+**AE naming convention for vehicle states** (applied by the system automatically):
+- `Serious Damage` (−2 Handling): `system.stats.handling.bonus` add −2, applied at ½ HP.
+- `Wreck` (from destruction): sets `state` to `wreck`; zeroing is done in `prepareDerivedData`.
+- `Ramming` (from Ram Maneuver declaration): carries `rollResult` flag; consumed at collision time.
+- `Reverse` (entered when speed crosses 0 into negative): `system.stats.maxMove.bonus` override to `floor(maxMove/2)`, `system.stats.handling.bonus` add −2.
 
 ## Recommended AE Patterns by Source
 

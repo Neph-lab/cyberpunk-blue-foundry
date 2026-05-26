@@ -6,7 +6,7 @@
         <input name="name" type="text" value="{{actor.name}}" placeholder="Vehicle Name" />
       </h1>
       <div class="header-stats">
-        <div class="header-stat" title="Stopping Power">
+        <div class="header-stat" title="Stopping Power (SP)">
           <span class="stat-short">SP</span>
           <div class="resource-fields">
             <input type="number" name="system.resources.armor.value" value="{{system.resources.armor.value}}" data-dtype="Number" />
@@ -22,40 +22,39 @@
             <input type="number" name="system.resources.hp.max" value="{{system.resources.hp.max}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
           </div>
         </div>
-        <label class="header-stat" title="Maximum Move (spaces = 2m each)">
-          <span class="stat-short">
-            <button type="button" data-action="post-move-chat" title="Post MOVE conversion to chat" style="all:unset;cursor:pointer;">MOVE</button>
-          </span>
-          <input type="number" name="system.stats.move.value" value="{{system.stats.move.value}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
-        </label>
-        <label class="header-stat" title="Acceleration">
-          <span class="stat-short">ACC</span>
-          <input type="number" name="system.stats.acc.accel" value="{{system.stats.acc.accel}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
-        </label>
-        <label class="header-stat" title="Type">
-          <span class="stat-short">Type</span>
+        <div class="header-stat" title="Current Speed (spaces this turn)">
+          <span class="stat-short">SPD</span>
+          <input type="number" name="system.stats.currentSpeed.value" value="{{system.stats.currentSpeed.value}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+        </div>
+        <div class="header-stat" title="Vehicle state">
+          <span class="stat-short">State</span>
           {{#if isGM}}
-            <select name="system.vehicleType">
-              {{#each vehicleTypes as |vt|}}
-                <option value="{{vt.value}}" {{#if (eq vt.value ../system.vehicleType)}}selected{{/if}}>{{vt.label}}</option>
+            <select name="system.state">
+              {{#each stateChoices as |s|}}
+                <option value="{{s.value}}" {{#if (eq s.value ../system.state)}}selected{{/if}}>{{s.label}}</option>
               {{/each}}
             </select>
           {{else}}
-            <span>{{#each vehicleTypes as |vt|}}{{#if (eq vt.value ../system.vehicleType)}}{{vt.label}}{{/if}}{{/each}}</span>
+            <span class="state-badge state-{{system.state}}">
+              {{#each stateChoices as |s|}}{{#if (eq s.value ../system.state)}}{{s.label}}{{/if}}{{/each}}
+            </span>
           {{/if}}
-        </label>
+        </div>
       </div>
     </div>
   </header>
 
   <nav class="sheet-tabs tabs" data-group="primary">
     <a class="item active" data-tab="general">General</a>
+    <a class="item" data-tab="stats">Stats</a>
     {{#if isGM}}
       <a class="item" data-tab="notes">Notes</a>
     {{/if}}
   </nav>
 
   <section class="sheet-body">
+
+    {{!-- ── General tab ──────────────────────────────────────────────────────── --}}
     <div class="tab active" data-group="primary" data-tab="general">
       <section class="sheet-panel">
         {{#if isGM}}
@@ -68,6 +67,136 @@
       </section>
     </div>
 
+    {{!-- ── Stats tab ────────────────────────────────────────────────────────── --}}
+    <div class="tab" data-group="primary" data-tab="stats">
+      <section class="sheet-panel vehicle-stats-panel">
+
+        {{!-- Combat stats ──────────────────────────────────────────────────── --}}
+        <fieldset class="vehicle-fieldset">
+          <legend>Combat Stats</legend>
+          <div class="vehicle-stats-grid">
+
+            <label class="vehicle-stat-row" title="Maximum Move: grid spaces per round at top speed">
+              <span class="vehicle-stat-label">
+                <button type="button" data-action="post-speed-chat" title="Post speed to chat" class="cpb-btn cpb-btn--ghost cpb-btn--xs">MOVE</button>
+              </span>
+              <span class="vehicle-stat-inputs">
+                <input type="number" name="system.stats.maxMove.value" value="{{system.stats.maxMove.value}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+                {{#if isGM}}
+                  <span class="stat-bonus-label">+AE</span>
+                  <input type="number" name="system.stats.maxMove.bonus" value="{{system.stats.maxMove.bonus}}" data-dtype="Number" />
+                {{/if}}
+              </span>
+              <span class="vehicle-stat-effective" title="Effective (base + AE bonus)">= {{maxMoveEffective}}</span>
+            </label>
+
+            <label class="vehicle-stat-row" title="Acceleration: max speed change per turn">
+              <span class="vehicle-stat-label">ACC</span>
+              <span class="vehicle-stat-inputs">
+                <input type="number" name="system.stats.acc.value" value="{{system.stats.acc.value}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+                {{#if isGM}}
+                  <span class="stat-bonus-label">+AE</span>
+                  <input type="number" name="system.stats.acc.bonus" value="{{system.stats.acc.bonus}}" data-dtype="Number" />
+                {{/if}}
+              </span>
+              <span class="vehicle-stat-effective" title="Effective (base + AE bonus)">= {{accEffective}}</span>
+            </label>
+
+            <label class="vehicle-stat-row" title="Handling: drive-check modifier (base −5…+5; AE bonus capped at +4 aggregate positive)">
+              <span class="vehicle-stat-label">HAND</span>
+              <span class="vehicle-stat-inputs">
+                <input type="number" name="system.stats.handling.base" value="{{system.stats.handling.base}}" data-dtype="Number" min="-5" max="5" {{#unless isGM}}disabled{{/unless}} />
+                {{#if isGM}}
+                  <span class="stat-bonus-label">+AE</span>
+                  <input type="number" name="system.stats.handling.bonus" value="{{system.stats.handling.bonus}}" data-dtype="Number" />
+                {{/if}}
+              </span>
+              <span class="vehicle-stat-effective" title="Effective Handling (base + AE bonus, positive capped at +4)">= {{handlingEffective}}</span>
+            </label>
+
+            <label class="vehicle-stat-row" title="Size: affects to-hit; displayed as value (label)">
+              <span class="vehicle-stat-label">SIZE</span>
+              <span class="vehicle-stat-inputs">
+                <input type="number" name="system.stats.size.value" value="{{system.stats.size.value}}" data-dtype="Number" min="0" {{#unless isGM}}disabled{{/unless}} />
+                {{#if isGM}}
+                  <input type="text" name="system.stats.size.label" value="{{system.stats.size.label}}" placeholder="e.g. Small" />
+                {{/if}}
+              </span>
+              <span class="vehicle-stat-effective">{{sizeDisplay}}</span>
+            </label>
+
+          </div>
+        </fieldset>
+
+        {{!-- Classification ────────────────────────────────────────────────── --}}
+        <fieldset class="vehicle-fieldset">
+          <legend>Classification</legend>
+          <div class="vehicle-stats-grid">
+
+            <label class="vehicle-stat-row" title="Primary element: selects crit table, drift table, and LoC table">
+              <span class="vehicle-stat-label">Primary</span>
+              {{#if isGM}}
+                <select name="system.classification.primary">
+                  {{#each primaryChoices as |p|}}
+                    <option value="{{p.value}}" {{#if (eq p.value ../system.classification.primary)}}selected{{/if}}>{{p.label}}</option>
+                  {{/each}}
+                </select>
+              {{else}}
+                <span>{{system.classification.primary}}</span>
+              {{/if}}
+            </label>
+
+            <label class="vehicle-stat-row" title="Grants the Dive/Rise Maneuver (sea vehicles only)">
+              <span class="vehicle-stat-label">Submersible</span>
+              <input type="checkbox" name="system.classification.submersible" {{#if system.classification.submersible}}checked{{/if}} {{#unless isGM}}disabled{{/unless}} />
+            </label>
+
+            <label class="vehicle-stat-row" title="Body encloses riders (affects SP routing for occupants)">
+              <span class="vehicle-stat-label">Enclosed</span>
+              <input type="checkbox" name="system.classification.enclosesRiders" {{#if system.classification.enclosesRiders}}checked{{/if}} {{#unless isGM}}disabled{{/unless}} />
+            </label>
+
+          </div>
+        </fieldset>
+
+        {{!-- Seats ─────────────────────────────────────────────────────────── --}}
+        <fieldset class="vehicle-fieldset">
+          <legend>Seats</legend>
+          <div class="vehicle-stats-grid">
+
+            <label class="vehicle-stat-row">
+              <span class="vehicle-stat-label">Driver</span>
+              <input type="number" name="system.seats.driver.value" value="{{system.seats.driver.value}}" data-dtype="Number" min="0" {{#unless isGM}}disabled{{/unless}} />
+            </label>
+
+            <label class="vehicle-stat-row">
+              <span class="vehicle-stat-label">Gunner</span>
+              <input type="number" name="system.seats.gunners.value" value="{{system.seats.gunners.value}}" data-dtype="Number" min="0" {{#unless isGM}}disabled{{/unless}} />
+            </label>
+
+            <label class="vehicle-stat-row">
+              <span class="vehicle-stat-label">Passenger</span>
+              <input type="number" name="system.seats.passengers.value" value="{{system.seats.passengers.value}}" data-dtype="Number" min="0" {{#unless isGM}}disabled{{/unless}} />
+            </label>
+
+          </div>
+        </fieldset>
+
+        {{!-- Critical Table ID ──────────────────────────────────────────────── --}}
+        {{#if isGM}}
+          <fieldset class="vehicle-fieldset">
+            <legend>Critical Damage</legend>
+            <label class="vehicle-stat-row">
+              <span class="vehicle-stat-label">Crit Table ID</span>
+              <input type="text" name="system.critTableId" value="{{system.critTableId}}" placeholder="RollTable document id" style="flex:1" />
+            </label>
+          </fieldset>
+        {{/if}}
+
+      </section>
+    </div>
+
+    {{!-- ── Notes tab (GM only) ─────────────────────────────────────────────── --}}
     {{#if isGM}}
       <div class="tab" data-group="primary" data-tab="notes">
         <section class="sheet-panel">
@@ -77,5 +206,6 @@
         </section>
       </div>
     {{/if}}
+
   </section>
 </form>

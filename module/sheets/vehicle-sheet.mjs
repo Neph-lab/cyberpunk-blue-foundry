@@ -2,12 +2,6 @@ const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { Tabs } = foundry.applications.ux;
 
-const VEHICLE_TYPES = [
-  { value: 'land', label: 'Land' },
-  { value: 'air', label: 'Air' },
-  { value: 'sea', label: 'Sea' },
-];
-
 export class CyberBlueVehicleSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
     classes: ['cyberpunk-blue', 'sheet', 'actor', 'vehicle'],
@@ -17,8 +11,8 @@ export class CyberBlueVehicleSheet extends HandlebarsApplicationMixin(ActorSheet
       closeOnSubmit: false,
     },
     position: {
-      width: 580,
-      height: 520,
+      width: 620,
+      height: 580,
     },
     window: {
       resizable: true,
@@ -45,20 +39,48 @@ export class CyberBlueVehicleSheet extends HandlebarsApplicationMixin(ActorSheet
     context.actor = actorData;
     context.system = system;
     context.isGM = isGM;
-    context.vehicleTypes = VEHICLE_TYPES;
-    context.enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(system.description, {
-      secrets: this.document.isOwner,
-      async: true,
-      rollData: this.document.getRollData?.() ?? {},
-      relativeTo: this.document,
-    });
-    context.enrichedNotes = isGM
-      ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(system.notes, {
-        secrets: true,
+
+    // Derived display helpers
+    const h = system.stats.handling;
+    context.handlingEffective = h.base + h.bonus;
+    context.maxMoveEffective = system.stats.maxMove.value + system.stats.maxMove.bonus;
+    context.accEffective = system.stats.acc.value + system.stats.acc.bonus;
+    context.sizeDisplay = system.stats.size.label
+      ? `${system.stats.size.value} (${system.stats.size.label})`
+      : `${system.stats.size.value}`;
+
+    // State choices for the select element
+    context.stateChoices = [
+      { value: 'operational', label: 'Operational' },
+      { value: 'wreck',       label: 'Wreck' },
+    ];
+
+    // Classification primary choices
+    context.primaryChoices = [
+      { value: 'land', label: 'Land' },
+      { value: 'sea',  label: 'Sea'  },
+      { value: 'air',  label: 'Air'  },
+    ];
+
+    context.enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(
+      system.description,
+      {
+        secrets: this.document.isOwner,
         async: true,
         rollData: this.document.getRollData?.() ?? {},
         relativeTo: this.document,
-      })
+      }
+    );
+    context.enrichedNotes = isGM
+      ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(
+          system.notes,
+          {
+            secrets: true,
+            async: true,
+            rollData: this.document.getRollData?.() ?? {},
+            relativeTo: this.document,
+          }
+        )
       : '';
 
     return context;
@@ -80,23 +102,25 @@ export class CyberBlueVehicleSheet extends HandlebarsApplicationMixin(ActorSheet
       tabs.bind(this.element);
     }
 
-    this.element.querySelector('[data-action="post-move-chat"]')
-      ?.addEventListener('click', this._onPostMoveChat.bind(this));
+    this.element.querySelector('[data-action="post-speed-chat"]')
+      ?.addEventListener('click', this._onPostSpeedChat.bind(this));
     this.element.querySelector('[data-edit="img"]')
       ?.addEventListener('click', this._onEditProfileImage.bind(this));
   }
 
-  async _onPostMoveChat(event) {
+  /** Post a chat message showing the vehicle's max speed in real-world units. */
+  async _onPostSpeedChat(event) {
     event.preventDefault();
-    const move = this.document.system.stats.move.value ?? 0;
-    const mps = (move * 2).toFixed(1);
-    const kmh = (move * 2 * 3.6).toFixed(1);
-    const mph = (move * 2 * 2.237).toFixed(1);
+    const maxMove  = (this.document.system.stats.maxMove.value ?? 0)
+                   + (this.document.system.stats.maxMove.bonus ?? 0);
+    const mps  = (maxMove  * 2).toFixed(1);
+    const kmh  = (maxMove  * 2 * 3.6).toFixed(1);
+    const mph  = (maxMove  * 2 * 2.237).toFixed(1);
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.document }),
       content: `
         <div class="cyberpunk-blue chat-card">
-          <h3>${this.document.name}: MOVE ${move}</h3>
+          <h3>${this.document.name}: MAX MOVE ${maxMove}</h3>
           <p>${mps} m/s &bull; ${kmh} km/h &bull; ${mph} mph</p>
         </div>
       `,
