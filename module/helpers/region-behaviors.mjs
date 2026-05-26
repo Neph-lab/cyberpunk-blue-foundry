@@ -17,6 +17,7 @@
  */
 
 import { getNetConnection, resolveNetAttack } from './netrunning.mjs';
+import { attachTokenToVehicle, detachTokenFromVehicle } from './vehicle-movement.mjs';
 
 /**
  * Access Point — placed in a meat-world scene.
@@ -172,27 +173,85 @@ export class CyberBlueNetNodeBehavior extends foundry.data.regionBehaviors.Regio
 // tracking, targeted-attack routing, enclosesRiders toggling) is wired up in
 // later phases.  Phase 2 registers them as valid types with minimal schemas.
 
+// ── Shared seat event helpers ─────────────────────────────────────────────────
+
+/**
+ * Resolve the vehicle TokenDocument that owns this seat region.
+ * Returns null if the region isn't linked to a vehicle token.
+ *
+ * @param {RegionBehavior} behavior
+ * @returns {TokenDocument|null}
+ */
+function _vehicleTokenForBehavior(behavior) {
+  const region = behavior.region;
+  if (!region) return null;
+  const scene  = region.parent;
+  if (!scene) return null;
+  const tokenId = region.flags?.['cyberpunk-blue']?.vehicleTokenId;
+  if (!tokenId) return null;
+  return scene.tokens.get(tokenId) ?? null;
+}
+
+/**
+ * Handle TOKEN_ENTER on any seat region: attach the entering token to the
+ * vehicle so it moves with it.
+ *
+ * Runs only on the activeGM client to prevent duplicate operations.
+ */
+async function _onSeatTokenEnter(event) {
+  if (game.user !== game.users.activeGM) return;
+  const vehicleToken = _vehicleTokenForBehavior(this);
+  if (!vehicleToken) return;
+  const enteringToken = event.data?.token;
+  if (!enteringToken || enteringToken.id === vehicleToken.id) return;
+  await attachTokenToVehicle(vehicleToken, enteringToken);
+}
+
+/**
+ * Handle TOKEN_EXIT on any seat region: detach the leaving token from the
+ * vehicle so it is no longer moved along with it.
+ *
+ * Runs only on the activeGM client.
+ */
+async function _onSeatTokenExit(event) {
+  if (game.user !== game.users.activeGM) return;
+  const vehicleToken = _vehicleTokenForBehavior(this);
+  if (!vehicleToken) return;
+  const exitingToken = event.data?.token;
+  if (!exitingToken || exitingToken.id === vehicleToken.id) return;
+  await detachTokenFromVehicle(vehicleToken, exitingToken);
+}
+
+// ── Seat behavior classes ─────────────────────────────────────────────────────
+
 /**
  * Driver Seat behavior.
  *
  * Marks a Region as the vehicle's driver seat area.  A token entering this
- * region while no driver is active may claim the driver role.
- *
- * Occupancy logic: Phase 4.
+ * region is auto-attached so it moves with the vehicle.  Driver-seat occupancy
+ * logic (claiming the driver role, Maneuver declaration) is Phase 4.
  */
 export class CyberBlueDriverSeatBehavior extends foundry.data.regionBehaviors.RegionBehaviorType {
   static defineSchema() {
-    // No configuration fields at this stage.
     return {};
   }
+
+  static events = {
+    [CONST.REGION_EVENTS.TOKEN_ENTER]: async function _driverEnterProxy(event) {
+      return _onSeatTokenEnter.call(this, event);
+    },
+    [CONST.REGION_EVENTS.TOKEN_EXIT]: async function _driverExitProxy(event) {
+      return _onSeatTokenExit.call(this, event);
+    },
+  };
 }
 
 /**
  * Gunner Seat behavior.
  *
  * Marks a Region as a specific gunner station.  The `seatIndex` links this
- * region to the corresponding entry in `actor.system.seats.gunners` and the
- * mounted-weapon equip/unequip flow (Phase 4+).
+ * region to the mounted-weapon equip/unequip flow (Phase 4+).
+ * Tokens entering are auto-attached to the vehicle.
  */
 export class CyberBlueGunnerSeatBehavior extends foundry.data.regionBehaviors.RegionBehaviorType {
   static defineSchema() {
@@ -209,6 +268,15 @@ export class CyberBlueGunnerSeatBehavior extends foundry.data.regionBehaviors.Re
       }),
     };
   }
+
+  static events = {
+    [CONST.REGION_EVENTS.TOKEN_ENTER]: async function _gunnerEnterProxy(event) {
+      return _onSeatTokenEnter.call(this, event);
+    },
+    [CONST.REGION_EVENTS.TOKEN_EXIT]: async function _gunnerExitProxy(event) {
+      return _onSeatTokenExit.call(this, event);
+    },
+  };
 }
 
 /**
@@ -216,13 +284,21 @@ export class CyberBlueGunnerSeatBehavior extends foundry.data.regionBehaviors.Re
  *
  * Marks a Region as a passenger area.  Tokens inside gain the vehicle's SP
  * cover (if enclosesRiders) without influencing driving.
- *
- * Occupancy tracking: Phase 4.
+ * Tokens entering are auto-attached to the vehicle.
  */
 export class CyberBluePassengerSeatBehavior extends foundry.data.regionBehaviors.RegionBehaviorType {
   static defineSchema() {
     return {};
   }
+
+  static events = {
+    [CONST.REGION_EVENTS.TOKEN_ENTER]: async function _passengerEnterProxy(event) {
+      return _onSeatTokenEnter.call(this, event);
+    },
+    [CONST.REGION_EVENTS.TOKEN_EXIT]: async function _passengerExitProxy(event) {
+      return _onSeatTokenExit.call(this, event);
+    },
+  };
 }
 
 /**

@@ -54,6 +54,11 @@ export async function materialiseVehicleBlueprint(tokenDoc) {
           [VEHICLE_TOKEN_FLAG]: tokenDoc.id,
           vehicleActorId: actor.id,
           blueprintIndex: index,
+          // Store the original untranslated shape and offset so the region can
+          // be repositioned correctly whenever the vehicle token moves (Phase 3).
+          blueprintShape: foundry.utils.deepClone(entry.shape ?? {}),
+          blueprintOffsetX: entry.offset?.x ?? 0,
+          blueprintOffsetY: entry.offset?.y ?? 0,
         },
       },
     };
@@ -104,6 +109,45 @@ export function getLinkedRegions(tokenDoc) {
   return scene.regions.filter(
     (r) => r.flags?.['cyberpunk-blue']?.[VEHICLE_TOKEN_FLAG] === tokenDoc.id,
   );
+}
+
+/**
+ * Reposition all Scene Regions linked to a vehicle token after that token has
+ * moved.  Each region recomputes its shape from the stored blueprint data
+ * (original untranslated shape + offset) and the token's current position,
+ * avoiding accumulated floating-point drift.
+ *
+ * Called from the `updateToken` hook (activeGM only, with the
+ * `cyberpunkBlueVehicleSync` guard to prevent recursion).
+ *
+ * Note: rotation-around-pivot sync is deferred to Phase 5.
+ *
+ * @param {TokenDocument} tokenDoc
+ */
+export async function syncVehicleRegionPositions(tokenDoc) {
+  const scene = tokenDoc.parent;
+  if (!scene) return;
+
+  const linked = getLinkedRegions(tokenDoc);
+  if (!linked.length) return;
+
+  const tx = tokenDoc.x ?? 0;
+  const ty = tokenDoc.y ?? 0;
+
+  const updates = linked.map((region) => {
+    const flags = region.flags?.['cyberpunk-blue'] ?? {};
+    const origShape = flags.blueprintShape ?? {};
+    const dx = tx + (flags.blueprintOffsetX ?? 0);
+    const dy = ty + (flags.blueprintOffsetY ?? 0);
+    return {
+      _id: region.id,
+      shapes: [translateShape(origShape, dx, dy)],
+    };
+  });
+
+  await scene.updateEmbeddedDocuments('Region', updates, {
+    cyberpunkBlueVehicleSync: true,
+  });
 }
 
 // ── Internal helpers ─────────────────────────────────────────────────────────

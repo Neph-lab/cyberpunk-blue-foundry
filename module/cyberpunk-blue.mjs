@@ -63,7 +63,14 @@ import {
   CyberBlueVitalAreaBehavior,
   CyberBlueVehicleRoofBehavior,
 } from './helpers/region-behaviors.mjs';
-import { materialiseVehicleBlueprint, cleanupVehicleRegions } from './helpers/vehicle-regions.mjs';
+import { materialiseVehicleBlueprint, cleanupVehicleRegions, syncVehicleRegionPositions } from './helpers/vehicle-regions.mjs';
+import {
+  syncAttachedTokenPositions,
+  checkVehicleCollisions,
+  detachTokenFromVehicle,
+  pruneAttachedTokens,
+  getAttachedTokens,
+} from './helpers/vehicle-movement.mjs';
 import {
   isNetConnected,
   getNetConnection,
@@ -898,6 +905,71 @@ Hooks.on('deleteToken', async (tokenDoc, _options, _userId) => {
     await cleanupVehicleRegions(tokenDoc);
   } catch (err) {
     console.error('cyberpunk-blue | vehicle region cleanup failed:', err);
+  }
+});
+
+// ─── Vehicle position sync ────────────────────────────────────────────────────
+// After a vehicle token moves: reposition linked Regions and move attached tokens.
+// Also run a bounding-box collision check to apply base ramming damage if the
+// vehicle has landed on top of another token.
+//
+// The cyberpunkBlueVehicleSync option guards against infinite recursion: when
+// THIS hook updates attached token positions, those updateToken calls re-enter
+// this hook but are immediately skipped.
+Hooks.on('updateToken', async (tokenDoc, changes, options) => {
+  if (options?.cyberpunkBlueVehicleSync) return;
+  if (game.user !== game.users.activeGM) return;
+
+  // Position sync applies to vehicle tokens; prune also runs on any token
+  // deletion-triggered move edge case.
+  if (tokenDoc.actor?.type === 'vehicle') {
+    const positionChanged = 'x' in changes || 'y' in changes;
+    if (positionChanged) {
+      try {
+        await syncVehicleRegionPositions(tokenDoc);
+        await syncAttachedTokenPositions(tokenDoc);
+        await checkVehicleCollisions(tokenDoc);
+      } catch (err) {
+        console.error('cyberpunk-blue | vehicle position sync failed:', err);
+      }
+    }
+    // Keep attached list clean regardless of what changed.
+    await pruneAttachedTokens(tokenDoc).catch(() => {});
+  }
+});
+
+// ─── Token HUD: detach from vehicle ──────────────────────────────────────────
+// Adds a "Detach from Vehicle" button to the Token HUD when the token is
+// currently attached to a vehicle token in the same scene.
+Hooks.on('renderTokenHUD', (hud, html, _data) => {
+  const scene = canvas.scene;
+  if (!scene) return;
+
+  const tokenDoc = hud.object?.document;
+  if (!tokenDoc) return;
+
+  // Find any vehicle token in this scene that has this token in its attached list.
+  const vehicleToken = scene.tokens.find(
+    (t) => t.actor?.type === 'vehicle'
+        && getAttachedTokens(t).some((r) => r.tokenId === tokenDoc.id),
+  );
+  if (!vehicleToken) return;
+
+  // Inject a "detach" button into the Token HUD.
+  const btn = document.createElement('div');
+  btn.classList.add('control-icon', 'cpb-detach-vehicle');
+  btn.title = 'Detach from Vehicle';
+  btn.innerHTML = '<i class="fas fa-door-open"></i>';
+  btn.addEventListener('click', async () => {
+    hud.clear();
+    await detachTokenFromVehicle(vehicleToken, tokenDoc);
+    ui.notifications.info(`${tokenDoc.name} detached from ${vehicleToken.name}.`);
+  });
+
+  // Append to the right column of HUD controls.
+  const col = html.querySelector('.col.right');
+  if (col) {
+    col.appendChild(btn);
   }
 });
 
