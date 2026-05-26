@@ -57,7 +57,13 @@ import {
   CyberBlueAccessPointBehavior,
   CyberBlueAccNodeBehavior,
   CyberBlueNetNodeBehavior,
+  CyberBlueDriverSeatBehavior,
+  CyberBlueGunnerSeatBehavior,
+  CyberBluePassengerSeatBehavior,
+  CyberBlueVitalAreaBehavior,
+  CyberBlueVehicleRoofBehavior,
 } from './helpers/region-behaviors.mjs';
+import { materialiseVehicleBlueprint, cleanupVehicleRegions } from './helpers/vehicle-regions.mjs';
 import {
   isNetConnected,
   getNetConnection,
@@ -160,12 +166,25 @@ Hooks.once('init', function () {
   // Note: system.json registers these under documentTypes.RegionBehavior without
   // the system-id prefix (Foundry does NOT auto-prefix for systems, only modules).
   // All client-side registrations must match the unprefixed keys.
+  // ── Netrunning behaviors ──────────────────────────────────────────────────
   CONFIG.RegionBehavior.dataModels['accessPoint'] = CyberBlueAccessPointBehavior;
   CONFIG.RegionBehavior.dataModels['accNode']     = CyberBlueAccNodeBehavior;
   CONFIG.RegionBehavior.dataModels['netNode']     = CyberBlueNetNodeBehavior;
   CONFIG.RegionBehavior.typeLabels['accessPoint'] = 'CYBER_BLUE.RegionBehavior.AccessPoint.Label';
   CONFIG.RegionBehavior.typeLabels['accNode']     = 'CYBER_BLUE.RegionBehavior.AccNode.Label';
   CONFIG.RegionBehavior.typeLabels['netNode']     = 'CYBER_BLUE.RegionBehavior.NetNode.Label';
+
+  // ── Vehicle behaviors ─────────────────────────────────────────────────────
+  CONFIG.RegionBehavior.dataModels['driverSeat']    = CyberBlueDriverSeatBehavior;
+  CONFIG.RegionBehavior.dataModels['gunnerSeat']    = CyberBlueGunnerSeatBehavior;
+  CONFIG.RegionBehavior.dataModels['passengerSeat'] = CyberBluePassengerSeatBehavior;
+  CONFIG.RegionBehavior.dataModels['vitalArea']     = CyberBlueVitalAreaBehavior;
+  CONFIG.RegionBehavior.dataModels['vehicleRoof']   = CyberBlueVehicleRoofBehavior;
+  CONFIG.RegionBehavior.typeLabels['driverSeat']    = 'CYBER_BLUE.RegionBehavior.DriverSeat.Label';
+  CONFIG.RegionBehavior.typeLabels['gunnerSeat']    = 'CYBER_BLUE.RegionBehavior.GunnerSeat.Label';
+  CONFIG.RegionBehavior.typeLabels['passengerSeat'] = 'CYBER_BLUE.RegionBehavior.PassengerSeat.Label';
+  CONFIG.RegionBehavior.typeLabels['vitalArea']     = 'CYBER_BLUE.RegionBehavior.VitalArea.Label';
+  CONFIG.RegionBehavior.typeLabels['vehicleRoof']   = 'CYBER_BLUE.RegionBehavior.VehicleRoof.Label';
 
   Actors.registerSheet('cyberpunk-blue', CyberBlueActorSheet, {
     makeDefault: true,
@@ -856,6 +875,31 @@ const syncRoleConditionOnAEChange = (document, ...hookArgs) => {
 Hooks.on('createActiveEffect', syncRoleConditionOnAEChange);
 Hooks.on('updateActiveEffect', syncRoleConditionOnAEChange);
 Hooks.on('deleteActiveEffect', syncRoleConditionOnAEChange);
+
+// ─── Vehicle blueprint materialisation ───────────────────────────────────────
+// When a vehicle Token is placed on a scene, spawn Scene Regions for each
+// entry in the actor's blueprint.regions array.  Only the activeGM executes
+// this to prevent double-creation when multiple GM-level users are online.
+// Cleanup runs symmetrically on token deletion.
+Hooks.on('createToken', async (tokenDoc, _options, _userId) => {
+  if (game.user !== game.users.activeGM) return;
+  if (tokenDoc.actor?.type !== 'vehicle') return;
+  try {
+    await materialiseVehicleBlueprint(tokenDoc);
+  } catch (err) {
+    console.error('cyberpunk-blue | vehicle blueprint materialisation failed:', err);
+  }
+});
+
+Hooks.on('deleteToken', async (tokenDoc, _options, _userId) => {
+  if (game.user !== game.users.activeGM) return;
+  if (tokenDoc.actor?.type !== 'vehicle') return;
+  try {
+    await cleanupVehicleRegions(tokenDoc);
+  } catch (err) {
+    console.error('cyberpunk-blue | vehicle region cleanup failed:', err);
+  }
+});
 
 // ─── Ricochet canvas line hooks ───────────────────────────────────────────────
 // Redraw the ricochet trajectory line whenever the relevant state changes.

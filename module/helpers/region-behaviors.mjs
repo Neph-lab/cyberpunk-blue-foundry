@@ -1,9 +1,19 @@
 /**
- * Custom Region Behavior Types for Cyberpunk Blue's netrunning system.
+ * Custom Region Behavior Types for Cyberpunk Blue.
  *
  * Registered in `cyberpunk-blue.mjs` under `CONFIG.RegionBehavior.dataModels`.
- * These behaviors are data-store types; the interactive logic lives in
- * `module/helpers/netrunning.mjs`.
+ *
+ * Netrunning behaviors:
+ *   CyberBlueAccessPointBehavior — meat-world AP linking to an Architecture scene.
+ *   CyberBlueAccNodeBehavior     — entry-point region inside an Architecture scene.
+ *   CyberBlueNetNodeBehavior     — generic EXE/DATA/CTRL/ROOT node with Black ICE.
+ *
+ * Vehicle behaviors (Phase 2 — registered but inert; logic added in later phases):
+ *   CyberBlueDriverSeatBehavior    — marks the driver seat zone.
+ *   CyberBlueGunnerSeatBehavior    — marks a gunner seat; carries seatIndex.
+ *   CyberBluePassengerSeatBehavior — marks a passenger area.
+ *   CyberBlueVitalAreaBehavior     — targetable vital zone; carries crit & subsystem refs.
+ *   CyberBlueVehicleRoofBehavior   — roof zone; destruction toggles enclosesRiders.
  */
 
 import { getNetConnection, resolveNetAttack } from './netrunning.mjs';
@@ -152,5 +162,115 @@ export class CyberBlueNetNodeBehavior extends foundry.data.regionBehaviors.Regio
 
       await resolveNetAttack(iceActor, netrunnerActor, atk, atkLabel, damageFormula);
     }
+  }
+}
+
+// ── Vehicle Region Behavior Types ─────────────────────────────────────────────
+//
+// These are data-store types registered so the GM can assign them to Regions
+// via the standard Foundry Region config UI.  Functional logic (occupancy
+// tracking, targeted-attack routing, enclosesRiders toggling) is wired up in
+// later phases.  Phase 2 registers them as valid types with minimal schemas.
+
+/**
+ * Driver Seat behavior.
+ *
+ * Marks a Region as the vehicle's driver seat area.  A token entering this
+ * region while no driver is active may claim the driver role.
+ *
+ * Occupancy logic: Phase 4.
+ */
+export class CyberBlueDriverSeatBehavior extends foundry.data.regionBehaviors.RegionBehaviorType {
+  static defineSchema() {
+    // No configuration fields at this stage.
+    return {};
+  }
+}
+
+/**
+ * Gunner Seat behavior.
+ *
+ * Marks a Region as a specific gunner station.  The `seatIndex` links this
+ * region to the corresponding entry in `actor.system.seats.gunners` and the
+ * mounted-weapon equip/unequip flow (Phase 4+).
+ */
+export class CyberBlueGunnerSeatBehavior extends foundry.data.regionBehaviors.RegionBehaviorType {
+  static defineSchema() {
+    const fields = foundry.data.fields;
+    return {
+      // Zero-based index into the vehicle's gunner seat array.
+      seatIndex: new fields.NumberField({
+        required: true,
+        nullable: false,
+        integer: true,
+        initial: 0,
+        min: 0,
+        label: 'CYBER_BLUE.RegionBehavior.GunnerSeat.SeatIndex',
+      }),
+    };
+  }
+}
+
+/**
+ * Passenger Seat behavior.
+ *
+ * Marks a Region as a passenger area.  Tokens inside gain the vehicle's SP
+ * cover (if enclosesRiders) without influencing driving.
+ *
+ * Occupancy tracking: Phase 4.
+ */
+export class CyberBluePassengerSeatBehavior extends foundry.data.regionBehaviors.RegionBehaviorType {
+  static defineSchema() {
+    return {};
+  }
+}
+
+/**
+ * Vital Area behavior.
+ *
+ * Marks a Region as a targetable vital zone on the vehicle hull.  When a
+ * targeted attacker selects this zone, incoming damage is routed through
+ * `subsystemItemId` (if set) instead of the vehicle's main HP pool; and on a
+ * critical hit the `criticalDamageEntryId` entry fires deterministically.
+ *
+ * Targeting UX and damage routing: Phase 6.
+ */
+export class CyberBlueVitalAreaBehavior extends foundry.data.regionBehaviors.RegionBehaviorType {
+  static defineSchema() {
+    const fields = foundry.data.fields;
+    return {
+      // RollTable result _id to trigger deterministically when this area is
+      // hit on a critical (instead of a random roll).  Blank = random roll.
+      criticalDamageEntryId: new fields.StringField({
+        required: true,
+        blank: true,
+        initial: '',
+        label: 'CYBER_BLUE.RegionBehavior.VitalArea.CritEntryId',
+      }),
+      // vehicle-subsystem item _id on the parent vehicle actor.
+      // When set: damage routes to that subsystem's HP/SP pool.
+      // When null: damage routes to vehicle main HP.
+      subsystemItemId: new fields.StringField({
+        required: false,
+        nullable: true,
+        blank: true,
+        initial: null,
+        label: 'CYBER_BLUE.RegionBehavior.VitalArea.SubsystemItemId',
+      }),
+    };
+  }
+}
+
+/**
+ * Vehicle Roof behavior.
+ *
+ * Marks a Region as the roof of the vehicle.  Its presence signals that the
+ * vehicle encloses riders in this zone.  When the linked roof subsystem is
+ * destroyed (Phase 6), this region's behavior toggles `enclosesRiders` false
+ * on the parent actor.
+ */
+export class CyberBlueVehicleRoofBehavior extends foundry.data.regionBehaviors.RegionBehaviorType {
+  static defineSchema() {
+    return {};
   }
 }

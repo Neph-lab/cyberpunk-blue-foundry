@@ -53,7 +53,12 @@
     "RegionBehavior": {
       "accessPoint": {},
       "accNode": {},
-      "netNode": {}
+      "netNode": {},
+      "driverSeat": {},
+      "gunnerSeat": {},
+      "passengerSeat": {},
+      "vitalArea": {},
+      "vehicleRoof": {}
     },
     "Actor": {
       "character": {

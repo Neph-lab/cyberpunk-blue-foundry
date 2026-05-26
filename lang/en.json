@@ -912,6 +912,24 @@
         "NodeType": "Node Type",
         "NodeLabel": "Node Label",
         "UnnamedNode": "Unnamed Node"
+      },
+      "DriverSeat": {
+        "Label": "Vehicle: Driver Seat"
+      },
+      "GunnerSeat": {
+        "Label": "Vehicle: Gunner Seat",
+        "SeatIndex": "Seat Index"
+      },
+      "PassengerSeat": {
+        "Label": "Vehicle: Passenger Seat"
+      },
+      "VitalArea": {
+        "Label": "Vehicle: Vital Area",
+        "CritEntryId": "Critical Damage Entry ID",
+        "SubsystemItemId": "Subsystem Item ID"
+      },
+      "VehicleRoof": {
+        "Label": "Vehicle: Roof"
       }
     }
   },
@@ -931,7 +949,9 @@
       "ammo": "Ammo",
       "programExecutable": "Executable",
       "drug": "Drug",
-      "mod": "Mod"
+      "mod": "Mod",
+      "vehicleMod": "Vehicle Mod",
+      "vehicleSubsystem": "Vehicle Subsystem"
     }
   }
 }
