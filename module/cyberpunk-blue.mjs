@@ -2,6 +2,7 @@ import { CyberBlueActor } from './documents/actor.mjs';
 import { CyberBlueItem } from './documents/item.mjs';
 import { CyberBlueActiveEffect } from './documents/active-effect.mjs';
 import { CyberBlueCombat } from './documents/combat.mjs';
+import { VehicleManeuverDialog } from './apps/vehicle-maneuver-dialog.mjs';
 import { CyberBlueActorSheet } from './sheets/actor-sheet.mjs';
 import { CyberBlueItemSheet } from './sheets/item-sheet.mjs';
 import { CyberBlueMookSheet } from './sheets/mook-sheet.mjs';
@@ -77,6 +78,7 @@ import {
   rollVehicleInitiative,
   delayDriverToVehicle,
   getVehicleHandling,
+  getPendingManeuver as getVehiclePendingManeuver,
   DRIVER_TOKEN_FLAG as VEHICLE_DRIVER_TOKEN_FLAG,
 } from './helpers/vehicle-combat.mjs';
 import {
@@ -1580,6 +1582,35 @@ Hooks.on('renderCombatTracker', (app, htmlArg, _data) => {
     ? `<button type="button" class="cyber-blue-sprint-btn" title="${game.i18n.localize('CYBER_BLUE.Combat.Panel.SprintTitle')}">${sprintLabel}</button>`
     : '';
 
+  // ── "Declare Maneuver" button for vehicle drivers ─────────────────────────
+  // The button is shown when the active combatant is the driver of a vehicle
+  // combatant in this combat.  Only the combatant's owner (and GMs) see it.
+  let declareManeuverHtml = '';
+  let vehicleCombatantForDriver = null;
+
+  if (activeCombatant.isOwner || game.user.isGM) {
+    const activeTokenId = activeCombatant.tokenId;
+    vehicleCombatantForDriver = game.combat.combatants.find((c) => {
+      if (c.actor?.type !== 'vehicle') return false;
+      return c.actor.getFlag('cyberpunk-blue', VEHICLE_DRIVER_TOKEN_FLAG) === activeTokenId;
+    });
+
+    if (vehicleCombatantForDriver) {
+      const pending = getVehiclePendingManeuver(vehicleCombatantForDriver);
+      const pendingLabel = pending
+        ? `<span class="cpb-pending-chip">Pending: ${pending.type}</span>`
+        : '';
+      declareManeuverHtml = `
+        <div class="cbcp-row cbcp-declare-maneuver">
+          <button type="button" class="cpb-declare-maneuver-btn">
+            <i class="fas fa-car"></i> Declare Maneuver
+          </button>
+          ${pendingLabel}
+        </div>
+      `;
+    }
+  }
+
   const panel = document.createElement('div');
   panel.className = 'cyber-blue-combat-panel';
   panel.innerHTML = `
@@ -1600,6 +1631,7 @@ Hooks.on('renderCombatTracker', (app, htmlArg, _data) => {
       </span>
       ${sprintBtn}
     </div>
+    ${declareManeuverHtml}
   `;
 
   // Wire up Sprint button
@@ -1610,6 +1642,16 @@ Hooks.on('renderCombatTracker', (app, htmlArg, _data) => {
       game.i18n.format('CYBER_BLUE.Combat.Panel.SprintGranted', { meters: sprintMeters })
     );
   });
+
+  // Wire up Declare Maneuver button
+  if (vehicleCombatantForDriver) {
+    panel.querySelector('.cpb-declare-maneuver-btn')?.addEventListener('click', async () => {
+      const driverActor = activeCombatant.actor;
+      if (!driverActor) return;
+      await VehicleManeuverDialog.show(vehicleCombatantForDriver, driverActor);
+      ui.combat?.render(false);
+    });
+  }
 
   // Insert above the combat controls row; fall back to appending
   const controls = root.querySelector('.combat-controls');

@@ -4231,3 +4231,182 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   background: rgba(39, 176, 255, 0.25);
   border-color: var(--cpb-accent, #27b0ff);
 }
+
+/* ── "Declare Maneuver" button in combat tracker panel ───────────────────── */
+
+.cbcp-declare-maneuver {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 4px;
+  flex-wrap: wrap;
+}
+
+.cpb-declare-maneuver-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  background: rgba(8, 16, 26, 0.85);
+  border: 1px solid var(--cpb-border, rgba(39, 176, 255, 0.35));
+  color: var(--cpb-accent, #27b0ff);
+  font-size: var(--font-size-11, 11px);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.cpb-declare-maneuver-btn:hover {
+  background: rgba(39, 176, 255, 0.2);
+  border-color: var(--cpb-accent, #27b0ff);
+}
+.cpb-declare-maneuver-btn i { font-size: 10px; }
+
+/* Pending maneuver chip shown next to the Declare button */
+.cpb-pending-chip {
+  font-size: var(--font-size-10, 10px);
+  padding: 1px 5px;
+  background: rgba(255, 200, 50, 0.12);
+  border: 1px solid rgba(255, 200, 50, 0.4);
+  color: #ffc832;
+  border-radius: 2px;
+}
+
+/* ── Vehicle Maneuver Declaration Dialog ─────────────────────────────────── */
+
+.vehicle-maneuver-dialog .window-content {
+  padding: 0;
+  background: var(--cpb-bg-solid-top, #08101a);
+}
+
+.cpb-maneuver-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  font-size: var(--font-size-12, 12px);
+  color: var(--cpb-text-dim, #a0b8cc);
+}
+
+/* Header: vehicle + driver summary */
+.cpb-mp-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px 6px;
+  border-bottom: 1px solid var(--cpb-border, rgba(39, 176, 255, 0.2));
+  background: rgba(0, 0, 0, 0.3);
+}
+.cpb-mp-vehicle, .cpb-mp-driver {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.cpb-mp-vehicle { font-weight: bold; color: var(--cpb-accent, #27b0ff); }
+.cpb-mp-stat {
+  font-size: var(--font-size-10, 10px);
+  padding: 1px 4px;
+  background: rgba(39, 176, 255, 0.08);
+  border: 1px solid rgba(39, 176, 255, 0.2);
+  border-radius: 2px;
+  color: #a0c8e0;
+}
+.cpb-mp-formula { font-size: var(--font-size-10, 10px); color: #6a8fa0; }
+
+/* Maneuver type radio list */
+.cpb-mp-types {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--cpb-border, rgba(39, 176, 255, 0.15));
+  max-height: 200px;
+  overflow-y: auto;
+}
+.cpb-mp-type-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.cpb-mp-type-row:hover { background: rgba(39, 176, 255, 0.06); }
+.cpb-mp-type-row input[type="radio"] { margin: 0; }
+.cpb-mp-type-name { flex: 1; }
+.cpb-mp-type-dv {
+  font-size: var(--font-size-10, 10px);
+  color: #c88040;
+  border: 1px solid rgba(200, 128, 64, 0.3);
+  padding: 0 4px;
+  border-radius: 2px;
+}
+.cpb-mp-type-note { font-size: var(--font-size-10, 10px); color: #888; }
+
+/* Parameter sections */
+.cpb-mp-params {
+  padding: 8px 12px 6px;
+  border-bottom: 1px solid var(--cpb-border, rgba(39, 176, 255, 0.1));
+}
+.cpb-mp-params .form-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.cpb-mp-params .form-group label { min-width: 130px; color: #a0b8cc; }
+.cpb-mp-params select, .cpb-mp-params input[type="number"] {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--cpb-border, rgba(39, 176, 255, 0.3));
+  color: #e0e8f0;
+  padding: 2px 4px;
+}
+.cpb-mp-hint {
+  font-size: var(--font-size-10, 10px);
+  color: #6a8fa0;
+  margin: 2px 0 0;
+  font-style: italic;
+}
+
+/* DV display row */
+.cpb-mp-dv-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--cpb-border, rgba(39, 176, 255, 0.1));
+  font-size: var(--font-size-11, 11px);
+  color: #a0b8cc;
+}
+.cpb-mp-dv-value {
+  color: #ffc832;
+  font-size: var(--font-size-13, 13px);
+}
+
+/* Footer */
+.cpb-mp-footer {
+  padding: 8px 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+.cpb-mp-footer .cpb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  background: rgba(39, 176, 255, 0.1);
+  border: 1px solid var(--cpb-accent, #27b0ff);
+  color: var(--cpb-accent, #27b0ff);
+  cursor: pointer;
+  font-size: var(--font-size-12, 12px);
+}
+.cpb-mp-footer .cpb-btn:hover {
+  background: rgba(39, 176, 255, 0.25);
+}
+
+/* Chat card success/failure coloring */
+.cyberpunk-blue .chat-card .cpb-success { color: #4cff8a; }
+.cyberpunk-blue .chat-card .cpb-failure { color: #ff4c4c; }
+.cyberpunk-blue .chat-card .cpb-gm-note {
+  font-size: var(--font-size-10, 10px);
+  color: #888;
+  font-style: italic;
+}

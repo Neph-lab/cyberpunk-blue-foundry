@@ -930,6 +930,9 @@
       },
       "VehicleRoof": {
         "Label": "Vehicle: Roof"
+      },
+      "VehicleCombat": {
+        "DeclareManeuver": "Declare Maneuver"
       }
     }
   },

@@ -15,7 +15,8 @@
  *
  * ── Pending Maneuver ─────────────────────────────────────────────────────────
  * Pending Maneuver data lives on the VEHICLE combatant's flags so it survives
- * driver changes between declaration and execution:
+ * driver changes between declaration and execution.  Execution logic lives in
+ * `module/helpers/vehicle-maneuvers.mjs` and is called from `executeVehicleTurn`.
  *
  *   combatant.flags['cyberpunk-blue'].pendingManeuver: {
  *     type:                  string,   // 'sharpTurn'|'hardBrakes'|…
@@ -38,6 +39,7 @@ const FLAG_SCOPE            = 'cyberpunk-blue';
 const INIT_TIEBREAK_FLAG    = 'initTiebreak';
 export const PENDING_MANEUVER_FLAG = 'pendingManeuver';
 export const DRIVER_TOKEN_FLAG     = 'currentDriverTokenId';
+export const SWERVE_RESULT_FLAG    = 'swerveResult';
 
 // ── Initiative ───────────────────────────────────────────────────────────────
 
@@ -158,26 +160,21 @@ export async function executeVehicleTurn(vehicleCombatant) {
   const scene = canvas.scene;
   const vehicleToken = scene?.tokens.get(vehicleCombatant.tokenId);
 
+  // Clear any Swerve result from the PREVIOUS turn — it protects until the
+  // vehicle's next turn, so we wipe it at the START of that next turn.
+  if (actor.getFlag(FLAG_SCOPE, SWERVE_RESULT_FLAG) != null) {
+    await actor.unsetFlag(FLAG_SCOPE, SWERVE_RESULT_FLAG).catch(() => {});
+  }
+
   const driverTokenId = actor.getFlag(FLAG_SCOPE, DRIVER_TOKEN_FLAG);
   const hasDriver = Boolean(driverTokenId && scene?.tokens.has(driverTokenId));
 
   const pendingManeuver = getPendingManeuver(vehicleCombatant);
 
   if (pendingManeuver) {
-    // Maneuver execution handled in Phase 5.
-    // For Phase 4, just acknowledge.
-    await ChatMessage.create({
-      speaker: vehicleToken
-        ? ChatMessage.getSpeaker({ token: vehicleToken })
-        : { alias: actor.name },
-      content: `
-        <div class="cyberpunk-blue chat-card">
-          <h3><i class="fas fa-car"></i> ${actor.name} — Maneuver Pending</h3>
-          <p>Maneuver type: <strong>${pendingManeuver.type ?? 'unknown'}</strong>
-             (execution requires Phase 5).</p>
-        </div>
-      `,
-    });
+    // Lazy import breaks the vehicle-combat ↔ vehicle-maneuvers circular dep.
+    const { executeManeuver } = await import('./vehicle-maneuvers.mjs');
+    await executeManeuver(vehicleCombatant, actor, vehicleToken);
     return;
   }
 
