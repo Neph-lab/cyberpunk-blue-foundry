@@ -26,6 +26,10 @@ function getVolume() {
   return game.settings.get('core', 'globalInterfaceVolume') ?? 1;
 }
 
+function _playLocal(src) {
+  foundry.audio.AudioHelper.play({ src, volume: getVolume(), autoplay: true, loop: false }, false);
+}
+
 let _suppressNextFail = false;
 
 /** Call before ui.notifications.warn/error to substitute a more specific sound for fail.mp3. */
@@ -42,14 +46,24 @@ export function playUiSound(name) {
   }
   const src = UI_SOUNDS[name];
   if (!src) return;
-  foundry.audio.AudioHelper.play({ src, volume: getVolume(), autoplay: true, loop: false }, false);
+  _playLocal(src);
 }
 
-/** Broadcast a sound effect to all connected players (respects the interface volume slider). */
-export function playSfx(name) {
+/** Play an SFX sound locally at this client's own interface volume. Used by the socket handler. */
+export function playSfxLocal(name) {
   const src = SFX_SOUNDS[name];
   if (!src) return;
-  foundry.audio.AudioHelper.play({ src, volume: getVolume(), autoplay: true, loop: false }, true);
+  _playLocal(src);
+}
+
+/**
+ * Broadcast a sound effect to all connected players.
+ * Emits via the system socket so each client plays it at their own interface volume.
+ */
+export function playSfx(name) {
+  if (!SFX_SOUNDS[name]) return;
+  game.socket.emit('system.cyberpunk-blue', { type: 'playSfx', sound: name });
+  playSfxLocal(name);
 }
 
 // data-action values handled by specific sound triggers; skip default confirm/close for these.

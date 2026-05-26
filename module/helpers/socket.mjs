@@ -26,6 +26,13 @@ export function emitSceneSwitchForUser(sceneId, targetUserId) {
  */
 export function registerSocketHandlers() {
   game.socket.on(SOCKET_NAME, async (message) => {
+    // playSfx: every client plays the sound at their own interface volume.
+    if (message.type === 'playSfx') {
+      const { playSfxLocal } = await import('./audio.mjs');
+      playSfxLocal(message.sound);
+      return;
+    }
+
     // netSwitchScene is handled by every client (not GM-only) — the handler
     // guards against acting on messages not addressed to this user.
     if (message.type === 'netSwitchScene') {
