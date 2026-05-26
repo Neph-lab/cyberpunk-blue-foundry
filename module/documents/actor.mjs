@@ -273,6 +273,33 @@ export class CyberBlueActor extends Actor {
       };
     }
 
+    // Vehicles: SP lives directly on resources.armor.value — no embedded armor items.
+    if (this.type === 'vehicle') {
+      const currentHp  = this.system.resources.hp.value ?? 0;
+      const vehicleSp  = ignoreArmor ? 0 : Math.max(this.system.resources.armor?.value ?? 0, 0);
+      const penetrated = totalDamage - vehicleSp;
+      const hpLoss     = Math.max(penetrated, 0);
+      const shouldAblate = !ignoreArmor && vehicleSp > 0 && penetrated >= 0;
+      const updates    = [];
+
+      if (hpLoss > 0) {
+        updates.push(this.update({ 'system.resources.hp.value': Math.max(currentHp - hpLoss, 0) }));
+      }
+      if (shouldAblate) {
+        updates.push(this.update({ 'system.resources.armor.value': Math.max(vehicleSp - 1, 0) }));
+      }
+
+      if (updates.length) await Promise.all(updates);
+      return {
+        totalDamage,
+        armorId:      null,
+        armorName:    null,
+        armorBlocked: Math.min(vehicleSp, totalDamage),
+        hpLoss,
+        ablatedArmor: shouldAblate ? 1 : 0,
+      };
+    }
+
     const activeArmor = ignoreArmor ? null : this.getActiveArmorItem();
     const currentHp = this.system.resources.hp.value ?? 0;
     const currentSp = activeArmor ? Math.max(Math.min(activeArmor.system.armor?.currentSp ?? 0, activeArmor.system.armor?.maxSp ?? 0), 0) : 0;

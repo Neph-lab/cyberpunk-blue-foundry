@@ -61,6 +61,14 @@ export function registerSocketHandlers() {
         await rollCriticalInjury(actor, tableType, { attackerActor: attacker, weaponFlags: weaponFlags ?? {} });
         break;
       }
+      case 'rollVehicleCritical': {
+        const { targetUuid } = message;
+        const { rollVehicleCritical } = await import('./vehicle-damage.mjs');
+        const actor = await fromUuid(targetUuid);
+        if (!actor) return;
+        await rollVehicleCritical(actor, null);
+        break;
+      }
       case 'applyForcedCriticalInjury': {
         const { targetUuid, injuryKey, attackerUuid } = message;
         // Import lazily to avoid circular reference
@@ -192,6 +200,21 @@ export async function rollCriticalInjuryWithPermission(targetActor, tableType, {
       attackerUuid: attackerActor?.uuid ?? null,
       weaponFlags,
     });
+  }
+}
+
+/**
+ * Roll on a vehicle's critical damage table, delegating to the GM if needed.
+ *
+ * @param {Actor}              vehicleActor
+ * @param {TokenDocument|null} vehicleToken
+ */
+export async function rollVehicleCriticalWithPermission(vehicleActor, vehicleToken) {
+  const { rollVehicleCritical } = await import('./vehicle-damage.mjs');
+  if (vehicleActor.isOwner || game.user.isGM) {
+    await rollVehicleCritical(vehicleActor, vehicleToken?.document ?? vehicleToken ?? null);
+  } else {
+    emitToGM('rollVehicleCritical', { targetUuid: vehicleActor.uuid });
   }
 }
 

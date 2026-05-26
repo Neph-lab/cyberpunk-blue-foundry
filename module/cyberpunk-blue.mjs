@@ -83,6 +83,11 @@ import {
   DRIVER_TOKEN_FLAG as VEHICLE_DRIVER_TOKEN_FLAG,
 } from './helpers/vehicle-combat.mjs';
 import {
+  syncVehicleSeriousDamage,
+  checkVehicleWreckTransition,
+  ensureVehicleCritTables,
+} from './helpers/vehicle-damage.mjs';
+import {
   isNetConnected,
   getNetConnection,
   isNetArchitectureScene,
@@ -1144,6 +1149,30 @@ Hooks.on('updateActor', async (actor, changes) => {
   await disconnectFromArchitecture(actor, false);
 });
 
+// ─── Vehicle: Serious Damage AE sync ─────────────────────────────────────────
+// Mirrors the character syncSeriousWoundEffect pattern.
+// Fires on createActor + updateActor so any HP change is captured immediately.
+const _syncVehicleSeriousDamage = async (document, _data, options = {}) => {
+  if (options?.cyberBlueSyncVehicleSeriousDamage) return;
+  const actor = document instanceof Actor ? document
+    : document?.parent instanceof Actor ? document.parent
+    : null;
+  if (!actor || actor.type !== 'vehicle') return;
+  await syncVehicleSeriousDamage(actor, options);
+};
+Hooks.on('createActor',  _syncVehicleSeriousDamage);
+Hooks.on('updateActor',  _syncVehicleSeriousDamage);
+
+// ─── Vehicle: wreck transition when HP hits 0 (GM only) ──────────────────────
+// Sets state: 'wreck', zeroes stats (via prepareDerivedData), cancels Maneuver.
+Hooks.on('updateActor', async (actor, changes, options) => {
+  if (game.user !== game.users.activeGM) return;
+  if (options?.cyberpunkBlueWreckTransition) return;
+  if (actor.type !== 'vehicle') return;
+  if (!foundry.utils.hasProperty(changes, 'system.resources.hp.value')) return;
+  await checkVehicleWreckTransition(actor);
+});
+
 // ─── Tech Weapon charge: turn-start housekeeping (GM only) ───────────────────
 // Clears cooldown flags and transitions MOVE AE from 0→half on second+ turns.
 Hooks.on('combatTurn', async (combat, updateData) => {
@@ -1252,6 +1281,7 @@ Hooks.once('ready', async () => {
   }
 
   await ensureCritInjuryTables();
+  await ensureVehicleCritTables();
   await migrateCostStrings();
   await ensureWeaponCatalogue();
   await ensureAmmoCatalogue();

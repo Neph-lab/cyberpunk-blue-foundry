@@ -932,7 +932,10 @@
         "Label": "Vehicle: Roof"
       },
       "VehicleCombat": {
-        "DeclareManeuver": "Declare Maneuver"
+        "DeclareManeuver": "Declare Maneuver",
+        "SeriousDamage": "Serious Damage",
+        "CritRoll": "Critical Damage Roll",
+        "CritGmNote": "GM applies the critical damage effect."
       }
     }
   },

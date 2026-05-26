@@ -9,7 +9,7 @@ import {
 } from './combat-tracker.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
 import { resolveAfflictionAttack } from './affliction-attack.mjs';
-import { applyDamageWithPermission, rollCriticalInjuryWithPermission, deleteActorItemWithPermission, ablateArmorExtraWithPermission, applyForcedCriticalInjuryWithPermission } from './socket.mjs';
+import { applyDamageWithPermission, rollCriticalInjuryWithPermission, rollVehicleCriticalWithPermission, deleteActorItemWithPermission, ablateArmorExtraWithPermission, applyForcedCriticalInjuryWithPermission } from './socket.mjs';
 import { clearWeaponCharge, countWallsBetweenTokens } from './tech-charge.mjs';
 import { getActiveAEFlag } from './effects.mjs';
 import { playUiSound, suppressNextFailSound, playSfx } from './audio.mjs';
@@ -953,7 +953,11 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
         await ablateArmorExtraWithPermission(targetActor);
       }
       if (isCritical) {
-        await rollCriticalInjuryWithPermission(targetActor, tableType, { attackerActor: attacker, weaponFlags });
+        if (targetActor.type === 'vehicle') {
+          await rollVehicleCriticalWithPermission(targetActor, targetToken);
+        } else {
+          await rollCriticalInjuryWithPermission(targetActor, tableType, { attackerActor: attacker, weaponFlags });
+        }
       }
       // ── Electric Charge (Kendachi RA-5 Powered Knife) ──────────────────────
       // On a hit that deals net damage, if the weapon has charges remaining:
