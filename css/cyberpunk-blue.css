@@ -527,10 +527,6 @@ section.chat-sidebar:not(.sidebar-popout),
   gap: 0.5rem;
 }
 
-/* .cyberpunk-blue .header-stats-row .header-stats {
-  flex: 1;
-} */
-
 .cyberpunk-blue .header-stats {
   display: grid;
   gap: 0.35rem;
@@ -1770,8 +1766,10 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 
 .cyberpunk-blue .role-overview-panel {
-  columns: 3 400px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 1rem;
+  margin-top: 1rem;
 }
 
 .cyberpunk-blue .role-overview-feature {
@@ -1829,7 +1827,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   background: var(--cpb-panel);
   padding: 0.45rem;
   display: grid;
-  grid-template-columns: max-content auto;
+  grid-template-columns: minmax(300px, auto) max-content;
   gap: .5rem;
 }
 
@@ -1840,6 +1838,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .protean-tactic .protean-tactic-name {
   font-weight: 600;
   order: 2;
+  text-align: end;
 }
 
 .cyberpunk-blue .protean-tactic .protean-tactic-description {
@@ -4159,4 +4158,76 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   border-radius: 0;
   border: 1px solid rgba(0, 240, 255, 0.25);
   background: var(--cpb-panel-deep);
+}
+
+/* ── Vehicle tracker row chips ───────────────────────────────────────────── */
+
+/* Chip strip appended below each vehicle combatant row */
+.cpb-vehicle-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 2px 4px 4px;
+}
+
+/* Individual stat chip */
+.cpb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 5px;
+  font-size: var(--font-size-10, 10px);
+  border: 1px solid var(--cpb-border, rgba(39, 176, 255, 0.35));
+  background: rgba(8, 16, 26, 0.75);
+  color: var(--cpb-text-dim, #a0b8cc);
+  white-space: nowrap;
+  border-radius: 2px;
+}
+
+.cpb-chip i {
+  font-size: 9px;
+  opacity: 0.7;
+}
+
+/* Handling chip: cyan accent */
+.cpb-chip--handling {
+  border-color: rgba(39, 176, 255, 0.5);
+  color: var(--cpb-accent, #27b0ff);
+}
+
+/* Speed chip: neutral */
+.cpb-chip--speed {
+  color: #c8d8e0;
+}
+
+/* Driver chip: green when occupied, dimmed when empty */
+.cpb-chip--driver {
+  border-color: rgba(76, 255, 138, 0.4);
+  color: #4cff8a;
+}
+.cpb-chip--no-driver {
+  color: #666;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* "Delay to vehicle" button injected next to the driver's combatant name */
+.cpb-delay-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin-left: 4px;
+  background: rgba(8, 16, 26, 0.75);
+  border: 1px solid var(--cpb-border, rgba(39, 176, 255, 0.35));
+  color: var(--cpb-accent, #27b0ff);
+  font-size: 10px;
+  cursor: pointer;
+  vertical-align: middle;
+  border-radius: 2px;
+}
+.cpb-delay-btn:hover {
+  background: rgba(39, 176, 255, 0.25);
+  border-color: var(--cpb-accent, #27b0ff);
 }

@@ -1,6 +1,7 @@
 import { CyberBlueActor } from './documents/actor.mjs';
 import { CyberBlueItem } from './documents/item.mjs';
 import { CyberBlueActiveEffect } from './documents/active-effect.mjs';
+import { CyberBlueCombat } from './documents/combat.mjs';
 import { CyberBlueActorSheet } from './sheets/actor-sheet.mjs';
 import { CyberBlueItemSheet } from './sheets/item-sheet.mjs';
 import { CyberBlueMookSheet } from './sheets/mook-sheet.mjs';
@@ -72,6 +73,13 @@ import {
   getAttachedTokens,
 } from './helpers/vehicle-movement.mjs';
 import {
+  executeVehicleTurn,
+  rollVehicleInitiative,
+  delayDriverToVehicle,
+  getVehicleHandling,
+  DRIVER_TOKEN_FLAG as VEHICLE_DRIVER_TOKEN_FLAG,
+} from './helpers/vehicle-combat.mjs';
+import {
   isNetConnected,
   getNetConnection,
   isNetArchitectureScene,
@@ -120,6 +128,9 @@ Hooks.once('init', function () {
     formula: '1d10 + @stats.rflx.value + @stats.rflx.rollMod + @initiativeBonus',
     decimals: 0,
   };
+  // Override the Combat document class so vehicle combatants receive Handling-based
+  // initiative instead of the standard d10+RFLX formula.
+  CONFIG.Combat.documentClass = CyberBlueCombat;
 
   CONFIG.Actor.documentClass = CyberBlueActor;
   CONFIG.ActiveEffect.documentClass = CyberBlueActiveEffect;
@@ -1505,7 +1516,20 @@ Hooks.on('combatTurn', async (combat, updateData) => {
   }
 
   // Resolve pending NET timers (quickhack activation, encrypt/decrypt completion)
-  await resolveNetTimers(combat, roundNumber);
+  const _roundNumber = updateData?.round ?? combat.round ?? 1;
+  await resolveNetTimers(combat, _roundNumber);
+
+  // ── Vehicle turn execution ───────────────────────────────────────────────────
+  // When a vehicle combatant's turn starts, execute its automatic turn logic
+  // (coast if a driver is present, drift if unmanned, or acknowledge a pending
+  // Maneuver).  This runs after reset so the combatant's state is clean.
+  if (curr?.actor?.type === 'vehicle') {
+    try {
+      await executeVehicleTurn(curr);
+    } catch (err) {
+      console.error('cyberpunk-blue | vehicle turn execution failed:', err);
+    }
+  }
 });
 
 Hooks.on('combatRound', async (combat) => {
@@ -1594,6 +1618,100 @@ Hooks.on('renderCombatTracker', (app, htmlArg, _data) => {
   } else {
     root.querySelector('.directory-footer, form')?.append(panel)
       ?? root.append(panel);
+  }
+});
+
+// ── Combat tracker: vehicle row augmentation ──────────────────────────────────
+// For each vehicle combatant row, injects:
+//   • A "Handling N" badge so the GM can see the effective stat at a glance.
+//   • A driver chip showing who is currently in the driver seat (if anyone).
+//
+// For each NON-vehicle combatant row whose actor is the current driver of a
+// vehicle in this combat, injects a "Delay to vehicle" button.  Clicking it
+// calls delayDriverToVehicle so the driver acts just before the vehicle.
+//
+// Runs after the main panel hook so vehicle rows are already in the DOM.
+Hooks.on('renderCombatTracker', (app, htmlArg, _data) => {
+  if (!game.combat?.started) return;
+
+  const root = htmlArg instanceof HTMLElement ? htmlArg : htmlArg[0];
+  if (!root) return;
+
+  const scene = canvas.scene;
+
+  // Remove stale vehicle chips from previous renders so we don't duplicate.
+  root.querySelectorAll('.cpb-vehicle-chips').forEach((el) => el.remove());
+  root.querySelectorAll('.cpb-delay-btn').forEach((el) => el.remove());
+
+  for (const combatant of game.combat.combatants.contents) {
+    const actor = combatant.actor;
+    if (!actor) continue;
+
+    // ── Vehicle rows ───────────────────────────────────────────────────────────
+    if (actor.type === 'vehicle') {
+      const row = root.querySelector(`[data-combatant-id="${combatant.id}"]`);
+      if (!row) continue;
+
+      const handling = getVehicleHandling(actor);
+      const speed    = actor.system?.stats?.currentSpeed?.value ?? 0;
+
+      // Driver name lookup.
+      const driverTokenId = actor.getFlag('cyberpunk-blue', VEHICLE_DRIVER_TOKEN_FLAG);
+      const driverToken   = driverTokenId && scene ? scene.tokens.get(driverTokenId) : null;
+      const driverChip    = driverToken
+        ? `<span class="cpb-chip cpb-chip--driver" title="Driver"><i class="fas fa-steering-wheel"></i> ${driverToken.name}</span>`
+        : `<span class="cpb-chip cpb-chip--no-driver" title="No driver"><i class="fas fa-steering-wheel"></i> —</span>`;
+
+      const chips = document.createElement('div');
+      chips.className = 'cpb-vehicle-chips';
+      chips.innerHTML = `
+        <span class="cpb-chip cpb-chip--handling" title="Effective Handling">
+          <i class="fas fa-gauge-high"></i> ${handling >= 0 ? '+' : ''}${handling}
+        </span>
+        <span class="cpb-chip cpb-chip--speed" title="Current Speed">
+          <i class="fas fa-tachometer-alt"></i> ${speed} m/t
+        </span>
+        ${driverChip}
+      `;
+      row.appendChild(chips);
+      continue;
+    }
+
+    // ── Non-vehicle rows: "Delay to vehicle" button ────────────────────────────
+    // Show button only to GM; only when this combatant is the driver of a vehicle
+    // that is also in the current combat.
+    if (!game.user.isGM) continue;
+
+    const actorTokenId = combatant.tokenId;
+
+    // Find a vehicle combatant whose actor has this token as its current driver.
+    const vehicleCombatant = game.combat.combatants.find((c) => {
+      if (c.actor?.type !== 'vehicle') return false;
+      return c.actor.getFlag('cyberpunk-blue', VEHICLE_DRIVER_TOKEN_FLAG) === actorTokenId;
+    });
+    if (!vehicleCombatant) continue;
+
+    const row = root.querySelector(`[data-combatant-id="${combatant.id}"]`);
+    if (!row) continue;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cpb-delay-btn';
+    btn.title = `Delay to just before ${vehicleCombatant.name}`;
+    btn.innerHTML = '<i class="fas fa-car"></i>';
+    btn.addEventListener('click', async (ev) => {
+      ev.stopPropagation();
+      await delayDriverToVehicle(combatant, vehicleCombatant);
+      ui.combat?.render(false);
+    });
+
+    // Append button next to the combatant name area.
+    const nameEl = row.querySelector('.token-name, .combatant-name');
+    if (nameEl) {
+      nameEl.after(btn);
+    } else {
+      row.appendChild(btn);
+    }
   }
 });
 

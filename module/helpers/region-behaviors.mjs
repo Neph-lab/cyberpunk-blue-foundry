@@ -8,8 +8,9 @@
  *   CyberBlueAccNodeBehavior     — entry-point region inside an Architecture scene.
  *   CyberBlueNetNodeBehavior     — generic EXE/DATA/CTRL/ROOT node with Black ICE.
  *
- * Vehicle behaviors (Phase 2 — registered but inert; logic added in later phases):
- *   CyberBlueDriverSeatBehavior    — marks the driver seat zone.
+ * Vehicle behaviors:
+ *   CyberBlueDriverSeatBehavior    — marks the driver seat zone; sets/clears actor
+ *                                    currentDriverTokenId flag on enter/exit (Phase 4).
  *   CyberBlueGunnerSeatBehavior    — marks a gunner seat; carries seatIndex.
  *   CyberBluePassengerSeatBehavior — marks a passenger area.
  *   CyberBlueVitalAreaBehavior     — targetable vital zone; carries crit & subsystem refs.
@@ -18,6 +19,7 @@
 
 import { getNetConnection, resolveNetAttack } from './netrunning.mjs';
 import { attachTokenToVehicle, detachTokenFromVehicle } from './vehicle-movement.mjs';
+import { DRIVER_TOKEN_FLAG } from './vehicle-combat.mjs';
 
 /**
  * Access Point — placed in a meat-world scene.
@@ -228,8 +230,12 @@ async function _onSeatTokenExit(event) {
  * Driver Seat behavior.
  *
  * Marks a Region as the vehicle's driver seat area.  A token entering this
- * region is auto-attached so it moves with the vehicle.  Driver-seat occupancy
- * logic (claiming the driver role, Maneuver declaration) is Phase 4.
+ * region is auto-attached so it moves with the vehicle AND is recorded as the
+ * current driver on the vehicle actor (flags.cyberpunk-blue.currentDriverTokenId).
+ * This flag is read by `executeVehicleTurn` to distinguish coast from drift.
+ *
+ * On TOKEN_EXIT the driver flag is cleared so the vehicle reverts to drifting
+ * if no new driver takes the seat.
  */
 export class CyberBlueDriverSeatBehavior extends foundry.data.regionBehaviors.RegionBehaviorType {
   static defineSchema() {
@@ -238,10 +244,28 @@ export class CyberBlueDriverSeatBehavior extends foundry.data.regionBehaviors.Re
 
   static events = {
     [CONST.REGION_EVENTS.TOKEN_ENTER]: async function _driverEnterProxy(event) {
-      return _onSeatTokenEnter.call(this, event);
+      await _onSeatTokenEnter.call(this, event);
+      // Record the entering token as the active driver on the vehicle actor.
+      if (game.user !== game.users.activeGM) return;
+      const vehicleToken = _vehicleTokenForBehavior(this);
+      if (!vehicleToken?.actor) return;
+      const enteringToken = event.data?.token;
+      if (!enteringToken || enteringToken.id === vehicleToken.id) return;
+      await vehicleToken.actor.setFlag('cyberpunk-blue', DRIVER_TOKEN_FLAG, enteringToken.id);
     },
     [CONST.REGION_EVENTS.TOKEN_EXIT]: async function _driverExitProxy(event) {
-      return _onSeatTokenExit.call(this, event);
+      await _onSeatTokenExit.call(this, event);
+      // Clear the driver flag so the vehicle is treated as unmanned.
+      if (game.user !== game.users.activeGM) return;
+      const vehicleToken = _vehicleTokenForBehavior(this);
+      if (!vehicleToken?.actor) return;
+      const exitingToken = event.data?.token;
+      if (!exitingToken || exitingToken.id === vehicleToken.id) return;
+      // Only clear if this is actually the current driver (not a passenger exiting).
+      const currentDriverId = vehicleToken.actor.getFlag('cyberpunk-blue', DRIVER_TOKEN_FLAG);
+      if (currentDriverId === exitingToken.id) {
+        await vehicleToken.actor.unsetFlag('cyberpunk-blue', DRIVER_TOKEN_FLAG);
+      }
     },
   };
 }
