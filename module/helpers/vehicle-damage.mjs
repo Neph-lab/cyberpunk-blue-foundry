@@ -249,7 +249,7 @@ export async function ensureVehicleCritTables() {
       displayRoll: true,
       description: `Critical Damage table for ${category} vehicles. Populate with entries for rolls 2–12.`,
       results: [{
-        type:   0, // TEXT
+        type:   'text',
         text:   `[Placeholder] Critical hit on a ${category} vehicle — GM resolves the effect. Populate this table with your critical damage entries.`,
         range:  [2, 12],
         drawn:  false,
