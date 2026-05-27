@@ -3,6 +3,7 @@ import { CyberBlueItem } from './documents/item.mjs';
 import { CyberBlueActiveEffect } from './documents/active-effect.mjs';
 import { CyberBlueCombat } from './documents/combat.mjs';
 import { VehicleManeuverDialog } from './apps/vehicle-maneuver-dialog.mjs';
+import { VehicleHud } from './apps/vehicle-hud.mjs';
 import { CyberBlueActorSheet } from './sheets/actor-sheet.mjs';
 import { CyberBlueItemSheet } from './sheets/item-sheet.mjs';
 import { CyberBlueMookSheet } from './sheets/mook-sheet.mjs';
@@ -88,6 +89,7 @@ import {
   ensureVehicleCritTables,
 } from './helpers/vehicle-damage.mjs';
 import { ensureLostControlTables } from './helpers/vehicle-lost-control.mjs';
+import { ensureVehicleCatalogue } from './data/vehicle-catalogue.mjs';
 import {
   isNetConnected,
   getNetConnection,
@@ -285,6 +287,23 @@ Hooks.once('init', function () {
     type: Number,
     default: 10,
     range: { min: 0, max: 120, step: 5 },
+    requiresReload: false,
+  });
+
+  // Per-user speed-unit preference for the Vehicle Status HUD.
+  game.settings.register('cyberpunk-blue', 'vehicleSpeedUnits', {
+    name: 'CYBER_BLUE.Settings.VehicleSpeedUnits.Name',
+    hint: 'CYBER_BLUE.Settings.VehicleSpeedUnits.Hint',
+    scope: 'client',
+    config: true,
+    type: String,
+    choices: {
+      mv:  'CYBER_BLUE.Settings.VehicleSpeedUnits.MV',
+      mps: 'CYBER_BLUE.Settings.VehicleSpeedUnits.MPS',
+      kmh: 'CYBER_BLUE.Settings.VehicleSpeedUnits.KMH',
+      mph: 'CYBER_BLUE.Settings.VehicleSpeedUnits.MPH',
+    },
+    default: 'kmh',
     requiresReload: false,
   });
 
@@ -982,6 +1001,20 @@ Hooks.on('renderTokenHUD', (hud, html, _data) => {
   const tokenDoc = hud.object?.document;
   if (!tokenDoc) return;
 
+  // ── Vehicle Status HUD button (on vehicle tokens) ──────────────────────────
+  if (tokenDoc.actor?.type === 'vehicle') {
+    const hudBtn = document.createElement('div');
+    hudBtn.classList.add('control-icon', 'cpb-vehicle-hud-btn');
+    hudBtn.title = game.i18n.localize('CYBER_BLUE.VehicleHUD.OpenButton');
+    hudBtn.innerHTML = '<i class="fas fa-gauge-high"></i>';
+    hudBtn.addEventListener('click', () => {
+      VehicleHud.openForActor(tokenDoc.actor);
+    });
+    const col = html.querySelector('.col.right');
+    if (col) col.appendChild(hudBtn);
+  }
+
+  // ── Detach from vehicle button (on passenger/crew tokens) ─────────────────
   // Find any vehicle token in this scene that has this token in its attached list.
   const vehicleToken = scene.tokens.find(
     (t) => t.actor?.type === 'vehicle'
@@ -1284,6 +1317,7 @@ Hooks.once('ready', async () => {
   await ensureCritInjuryTables();
   await ensureVehicleCritTables();
   await ensureLostControlTables();
+  await ensureVehicleCatalogue();
   await migrateCostStrings();
   await ensureWeaponCatalogue();
   await ensureAmmoCatalogue();

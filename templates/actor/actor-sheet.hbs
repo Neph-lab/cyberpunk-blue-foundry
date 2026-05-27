@@ -218,6 +218,14 @@
                       <label class="target-vitals-label" title="{{localize 'CYBER_BLUE.Combat.TargetVitalsHint'}}">
                         <input type="checkbox" data-action="toggle-target-vitals" data-weapon-index="{{weapon.weaponIndex}}" {{#if weapon.targetVitals}}checked{{/if}} />
                       </label>
+                      <button type="button"
+                        class="cpb-vehicle-vital-btn {{#if weapon.targetVehicleVitalAreaIndex}}active{{/if}}"
+                        data-action="pick-vehicle-vital"
+                        data-item-id="{{weapon.itemId}}"
+                        data-weapon-index="{{weapon.weaponIndex}}"
+                        title="{{#if weapon.targetVehicleVitalAreaIndex}}{{localize 'CYBER_BLUE.VehicleVitals.ClearVehicleVitalHint'}}{{else}}{{localize 'CYBER_BLUE.VehicleVitals.PickVehicleVitalHint'}}{{/if}}">
+                        <i class="fas fa-car-burst"></i>
+                      </button>
                     {{/if}}
                   </td>
                   <td>

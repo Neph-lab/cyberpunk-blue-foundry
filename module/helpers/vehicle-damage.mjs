@@ -182,15 +182,51 @@ function _getVehicleCritTable(vehicleActor) {
  * chat.  The upstream attack flow already added +5 to the damage total before
  * calling this.  GM resolves the mechanical effect from the table entry.
  *
+ * When `vitalAreaIndex` is provided and the corresponding blueprint vital area
+ * has a `criticalDamageEntryId`, that entry fires deterministically instead of
+ * a random roll — the attacker targeted that specific component.
+ *
  * @param {Actor}               vehicleActor
  * @param {TokenDocument|null}  [vehicleToken=null]
+ * @param {number|null}         [vitalAreaIndex=null]  Index into blueprint.vitalAreas
  */
-export async function rollVehicleCritical(vehicleActor, vehicleToken = null) {
-  const table   = _getVehicleCritTable(vehicleActor);
+export async function rollVehicleCritical(vehicleActor, vehicleToken = null, vitalAreaIndex = null) {
   const speaker = vehicleToken
     ? ChatMessage.getSpeaker({ token: vehicleToken })
     : { alias: vehicleActor.name };
 
+  // ── Vital-area deterministic crit ─────────────────────────────────────────
+  if (vitalAreaIndex !== null) {
+    const vitalAreas = vehicleActor.system?.blueprint?.vitalAreas ?? [];
+    const vitalArea  = vitalAreas[vitalAreaIndex] ?? null;
+    const entryId    = vitalArea?.criticalDamageEntryId ?? '';
+    if (entryId) {
+      // Find the table entry directly and post it without rolling.
+      const table = _getVehicleCritTable(vehicleActor);
+      const entry = table?.results?.get(entryId) ?? null;
+      const resultText = entry?.text ?? '—';
+      await ChatMessage.create({
+        speaker,
+        content: `
+          <div class="cyberpunk-blue chat-card cpb-vehicle-crit">
+            <h3><i class="fas fa-car-burst"></i> ${vehicleActor.name} — Critical Damage (Vital Area)!</h3>
+            <p><em>Targeted vital area strike.</em></p>
+            <p>
+              <strong>${game.i18n.localize('CYBER_BLUE.VehicleCombat.CritRoll')}:</strong>
+              <em>${resultText}</em>
+            </p>
+            <p class="cpb-gm-note">${game.i18n.localize('CYBER_BLUE.VehicleCombat.CritGmNote')}</p>
+          </div>
+        `,
+        rollMode: game.settings.get('core', 'rollMode'),
+      });
+      return;
+    }
+    // If the vital area has no bound entry, fall through to random roll.
+  }
+
+  // ── Standard random crit ──────────────────────────────────────────────────
+  const table = _getVehicleCritTable(vehicleActor);
   if (!table) {
     const primary   = vehicleActor.system?.classification?.primary ?? 'land';
     const tableName = VEHICLE_CRIT_TABLE_NAMES[primary] ?? VEHICLE_CRIT_TABLE_NAMES.land;

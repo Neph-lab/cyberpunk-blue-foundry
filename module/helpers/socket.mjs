@@ -62,11 +62,11 @@ export function registerSocketHandlers() {
         break;
       }
       case 'rollVehicleCritical': {
-        const { targetUuid } = message;
+        const { targetUuid, vitalAreaIndex = null } = message;
         const { rollVehicleCritical } = await import('./vehicle-damage.mjs');
         const actor = await fromUuid(targetUuid);
         if (!actor) return;
-        await rollVehicleCritical(actor, null);
+        await rollVehicleCritical(actor, null, vitalAreaIndex);
         break;
       }
       case 'applyForcedCriticalInjury': {
@@ -208,13 +208,14 @@ export async function rollCriticalInjuryWithPermission(targetActor, tableType, {
  *
  * @param {Actor}              vehicleActor
  * @param {TokenDocument|null} vehicleToken
+ * @param {number|null}        [vitalAreaIndex=null]  Blueprint vital area index
  */
-export async function rollVehicleCriticalWithPermission(vehicleActor, vehicleToken) {
+export async function rollVehicleCriticalWithPermission(vehicleActor, vehicleToken, vitalAreaIndex = null) {
   const { rollVehicleCritical } = await import('./vehicle-damage.mjs');
   if (vehicleActor.isOwner || game.user.isGM) {
-    await rollVehicleCritical(vehicleActor, vehicleToken?.document ?? vehicleToken ?? null);
+    await rollVehicleCritical(vehicleActor, vehicleToken?.document ?? vehicleToken ?? null, vitalAreaIndex);
   } else {
-    emitToGM('rollVehicleCritical', { targetUuid: vehicleActor.uuid });
+    emitToGM('rollVehicleCritical', { targetUuid: vehicleActor.uuid, vitalAreaIndex });
   }
 }
 

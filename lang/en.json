@@ -354,6 +354,14 @@
       "AreaEffectDuration": {
         "Name": "Area Effect Region Duration (seconds)",
         "Hint": "How many seconds to show the explosion/cone area on the canvas after damage is applied. Set to 0 to never auto-remove (requires manual deletion)."
+      },
+      "VehicleSpeedUnits": {
+        "Name": "Speed Display Units",
+        "Hint": "Units used to display vehicle speed in the Vehicle Status HUD.",
+        "MV": "Grid (MV)",
+        "MPS": "m/s",
+        "KMH": "km/h",
+        "MPH": "mph"
       }
     },
     "CC": {
@@ -939,6 +947,28 @@
         "LostControlRoll": "Lost Control Roll",
         "LostControlGmNote": "GM applies the Lost Control consequence."
       }
+    },
+    "VehicleHUD": {
+      "Title": "Vehicle Status",
+      "OpenButton": "Vehicle Status",
+      "Speed": "Speed",
+      "HP": "HP",
+      "SP": "SP",
+      "Handling": "Handling",
+      "Driver": "Driver",
+      "NoDriver": "None",
+      "Reverse": "Rev.",
+      "State": {
+        "operational": "Operational",
+        "wreck": "Wreck"
+      }
+    },
+    "VehicleVitals": {
+      "NoAreas": "This vehicle has no vital areas defined in its blueprint.",
+      "PickerTitle": "Select Vital Area",
+      "TargetVitalAreaHint": "Pick a vital area on the target vehicle (same penalty as targeting vitals on a character).",
+      "PickVehicleVitalHint": "Target a vital area on the vehicle (opens canvas picker; requires a vehicle target).",
+      "ClearVehicleVitalHint": "Clear targeted vital area."
     }
   },
   "TYPES": {

@@ -1,0 +1,39 @@
+<div class="vehicle-hud-body">
+
+  {{!-- State badge --}}
+  <div class="vhud-state-row">
+    <span class="vhud-state vhud-state--{{system.state}}">
+      {{localize (concat "CYBER_BLUE.VehicleHUD.State." system.state)}}
+    </span>
+  </div>
+
+  {{!-- Stats grid --}}
+  <dl class="vhud-stats">
+
+    <dt>{{localize "CYBER_BLUE.VehicleHUD.Speed"}}</dt>
+    <dd>
+      {{#if isReverse}}<em>{{localize "CYBER_BLUE.VehicleHUD.Reverse"}}</em> {{/if}}{{speedCurrentFormatted}}
+      <span class="vhud-muted"> / {{speedMaxFormatted}}</span>
+    </dd>
+
+    <dt>{{localize "CYBER_BLUE.VehicleHUD.HP"}}</dt>
+    <dd>
+      {{system.resources.hp.value}}
+      <span class="vhud-muted"> / {{system.resources.hp.max}}</span>
+    </dd>
+
+    <dt>{{localize "CYBER_BLUE.VehicleHUD.SP"}}</dt>
+    <dd>
+      {{system.resources.armor.value}}
+      <span class="vhud-muted"> / {{system.resources.armor.max}}</span>
+    </dd>
+
+    <dt>{{localize "CYBER_BLUE.VehicleHUD.Handling"}}</dt>
+    <dd>{{handlingDisplay}}</dd>
+
+    <dt>{{localize "CYBER_BLUE.VehicleHUD.Driver"}}</dt>
+    <dd class="{{#unless driverName}}vhud-muted{{/unless}}">{{driverName}}</dd>
+
+  </dl>
+
+</div>

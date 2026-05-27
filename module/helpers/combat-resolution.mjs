@@ -401,11 +401,17 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
 
   // ── Weapon attack-roll modifier ────────────────────────────────────────────
   const targetVitals = item.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false;
+  // Vehicle vital-area targeting: attacker picked a specific vital area on the
+  // target vehicle.  Applies the same to-hit penalty as character vitals and
+  // fires the bound crit entry deterministically on a critical hit.
+  const targetVehicleVitalAreaIndex = item.getFlag('cyberpunk-blue', `targetVehicleVitalAreaIndex-${weaponIndex}`) ?? null;
+  const isTargetingVehicleVital     = targetVehicleVitalAreaIndex !== null
+                                    && targetActor?.type === 'vehicle';
   const rawVitalsPenalty = weapon.targetVitalsPenalty ?? 8;
   const targetVitalsPenalty = -(rawVitalsPenalty - modVitalsPenaltyReduction);
 
   let attackModifier = 0;
-  if (targetVitals) attackModifier += targetVitalsPenalty;
+  if (targetVitals || isTargetingVehicleVital) attackModifier += targetVitalsPenalty;
   if (weapon.isSmartWeapon) attackModifier += 1;
   if (weapon.isExcellentQuality) attackModifier += 1;
   attackModifier += modRecoilBonus;
@@ -787,15 +793,16 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const improvedRicochetBonus = hasImprovedRicochet ? damageDiceCount : 0;
 
   // ── Damage bonuses ─────────────────────────────────────────────────────────
-  // Target Vitals: +5 damage if any damage gets through SP (independent of crit)
-  const vitalsBonus = (targetVitals && penetratesWithoutBonus) ? 5 : 0;
+  // Target Vitals / Vehicle Vital Area: +5 damage if any damage gets through SP
+  const aimingAtVitals = targetVitals || isTargetingVehicleVital;
+  const vitalsBonus = (aimingAtVitals && penetratesWithoutBonus) ? 5 : 0;
   // Critical damage bonus:
   // • All weapons:    +5 on crit  (+10 when targeting vitals)
   // • Power Weapons: +10 on crit  (+20 when targeting vitals)
   // • Vicious (Cut-O-Matic): +5 extra on top of the normal crit bonus
   const critBonusBase = isCritical ? ((weapon.isPowerWeapon ?? false) ? 10 : 5) : 0;
   const viciousBonus = (isCritical && (weapon.vicious ?? false)) ? 5 : 0;
-  const critBonus = (targetVitals ? critBonusBase * 2 : critBonusBase) + viciousBonus;
+  const critBonus = (aimingAtVitals ? critBonusBase * 2 : critBonusBase) + viciousBonus;
   // Payload: weapon's built-in Toxic Payload (Yanari MP, Hercules 3AX) OR ammo name
   const weaponPayloadBonus = penetratesWithoutBonus ? (Number(weapon.payloadDmgBonus) || 0) : 0;
   // Incendiary ammo: +2 on penetration. Explosive (Concussive MA70): +2 regardless.
@@ -883,8 +890,8 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     ? `${item.name} - ${definition.label}`
     : item.name;
 
-  const targetVitalsLine = targetVitals
-    ? `<p class="target-vitals-note"><i class="fas fa-crosshairs"></i> ${game.i18n.localize('CYBER_BLUE.Combat.TargetVitalsActive')}</p>`
+  const targetVitalsLine = (targetVitals || isTargetingVehicleVital)
+    ? `<p class="target-vitals-note"><i class="fas fa-crosshairs"></i> ${game.i18n.localize(isTargetingVehicleVital ? 'CYBER_BLUE.VehicleVitals.TargetVitalAreaHint' : 'CYBER_BLUE.Combat.TargetVitalsActive')}</p>`
     : '';
 
   const damageFlavorHtml = `
@@ -954,7 +961,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
       }
       if (isCritical) {
         if (targetActor.type === 'vehicle') {
-          await rollVehicleCriticalWithPermission(targetActor, targetToken);
+          await rollVehicleCriticalWithPermission(targetActor, targetToken, targetVehicleVitalAreaIndex);
         } else {
           await rollCriticalInjuryWithPermission(targetActor, tableType, { attackerActor: attacker, weaponFlags });
         }

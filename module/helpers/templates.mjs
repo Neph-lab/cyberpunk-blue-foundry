@@ -7,6 +7,8 @@ export const preloadHandlebarsTemplates = async function () {
   return loadTemplates([
     // Character Creation
     'systems/cyberpunk-blue/templates/character-creation/wizard.hbs',
+    // Apps
+    'systems/cyberpunk-blue/templates/apps/vehicle-hud.hbs',
     // Dialogs
     'systems/cyberpunk-blue/templates/dialogs/vehicle-maneuver-picker.hbs',
     // Item partials

@@ -468,6 +468,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         // Target vitals is available on standard and autofire weapons (standard attack only), but not on area-effect types.
         isStandardDamage: !['cone', 'explosion', 'affliction', 'affliction-cone', 'affliction-explosion'].includes(damageType),
         targetVitals: itemDoc.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false,
+        targetVehicleVitalAreaIndex: itemDoc.getFlag('cyberpunk-blue', `targetVehicleVitalAreaIndex-${weaponIndex}`) ?? null,
         jammed: !!itemDoc.getFlag('cyberpunk-blue', `jammed-${weaponIndex}`),
         canJam: (weapon.jamOnRoll ?? 0) > 0,
         // Calibration: Hawk Eye scope installed → show calibrate button
@@ -1146,6 +1147,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     this.element.querySelectorAll('[data-action="toggle-target-vitals"]').forEach((checkbox) => {
       checkbox.addEventListener('change', this._onToggleTargetVitals.bind(this));
     });
+    this.element.querySelectorAll('[data-action="pick-vehicle-vital"]').forEach((button) => {
+      button.addEventListener('click', this._onPickVehicleVital.bind(this));
+    });
     this.element.querySelectorAll('[data-action="weapon-unjam"]').forEach((button) => {
       button.addEventListener('click', this._onWeaponUnjam.bind(this));
     });
@@ -1312,6 +1316,35 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     if (!item) return;
     const current = item.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false;
     await item.setFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`, !current);
+  }
+
+  async _onPickVehicleVital(event) {
+    event.preventDefault();
+    const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
+    if (Number.isNaN(weaponIndex) || weaponIndex < 0) return;
+    const item = this._getItemFromEvent(event);
+    if (!item) return;
+
+    // If already set, clicking again clears the selection.
+    const existing = item.getFlag('cyberpunk-blue', `targetVehicleVitalAreaIndex-${weaponIndex}`) ?? null;
+    if (existing !== null) {
+      await item.unsetFlag('cyberpunk-blue', `targetVehicleVitalAreaIndex-${weaponIndex}`);
+      return;
+    }
+
+    // Require a vehicle token to be targeted.
+    const targetToken = game.user.targets.first() ?? null;
+    const targetActor = targetToken?.actor ?? null;
+    if (!targetActor || targetActor.type !== 'vehicle') {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.VehicleVitals.NoAreas'));
+      return;
+    }
+
+    const { pickVehicleVitalArea } = await import('../helpers/vehicle-vitals-canvas.mjs');
+    const areaIndex = await pickVehicleVitalArea(targetToken.document);
+    if (areaIndex === null) return; // cancelled
+
+    await item.setFlag('cyberpunk-blue', `targetVehicleVitalAreaIndex-${weaponIndex}`, areaIndex);
   }
 
   async _onWeaponUnjam(event) {

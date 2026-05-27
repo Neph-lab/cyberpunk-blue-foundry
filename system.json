@@ -259,6 +259,14 @@
       "path": "packs/tarot-deck",
       "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
       "flags": {}
+    },
+    {
+      "name": "vehicles",
+      "label": "Vehicles",
+      "type": "Actor",
+      "path": "packs/vehicles",
+      "ownership": { "PLAYER": "OBSERVER", "TRUSTED": "OBSERVER", "ASSISTANT": "OWNER" },
+      "flags": {}
     }
   ],
   "initiative": "1d10 + @stats.rflx.value + @initiativeBonus",
