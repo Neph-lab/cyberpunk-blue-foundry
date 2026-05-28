@@ -241,7 +241,7 @@ SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace 
 }
 
 /* Overrides */
-#sidebar-content section.sidebar-tab, .application .window-content, #sidebar-content section.sidebar-tab button, .application .window-content button, .flexcol button.ui-control {
+#sidebar-content section.sidebar-tab, .application .window-content, #sidebar-content section.sidebar-tab button, .application .window-content button, .flexcol button.ui-control, input[type=radio], input[type=checkbox] {
   --color-text-emphatic: var(--cpb-accent);
   --color-text-primary: var(--cpb-text);
   --color-text-secondary: var(--cpb-accent-strong);
@@ -289,7 +289,26 @@ SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace 
   --toggle-border-color: var(--cpb-accent);
   --toggle-active-bg-color: var(--cpb-accent-strong-wash);
   --toggle-active-border-color: var(--cpb-accent-strong-border);
+  --checkbox-checked-color: var(--cpb-accent);
+  --checkbox-disabled-color: var(--cpb-muted);
+  --checkbox-background-color: var(--cpb-accent-wash);
+  --checkbox-checkmark-color: var(--cpb-bg-solid-top);
+  --input-background-color: var(--cpb-accent-wash-soft);
+  --input-border-color: var(--cpb-border);
+  --input-text-color: var(--cpb-text);
+  --input-placeholder-color: var(--cpb-muted);
+  --input-focus-outline-color: var(--cpb-accent);
 }
+
+.cyberpunk-blue input[type=checkbox] {
+  --c: 5px;
+  clip-path: polygon(
+    var(--c) 0, calc(100% - var(--c)) 0,
+    100% var(--c), 100% calc(100% - var(--c)),
+    calc(100% - var(--c)) 100%, var(--c) 100%,
+    0 calc(100% - var(--c)), 0 var(--c) );
+}
+
 
 /* ==================================================
 GENERAL ELEMENTS
@@ -629,8 +648,9 @@ section.chat-sidebar:not(.sidebar-popout),
   color: var(--cpb-accent-warm);
 }
 
-.cyberpunk-blue .sheet-tabs .item.active::before {
-  filter: var(--cpb-icon-tint-warm);
+.cyberpunk-blue .sheet-tabs .item.active .cpb-tab-icon {
+  /* currentColor inherits from .item.active color (--cpb-accent-warm), so no
+     explicit override is needed — the mask-backed background tracks text color. */
 }
 
 .cyberpunk-blue .sheet-body {
@@ -646,40 +666,30 @@ section.chat-sidebar:not(.sidebar-popout),
   display: block;
 }
 
-.cyberpunk-blue .sheet-tabs .item::before {
-  background-size: 1.4rem 1.4rem;
+/* Generic in-template icon. Drop a <span class="cpb-icon" style="--cpb-icon: url(...)"></span>
+   anywhere icon art is wanted; the mask-backed background uses currentColor, so the icon
+   tracks the surrounding text color including hover/active states.
+   .cpb-tab-icon is the larger variant used inside sheet tabs. */
+.cyberpunk-blue .cpb-icon,
+.cyberpunk-blue .cpb-tab-icon {
+  background-color: currentColor;
   display: inline-block;
+  flex-shrink: 0;
+  -webkit-mask: var(--cpb-icon) center / contain no-repeat;
+          mask: var(--cpb-icon) center / contain no-repeat;
+  vertical-align: -0.2em;
+}
+
+.cyberpunk-blue .cpb-icon {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.cyberpunk-blue .cpb-tab-icon {
   width: 1.4rem;
   height: 1.4rem;
-  content: "";
   margin-right: var(--cpb-space-2);
-  filter: invert();
   vertical-align: -0.35rem;
-  filter: var(--cpb-icon-tint-lime);
-}
-
-.cyberpunk-blue .sheet-tabs .item[data-tab="overview"]::before {
-  background: url("../assets/icons/bk_Overview.svg");
-}
-
-.cyberpunk-blue .sheet-tabs .item[data-tab="skills"]::before {
-  background: url("../assets/icons/bk_Skills.svg");
-}
-
-.cyberpunk-blue .sheet-tabs .item[data-tab="cyberware"]::before {
-  background: url("../assets/icons/bk_Cyberware.svg");
-}
-
-.cyberpunk-blue .sheet-tabs .item[data-tab="inventory"]::before {
-  background: url("../assets/icons/bk_Inventory.svg");
-}
-
-.cyberpunk-blue .sheet-tabs .item[data-tab="netrunning"]::before {
-  background: url("../assets/icons/bk_Netrunning.svg");
-}
-
-.cyberpunk-blue .sheet-tabs .item[data-tab="notes"]::before {
-  background: url("../assets/icons/bk_Notes.svg");
 }
 
 .cyberpunk-blue .sheet-panel {
@@ -737,6 +747,10 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .resource-fields input,
 .cyberpunk-blue .health-meta {
   text-align: center;
+}
+
+.cyberpunk-blue .combat-weapon-panel {
+  margin-top: 1rem;
 }
 
 /* ==================================================
@@ -975,6 +989,9 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 
 .cyberpunk-blue .manufacturer-logo {
+  /* Logo SVGs are authored as black-on-transparent (unified item-art palette).
+     Sheets render on a dark background, so invert to white at display time. */
+  filter: invert(1);
   height: 35px;
   object-fit: contain;
   width: unset;

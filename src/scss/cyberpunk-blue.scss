@@ -346,6 +346,9 @@
 }
 
 .cyberpunk-blue .manufacturer-logo {
+  /* Logo SVGs are authored as black-on-transparent (unified item-art palette).
+     Sheets render on a dark background, so invert to white at display time. */
+  filter: invert(1);
   height: 1.6rem;
   object-fit: contain;
   width: 1.6rem;
