@@ -169,31 +169,37 @@ For the in-vehicle UI (`templates/actor/vehicle-sheet.hbs`, `templates/apps/vehi
 </span>
 ```
 
-| Stat | Suggested icon concept |
-|------|----------------------|
-| INT | Brain / circuit |
-| REF | Lightning bolt |
-| DEX | Hand / fingers |
-| TECH | Wrench / gear |
-| COOL | Sunglasses / ice shard |
-| WILL | Fist / shield |
-| LUCK | Dice / four-leaf |
-| MOVE | Running figure / chevron |
-| BODY | Torso / flexed arm |
-| EMP | Heart / signal waves |
+Blue's six stats (per `module/helpers/config.mjs` `STATS` + `module/data/base-actor.mjs`):
+
+| Stat | Long form | Suggested icon concept |
+|------|-----------|----------------------|
+| BODY | Body | Torso / flexed arm |
+| RFLX | Reflexes | Lightning bolt |
+| INT | Intelligence | Brain / circuit |
+| TECH | Technological Ability | Wrench / gear |
+| COOL | Cool | Sunglasses / ice shard |
+| MOVE | Move | Running figure / chevron |
+
+> Blue does **not** have REF, DEX, WILL, EMP, or HUM. Don't add those — they're Cyberpunk Red stats. See `docs/blue-vs-red.md`.
 
 ### 6. Resource Cards
 
 **Template:** `templates/actor/actor-sheet.hbs` — Overview tab.
 **Pattern:** A inside `.resource-name`.
 
+Blue resources (per `base-actor.mjs` `resources` schema):
+
 | Resource | Key / class | Suggested icon |
 |----------|-------------|---------------|
-| SP (armor) | `.armor-card` | Shield / armor plate |
-| MOVE (derived) | `.move-card` | Chevron / sprint |
-| Humanity | `humanity` | Heart / yin-yang |
+| HP | `hp` | Heart / pulse |
+| SP (armor) | `armor` / `.armor-card` | Shield / armor plate |
+| PSYCHE | `psyche` | Mind / static-wave |
 | Luck | `luck` | Dice |
-| Extra resources | any `.resource-card` | Generic chip / gauge |
+| Serious Wound Threshold | `seriousWoundThreshold` | Warning triangle |
+| Death Save | `deathSave` | Skull |
+| MOVE (derived display) | `.move-card` | Chevron / sprint |
+
+> Blue does **not** have a Humanity resource. Psyche serves a related but distinct role; don't conflate them. See `docs/blue-vs-red.md`.
 
 ### 7. Health Panel
 
@@ -271,26 +277,25 @@ For the in-vehicle UI (`templates/actor/vehicle-sheet.hbs`, `templates/apps/vehi
 | Individual role row | `.embedded-row[data-item-type="role"]` | Per-role (table below) |
 | Individual ability row | `.embedded-row[data-item-type="ability"]` | Specialty-specific |
 
-**Per-role icons** — most already exist in `assets/icons/`:
+**Per-role icons** — Blue has 13 Roles grouped into 5 categories. Category names (Leader, Networker, Protean, Specialist, Sundry) are **not** Roles themselves — don't add icons under those names. Authoritative source: `docs/Roles-source.md`.
 
-| Role | File present? | Suggested icon |
-|------|--------------|----------------|
-| Bandit | ✅ `Bandit.svg` | Skull / fist |
-| Exec (Corpo) | ✅ `Corpo.svg` | Briefcase / suit |
-| Fixer | ✅ `Fixer.svg` | Handshake / coin |
-| Guide | ✅ `Guide.svg` | Compass / map |
-| Lawman (Law) | ✅ `Law.svg` | Badge / gavel |
-| Leader | — | Megaphone / crown |
-| Media | ✅ `Media.svg` | Camera / newspaper |
-| Medtech | ✅ `Medtech.svg` | Medical cross / syringe |
-| Netrunner | ✅ `Netrunner.svg` | Circuit / terminal |
-| Nomad | ✅ `Nomad.svg` | Wheel / road |
-| Protean | — | Shift / morph |
-| Rocker | ✅ `Rocker.svg` | Guitar / mic |
-| Solo | ✅ `Solo.svg` | Crosshair / blade |
-| Specialist (Operative) | ✅ `Operative.svg` | Wrench / badge |
-| Techie | — | Wrench / gear |
-| (extra) | ✅ `Ninja.svg` | unassigned — TBD |
+| Role | Category | File present? | Suggested icon |
+|------|----------|--------------|----------------|
+| Bandit | Networker | ✅ `Bandit.svg` | Skull / fist |
+| Corpo | Leader | ✅ `Corpo.svg` | Briefcase / suit |
+| Fixer | Networker | ✅ `Fixer.svg` | Handshake / coin |
+| Guide | Sundry | ✅ `Guide.svg` | Compass / map |
+| Law | Leader | ✅ `Law.svg` | Badge / gavel |
+| Media | Networker | ✅ `Media.svg` | Camera / newspaper |
+| Medtech | Specialist | ✅ `Medtech.svg` | Medical cross / syringe |
+| Netrunner | Sundry | ✅ `Netrunner.svg` | Circuit / terminal |
+| Ninja | Protean | ✅ `Ninja.svg` | Shadow / blade |
+| Operative | Specialist | ✅ `Operative.svg` | Wrench / badge |
+| Rocker | Networker | ✅ `Rocker.svg` | Guitar / mic |
+| Solo | Protean | ✅ `Solo.svg` | Crosshair / blade |
+| Techie | Specialist | — | Wrench / gear |
+
+> **Not Blue Roles**: Exec (Red name for Corpo), Lawman (Red name for Law), Nomad (Red-only), Leader/Networker/Protean/Specialist/Sundry (these are categories). Don't seed art under those names.
 
 ### 12. Role Overview Feature (per-role mechanics panel)
 
