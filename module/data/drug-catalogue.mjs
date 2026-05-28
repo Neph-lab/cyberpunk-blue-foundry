@@ -140,7 +140,7 @@ export const DRUG_CATALOGUE = [
   // ── Antibiotics ─────────────────────────────────────────────────────────────
   // Has a clean AE (BODY −1 while active). No addiction.
   drug({
-    name:        'Antibiotics',
+    name:        'Antibiotics', img: `systems/cyberpunk-blue/assets/items/drugs/antibiotics.png`,
     cost:        'CO',
     description: 'Sold in packs of 10 doses.',
     duration:    '24 hours',
@@ -198,7 +198,7 @@ export const DRUG_CATALOGUE = [
   // Complex primary (+1 PSYCHE once/week + hallucinations — handled narratively).
   // Addiction: narrative only (no clean AE — "hallucinations" can't be encoded).
   drug({
-    name:      'Blue Glass',
+    name:      'Blue Glass', img: `systems/cyberpunk-blue/assets/items/drugs/blue-glass.png`,
     cost:      'EV',
     duration:  '4 hours',
     primary:   'Restore 1 temporary PSYCHE (this benefit can only be gained once per week). Frequent minor hallucinations and synesthesia occur throughout; you cannot take normal actions during these episodes.',

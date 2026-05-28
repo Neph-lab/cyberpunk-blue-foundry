@@ -439,7 +439,7 @@ export const EQUIPMENT_CATALOGUE = [
 
   gear({
     name: 'Airhypo',
-    folder: 'Scientific & Medical', cost: 'CO',
+    folder: 'Scientific & Medical', imgPath: `${A_GEAR}/airhypo.png`, cost: 'CO',
     description: 'Holds up to 3 drug ampules. Administers a dose as an Action. To inject an unwilling target, make a BODY+Melee Weapons attack instead of dealing damage on a hit.',
     isWeapon: true,
     weapons: [{

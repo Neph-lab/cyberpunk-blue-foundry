@@ -71,7 +71,7 @@ export const AMMO_CATALOGUE = [
   ammoItem({
     name: 'Basic Shotgun Shells',
     ammoTypes: { shotgunShell: true },
-    img: `${ASSET_BASE}/Basic Rifle.png`,
+    img: `${ASSET_BASE}/basic-shotgun-shells.png`,
     note: '12-gauge shot',
   }),
   ammoItem({
