@@ -316,7 +316,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Braindance',
-    folder: 'Media Gear', cost: 'PR',
+    folder: 'Media Gear', imgPath: `${A_GEAR}/braindance.png`, cost: 'PR',
     description: 'Up to 4 hours of full-sensory recorded experience on a shard.',
   }),
   gear({
@@ -529,7 +529,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Memory Shard',
-    folder: 'Computer Hardware', cost: 'CH',
+    folder: 'Computer Hardware', imgPath: `${A_GEAR}/memory-card.png`, cost: 'CH',
     description: 'Data storage wafer. Fits any standard shard socket.',
   }),
   gear({
@@ -599,12 +599,12 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Disposable Phone',
-    folder: 'Clandestine Gear', cost: 'CO',
+    folder: 'Clandestine Gear', imgPath: `${A_GEAR}/disposable-phone.png`, cost: 'CO',
     description: 'Voice and holo-calls without a neuroport.',
   }),
   gear({
     name: 'Handcuffs',
-    folder: 'Clandestine Gear', cost: 'CO',
+    folder: 'Clandestine Gear', imgPath: `${A_GEAR}/handcuffs.png`, cost: 'CO',
     description: 'Steel. A character with BODY 10+ can break free.',
   }),
   gear({
@@ -614,22 +614,22 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Lock-Picking Kit',
-    folder: 'Clandestine Gear', cost: 'EV',
+    folder: 'Clandestine Gear', imgPath: `${A_GEAR}/lock-picking-kit.png`, cost: 'EV',
     description: 'Tools for bypassing mechanical locks.',
   }),
   gear({
     name: 'Radio Communicator',
-    folder: 'Clandestine Gear', cost: 'CO',
+    folder: 'Clandestine Gear', imgPath: `${A_GEAR}/radio-communicator.png`, cost: 'CO',
     description: 'Discreet earpiece. 1-mile range; does not use public networks.',
   }),
   gear({
     name: 'Scrambler / Descrambler',
-    folder: 'Clandestine Gear', cost: 'EX',
+    folder: 'Clandestine Gear', imgPath: `${A_GEAR}/scrambler-descramber.png`, cost: 'EX',
     description: 'Sold in pairs for encrypted communications. Can read additional encryption keys from a shard.',
   }),
   gear({
     name: 'Toxin',
-    folder: 'Clandestine Gear', cost: 'PR',
+    folder: 'Clandestine Gear', imgPath: `${A_GEAR}/toxin.png`, cost: 'PR',
     description: 'DV13 BODY+Endurance or take 2d6 HP and suffer −1 to BODY checks for the duration; on a successful resist, take 1d6 HP. Duration: 40 − (2 × BODY) minutes.',
   }),
   gear({
@@ -642,7 +642,7 @@ export const EQUIPMENT_CATALOGUE = [
 
   gear({
     name: 'Glow Paint',
-    folder: 'Miscellaneous', cost: 'EV',
+    folder: 'Miscellaneous', imgPath: `${A_GEAR}/glow-paint.png`, cost: 'EV',
     description: 'Rattling spray can of glow-in-the-dark paint.',
   }),
   gear({

@@ -65,7 +65,7 @@ export const AMMO_CATALOGUE = [
   ammoItem({
     name: 'Basic Shotgun Slugs',
     ammoTypes: { shotgunSlug: true },
-    img: `${ASSET_BASE}/Basic Rifle.png`,
+    img: `${ASSET_BASE}/shotgun-slug.png`,
     note: '12-gauge slug',
   }),
   ammoItem({
@@ -116,7 +116,7 @@ export const AMMO_CATALOGUE = [
     name: 'Basic Battery',
     ammoTypes: { battery: true },
     quantity: 1,
-    img: `${ASSET_BASE}/Basic Rifle.png`,
+    img: `${ASSET_BASE}/battery.png`,
     note: '€$50; fully recharges a stun gun (12 shots); 1 hour to recharge from empty',
   }),
   ammoItem({

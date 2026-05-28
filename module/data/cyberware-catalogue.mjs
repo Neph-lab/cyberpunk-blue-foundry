@@ -197,6 +197,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Sandevistan',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/sandevistan.png`,
     folder: 'Neuralware',
     cyberwareType: 'neuralware', integration: 'extension', slotsUsed: 1,
     cost: 'EX', facilities: 'hospital', installationCost: 'VEX', installationDv: 20,
@@ -430,6 +431,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Embedded Firearm',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/embedded-firearm-cyberarm.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 2,
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -477,6 +479,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Monowire',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/monowire.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 1,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -751,6 +754,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Shift Tacts',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/shift-tacts.png`,
     folder: 'Fashionware',
     cyberwareType: 'fashionware', integration: 'standalone',
     cost: 'CO', facilities: 'mall', installationCost: 'CO', installationDv: 12,
