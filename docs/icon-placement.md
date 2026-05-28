@@ -1,40 +1,69 @@
 # Icon Placement Reference — Cyberpunk Blue
 
-Every location in the system that needs a custom SVG icon, with enough selector detail to wire them in without re-reading the codebase. Created to be used alongside the chamfered design system (see `_design_handoff_temp/`).
+Every location in the system that needs a custom SVG icon, with enough selector and template detail to wire them in without re-reading the codebase. Intended to be used alongside the chamfered design system (see `_design_handoff_temp/`).
 
 ---
 
-## Wiring Pattern
+## Asset Conventions
 
-All icons follow the same CSS pattern. Icon files live at `assets/icons/bk_*.svg`.
+- **Item-tab / sheet icons** live at `assets/icons/bk_*.svg` (PascalCase, `bk_` prefix). Other icons in `assets/icons/` (e.g. role icons like `Solo.svg`, `Netrunner.svg`) follow plain PascalCase.
+- **Manufacturer logos** live at `assets/logo/<Brand-Name>.svg`. Filename is the brand name, hyphenated, matched against `system.manufacturer` strings via `branding.mjs` (case-insensitive, whitespace → hyphens).
+- **Color**: every SVG in `assets/logo/` and `assets/icons/` is authored **black on transparent** (`fill:#000`, `fill:none` for groups). This is a hard rule — see the wiring patterns below for how each kind of icon ends up the right color in-app.
+
+---
+
+## Wiring Patterns
+
+There are **two** patterns now. Pick the one that matches what you're placing:
+
+### Pattern A — Icons that should match the text color (`<span class="cpb-icon">`)
+
+For sheet tab icons, section header icons, stat-card icons, etc. — anywhere the icon needs to follow `currentColor` (text color, hover, active, accent, etc.):
+
+```hbs
+<span class="cpb-icon" style="--cpb-icon: url('systems/cyberpunk-blue/assets/icons/bk_Example.svg')"></span>
+```
+
+For the larger sheet-tab variant:
+
+```hbs
+<span class="cpb-tab-icon" style="--cpb-icon: url('systems/cyberpunk-blue/assets/icons/bk_Example.svg')"></span>
+```
+
+CSS (already defined in `css/cyberpunk-blue.css`):
 
 ```css
-/* Tab icon (::before is reserved for tab icons, ::after is chamfer fill) */
-.cyberpunk-blue .sheet-tabs .item[data-tab="example"]::before {
-  background: url("../assets/icons/bk_Example.svg") center / contain no-repeat;
-}
-
-/* Section header icon (::before is free here — not a .cpb-frame element) */
-.cyberpunk-blue .some-header::before {
-  content: "";
-  display: inline-block;
-  width: 1.1rem;
-  height: 1.1rem;
-  background: url("../assets/icons/bk_Example.svg") center / contain no-repeat;
-  filter: var(--cpb-icon-filter);  /* tints SVG to match text colour */
-  flex-shrink: 0;
+.cyberpunk-blue .cpb-icon,
+.cyberpunk-blue .cpb-tab-icon {
+  background-color: currentColor;
+  -webkit-mask: var(--cpb-icon) center / contain no-repeat;
+          mask: var(--cpb-icon) center / contain no-repeat;
+  /* …size + alignment differ between .cpb-icon and .cpb-tab-icon… */
 }
 ```
 
-**Important stacking rule:** Elements styled with `.cpb-frame` use `::before` for the chamfer inner fill. Do **not** add `::before` icons to `.cpb-frame` elements — use a child element's `::before`, or an `<img>`/`<span>` icon inside the frame instead.
+Because the icon is a CSS mask over `background-color: currentColor`, it inherits the surrounding text color automatically — no per-state filter chain needed.
+
+### Pattern B — Logos / pictorial images that should display white (`<img class="manufacturer-logo">`)
+
+For manufacturer logos that need to render as the original white silhouette on dark sheets:
+
+```hbs
+<img class="manufacturer-logo" src="{{manufacturerLogo}}" alt="{{system.manufacturer}}" />
+```
+
+`.manufacturer-logo` carries `filter: invert(1)`, which flips the black source SVG to white at display time. Branding resolution is handled by `module/helpers/branding.mjs` (`getBrandLogoPath` / `normalizeBrandName`); the helper populates `manufacturerLogo` on items/contexts.
+
+> **Note on the old `::before` pattern.** Earlier docs described wiring icons via CSS `::before { background: url(...) }` with hand-tuned `filter:` invert/hue-rotate chains. **That approach is retired.** All existing `::before` icon usage has been migrated to Pattern A. Do not add new `::before` icons for art — keep `::before` for the chamfer-frame technique (`.cpb-frame::before`) and similar structural pseudo-elements only.
 
 ---
 
-## Already-wired Icons (Character Sheet Tabs)
+## Already-wired Icons
 
-These are complete; listed here for reference only.
+These are complete; listed for reference.
 
-**CSS location:** `css/cyberpunk-blue.css` — search for `SHEET TABS`
+### Character Sheet Tabs
+`templates/actor/actor-sheet.hbs` lines ~43–50 — each tab `<a>` contains a `<span class="cpb-tab-icon">` whose `--cpb-icon` points at the matching SVG.
 
 | Tab | `data-tab` value | SVG file |
 |-----|-----------------|----------|
@@ -45,16 +74,39 @@ These are complete; listed here for reference only.
 | Netrunning | `netrunning` | `bk_Netrunning.svg` |
 | Notes | `notes` | `bk_Notes.svg` |
 
+### Stat-block icons on Overview tab
+Inline `<img class="stat-icon-sm" src="…">` in `templates/actor/actor-sheet.hbs`:
+
+| Icon | SVG file |
+|------|----------|
+| HP | `bk_HP.svg` |
+| Serious Wound Threshold | `bk_SWT.svg` |
+| Death Save | `bk_Death_Save.svg` |
+| MOVE | `bk_MOVE.svg` |
+| PSYCHE | `bk_PSYCHE.svg` |
+| LUCK | `bk_LUCK.svg` |
+
+> These are still raw `<img>` tags (no `currentColor` inheritance). If a future change wants them to follow text color (e.g. for a luck-spent state), migrate them to Pattern A.
+
+### Manufacturer Logos
+All ~100 brand SVGs in `assets/logo/` are wired via `<img class="manufacturer-logo">` in:
+
+- `templates/actor/actor-sheet.hbs` (embedded item rows)
+- `templates/item/item-sheet.hbs` (item header + child-mod rows)
+
 ---
 
 ## Needs Icons
 
+Icons in the catalogue below that already exist as files in `assets/icons/` but aren't referenced anywhere yet:
+**Bandit, Corpo, Document, Fixer, Guide, Law, Media, Medtech, Netrunner, Ninja, Nomad, Operative, Rocker, Solo.** Most are role icons (see §10). Wire them with Pattern A when the receiving template lands.
+
 ### 1. Item Sheet Tabs
 
-All item sheet tabs currently render text-only. Add icons using the same `::before` pattern as character sheet tabs.
+All item sheet tabs currently render text-only.
 
-**Template:** `templates/item/item-sheet.hbs`  
-**CSS target pattern:** `.cyberpunk-blue .sheet-tabs .item[data-tab="VALUE"]::before`
+**Template:** `templates/item/item-sheet.hbs` (multiple `<nav class="sheet-tabs">` blocks — weapon, mod, role, ammo, etc.)
+**Pattern:** A — insert `<span class="cpb-tab-icon" style="--cpb-icon: url('…')">…</span>` inside each `<a class="item">`.
 
 | Tab label | `data-tab` value | Suggested icon concept |
 |-----------|-----------------|----------------------|
@@ -67,12 +119,10 @@ All item sheet tabs currently render text-only. Add icons using the same `::befo
 | Lifepath | `lifepath` | Chain / path arrow |
 | Abilities | `abilities` | Star / burst |
 
----
-
 ### 2. Mook Sheet Tabs
 
-**Template:** `templates/actor/mook-sheet.hbs`  
-**CSS target pattern:** `.cyberpunk-blue .sheet-tabs .item[data-tab="VALUE"]::before`
+**Template:** `templates/actor/mook-sheet.hbs`
+**Pattern:** A.
 
 | Tab label | `data-tab` value | Suggested icon concept |
 |-----------|-----------------|----------------------|
@@ -80,96 +130,111 @@ All item sheet tabs currently render text-only. Add icons using the same `::befo
 | Items | `items` | Bag / crate |
 | Notes | `notes` | Notepad / pen |
 
----
+### 3. Vehicle Sheet Tabs **(new — Vehicles subsystem)**
 
-### 3. Stat Cards
+**Template:** `templates/actor/vehicle-sheet.hbs` lines ~48–51.
+**Pattern:** A.
 
-**Template:** `templates/actor/actor-sheet.hbs` — Overview tab  
-**Target:** add a `::before` icon to the heading or a decorative `::after` on the card itself.  
-**CSS pattern:**
+| Tab label | `data-tab` value | Suggested icon concept |
+|-----------|-----------------|----------------------|
+| General | `general` | Vehicle silhouette / steering wheel |
+| Stats | `stats` | Gauge / dashboard |
+| Notes | `notes` | Notepad / pen |
 
-```css
-.cyberpunk-blue .stat-card[data-stat="STAT_KEY"]::before { /* icon */ }
-/* or, if the card has a label element: */
-.cyberpunk-blue .stat-card[data-stat="STAT_KEY"] .stat-label::before { }
+### 4. Vehicle-specific section/row icons **(new)**
+
+For the in-vehicle UI (`templates/actor/vehicle-sheet.hbs`, `templates/apps/vehicle-hud.hbs`, `templates/dialogs/vehicle-maneuver-picker.hbs`). All Pattern A.
+
+| Element | Suggested CSS hook / selector | Suggested icon |
+|---------|-------------------------------|---------------|
+| SDP (structural damage points) | `.cyberpunk-blue .vehicle-sdp-header` | Bent panel / shield |
+| Seats panel header | `.cyberpunk-blue .vehicle-seats-header` | Seat / person |
+| Subsystems panel header | `.cyberpunk-blue .vehicle-subsystems-header` | Gear / module |
+| Vehicle mods panel header | `.cyberpunk-blue .vehicle-mods-header` | Wrench + bolt |
+| Speed / movement readout | `.cyberpunk-blue .vehicle-speed-readout` | Chevron / speedometer |
+| Maneuver picker entry | `.cyberpunk-blue .vehicle-maneuver` | Steering wheel / arrow-curve |
+| Vehicle HUD condition strip | `.cyberpunk-blue .vehicle-hud-condition` | Per-condition (re-use status icons §17) |
+
+> Verify class names against the templates before designing — these are the natural selectors, but the vehicles subsystem is still settling and some classes may not exist yet.
+
+### 5. Stat Cards (Overview tab)
+
+**Template:** `templates/actor/actor-sheet.hbs` — Overview tab stat block.
+**Pattern:** A. The stat card itself is a `.cpb-frame`, so place the icon inside an inner element (e.g. label):
+
+```hbs
+<span class="stat-label">
+  <span class="cpb-icon" style="--cpb-icon: url('…/bk_INT.svg')"></span>
+  INT
+</span>
 ```
 
-| Stat | `data-stat` attribute (check template) | Suggested icon concept |
-|------|----------------------------------------|----------------------|
-| INT | `int` | Brain / circuit |
-| REF | `ref` | Lightning bolt |
-| DEX | `dex` | Hand / fingers |
-| TECH | `tech` | Wrench / gear |
-| COOL | `cool` | Sunglasses / ice shard |
-| WILL | `will` | Fist / shield |
-| LUCK | `luck` | Dice / four-leaf |
-| MOVE | `move` | Running figure / chevron |
-| BODY | `body` | Torso / flexed arm |
-| EMP | `emp` | Heart / signal waves |
+| Stat | Suggested icon concept |
+|------|----------------------|
+| INT | Brain / circuit |
+| REF | Lightning bolt |
+| DEX | Hand / fingers |
+| TECH | Wrench / gear |
+| COOL | Sunglasses / ice shard |
+| WILL | Fist / shield |
+| LUCK | Dice / four-leaf |
+| MOVE | Running figure / chevron |
+| BODY | Torso / flexed arm |
+| EMP | Heart / signal waves |
 
----
+### 6. Resource Cards
 
-### 4. Resource Cards
+**Template:** `templates/actor/actor-sheet.hbs` — Overview tab.
+**Pattern:** A inside `.resource-name`.
 
-**Template:** `templates/actor/actor-sheet.hbs` — Overview tab  
-**CSS pattern:** `.cyberpunk-blue .resource-card[data-resource="KEY"] .resource-name::before`
-
-| Resource | Key / label | Suggested icon concept |
-|----------|-------------|----------------------|
-| SP (armor) | `sp` / `.armor-card` | Shield / armor plate |
-| MOVE (derived) | `move` / `.move-card` | Chevron right / sprint |
+| Resource | Key / class | Suggested icon |
+|----------|-------------|---------------|
+| SP (armor) | `.armor-card` | Shield / armor plate |
+| MOVE (derived) | `.move-card` | Chevron / sprint |
 | Humanity | `humanity` | Heart / yin-yang |
 | Luck | `luck` | Dice |
 | Extra resources | any `.resource-card` | Generic chip / gauge |
 
----
+### 7. Health Panel
 
-### 5. Health Panel
+**Template:** `templates/actor/actor-sheet.hbs` — Overview tab, `.health-panel`. Pattern A.
 
-**Template:** `templates/actor/actor-sheet.hbs` — Overview tab, `.health-panel`  
-**Note:** These elements are NOT `.cpb-frame`, so `::before` is safe.
+| Element | Insertion point | Suggested icon |
+|---------|----------------|---------------|
+| Health section header | `.cyberpunk-blue .health-block h3` | Heart / pulse |
+| Serious Wound Threshold label | `.cyberpunk-blue .health-threshold-label` | Warning triangle |
+| Death Save label | `.cyberpunk-blue .health-death-save-label` | Skull |
+| Active Effects section header | `.cyberpunk-blue .health-effects h3` | Status dot / pulse wave |
+| Critical Injury row modifier | `.cyberpunk-blue .health-effect.is-critical-injury` | Broken bone / cross |
 
-| Element | CSS selector | Suggested icon |
-|---------|-------------|---------------|
-| Health section header | `.cyberpunk-blue .health-block h3::before` | Heart / pulse |
-| Serious Wound Threshold label | `.cyberpunk-blue .health-threshold-label::before` | Warning triangle |
-| Death Save label | `.cyberpunk-blue .health-death-save-label::before` | Skull |
-| Active Effects section header | `.cyberpunk-blue .health-effects h3::before` | Status dot / pulse wave |
-| Individual AE row | `.cyberpunk-blue .health-effect::before` (falls back to item img) | Already uses `img` element |
-| Critical Injury row modifier | `.cyberpunk-blue .health-effect.is-critical-injury::before` | Broken bone / cross |
+> Individual AE rows already use the item's own `img`; no system icon needed there.
 
----
+### 8. Skill Section
 
-### 6. Skill Section
+**Template:** `templates/actor/actor-sheet.hbs` — Skills tab. Icons on category headers, not individual rows. Pattern A.
 
-**Template:** `templates/actor/actor-sheet.hbs` — Skills tab  
-**Note:** Individual skill rows are dense tables; icons are best on **category headers**, not individual rows.
+| Element | Selector / data attr | Suggested icon |
+|---------|---------------------|---------------|
+| Skill section header | `.skills-layout > .panel-header h2` | Brain / skill star |
+| Athletics group | `[data-category="athletics"]` | Running figure |
+| Awareness group | `[data-category="awareness"]` | Eye |
+| Body group | `[data-category="body"]` | Torso |
+| Control group | `[data-category="control"]` | Steering wheel / hand |
+| Education group | `[data-category="education"]` | Book |
+| Fighting group | `[data-category="fighting"]` | Crossed swords / fist |
+| Performance group | `[data-category="performance"]` | Star / mic |
+| Ranged group | `[data-category="ranged"]` | Crosshair |
+| Social group | `[data-category="social"]` | Speech bubble |
+| Technique group | `[data-category="technique"]` | Wrench |
 
-| Element | CSS selector | Suggested icon |
-|---------|-------------|---------------|
-| Skill section header | `.cyberpunk-blue .skills-layout > .panel-header h2::before` | Brain / skill star |
-| Athletics group | `.cyberpunk-blue .skill-category-header[data-category="athletics"]::before` | Running figure |
-| Awareness group | `.cyberpunk-blue .skill-category-header[data-category="awareness"]::before` | Eye |
-| Body group | `.cyberpunk-blue .skill-category-header[data-category="body"]::before` | Torso |
-| Control group | `.cyberpunk-blue .skill-category-header[data-category="control"]::before` | Steering wheel / hand |
-| Education group | `.cyberpunk-blue .skill-category-header[data-category="education"]::before` | Book |
-| Fighting group | `.cyberpunk-blue .skill-category-header[data-category="fighting"]::before` | Crossed swords / fist |
-| Performance group | `.cyberpunk-blue .skill-category-header[data-category="performance"]::before` | Star / mic |
-| Ranged group | `.cyberpunk-blue .skill-category-header[data-category="ranged"]::before` | Crosshair |
-| Social group | `.cyberpunk-blue .skill-category-header[data-category="social"]::before` | Speech bubble |
-| Technique group | `.cyberpunk-blue .skill-category-header[data-category="technique"]::before` | Wrench |
+> If `data-category` isn't on the group element, add it in the template — easier than `:nth-child` selectors.
 
-> Check the templates for what class/attribute marks a skill category header — if no `data-category` exists, target via `:nth-child` or add the attribute to the template.
+### 9. Cyberware Section
 
----
+**Template:** `templates/actor/actor-sheet.hbs` — Cyberware tab. Pattern A on group headers.
 
-### 7. Cyberware Section
-
-**Template:** `templates/actor/actor-sheet.hbs` — Cyberware tab  
-**CSS pattern for body-part groups:** `.cyberpunk-blue .cyberware-group[data-location="LOC"] > h2::before`
-
-| Body location | `data-location` (check template) | Suggested icon |
-|---------------|----------------------------------|---------------|
+| Body location | `data-location` | Suggested icon |
+|---------------|----------------|---------------|
 | Head | `head` | Head silhouette |
 | Eyes | `eyes` | Eye |
 | Ears | `ears` | Ear |
@@ -178,19 +243,14 @@ All item sheet tabs currently render text-only. Add icons using the same `::befo
 | Shoulders / Arms | `arms` | Arm / fist |
 | Hands | `hands` | Hand / fingers |
 | Legs | `legs` | Leg / boot |
-| Unconnected | `unconnected` | Link-slash / disconnected |
+| Unconnected | `unconnected` | Link-slash |
 
-> If `data-location` is not on the group element, check whether the h2 text is the discriminator and target by `h2` text content via `:has()` or JavaScript class injection instead.
+### 10. Inventory Groups
 
----
+**Template:** `templates/actor/actor-sheet.hbs` — Inventory tab. Pattern A on group headers.
 
-### 8. Inventory Groups
-
-**Template:** `templates/actor/actor-sheet.hbs` — Inventory tab  
-**CSS pattern:** `.cyberpunk-blue .inventory-group[data-type="TYPE"] > h2::before`
-
-| Category | `data-type` (check template) | Suggested icon |
-|----------|------------------------------|---------------|
+| Category | `data-type` | Suggested icon |
+|----------|-------------|---------------|
 | Weapons | `weapon` | Pistol / sword |
 | Armor | `armor` | Shield |
 | Clothing | `clothing` | T-shirt / jacket |
@@ -200,154 +260,159 @@ All item sheet tabs currently render text-only. Add icons using the same `::befo
 | Drugs | `drug` | Syringe / pill |
 | Ammo | `ammo` | Bullet / cartridge |
 
----
+### 11. Role & Ability Tables
 
-### 9. Role & Ability Tables
+**Template:** `templates/actor/actor-sheet.hbs` — Overview tab. Pattern A.
 
-**Template:** `templates/actor/actor-sheet.hbs` — Overview tab (Roles/Abilities section)  
-**CSS pattern:** `.cyberpunk-blue .traits-role-panel .panel-header h2::before` etc.
+| Element | Insertion point | Icon |
+|---------|----------------|------|
+| Roles section header | `.traits-role-panel .panel-header h2` | Crown / archetype |
+| Abilities section header | `.traits-ability-panel .panel-header h2` | Star burst / talent |
+| Individual role row | `.embedded-row[data-item-type="role"]` | Per-role (table below) |
+| Individual ability row | `.embedded-row[data-item-type="ability"]` | Specialty-specific |
 
-| Element | CSS selector | Suggested icon |
-|---------|-------------|---------------|
-| Roles section header | `.cyberpunk-blue .traits-role-panel .panel-header h2::before` | Crown / archetype |
-| Abilities section header | `.cyberpunk-blue .traits-ability-panel .panel-header h2::before` | Star burst / talent |
-| Individual role row | `.cyberpunk-blue .embedded-row[data-item-type="role"]::before` | Per-role icon (see below) |
-| Individual ability row | `.cyberpunk-blue .embedded-row[data-item-type="ability"]::before` | Specialty-specific |
+**Per-role icons** — most already exist in `assets/icons/`:
 
-**Per-role row icons** — target by role name data attribute or item name class if present:
+| Role | File present? | Suggested icon |
+|------|--------------|----------------|
+| Bandit | ✅ `Bandit.svg` | Skull / fist |
+| Exec (Corpo) | ✅ `Corpo.svg` | Briefcase / suit |
+| Fixer | ✅ `Fixer.svg` | Handshake / coin |
+| Guide | ✅ `Guide.svg` | Compass / map |
+| Lawman (Law) | ✅ `Law.svg` | Badge / gavel |
+| Leader | — | Megaphone / crown |
+| Media | ✅ `Media.svg` | Camera / newspaper |
+| Medtech | ✅ `Medtech.svg` | Medical cross / syringe |
+| Netrunner | ✅ `Netrunner.svg` | Circuit / terminal |
+| Nomad | ✅ `Nomad.svg` | Wheel / road |
+| Protean | — | Shift / morph |
+| Rocker | ✅ `Rocker.svg` | Guitar / mic |
+| Solo | ✅ `Solo.svg` | Crosshair / blade |
+| Specialist (Operative) | ✅ `Operative.svg` | Wrench / badge |
+| Techie | — | Wrench / gear |
+| (extra) | ✅ `Ninja.svg` | unassigned — TBD |
 
-| Role | Suggested icon |
-|------|---------------|
-| Bandit | Skull / fist |
-| Exec | Briefcase / suit |
-| Fixer | Handshake / coin |
-| Guide | Compass / map |
-| Lawman | Badge / gavel |
-| Leader | Megaphone / crown |
-| Media | Camera / newspaper |
-| Medtech | Medical cross / syringe |
-| Netrunner | Circuit / terminal |
-| Nomad | Wheel / road |
-| Protean | Shift / morph |
-| Rocker | Guitar / mic |
-| Solo | Crosshair / blade |
-| Specialist | Wrench / badge |
-| Techie | Wrench / gear |
+### 12. Role Overview Feature (per-role mechanics panel)
 
----
+**Template:** `templates/actor/actor-sheet.hbs` — Overview tab, role-overview-feature block. Pattern A.
 
-### 10. Role Overview Feature (per-role mechanics panel)
+| Element | Insertion point | Note |
+|---------|----------------|------|
+| Role category heading | `.role-overview-feature .roleCategory` | One per active role; reuse §11 role icons |
+| Role mechanic row labels | `.role-mechanic-row .role-mechanic-label` | Action-type icon |
+| Specialty budget counter | `.specialty-budget .panel-header span` | Points/budget chip icon |
+| Protean tactic name | `.protean-tactic-name` | Strategy/morph icon |
 
-**Template:** `templates/actor/actor-sheet.hbs` — Overview tab, role-overview-feature block  
-**CSS pattern:** `.cyberpunk-blue .role-overview-feature .roleCategory::before`
+### 13. Netrunning Tab
 
-Each role's overview panel header (`h4.roleCategory`) could display the role icon. Selector is the same for all — the icon displayed is determined by which role is active, so this would need either:
-- A per-role CSS class on the feature wrapper (check if one exists)
-- Or a single generic "role active" icon
+**Template:** `templates/actor/actor-sheet.hbs` — Netrunning tab. Pattern A. Many buttons already use FontAwesome `<i class="fas fa-*">` — those don't need migration.
 
-| Element | CSS selector | Note |
-|---------|-------------|------|
-| Role category heading | `.cyberpunk-blue .role-overview-feature .roleCategory::before` | One icon per active role, or generic |
-| Role mechanic row labels | `.cyberpunk-blue .role-mechanic-row .role-mechanic-label::before` | Action-type icon |
-| Specialty budget counter | `.cyberpunk-blue .specialty-budget .panel-header span::before` | Points/budget chip icon |
-| Protean tactic name | `.cyberpunk-blue .protean-tactic-name::before` | Strategy/morph icon |
+| Element | Insertion point | Icon |
+|---------|----------------|------|
+| Components section header | `.netrunner-components-row .panel-header h2` | Microchip / NET globe |
+| Individual component header | `.netrunner-comp-header` | Component-specific |
+| NET connection box | `.net-connection-box .panel-header span` | Plug / signal |
+| Computers section header | `.sheet-panel h2.computers-header` | Monitor / terminal |
+| Executables on Disk header | `.netrunner-exe-table thead th:first-child` | Disk / storage |
+| Executables on Shards header | `.netrunner-shards-table thead th:first-child` | Shard / card |
 
----
+### 14. Character Creation Wizard
 
-### 11. Netrunning Tab
+**Template:** `templates/character-creation/wizard.hbs`. Pattern A.
 
-**Template:** `templates/actor/actor-sheet.hbs` — Netrunning tab  
-**Note:** Many buttons already use `<i class="fas fa-*">` inline — those don't need CSS `::before` icons.
+| Element | Insertion point | Icon |
+|---------|----------------|------|
+| Progress step dot (active) | `.cc-step-dot.active` | Filled circle / number |
+| Progress step dot (completed) | `.cc-step-dot.completed` | Checkmark |
+| Points counter (on-budget) | `.cc-points-counter` | Gauge / chip |
+| Points counter (all spent) | `.cc-points-counter.all-spent` | Check / full gauge |
+| Points counter (over budget) | `.cc-points-counter.over-budget` | Warning triangle |
 
-| Element | CSS selector | Suggested icon | Note |
-|---------|-------------|---------------|------|
-| Components section header | `.cyberpunk-blue .netrunner-components-row .panel-header h2::before` | Microchip / NET globe | |
-| Individual component header | `.cyberpunk-blue .netrunner-comp-header::before` | Component-specific | Depends on component type |
-| NET connection box | `.cyberpunk-blue .net-connection-box .panel-header span::before` | Plug / signal | |
-| Computers section header | `.cyberpunk-blue .sheet-panel h2.computers-header::before` | Monitor / terminal | Verify class name in template |
-| Executables on Disk header | `.cyberpunk-blue .netrunner-exe-table thead th:first-child::before` | Disk / storage | |
-| Executables on Shards header | `.cyberpunk-blue .netrunner-shards-table thead th:first-child::before` | Shard / card | Verify class name |
+### 15. Panel Headers (general — across all sheets)
 
----
+`.panel-header` elements wrapping `h2`/`h3` that lack icons. Pattern A.
 
-### 12. Character Creation Wizard
+| Element | Insertion point | Icon |
+|---------|----------------|------|
+| Weapon block header | `.weapon-block > .panel-header h3` | Weapon silhouette |
+| Weapon mods section header | `.mod-list .panel-header h3` | Wrench / bolt |
+| Range band table header | `.weapon-range-table-wrap .panel-header` | Range / radar |
+| Embedded item section headers | `.component-panel .panel-header h2` | Stacked layers / puzzle |
+| Mook skills header | `.mook-skills-panel .panel-header h2` | Brain / chart |
+| Mook components header | `.mook-components-panel .panel-header h2` | Puzzle / gear |
 
-**Template:** `templates/character-creation/wizard.hbs`  
-**Note:** Buttons already have `<i class="fas fa-*">` icons. Focus here is on structural indicators.
+### 16. Chat Messages
 
-| Element | CSS selector | Suggested icon |
-|---------|-------------|---------------|
-| Progress step dot (active) | `.cyberpunk-blue .cc-step-dot.active::before` | Filled circle / number |
-| Progress step dot (completed) | `.cyberpunk-blue .cc-step-dot.completed::before` | Checkmark |
-| Points counter (on-budget) | `.cyberpunk-blue .cc-points-counter::before` | Gauge / chip |
-| Points counter (all spent) | `.cyberpunk-blue .cc-points-counter.all-spent::before` | Check / full gauge |
-| Points counter (over budget) | `.cyberpunk-blue .cc-points-counter.over-budget::before` | Warning triangle |
+**Template:** `templates/chat/`. Pattern A on message headers.
 
----
+| Message type | Wrapper class to verify in template | Icon |
+|-------------|-------------------------------------|------|
+| Skill roll | `.chat-roll-skill .message-header` | Brain / d10 |
+| Attack roll | `.chat-roll-attack .message-header` | Crosshair |
+| Damage roll | `.chat-roll-damage .message-header` | Lightning / blood drop |
+| Initiative roll | `.chat-roll-initiative .message-header` | Speed / clock |
+| Death Save roll | `.chat-roll-death .message-header` | Skull |
+| Luck spend | `.chat-luck-spend .message-header` | Dice |
+| Role ability use | `.chat-role-ability .message-header` | Star / archetype |
 
-### 13. Panel Headers (general — across all sheets)
+> Verify wrapper class names in `templates/chat/` before implementing — these are best-guess.
 
-These are `.panel-header` elements that wrap sections with an `h2` or `h3`. Many don't have icons.
+### 17. Foundry Status Effects **(new)**
 
-| Element | CSS selector | Suggested icon |
-|---------|-------------|---------------|
-| Weapon block header | `.cyberpunk-blue .weapon-block > .panel-header h3::before` | Weapon silhouette |
-| Weapon mods section header | `.cyberpunk-blue .mod-list .panel-header h3::before` | Wrench / bolt |
-| Range band table header | `.cyberpunk-blue .weapon-range-table-wrap .panel-header::before` | Range / radar |
-| Embedded item section headers | `.cyberpunk-blue .component-panel .panel-header h2::before` | Stacked layers / puzzle |
-| Mook skills header | `.cyberpunk-blue .mook-skills-panel .panel-header h2::before` | Brain / chart |
-| Mook components header | `.cyberpunk-blue .mook-components-panel .panel-header h2::before` | Puzzle / gear |
+The system registers 17 conditions via `CONFIG.statusEffects` in `module/cyberpunk-blue.mjs` (search for `CONFIG.statusEffects =`). Each currently uses a stock Foundry icon (`icons/svg/skull.svg` etc.); replacing them with custom black-on-transparent SVGs in `assets/icons/` and pointing the `icon:` field at the new path is the recommended swap.
 
----
+**Note on color**: status effect icons appear on token overlays and the condition tray, not inside the sheet DOM, so they bypass Pattern A's `currentColor` mask. They render as the raw SVG over the token. The "black on transparent" authoring rule still applies — Foundry's overlay layer brightens them for visibility — but if a particular condition reads poorly on a token, that one is the exception and can be authored at a lighter fill.
 
-### 14. Chat Messages
+| `id` (in CONFIG) | Localization key | Current stock icon | Suggested custom icon concept |
+|-----------------|------------------|---------------------|------------------------------|
+| `dying` | `CYBER_BLUE.Condition.Dying` | `icons/svg/skull.svg` | Heartbeat flatline |
+| `dead` | `CYBER_BLUE.Condition.Dead` | `icons/svg/tombstone.svg` | Skull |
+| `unconscious` | `CYBER_BLUE.Condition.Unconscious` | `icons/svg/unconscious.svg` | Closed eye / Zzz |
+| `prone` | `CYBER_BLUE.Condition.Prone` | `icons/svg/falling.svg` | Figure on ground |
+| `asleep` | `CYBER_BLUE.Condition.Asleep` | `icons/svg/sleep.svg` | Zzz |
+| `stunned` | `CYBER_BLUE.Condition.Stunned` | `icons/svg/daze.svg` | Spiral / dazed-stars |
+| `restrained` | `CYBER_BLUE.Condition.Restrained` | `icons/svg/net.svg` | Net / rope |
+| `grappled` | `CYBER_BLUE.Condition.Grappled` | `icons/svg/grab.svg` | Grasping hand |
+| `burning-embers` | `CYBER_BLUE.Condition.BurningEmbers` | `icons/svg/fire.svg` | Single ember / small flame |
+| `burning-fire` | `CYBER_BLUE.Condition.BurningFire` | `icons/svg/fire.svg` | Flame |
+| `burning-deadly` | `CYBER_BLUE.Condition.BurningDeadly` | `icons/svg/fire.svg` | Large flame / inferno |
+| `fatigued` | `CYBER_BLUE.Condition.Fatigued` | `icons/svg/downgrade.svg` | Downward arrow / drooping figure |
+| `severe-fatigue` | `CYBER_BLUE.Condition.SevereFatigue` | `icons/svg/downgrade.svg` | Double down-arrow |
+| `extreme-fatigue` | `CYBER_BLUE.Condition.ExtremeFatigue` | `icons/svg/downgrade.svg` | Triple down-arrow / collapse |
+| `deaf` | `CYBER_BLUE.Condition.Deaf` | `icons/svg/deaf.svg` | Ear with slash |
+| `blind` | `CYBER_BLUE.Condition.Blind` | `icons/svg/blind.svg` | Eye with slash |
 
-**Template:** `templates/chat/` (various partial templates)  
-**CSS pattern:** `.cyberpunk-blue .chat-message[data-message-type="TYPE"] .message-header::before`
+Suggested filenames: `cond_Dying.svg`, `cond_Dead.svg`, etc., in `assets/icons/`. Update the `icon:` path in `CONFIG.statusEffects` once added.
 
-Chat messages don't currently have type-specific icons on the header. Add them by targeting the message wrapper or header.
+### 18. Combat Tracker
 
-| Message type | Suggested CSS selector | Suggested icon |
-|-------------|----------------------|---------------|
-| Skill roll | `.cyberpunk-blue .chat-roll-skill .message-header::before` | Brain / d10 |
-| Attack roll | `.cyberpunk-blue .chat-roll-attack .message-header::before` | Crosshair |
-| Damage roll | `.cyberpunk-blue .chat-roll-damage .message-header::before` | Lightning bolt / blood drop |
-| Initiative roll | `.cyberpunk-blue .chat-roll-initiative .message-header::before` | Speed / clock |
-| Death Save roll | `.cyberpunk-blue .chat-roll-death .message-header::before` | Skull |
-| Luck spend | `.cyberpunk-blue .chat-luck-spend .message-header::before` | Dice |
-| Role ability use | `.cyberpunk-blue .chat-role-ability .message-header::before` | Star / archetype |
+Foundry-core widget; overrides may live in `templates/combat/`. Pattern A where the system controls the DOM.
 
-> Check `templates/chat/` for actual class names on the message wrappers — these may differ. Use `Grep` on `chat-roll` or `message-type` to verify selectors before implementing.
-
----
-
-### 15. Combat Tracker
-
-**Template:** Foundry core renders the combat tracker; system overrides may exist in `templates/combat/`.
-
-| Element | CSS selector | Suggested icon |
-|---------|-------------|---------------|
-| Combatant row (PC) | `.cyberpunk-blue #combat-tracker .combatant[data-actor-type="character"]::before` | Person silhouette |
-| Combatant row (NPC/mook) | `.cyberpunk-blue #combat-tracker .combatant[data-actor-type="npc"]::before` | Skull / target |
-| Sprint button | `.cyberpunk-blue .sprint-btn::before` or inner icon | Running figure |
-| Initiative input | `.cyberpunk-blue .initiative::before` | Clock / chevron |
+| Element | Selector | Icon |
+|---------|---------|------|
+| Combatant row (PC) | `#combat-tracker .combatant[data-actor-type="character"]` | Person silhouette |
+| Combatant row (NPC/mook) | `#combat-tracker .combatant[data-actor-type="npc"]` | Skull / target |
+| Sprint button | `.sprint-btn` | Running figure |
+| Initiative input | `.initiative` | Clock / chevron |
 
 ---
 
 ## Implementation Notes
 
-1. **Icon file naming:** Follow existing convention — `bk_` prefix, PascalCase, `.svg`. Example: `bk_SkillBrain.svg`.
+1. **SVG authoring**: black on transparent (`fill:#000`). The bulk-convert ran on 2026-05-28 normalized the full library; new SVGs should follow this rule. `fill:none` is fine for groups/parents.
 
-2. **Tab icons use `::before`; chamfer fill uses `::after`** — this is already correct in the CSS for `.sheet-tabs .item`. Any new tab added to either the character sheet or item sheet needs only the `::before` background-image rule.
+2. **Pattern A** (`.cpb-icon` / `.cpb-tab-icon`) is the default. Use it for anything that should track text color, including hover, active, and accent states. No per-state `filter:` rules needed.
 
-3. **Stat and resource card icons:** The stat cards use `.cpb-frame` class in the new design system, meaning their `::before` is taken by the chamfer fill. Place stat icons either:
-   - On an inner element's `::before` (e.g., `.stat-label::before`)
-   - As a separate `<span class="stat-icon">` in the template (preferred for flexibility)
+3. **Pattern B** (`<img class="manufacturer-logo">`) is for logos that should always render white. The `filter: invert(1)` on the class handles the flip. Don't use this pattern for icons inside text runs — the inversion locks the color to white regardless of text color.
 
-4. **Inline FontAwesome icons already present:** Many buttons already contain `<i class="fas fa-*">` elements in the Handlebars templates. These render correctly and do NOT need CSS `::before` additions. The locations listed above that say "has `fas fa-*` in HTML" are complete — no CSS work needed.
+4. **File naming**:
+   - Sheet/section icons: `bk_PascalCase.svg`
+   - Role icons: plain `PascalCase.svg`
+   - Status effect icons (new): `cond_PascalCase.svg`
+   - Manufacturer logos: `Brand-Name.svg` (matched by `branding.mjs`)
 
-5. **SVG filter for icon tinting:** The existing tab icons use raw SVG files at fixed colour. For icons that should adapt to the text colour (muted, accent, etc.), use:
-   ```css
-   filter: brightness(0) saturate(100%) invert(85%) sepia(20%) saturate(400%) hue-rotate(160deg);
-   ```
-   Or define a `--cpb-icon-filter` custom property in `:root` so it can be overridden per context.
+5. **`.cpb-frame` interaction**: elements styled with `.cpb-frame` use `::before` for the chamfer inner fill. Don't add Pattern A icons directly on a `.cpb-frame` element — put them on an inner element (label, heading) instead.
+
+6. **FontAwesome icons** (`<i class="fas fa-*">`) embedded inline in templates are still fine and don't need migration. They're already color-correct via FontAwesome's own font-color inheritance.
+
+7. **SCSS vs CSS drift**: `css/cyberpunk-blue.css` is currently hand-edited (the SCSS source has fallen behind). Edits to icon-related rules should land in the CSS directly; mirror to SCSS only for the small subset of rules that still appear in both.
