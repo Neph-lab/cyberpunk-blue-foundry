@@ -20,6 +20,7 @@
 import { getNetConnection, resolveNetAttack } from './netrunning.mjs';
 import { attachTokenToVehicle, detachTokenFromVehicle } from './vehicle-movement.mjs';
 import { DRIVER_TOKEN_FLAG } from './vehicle-combat.mjs';
+import { VIS } from './visibility.mjs';
 
 /**
  * Access Point — placed in a meat-world scene.
@@ -373,4 +374,237 @@ export class CyberBlueVehicleRoofBehavior extends foundry.data.regionBehaviors.R
   static defineSchema() {
     return {};
   }
+}
+
+// ── Visibility Region Behavior ────────────────────────────────────────────────
+
+const _CLIPPER_SCALE = 100; // Clipper integer scaling factor
+
+/**
+ * Offset a set of PIXI.Polygon objects inward by `deltaPx` pixels using ClipperLib.
+ * Returns an array of PIXI.Polygon objects (one per Clipper output path).
+ * Returns [] if the input polys are empty or ClipperLib is unavailable.
+ *
+ * @param {PIXI.Polygon[]} polys
+ * @param {number} deltaPx  positive = inward
+ * @returns {PIXI.Polygon[]}
+ */
+function offsetPolygonsInward(polys, deltaPx) {
+  if (!polys?.length || deltaPx <= 0) return [];
+  if (typeof ClipperLib === 'undefined') return [];
+
+  try {
+    const result = [];
+    for (const poly of polys) {
+      const clipPts = poly.toClipperPoints({ scalingFactor: _CLIPPER_SCALE });
+      if (!clipPts?.length) continue;
+      const co = new ClipperLib.ClipperOffset();
+      co.AddPath(clipPts, ClipperLib.JoinType.jtMiter, ClipperLib.EndType.etClosedPolygon);
+      const solution = new ClipperLib.Paths();
+      co.Execute(solution, -deltaPx * _CLIPPER_SCALE);
+      for (const path of solution) {
+        const p = PIXI.Polygon.fromClipperPoints(path, { scalingFactor: _CLIPPER_SCALE });
+        if (p) result.push(p);
+      }
+    }
+    return result;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Visibility behavior — marks a Region as a darkness or obscuration zone.
+ *
+ * Kind "darkness":    penalty evaluated at the target point.
+ * Kind "obscuration": penalty evaluated along the attacker→target LOS.
+ *
+ * Concentric zones (outside → in):
+ *   [edge .. lightBandWidth m]                        → DIM   (lightly obscured / dim)
+ *   [lightBandWidth .. lightBandWidth + noVisInset m] → DARK  (heavily obscured / dark)
+ *   inner core (if enableNoVisibility)                → NOT_VISIBLE (hard block)
+ *
+ * All band widths are in **metres** (scene distance units).
+ *
+ * Bypass:
+ *   ignoreDarknessPenalty / ignoreObscurationPenalty — removes −2/−4; NOT_VISIBLE still blocks.
+ *   bypassDarkness / bypassObscuration               — removes everything incl. NOT_VISIBLE.
+ *   Wire these as Active Effect flags (flags.cyberpunk-blue.<key> = true) on cyberware / gear.
+ *
+ * Residue: set `expiresInRounds > 0` for auto-deletion; the hook in cyberpunk-blue.mjs handles
+ * round-based expiry. Out-of-combat time-based expiry uses a flag created alongside the region.
+ *
+ * Visuals: v1 applies a PIXI ColorMatrixFilter (desaturate + optional darkening) and a blur
+ * filter to the region canvas object for a quick visual cue. A proper RegionShader overlay is
+ * deferred to a future pass.
+ */
+export class CyberBlueVisibilityRegionBehavior extends foundry.data.regionBehaviors.RegionBehaviorType {
+  static defineSchema() {
+    const fields = foundry.data.fields;
+    return {
+      kind: new fields.StringField({
+        required: true,
+        blank: false,
+        initial: 'obscuration',
+        choices: {
+          darkness:    'CYBER_BLUE.RegionBehavior.Visibility.KindDarkness',
+          obscuration: 'CYBER_BLUE.RegionBehavior.Visibility.KindObscuration',
+        },
+        label: 'CYBER_BLUE.RegionBehavior.Visibility.Kind',
+        hint:  'CYBER_BLUE.RegionBehavior.Visibility.KindHint',
+      }),
+      lightBandWidth: new fields.NumberField({
+        required: true,
+        nullable: false,
+        initial: 0,
+        min: 0,
+        label: 'CYBER_BLUE.RegionBehavior.Visibility.LightBandWidth',
+        hint:  'CYBER_BLUE.RegionBehavior.Visibility.LightBandWidthHint',
+      }),
+      enableNoVisibility: new fields.BooleanField({
+        initial: false,
+        label: 'CYBER_BLUE.RegionBehavior.Visibility.EnableNoVisibility',
+        hint:  'CYBER_BLUE.RegionBehavior.Visibility.EnableNoVisibilityHint',
+      }),
+      noVisInset: new fields.NumberField({
+        required: true,
+        nullable: false,
+        initial: 0,
+        min: 0,
+        label: 'CYBER_BLUE.RegionBehavior.Visibility.NoVisInset',
+        hint:  'CYBER_BLUE.RegionBehavior.Visibility.NoVisInsetHint',
+      }),
+      expiresInRounds: new fields.NumberField({
+        required: true,
+        nullable: false,
+        integer: true,
+        initial: 0,
+        min: 0,
+        label: 'CYBER_BLUE.RegionBehavior.Visibility.ExpiresInRounds',
+        hint:  'CYBER_BLUE.RegionBehavior.Visibility.ExpiresInRoundsHint',
+      }),
+    };
+  }
+
+  // ── Band polygon cache ──────────────────────────────────────────────────────
+
+  /**
+   * Build (or return cached) the inset band polygons for `classifyPoint`.
+   * Cache is invalidated by _invalidateBandCache, called on boundary/update events.
+   *
+   * @returns {{ dimInner: PIXI.Polygon[], core: PIXI.Polygon[] }}
+   */
+  _buildBandCache() {
+    if (this._bandCache && !this._bandCacheInvalid) return this._bandCache;
+
+    const mPx = canvas.dimensions?.distancePixels ?? 1; // px per metre
+    const polys = this.region?.polygons ?? [];
+
+    const dimInner = offsetPolygonsInward(polys, this.lightBandWidth * mPx);
+    let core = [];
+    if (this.enableNoVisibility) {
+      core = offsetPolygonsInward(polys, (this.lightBandWidth + this.noVisInset) * mPx);
+    }
+
+    this._bandCache = { dimInner, core };
+    this._bandCacheInvalid = false;
+    return this._bandCache;
+  }
+
+  _invalidateBandCache() {
+    this._bandCacheInvalid = true;
+  }
+
+  // ── Point classification ────────────────────────────────────────────────────
+
+  /**
+   * Return the VIS level at `point` according to this region's band geometry.
+   * Called from visibility.mjs for both darkness-at-target and obscuration-along-LOS.
+   *
+   * @param {{x:number, y:number}} point  canvas pixel coordinates
+   * @returns {number} VIS constant (NONE=0, DIM=1, DARK=2, NOT_VISIBLE=3)
+   */
+  classifyPoint(point) {
+    const { dimInner, core } = this._buildBandCache();
+
+    // Innermost zone first
+    if (core.length && core.some((p) => p.contains(point.x, point.y))) return VIS.NOT_VISIBLE;
+    if (dimInner.length && dimInner.some((p) => p.contains(point.x, point.y))) return VIS.DARK;
+
+    // Check if the point is within the outer region boundary at all
+    const regionPolys = this.region?.polygons ?? [];
+    if (regionPolys.some((p) => p.contains(point.x, point.y))) return VIS.DIM;
+
+    return VIS.NONE;
+  }
+
+  // ── Visual overlay (v1: PIXI filters on region canvas object) ───────────────
+
+  static _onBehaviorViewed(event) {
+    const regionObj = this.region?.object;
+    if (!regionObj) return;
+
+    const filters = [];
+    const perfOK = (canvas.performance?.mode ?? 0) > (CONST.CANVAS_PERFORMANCE_MODES?.LOW ?? 0);
+
+    if (perfOK) {
+      // Desaturate for both kinds
+      const mat = new PIXI.ColorMatrixFilter();
+      mat.desaturate();
+      if (this.kind === 'darkness') mat.brightness(0.4, false);
+      filters.push(mat);
+
+      // Blur for obscuration regions
+      if (this.kind === 'obscuration') {
+        const blur = canvas.createBlurFilter?.(8, 2) ?? new PIXI.BlurFilter(8);
+        filters.push(blur);
+      }
+    }
+
+    if (!regionObj._cpbVisFilters) regionObj._cpbVisFilters = {};
+    const key = this.parent?.id ?? 'unknown';
+    regionObj._cpbVisFilters[key] = filters;
+    if (filters.length) {
+      regionObj.filters = [...(regionObj.filters ?? []), ...filters];
+    }
+  }
+
+  static _onBehaviorUnviewed(event) {
+    const regionObj = this.region?.object;
+    if (!regionObj) return;
+
+    const key = this.parent?.id ?? 'unknown';
+    const myFilters = regionObj._cpbVisFilters?.[key] ?? [];
+    if (myFilters.length) {
+      regionObj.filters = (regionObj.filters ?? []).filter((f) => !myFilters.includes(f));
+    }
+    if (regionObj._cpbVisFilters) delete regionObj._cpbVisFilters[key];
+  }
+
+  static _onRegionBoundary(event) {
+    // Invalidate cached band polygons when the region shape changes
+    this._invalidateBandCache();
+  }
+
+  // ── DataModel lifecycle ─────────────────────────────────────────────────────
+
+  _onUpdate(changed, options, userId) {
+    super._onUpdate?.(changed, options, userId);
+    // Invalidate band cache whenever system fields change
+    if ('system' in changed) this._invalidateBandCache();
+  }
+
+  // ── Static events registration ──────────────────────────────────────────────
+
+  static events = {
+    [CONST.REGION_EVENTS.BEHAVIOR_VIEWED]: function _visViewed(event) {
+      CyberBlueVisibilityRegionBehavior._onBehaviorViewed.call(this, event);
+    },
+    [CONST.REGION_EVENTS.BEHAVIOR_UNVIEWED]: function _visUnviewed(event) {
+      CyberBlueVisibilityRegionBehavior._onBehaviorUnviewed.call(this, event);
+    },
+    [CONST.REGION_EVENTS.REGION_BOUNDARY]: function _visBoundary(event) {
+      CyberBlueVisibilityRegionBehavior._onRegionBoundary.call(this, event);
+    },
+  };
 }

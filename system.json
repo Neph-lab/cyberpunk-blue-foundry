@@ -58,7 +58,8 @@
       "gunnerSeat": {},
       "passengerSeat": {},
       "vitalArea": {},
-      "vehicleRoof": {}
+      "vehicleRoof": {},
+      "visibility": {}
     },
     "Actor": {
       "character": {

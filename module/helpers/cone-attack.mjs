@@ -5,6 +5,88 @@ import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './c
 import { rollAfflictionDefense, checkAfflictionSP, applyAfflictionEffect } from './affliction-attack.mjs';
 import { applyDamageWithPermission, rollCriticalInjuryWithPermission } from './socket.mjs';
 import { getActiveAEFlag } from './effects.mjs';
+import { computeVisibilityPenalty, makeElevatedPoint } from './visibility.mjs';
+
+// ── Explosion residue region ──────────────────────────────────────────────────
+
+/**
+ * After an explosion resolves, optionally create a persistent visibility Region
+ * at the blast centre.  Called on activeGM only (visibility setting checked here).
+ *
+ * @param {Item}   item          the weapon item
+ * @param {object} weapon        the effective weapon entry
+ * @param {{x:number,y:number}} explosionCenter  pixel coordinates of blast centre
+ * @param {number} spreadPx      blast radius in pixels (used as fallback residue radius)
+ * @param {number} pixelsPerMeter
+ */
+async function createResidueRegion(item, weapon, explosionCenter, spreadPx, pixelsPerMeter) {
+  if (!game.settings.get('cyberpunk-blue', 'visibilityEnabled')) return;
+  if (!weapon.leavesResidue) return;
+  if (game.user !== game.users.activeGM) return;
+
+  const scene = canvas.scene;
+  if (!scene) return;
+
+  const radiusPx = weapon.residueRadius > 0
+    ? weapon.residueRadius * pixelsPerMeter
+    : spreadPx;
+
+  const expiresInRounds = weapon.residueRounds ?? 3;
+  const kind             = weapon.residueKind           ?? 'obscuration';
+  const lightBandWidth   = weapon.residueLightBandWidth ?? 0;
+  const enableNoVis      = weapon.residueEnableNoVis    ?? false;
+  const noVisInset       = weapon.residueNoVisInset     ?? 0;
+
+  let expiryData;
+  if (game.combat?.started) {
+    expiryData = {
+      mode:           'rounds',
+      combatId:       game.combat.id,
+      expiresOnRound: game.combat.round + expiresInRounds,
+    };
+  } else {
+    const deleteAt = Date.now() + expiresInRounds * 3 * 1000;
+    expiryData = { mode: 'time', deleteAt };
+    // Time-based expiry: use a timeout since worldTime may not advance out of combat.
+    if (expiresInRounds > 0) {
+      setTimeout(async () => {
+        const stale = scene.regions.filter((r) => {
+          const exp = r.getFlag('cyberpunk-blue', 'visibilityExpiry');
+          return exp?.deleteAt === deleteAt;
+        });
+        for (const r of stale) {
+          await r.delete().catch(() => {});
+        }
+      }, expiresInRounds * 3 * 1000);
+    }
+  }
+
+  await scene.createEmbeddedDocuments('Region', [{
+    name: `${item.name} Residue`,
+    shapes: [{
+      type:    'ellipse',
+      x:       explosionCenter.x,
+      y:       explosionCenter.y,
+      radiusX: radiusPx,
+      radiusY: radiusPx,
+      rotation: 0,
+      hole:     false,
+    }],
+    behaviors: [{
+      type:   'visibility',
+      system: {
+        kind,
+        lightBandWidth,
+        enableNoVisibility: enableNoVis,
+        noVisInset,
+        expiresInRounds,
+      },
+    }],
+    flags: {
+      'cyberpunk-blue': { visibilityExpiry: expiryData },
+    },
+  }]);
+}
 
 function getPixelsPerMeter() {
   const gridSize = canvas.grid.size;
@@ -355,9 +437,23 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
     return;
   }
 
+  // ── Visibility check at aim point ─────────────────────────────────────────
+  const aimPtElev = makeElevatedPoint(aimPoint.x, aimPoint.y, attackerToken.document.elevation ?? 0);
+  const _expVis = computeVisibilityPenalty(attacker, attackerToken, null, aimPtElev);
+  if (_expVis.blocked) {
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      content: `<div class="cyberpunk-blue chat-card">
+        <h3><i class="fas fa-eye-slash"></i> ${game.i18n.localize('CYBER_BLUE.Visibility.BlockedTitle')}</h3>
+        <p>${_expVis.notes.join(' ')}</p>
+      </div>`,
+    });
+    return;
+  }
+
   // Roll attack
   playSfx('explosion');
-  const precisionBonus = getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
+  const precisionBonus = (getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0) + _expVis.penalty;
   const attackRoll = await attacker.rollSkill({ skillSlug, modifier: precisionBonus });
   const hit = attackRoll.total >= resolvedDV;
 
@@ -389,6 +485,7 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
 
   // Show persistent area graphic now that the explosion centre is finalised
   showAreaEffectExplosion(explosionCenter.x, explosionCenter.y, spreadPx, halfDamagePx);
+  await createResidueRegion(item, weapon, explosionCenter, spreadPx, pixelsPerMeter);
 
   // Find tokens in blast radius
   const targets = [];
@@ -581,9 +678,19 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
   // Crit detection uses the single baseDamage roll (same dice for all targets)
   const { count: coneCritDiceCount } = detectCriticalDice(damageRoll);
 
-  for (const { actor: targetActor, isFullDamage } of targets) {
+  for (const { token: coneTargetToken, actor: targetActor, isFullDamage } of targets) {
+    // Per-target visibility: attacker must be able to see the target to hit them in a cone
+    const _coneVis = computeVisibilityPenalty(attacker, attackerToken, coneTargetToken);
+    if (_coneVis.blocked) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-eye-slash"></i> <strong>${targetActor.name}</strong>: ${_coneVis.notes.join(' ')}</p></div>`,
+      });
+      continue;
+    }
+
     const evasionRoll = await rollTargetEvasion(targetActor);
-    const evaded = evasionRoll.total > attackTotal;
+    const evaded = evasionRoll.total > (attackTotal + _coneVis.penalty);
 
     // Half-damage: outer zone OR successful evasion → no critical injury
     const halfDamage = !isFullDamage || evaded;
@@ -794,7 +901,17 @@ export async function resolveAfflictionConeAttack(attacker, item, weaponIndex) {
     </div>`,
   });
 
-  for (const { actor: targetActor, isFullDamage } of targets) {
+  for (const { token: affConeTargetToken, actor: targetActor, isFullDamage } of targets) {
+    // Per-target visibility check
+    const _affConeVis = computeVisibilityPenalty(attacker, attackerToken, affConeTargetToken);
+    if (_affConeVis.blocked) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-eye-slash"></i> <strong>${targetActor.name}</strong>: ${_affConeVis.notes.join(' ')}</p></div>`,
+      });
+      continue;
+    }
+
     // Evasion check (evaded targets are immune to affliction)
     const rflx = targetActor.system?.stats?.rflx?.value ?? 0;
     const rflxMod = targetActor.system?.stats?.rflx?.rollMod ?? 0;
@@ -806,7 +923,7 @@ export async function resolveAfflictionConeAttack(attacker, item, weaponIndex) {
       flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.EvasionRoll')}: ${targetActor.name}</h3><p>RFLX ${rflx} + ${game.i18n.localize('CYBER_BLUE.Combat.EvasionSkill')} ${evasionRank}</p></div>`,
       rollMode: game.settings.get('core', 'rollMode'),
     });
-    if (evasionRoll.total > attackTotal) continue; // evaded
+    if (evasionRoll.total > (attackTotal + _affConeVis.penalty)) continue; // evaded (visibility penalty widens the window)
 
     // SP check — outer zone halves damage for SP purposes; resistBonus +2
     const isHalf = !isFullDamage;
@@ -885,7 +1002,21 @@ export async function resolveAfflictionExplosionAttack(attacker, item, weaponInd
     return;
   }
 
-  const precisionBonus = getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
+  // ── Visibility check at aim point ─────────────────────────────────────────
+  const _affExpAimPt = makeElevatedPoint(aimPoint.x, aimPoint.y, attackerToken.document.elevation ?? 0);
+  const _affExpVis = computeVisibilityPenalty(attacker, attackerToken, null, _affExpAimPt);
+  if (_affExpVis.blocked) {
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      content: `<div class="cyberpunk-blue chat-card">
+        <h3><i class="fas fa-eye-slash"></i> ${game.i18n.localize('CYBER_BLUE.Visibility.BlockedTitle')}</h3>
+        <p>${_affExpVis.notes.join(' ')}</p>
+      </div>`,
+    });
+    return;
+  }
+
+  const precisionBonus = (getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0) + _affExpVis.penalty;
   const attackRoll = await attacker.rollSkill({ skillSlug, modifier: precisionBonus });
   const hit = attackRoll.total >= resolvedDV;
 
@@ -909,6 +1040,7 @@ export async function resolveAfflictionExplosionAttack(attacker, item, weaponInd
 
   // Show persistent area graphic now that the explosion centre is finalised
   showAreaEffectExplosion(explosionCenter.x, explosionCenter.y, spreadPx, halfDamagePx);
+  await createResidueRegion(item, weapon, explosionCenter, spreadPx, pixelsPerMeter);
 
   // Find tokens in blast radius
   const targets = [];

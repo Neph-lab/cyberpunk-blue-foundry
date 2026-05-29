@@ -13,6 +13,7 @@ import { applyDamageWithPermission, rollCriticalInjuryWithPermission, rollVehicl
 import { clearWeaponCharge, countWallsBetweenTokens } from './tech-charge.mjs';
 import { getActiveAEFlag } from './effects.mjs';
 import { playUiSound, suppressNextFailSound, playSfx } from './audio.mjs';
+import { computeVisibilityPenalty } from './visibility.mjs';
 
 /** Count the number of d6s in a damage roll (using their face count, not total). */
 function countDamageDice(roll) {
@@ -440,6 +441,21 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
 
   // ── Solo Precision Attack: +1 to all attacks per 3 pts allocated ─────────
   attackModifier += getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
+
+  // ── Visibility penalty ────────────────────────────────────────────────────
+  const _visAttackerToken = attacker.getActiveTokens()[0];
+  const _vis = computeVisibilityPenalty(attacker, _visAttackerToken, targetToken);
+  if (_vis.blocked) {
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      content: `<div class="cyberpunk-blue chat-card">
+        <h3><i class="fas fa-eye-slash"></i> ${game.i18n.localize('CYBER_BLUE.Visibility.BlockedTitle')}</h3>
+        <p>${_vis.notes.join(' ')}</p>
+      </div>`,
+    });
+    return;
+  }
+  attackModifier += _vis.penalty;
 
   if (isMelee) {
     playSfx('melee-weapon-attack');

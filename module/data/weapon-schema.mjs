@@ -189,6 +189,24 @@ export function buildWeaponField() {
     // outer (half-damage / half-effect) zone of an affliction-explosion.
     // Defaults to 2 (matching the original hardcoded value).
     outerZoneResistBonus: new fields.NumberField({ ...requiredInteger, initial: 2, min: 0 }),
+
+    // ── Explosion residue (visibility region left behind after detonation) ──
+    // leavesResidue: when true the explosion/affliction-explosion creates a
+    //   persistent Region with a CyberBlueVisibilityRegionBehavior at the blast
+    //   centre after detonation (activeGM only).
+    // residueKind:          'obscuration' (smoke/gas) or 'darkness' (blinding flash soot).
+    // residueRounds:        rounds until auto-deletion; 0 = permanent until GM deletes.
+    // residueRadius:        override blast radius in metres; 0 = use weapon's coneSpread.
+    // residueLightBandWidth: DIM-band width in metres from the edge (0 = whole region is DARK).
+    // residueEnableNoVis:   whether the residue has a NOT_VISIBLE core.
+    // residueNoVisInset:    DARK-band width in metres before the NOT_VISIBLE core begins.
+    leavesResidue:         new fields.BooleanField({ initial: false }),
+    residueKind:           new fields.StringField({ required: true, blank: true, initial: 'obscuration' }),
+    residueRounds:         new fields.NumberField({ ...requiredInteger, initial: 3, min: 0 }),
+    residueRadius:         new fields.NumberField({ required: true, nullable: false, initial: 0, min: 0 }),
+    residueLightBandWidth: new fields.NumberField({ required: true, nullable: false, initial: 0, min: 0 }),
+    residueEnableNoVis:    new fields.BooleanField({ initial: false }),
+    residueNoVisInset:     new fields.NumberField({ required: true, nullable: false, initial: 0, min: 0 }),
   });
 }
 

@@ -66,6 +66,7 @@ import {
   CyberBluePassengerSeatBehavior,
   CyberBlueVitalAreaBehavior,
   CyberBlueVehicleRoofBehavior,
+  CyberBlueVisibilityRegionBehavior,
 } from './helpers/region-behaviors.mjs';
 import { materialiseVehicleBlueprint, cleanupVehicleRegions, syncVehicleRegionPositions } from './helpers/vehicle-regions.mjs';
 import {
@@ -215,6 +216,10 @@ Hooks.once('init', function () {
   CONFIG.RegionBehavior.typeLabels['vitalArea']     = 'CYBER_BLUE.RegionBehavior.VitalArea.Label';
   CONFIG.RegionBehavior.typeLabels['vehicleRoof']   = 'CYBER_BLUE.RegionBehavior.VehicleRoof.Label';
 
+  // ── Visibility behavior ───────────────────────────────────────────────────
+  CONFIG.RegionBehavior.dataModels['visibility'] = CyberBlueVisibilityRegionBehavior;
+  CONFIG.RegionBehavior.typeLabels['visibility'] = 'CYBER_BLUE.RegionBehavior.Visibility.Label';
+
   Actors.registerSheet('cyberpunk-blue', CyberBlueActorSheet, {
     makeDefault: true,
     label: 'CYBER_BLUE.SheetLabels.Actor',
@@ -306,6 +311,60 @@ Hooks.once('init', function () {
     default: 'kmh',
     requiresReload: false,
   });
+
+  // ── Visibility penalty settings ────────────────────────────────────────────
+  game.settings.register('cyberpunk-blue', 'visibilityEnabled', {
+    name: 'CYBER_BLUE.Settings.VisibilityEnabled.Name',
+    hint: 'CYBER_BLUE.Settings.VisibilityEnabled.Hint',
+    scope: 'world',
+    config: true,
+    type: Boolean,
+    default: true,
+    requiresReload: false,
+  });
+
+  game.settings.register('cyberpunk-blue', 'visibilityDimPenalty', {
+    name: 'CYBER_BLUE.Settings.VisibilityDimPenalty.Name',
+    hint: 'CYBER_BLUE.Settings.VisibilityDimPenalty.Hint',
+    scope: 'world',
+    config: true,
+    type: Number,
+    default: -2,
+    requiresReload: false,
+  });
+
+  game.settings.register('cyberpunk-blue', 'visibilityDarkPenalty', {
+    name: 'CYBER_BLUE.Settings.VisibilityDarkPenalty.Name',
+    hint: 'CYBER_BLUE.Settings.VisibilityDarkPenalty.Hint',
+    scope: 'world',
+    config: true,
+    type: Number,
+    default: -4,
+    requiresReload: false,
+  });
+
+  game.settings.register('cyberpunk-blue', 'visibilityDimThreshold', {
+    name: 'CYBER_BLUE.Settings.VisibilityDimThreshold.Name',
+    hint: 'CYBER_BLUE.Settings.VisibilityDimThreshold.Hint',
+    scope: 'world',
+    config: true,
+    type: Number,
+    default: 0.25,
+    range: { min: 0, max: 1, step: 0.05 },
+    requiresReload: false,
+  });
+
+  game.settings.register('cyberpunk-blue', 'visibilityDarkThreshold', {
+    name: 'CYBER_BLUE.Settings.VisibilityDarkThreshold.Name',
+    hint: 'CYBER_BLUE.Settings.VisibilityDarkThreshold.Hint',
+    scope: 'world',
+    config: true,
+    type: Number,
+    default: 0.5,
+    range: { min: 0, max: 1, step: 0.05 },
+    requiresReload: false,
+  });
+
 
   // ── Foundry Conditions (status effects) ────────────────────────────────────
   // These map system conditions to Foundry's token condition overlay system.
@@ -1625,6 +1684,29 @@ Hooks.on('combatRound', async (combat) => {
   // Re-render all open sheets so RoF buttons refresh.
   for (const combatant of combat.combatants.contents) {
     combatant.actor?.sheet?.render(false);
+  }
+});
+
+// ── Visibility residue region expiry ─────────────────────────────────────────
+// On each round/turn advance, delete visibility residue regions whose
+// expiresOnRound has been reached.  Only activeGM executes deletions.
+Hooks.on('updateCombat', async (combat, changes) => {
+  if (game.user !== game.users.activeGM) return;
+  if (!('round' in changes) && !('turn' in changes)) return;
+
+  const scene = game.scenes.active;
+  if (!scene) return;
+
+  const round = combat.round ?? 0;
+  const toDelete = [];
+  for (const region of scene.regions) {
+    const expiry = region.getFlag('cyberpunk-blue', 'visibilityExpiry');
+    if (!expiry || expiry.mode !== 'rounds') continue;
+    if (expiry.combatId !== combat.id) continue;
+    if (round >= expiry.expiresOnRound) toDelete.push(region.id);
+  }
+  if (toDelete.length) {
+    await scene.deleteEmbeddedDocuments('Region', toDelete);
   }
 });
 

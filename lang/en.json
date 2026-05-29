@@ -362,6 +362,26 @@
         "MPS": "m/s",
         "KMH": "km/h",
         "MPH": "mph"
+      },
+      "VisibilityEnabled": {
+        "Name": "Visibility Penalties (enabled)",
+        "Hint": "When off, all visibility penalty calculation is skipped and attacks are never blocked by darkness or obscuration. Toggle off for fast one-shot sessions that don't need lighting mechanics."
+      },
+      "VisibilityDimPenalty": {
+        "Name": "Dim-light attack penalty",
+        "Hint": "Attack-roll modifier applied when the target is in dim light or light obscuration (default −2)."
+      },
+      "VisibilityDarkPenalty": {
+        "Name": "Darkness attack penalty",
+        "Hint": "Attack-roll modifier applied when the target is in darkness or heavy obscuration (default −4)."
+      },
+      "VisibilityDimThreshold": {
+        "Name": "Dim-light darkness threshold",
+        "Hint": "Ambient darkness level (0–1) above which a point counts as dim light. Default 0.25."
+      },
+      "VisibilityDarkThreshold": {
+        "Name": "Dark darkness threshold",
+        "Hint": "Ambient darkness level (0–1) above which a point counts as full darkness. Default 0.50."
       }
     },
     "CC": {
@@ -938,6 +958,25 @@
       },
       "VehicleRoof": {
         "Label": "Vehicle: Roof"
+      },
+      "Visibility": {
+        "Label": "Visibility Zone",
+        "Kind": "Zone Type",
+        "KindHint": "Darkness: evaluated at the target's position. Obscuration: evaluated along the attacker→target line (e.g. smoke).",
+        "KindDarkness": "Darkness",
+        "KindObscuration": "Obscuration (Smoke/Gas)",
+        "LightBandWidth": "Light Band Width (m)",
+        "LightBandWidthHint": "Width of the DIM (lightly obscured) band measured inward from the edge, in metres. 0 = no dim band (whole region is DARK).",
+        "EnableNoVisibility": "Enable NOT_VISIBLE Core",
+        "EnableNoVisibilityHint": "When enabled, the innermost zone hard-blocks attacks. Bypassed only by a full bypass Active Effect flag.",
+        "NoVisInset": "Dark Band Width Before Core (m)",
+        "NoVisInsetHint": "Width of the DARK band between the light band and the NOT_VISIBLE core, in metres. Only used when NOT_VISIBLE core is enabled.",
+        "ExpiresInRounds": "Expires After (rounds)",
+        "ExpiresInRoundsHint": "Number of combat rounds until this region auto-deletes. 0 = permanent until the GM deletes it manually.",
+        "NotVisibleDark": "Target is not visible (darkness).",
+        "NotVisibleObscured": "Target is not visible (obscured).",
+        "PenaltyNote": "Visibility penalty: {n}",
+        "BlockedTitle": "Attack Blocked — Target Not Visible"
       },
       "VehicleCombat": {
         "DeclareManeuver": "Declare Maneuver",
