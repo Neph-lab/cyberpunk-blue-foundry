@@ -66,6 +66,10 @@ export function playSfx(name) {
   playSfxLocal(name);
 }
 
+// Matches interactive elements that should receive hover and confirm sounds.
+// Covers both regular buttons and tab anchors (<a class="item" data-tab="...">).
+const _INTERACTIVE = '.cyberpunk-blue button:not([disabled]), .cyberpunk-blue a.item[data-tab]';
+
 // data-action values handled by specific sound triggers; skip default confirm/close for these.
 const _SPECIFIC_SOUND_ACTIONS = new Set([
   'set-gear-state',
@@ -91,25 +95,25 @@ export function initAudio() {
     return _originalNotify(message, type, options);
   };
 
-  // Hover/focus: play once when the pointer enters (or keyboard focus lands on) a new button.
+  // Hover/focus: play once when the pointer enters (or keyboard focus lands on) a new interactive element.
   let _lastHoverTarget = null;
   const _onButtonEnter = (event) => {
-    const btn = event.target.closest('.cyberpunk-blue button:not([disabled])');
-    if (btn !== _lastHoverTarget) {
-      _lastHoverTarget = btn;
-      if (btn) playUiSound('hover');
+    const el = event.target.closest(_INTERACTIVE);
+    if (el !== _lastHoverTarget) {
+      _lastHoverTarget = el;
+      if (el) playUiSound('hover');
     }
   };
   document.addEventListener('mouseover', _onButtonEnter, { passive: true });
   document.addEventListener('focusin',   _onButtonEnter, { passive: true });
 
-  // Click: play confirm or close for sheet buttons not handled by dedicated sound code.
+  // Click: play confirm or close for interactive elements not handled by dedicated sound code.
   document.addEventListener('click', (event) => {
-    const btn = event.target.closest('.cyberpunk-blue button:not([disabled])');
-    if (!btn) return;
+    const el = event.target.closest(_INTERACTIVE);
+    if (!el) return;
 
-    const dataAction = btn.dataset.action ?? '';
-    const attrAction = btn.getAttribute('action') ?? '';
+    const dataAction = el.dataset.action ?? '';
+    const attrAction = el.getAttribute('action') ?? '';
 
     if (_SPECIFIC_SOUND_ACTIONS.has(dataAction)) return;
 
