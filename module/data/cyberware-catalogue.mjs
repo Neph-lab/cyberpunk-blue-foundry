@@ -313,6 +313,11 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '1d6',
     description: 'PAIRED (must be installed in both eyes). Infrared and UV light are visible. Ignore darkness and fog penalties. Can distinguish warm flesh from cold metal (not through cover).',
+    // "Ignore darkness and fog penalties" → penalty-only bypass; NOT_VISIBLE still blocks.
+    effects: [
+      aeFlag('Ignore Darkness Attack Penalty',    'ignoreDarknessPenalty'),
+      aeFlag('Ignore Obscuration Attack Penalty', 'ignoreObscurationPenalty'),
+    ],
   }),
 
   // ── Cyberaudio ────────────────────────────────────────────────────────────

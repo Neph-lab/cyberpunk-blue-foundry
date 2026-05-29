@@ -443,8 +443,15 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   attackModifier += getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
 
   // ── Visibility penalty ────────────────────────────────────────────────────
+  // Thermal-imaging scopes (thermalImaging: true on any installed mod) grant the
+  // same effect as ignoreDarknessPenalty + ignoreObscurationPenalty — the scope
+  // data is easier to read here than via a transferring AE, since scopes are
+  // per-weapon rather than per-actor.
+  const _hasThermalImaging = installedMods.some((m) => m.thermalImaging);
   const _visAttackerToken = attacker.getActiveTokens()[0];
-  const _vis = computeVisibilityPenalty(attacker, _visAttackerToken, targetToken);
+  const _vis = _hasThermalImaging
+    ? { blocked: false, penalty: 0, darkEff: 0, obscEff: 0, notes: [] }
+    : computeVisibilityPenalty(attacker, _visAttackerToken, targetToken);
   if (_vis.blocked) {
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: attacker }),
