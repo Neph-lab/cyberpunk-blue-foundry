@@ -228,7 +228,9 @@ export async function createResidueMediaTile(regionDoc, { src, tint, center, rad
   const y = Math.round(center.y - radiusY);
   const width = Math.max(1, Math.round(radiusX * 2));
   const height = Math.max(1, Math.round(radiusY * 2));
-  const elevation = ((bottom ?? 0) + (top ?? bottom ?? 0)) / 2;
+  // Sit the tile at the top of the region's elevation range so it stays above the
+  // tokens it needs to occlude/fade around.
+  const elevation = (top ?? bottom ?? 0);
 
   const [tile] = await scene.createEmbeddedDocuments('Tile', [{
     texture: { src, tint: tint || null },
@@ -272,7 +274,7 @@ export function initResidueMediaSync() {
     if ('elevation' in changes) {
       const b = regionDoc.elevation?.bottom ?? 0;
       const t = regionDoc.elevation?.top ?? b;
-      update.elevation = (b + t) / 2;
+      update.elevation = t;
     }
     await regionDoc.parent.updateEmbeddedDocuments('Tile', [update]).catch(() => {});
   });

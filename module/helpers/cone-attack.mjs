@@ -6,7 +6,7 @@ import { rollAfflictionDefense, checkAfflictionSP, applyAfflictionEffect } from 
 import { applyDamageWithPermission, rollCriticalInjuryWithPermission } from './socket.mjs';
 import { getActiveAEFlag } from './effects.mjs';
 import { computeVisibilityPenalty, makeElevatedPoint } from './visibility.mjs';
-import { playMediaEffect, DEFAULT_EXPLOSION_MEDIA, createResidueMediaTile, sampleGroundElevation } from './media-effects.mjs';
+import { playMediaEffect, DEFAULT_EXPLOSION_MEDIA, DEFAULT_SMOKE_MEDIA, createResidueMediaTile, sampleGroundElevation } from './media-effects.mjs';
 
 // ── Explosion residue region ──────────────────────────────────────────────────
 
@@ -20,7 +20,7 @@ import { playMediaEffect, DEFAULT_EXPLOSION_MEDIA, createResidueMediaTile, sampl
  * @param {number} spreadPx      blast radius in pixels (used as fallback residue radius)
  * @param {number} pixelsPerMeter
  */
-async function createResidueRegion(item, weapon, explosionCenter, spreadPx, pixelsPerMeter) {
+async function createResidueRegion(item, weapon, explosionCenter, spreadPx, pixelsPerMeter, { mediaSrc = null, mediaTint = null } = {}) {
   if (!game.settings.get('cyberpunk-blue', 'visibilityEnabled')) return;
   if (!weapon.leavesResidue) return;
   if (game.user !== game.users.activeGM) return;
@@ -96,10 +96,10 @@ async function createResidueRegion(item, weapon, explosionCenter, spreadPx, pixe
   }]);
 
   // Linked looping smoke/cloud Tile (renders the media, fades around tokens).
-  if (regionDoc && weapon.residueMedia) {
+  if (regionDoc && mediaSrc) {
     await createResidueMediaTile(regionDoc, {
-      src:     weapon.residueMedia,
-      tint:    weapon.residueMediaTint || null,
+      src:     mediaSrc,
+      tint:    mediaTint,
       center:  explosionCenter,
       radiusX: radiusPx,
       radiusY: radiusPx,
@@ -506,9 +506,20 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
 
   // Show persistent area graphic now that the explosion centre is finalised
   showAreaEffectExplosion(explosionCenter.x, explosionCenter.y, spreadPx, halfDamagePx);
-  // One-shot blast video (above tokens, clipped by walls), then the residue region.
-  playMediaEffect(DEFAULT_EXPLOSION_MEDIA, { origin: explosionCenter, radiusPx: spreadPx, mode: 'explosion' });
-  await createResidueRegion(item, weapon, explosionCenter, spreadPx, pixelsPerMeter);
+  if (weapon.damageType === 'affliction-explosion') {
+    // Gas release: persistent looping smoke/cloud in the residue region (default smoke.webm).
+    await createResidueRegion(item, weapon, explosionCenter, spreadPx, pixelsPerMeter, {
+      mediaSrc:  weapon.effectMedia || DEFAULT_SMOKE_MEDIA,
+      mediaTint: weapon.effectMediaTint || null,
+    });
+  } else {
+    // Grenade/rocket: one-shot blast (default explosion.webm), clipped by walls.
+    playMediaEffect(weapon.effectMedia || DEFAULT_EXPLOSION_MEDIA, {
+      origin: explosionCenter, radiusPx: spreadPx, mode: 'explosion',
+      tint: weapon.effectMediaTint || null,
+    });
+    await createResidueRegion(item, weapon, explosionCenter, spreadPx, pixelsPerMeter);
+  }
 
   // Find tokens in blast radius
   const targets = [];
@@ -763,14 +774,14 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
 
   // Show cone area effect for N seconds after damage
   showAreaEffectCone(attackerCenter.x, attackerCenter.y, spreadPx, halfDamagePx, halfAngleRad, confirmedAngle);
-  if (weapon.coneMedia) {
-    playMediaEffect(weapon.coneMedia, {
+  if (weapon.effectMedia) {
+    playMediaEffect(weapon.effectMedia, {
       origin: attackerCenter,
       radiusPx: spreadPx,
       mode: 'cone',
       angleDeg: halfAngleRad * 2 * (180 / Math.PI),
       directionRad: confirmedAngle,
-      tint: weapon.coneMediaTint || null,
+      tint: weapon.effectMediaTint || null,
     });
   }
 }
@@ -893,14 +904,14 @@ export async function resolveAfflictionConeAttack(attacker, item, weaponIndex) {
 
   // Show cone area graphic + optional media for the affliction cone.
   showAreaEffectCone(attackerCenter.x, attackerCenter.y, spreadPx, halfDamagePx, halfAngleRad, confirmedAngle);
-  if (weapon.coneMedia) {
-    playMediaEffect(weapon.coneMedia, {
+  if (weapon.effectMedia) {
+    playMediaEffect(weapon.effectMedia, {
       origin: attackerCenter,
       radiusPx: spreadPx,
       mode: 'cone',
       angleDeg: halfAngleRad * 2 * (180 / Math.PI),
       directionRad: confirmedAngle,
-      tint: weapon.coneMediaTint || null,
+      tint: weapon.effectMediaTint || null,
     });
   }
 
@@ -1086,9 +1097,20 @@ export async function resolveAfflictionExplosionAttack(attacker, item, weaponInd
 
   // Show persistent area graphic now that the explosion centre is finalised
   showAreaEffectExplosion(explosionCenter.x, explosionCenter.y, spreadPx, halfDamagePx);
-  // One-shot blast video (above tokens, clipped by walls), then the residue region.
-  playMediaEffect(DEFAULT_EXPLOSION_MEDIA, { origin: explosionCenter, radiusPx: spreadPx, mode: 'explosion' });
-  await createResidueRegion(item, weapon, explosionCenter, spreadPx, pixelsPerMeter);
+  if (weapon.damageType === 'affliction-explosion') {
+    // Gas release: persistent looping smoke/cloud in the residue region (default smoke.webm).
+    await createResidueRegion(item, weapon, explosionCenter, spreadPx, pixelsPerMeter, {
+      mediaSrc:  weapon.effectMedia || DEFAULT_SMOKE_MEDIA,
+      mediaTint: weapon.effectMediaTint || null,
+    });
+  } else {
+    // Grenade/rocket: one-shot blast (default explosion.webm), clipped by walls.
+    playMediaEffect(weapon.effectMedia || DEFAULT_EXPLOSION_MEDIA, {
+      origin: explosionCenter, radiusPx: spreadPx, mode: 'explosion',
+      tint: weapon.effectMediaTint || null,
+    });
+    await createResidueRegion(item, weapon, explosionCenter, spreadPx, pixelsPerMeter);
+  }
 
   // Find tokens in blast radius
   const targets = [];

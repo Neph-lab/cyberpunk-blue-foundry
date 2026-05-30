@@ -31,12 +31,17 @@ export function buildWeaponField() {
     coneSpread: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
     coneAngle: new fields.NumberField({ ...requiredInteger, initial: 45, min: 0 }),
     coneHalfDamageDistance: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
-    // Optional one-shot cone video. The video's centre-bottom point anchors to the
-    // cone origin (centre of the circle the cone is a segment of); it is scaled to
-    // the cone spread, clipped by walls, played once, then removed. Used by both
-    // `cone` and `affliction-cone` damage types. coneMediaTint applies a multiply tint.
-    coneMedia: new fields.FilePathField({ categories: ['VIDEO'], blank: true, initial: '' }),
-    coneMediaTint: new fields.ColorField({ required: false, nullable: true, blank: true, initial: '' }),
+    // Optional video used by all area damage types. Blank falls back to a
+    // type-specific default at runtime, and the application differs per type:
+    //   cone / affliction-cone  → one-shot cone video, centre-bottom anchored at the
+    //                             cone origin, scaled to spread, clipped by walls.
+    //   explosion               → one-shot blast (default explosion.webm), stretched
+    //                             to the blast region, clipped by walls.
+    //   affliction-explosion    → looping smoke/gas (default smoke.webm) in the
+    //                             persistent residue region.
+    // effectMediaTint applies a multiply tint (e.g. green for a toxic cloud).
+    effectMedia: new fields.FilePathField({ categories: ['VIDEO'], blank: true, initial: '' }),
+    effectMediaTint: new fields.ColorField({ required: false, nullable: true, blank: true, initial: '' }),
     rangeTable: new fields.ArrayField(
       new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
       { initial: Array(8).fill(0) }
@@ -213,12 +218,6 @@ export function buildWeaponField() {
     residueLightBandWidth: new fields.NumberField({ required: true, nullable: false, initial: 0, min: 0 }),
     residueEnableNoVis:    new fields.BooleanField({ initial: false }),
     residueNoVisInset:     new fields.NumberField({ required: true, nullable: false, initial: 0, min: 0 }),
-    // Looping media displayed inside the residue Region while it persists. Stretched
-    // to the Region, shrinks with it, and fades to 0.5 opacity within ~1m of a
-    // controlled token. Defaults to the smoke video; residueMediaTint multiply-tints it
-    // (e.g. greenish for a toxic cloud).
-    residueMedia:          new fields.FilePathField({ categories: ['VIDEO'], blank: true, initial: 'systems/cyberpunk-blue/assets/effects/smoke.webm' }),
-    residueMediaTint:      new fields.ColorField({ required: false, nullable: true, blank: true, initial: '' }),
   });
 }
 
