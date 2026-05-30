@@ -336,7 +336,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Movie (Shard)',
-    folder: 'Media Gear', cost: 'CO',
+    folder: 'Media Gear', imgPath: `${A_GEAR}/movie.png`, cost: 'CO',
     description: '2–5 hours of screen-viewable content on a shard.',
   }),
   gear({
@@ -478,18 +478,18 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Medscanner',
-    folder: 'Scientific & Medical', cost: 'VEX',
+    folder: 'Scientific & Medical', imgPath: `${A_GEAR}/medscanner.png`, cost: 'VEX',
     description: 'Performs most medical tests. +2 to Medicine checks.',
     effects: [ae('Medicine +2', [skill('medicine', 2)])],
   }),
   gear({
     name: 'Medtech Bag',
-    folder: 'Scientific & Medical', imgPath: `${A_GEAR}/med-pack.png`, cost: 'PR',
+    folder: 'Scientific & Medical', imgPath: `${A_GEAR}/medtech-bag.png`, cost: 'PR',
     description: 'Complete set of basic medicine tools; equivalent to mall-level medical facilities.',
   }),
   gear({
     name: 'Tech Bag',
-    folder: 'Scientific & Medical', cost: 'EX',
+    folder: 'Scientific & Medical', imgPath: `${A_GEAR}/tech-bag.png`, cost: 'EX',
     description: 'Contains: Techtool, hammer, 2 prybars, heat torch, voltmeter, and assorted screws, nuts, and wire.',
   }),
   gear({
@@ -566,7 +566,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Hardened Circuitry',
-    folder: 'Cyberdeck Hardware MODs', cost: 'EX',
+    folder: 'Cyberdeck Hardware MODs', imgPath: `systems/cyberpunk-blue/assets/items/mods/hardware-mod-hardened-circuitry.png`, cost: 'EX',
     description: 'Cyberdeck MOD — 1 hardware slot. The device is immune to EMP, microwave pulses, and non-Black ICE programs.',
   }),
   gear({
@@ -609,7 +609,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Homing Tracer',
-    folder: 'Clandestine Gear', cost: 'PR',
+    folder: 'Clandestine Gear', imgPath: `${A_GEAR}/homing-tracer.png`, cost: 'PR',
     description: '1 button beacon included; additional beacons cost CO each. City-street range of 1km.',
   }),
   gear({
