@@ -355,6 +355,9 @@
         "Name": "Area Effect Region Duration (seconds)",
         "Hint": "How many seconds to show the explosion/cone area on the canvas after damage is applied. Set to 0 to never auto-remove (requires manual deletion)."
       },
+      "TurnMarker": {
+        "Static": "Cyberpunk BLUE (static)"
+      },
       "VehicleSpeedUnits": {
         "Name": "Speed Display Units",
         "Hint": "Units used to display vehicle speed in the Vehicle Status HUD.",

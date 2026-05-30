@@ -1364,6 +1364,27 @@ Hooks.on('combatTurn', async (combat, updateData) => {
   }
 });
 
+// ── Combat turn marker ───────────────────────────────────────────────────────
+// Path to the system's animated "current actor" turn-marker video.
+const TURN_MARKER_SRC = 'systems/cyberpunk-blue/assets/effects/current-actor.webm';
+
+// Register a fully-static PIXI animation so the webm plays its own animation
+// without the core spin/pulse transforms fighting it.
+Hooks.on('initializeCombatConfiguration', (settings) => {
+  try {
+    const TurnMarkerData = foundry.data?.TurnMarkerData
+      ?? foundry.canvas?.placeables?.tokens?.TurnMarkerData;
+    const config = {
+      id: 'cyberpunk-blue-static',
+      label: 'CYBER_BLUE.Settings.TurnMarker.Static',
+      config: { spin: 0, pulse: { speed: 0, min: 1, max: 1 } },
+    };
+    settings.addTurnMarkerAnimation('cyberpunk-blue-static', TurnMarkerData ? new TurnMarkerData(config) : config);
+  } catch (err) {
+    console.warn('cyberpunk-blue | Could not register turn-marker animation', err);
+  }
+});
+
 Hooks.once('ready', async () => {
   // Register socket handlers for all users (handler itself checks isGM where needed)
   registerSocketHandlers();
@@ -1371,6 +1392,27 @@ Hooks.once('ready', async () => {
 
   if (!game.user.isGM) {
     return;
+  }
+
+  // Set the system turn-marker video as the world default, but only if the GM
+  // has not already chosen a custom marker source (an empty src means default).
+  try {
+    const cfgKey = foundry.data?.CombatConfiguration?.CONFIG_SETTING
+      ?? CONFIG.Combat?.settings?.constructor?.CONFIG_SETTING
+      ?? 'combatTrackerConfig';
+    const current = game.settings.get('core', cfgKey);
+    if (current?.turnMarker && !current.turnMarker.src) {
+      await game.settings.set('core', cfgKey, {
+        ...current,
+        turnMarker: {
+          ...current.turnMarker,
+          src: TURN_MARKER_SRC,
+          animation: 'cyberpunk-blue-static',
+        },
+      });
+    }
+  } catch (err) {
+    console.warn('cyberpunk-blue | Could not set default turn marker', err);
   }
 
   await ensureCritInjuryTables();
