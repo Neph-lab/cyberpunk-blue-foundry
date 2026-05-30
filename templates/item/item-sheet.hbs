@@ -368,12 +368,12 @@
     {{> "systems/cyberpunk-blue/templates/item/parts/item-mod.hbs"}}
   {{else if isDrug}}
     <nav class="sheet-tabs tabs" data-group="primary">
-      <a class="item" data-tab="description">{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</a>
-      <a class="item" data-tab="details">{{localize "CYBER_BLUE.Sheet.Tabs.Details"}}</a>
+      <a class="item" data-tab="description"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Overview.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</a>
+      <a class="item" data-tab="details"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Details.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Details"}}</a>
       {{#if showAdvancedTab}}
-        <a class="item" data-tab="advanced">{{localize "CYBER_BLUE.Sheet.Tabs.Advanced"}}</a>
+        <a class="item" data-tab="advanced"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Advanced.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Advanced"}}</a>
       {{/if}}
-      <a class="item" data-tab="notes">{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
+      <a class="item" data-tab="notes"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Notes.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
     </nav>
     <section class="sheet-body">
       <div class="tab active" data-group="primary" data-tab="description">
@@ -415,16 +415,16 @@
   {{else}}
     {{#if isCyberware}}
       <nav class="sheet-tabs tabs" data-group="primary">
-        <a class="item" data-tab="description">{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</a>
-        <a class="item" data-tab="details">{{localize "CYBER_BLUE.Sheet.Tabs.Details"}}</a>
+        <a class="item" data-tab="description"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Overview.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</a>
+        <a class="item" data-tab="details"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Details.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Details"}}</a>
         {{#if showAdvancedTab}}
-          <a class="item" data-tab="advanced">{{localize "CYBER_BLUE.Sheet.Tabs.Advanced"}}</a>
+          <a class="item" data-tab="advanced"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Advanced.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Advanced"}}</a>
         {{/if}}
         {{#if showModsTab}}
           <a class="item" data-tab="mods">{{localize "CYBER_BLUE.Sheet.Tabs.Mods"}}</a>
         {{/if}}
         {{#if showCyberwareNotesTab}}
-          <a class="item" data-tab="notes">{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
+          <a class="item" data-tab="notes"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Notes.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
         {{/if}}
       </nav>
 
@@ -549,19 +549,19 @@
       </section>
     {{else}}
       <nav class="sheet-tabs tabs" data-group="primary">
-        <a class="item" data-tab="description">{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</a>
+        <a class="item" data-tab="description"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Overview.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</a>
         {{#if isRole}}
           <a class="item" data-tab="lifepath">{{localize "CYBER_BLUE.Sheet.Tabs.Lifepath"}}</a>
           <a class="item" data-tab="abilities">{{localize "CYBER_BLUE.Sheet.Tabs.Abilities"}}</a>
           {{#if showRoleNotesTab}}
-            <a class="item" data-tab="notes">{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
+            <a class="item" data-tab="notes"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Notes.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
           {{/if}}
         {{else}}
           {{#unless isGear}}
-            <a class="item" data-tab="details">{{localize "CYBER_BLUE.Sheet.Tabs.Details"}}</a>
+            <a class="item" data-tab="details"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Details.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Details"}}</a>
           {{/unless}}
           {{#if showAdvancedTab}}
-            <a class="item" data-tab="advanced">{{localize "CYBER_BLUE.Sheet.Tabs.Advanced"}}</a>
+            <a class="item" data-tab="advanced"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Advanced.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Advanced"}}</a>
           {{/if}}
           {{#if showModsTab}}
             <a class="item" data-tab="mods">{{localize "CYBER_BLUE.Sheet.Tabs.Mods"}}</a>
@@ -570,7 +570,7 @@
             <a class="item" data-tab="effects">{{localize "CYBER_BLUE.Sheet.Tabs.Effects"}}</a>
           {{/if}}
           {{#if showGearNotesTab}}
-            <a class="item" data-tab="notes">{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
+            <a class="item" data-tab="notes"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Notes.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
           {{/if}}
         {{/if}}
       </nav>

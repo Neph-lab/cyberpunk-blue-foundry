@@ -210,6 +210,21 @@ const SKILLS = {
   },
 };
 
+// Player-facing skill groupings for the Skills-tab overview. Object key order
+// sets display order; each `skills` array sets the order within a group. Every
+// skill slug should live in exactly one group — any skill missing from here is
+// rendered under an "Other" fallback group rather than silently dropped.
+const SKILL_CATEGORIES = {
+  ranged:    { label: 'Ranged Combat',       skills: ['archery', 'autofire', 'handgun', 'hvyWeapons', 'shoulderArms'] },
+  melee:     { label: 'Close Combat',         skills: ['martialArts', 'meleeWeapons', 'evasion'] },
+  physical:  { label: 'Athletics & Agility',  skills: ['athletics', 'endurance', 'contortionist', 'drive'] },
+  covert:    { label: 'Stealth & Larceny',    skills: ['stealth', 'conceal', 'pickLock', 'sleightOfHand'] },
+  tech:      { label: 'Tech & Engineering',   skills: ['electronics', 'mechanics', 'demolition', 'netrunning', 'medicine'] },
+  knowledge: { label: 'Investigation & Lore', skills: ['perception', 'deduction', 'criminology', 'education', 'tactics', 'survival', 'animals'] },
+  social:    { label: 'Social & Influence',   skills: ['acting', 'influence', 'humanPerc', 'streetwise', 'style', 'performance', 'composition'] },
+  trade:     { label: 'Trade & Society',      skills: ['business', 'trading', 'government', 'gambling'] },
+};
+
 const COMPONENT_LABELS = {
   aikido: 'Aikido',
   airVehicles: 'Air Vehicles',
@@ -411,6 +426,7 @@ const CYBERWARE_FACILITIES = [
 export const CYBER_BLUE = {
   stats: STATS,
   skills: SKILLS,
+  skillCategories: SKILL_CATEGORIES,
   components: buildComponents(SKILLS),
   costLadder: COST_LADDER,
   manufacturers: MANUFACTURERS,

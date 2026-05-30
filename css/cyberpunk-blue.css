@@ -666,10 +666,12 @@ section.chat-sidebar:not(.sidebar-popout),
   display: block;
 }
 
-/* Generic in-template icon. Drop a <span class="cpb-icon" style="--cpb-icon: url(...)"></span>
+/* Generic in-template icon. Drop a <span class="cpb-icon" style="--cpb-icon: url('/systems/...')"></span>
    anywhere icon art is wanted; the mask-backed background uses currentColor, so the icon
    tracks the surrounding text color including hover/active states.
-   .cpb-tab-icon is the larger variant used inside sheet tabs. */
+   .cpb-tab-icon is the larger variant used inside sheet tabs.
+   NOTE: the url() must be root-absolute (leading slash). The var() is substituted inside this
+   stylesheet, so a relative path would resolve against this file's /css/ dir and 404. */
 .cyberpunk-blue .cpb-icon,
 .cyberpunk-blue .cpb-tab-icon {
   background-color: currentColor;
@@ -1337,13 +1339,18 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   min-width: min(100%, 30rem);
 }
 
-.cyberpunk-blue .skill-table-container {
-  column-gap: 1rem;
-  columns: 3 650px;
+/* Grid-only wrapper: flows skill categories into columns when the sheet is wide
+   enough, single column when narrow. Intentionally not a .sheet-panel itself. */
+.cyberpunk-blue .skill-category-grid {
+  align-items: start;
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
 }
 
-.cyberpunk-blue .skill-table-container > * {
-  break-inside: avoid;
+.cyberpunk-blue .skill-table-container {
+  display: flex;
+  flex-direction: column;
 }
 
 .cyberpunk-blue .skill-row {
@@ -1354,11 +1361,21 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   width: 100%;
 }
 
-.cyberpunk-blue .skill-table-container > .skill-row:not(.skill-header):nth-child(odd),
+.cyberpunk-blue .skill-table-container > .skill-row:nth-child(even),
 .cyberpunk-blue .component-entries > .component-row:nth-child(even),
 .cyberpunk-blue .embedded-entries > .embedded-row:nth-child(even),
 .cyberpunk-blue .embedded-entries > .embedded-entry:nth-child(even) {
   background: var(--cpb-table-alt-bg);
+}
+
+/* Each category is its own .sheet-panel inside the grid; the grid gap controls
+   vertical rhythm, so drop the panel's default top margin. */
+.cyberpunk-blue .skill-category {
+  margin-top: 0;
+}
+
+.cyberpunk-blue .skill-category > .cpb-divider--header {
+  margin-bottom: 0.35rem;
 }
 
 .cyberpunk-blue .notes-grid {
@@ -1918,10 +1935,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   .cyberpunk-blue .ability-header.single-rank,
   .cyberpunk-blue .cyberware-header {
     grid-template-columns: 1fr;
-  }
-
-  .cyberpunk-blue .skill-table-container {
-    columns: 1;
   }
 
   .cyberpunk-blue .inventory-row,

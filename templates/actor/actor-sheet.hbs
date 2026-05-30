@@ -40,14 +40,14 @@
   {{/if}}
 
   <nav class="sheet-tabs tabs" data-group="primary">
-    <a class="item" data-tab="overview"><span class="cpb-tab-icon" style="--cpb-icon: url('systems/cyberpunk-blue/assets/icons/bk_Overview.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Overview"}}</a>
-    <a class="item" data-tab="skills"><span class="cpb-tab-icon" style="--cpb-icon: url('systems/cyberpunk-blue/assets/icons/bk_Skills.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Skills"}}</a>
-    <a class="item" data-tab="cyberware"><span class="cpb-tab-icon" style="--cpb-icon: url('systems/cyberpunk-blue/assets/icons/bk_Cyberware.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Cyberware"}}</a>
-    <a class="item" data-tab="inventory"><span class="cpb-tab-icon" style="--cpb-icon: url('systems/cyberpunk-blue/assets/icons/bk_Inventory.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Inventory"}}</a>
+    <a class="item" data-tab="overview"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Overview.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Overview"}}</a>
+    <a class="item" data-tab="skills"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Skills.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Skills"}}</a>
+    <a class="item" data-tab="cyberware"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Cyberware.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Cyberware"}}</a>
+    <a class="item" data-tab="inventory"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Inventory.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Inventory"}}</a>
     {{#if showNetrunningTab}}
-      <a class="item" data-tab="netrunning"><span class="cpb-tab-icon" style="--cpb-icon: url('systems/cyberpunk-blue/assets/icons/bk_Netrunning.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Netrunning"}}</a>
+      <a class="item" data-tab="netrunning"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Netrunning.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Netrunning"}}</a>
     {{/if}}
-    <a class="item" data-tab="notes"><span class="cpb-tab-icon" style="--cpb-icon: url('systems/cyberpunk-blue/assets/icons/bk_Notes.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
+    <a class="item" data-tab="notes"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Notes.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
   </nav>
 
   <section class="sheet-body">
@@ -768,36 +768,41 @@
     </div>
 
     <div class="tab {{#if charCreation.highlightSkills}}char-creation-highlight{{/if}}" data-group="primary" data-tab="skills">
-      <section class="sheet-panel">
-        <div class="skill-table-container">
-          <div class="skill-header skill-row">
-            <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Roll"}}</span>
-            <span>Skill</span>
-            <span class="numeric-column">Stat</span>
-            <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Rank"}}</span>
-            <span>{{localize "CYBER_BLUE.Sheet.Labels.LinkedComponents"}}</span>
-            <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Modifier"}}</span>
-          </div>
-          {{#each skills as |skill|}}
-            <div class="skill-row" data-skill-row data-skill-slug="{{skill.slug}}">
-              <button type="button" class="roll-button" data-action="roll-skill" data-skill-slug="{{skill.slug}}">
-                {{localize "CYBER_BLUE.Sheet.Labels.Roll"}}
-              </button>
-              <span class="skill-name">{{skill.label}}</span>
-              <span class="skill-stat numeric-column">{{skill.statLabel}}</span>
-              <input class="numeric-column" type="number" name="system.skills.{{skill.slug}}.rank" value="{{skill.rank}}" data-dtype="Number" {{#unless ../charCreation.skillsWritable}}disabled{{/unless}} />
-              <div class="component-pill-list">
-                {{#each skill.components as |component|}}
-                  <button type="button" class="component-pill" data-action="roll-skill" data-skill-slug="{{../slug}}" data-component-slug="{{component.slug}}">
-                    {{component.label}} ({{component.rank}})
-                  </button>
-                {{/each}}
+      <div class="skill-category-grid">
+        {{#each skillGroups as |group|}}
+          <section class="sheet-panel skill-category" data-category="{{group.slug}}">
+            <div class="cpb-divider--header"><span>{{group.label}}</span></div>
+            <div class="skill-table-container">
+              <div class="skill-header skill-row">
+                <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Roll"}}</span>
+                <span>Skill</span>
+                <span class="numeric-column">Stat</span>
+                <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Rank"}}</span>
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.LinkedComponents"}}</span>
+                <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Modifier"}}</span>
               </div>
-              <input class="numeric-column" type="number" value="0" data-field="modifier" />
+              {{#each group.skills as |skill|}}
+                <div class="skill-row" data-skill-row data-skill-slug="{{skill.slug}}">
+                  <button type="button" class="roll-button" data-action="roll-skill" data-skill-slug="{{skill.slug}}">
+                    {{localize "CYBER_BLUE.Sheet.Labels.Roll"}}
+                  </button>
+                  <span class="skill-name">{{skill.label}}</span>
+                  <span class="skill-stat numeric-column">{{skill.statLabel}}</span>
+                  <input class="numeric-column" type="number" name="system.skills.{{skill.slug}}.rank" value="{{skill.rank}}" data-dtype="Number" {{#unless ../../charCreation.skillsWritable}}disabled{{/unless}} />
+                  <div class="component-pill-list">
+                    {{#each skill.components as |component|}}
+                      <button type="button" class="component-pill" data-action="roll-skill" data-skill-slug="{{skill.slug}}" data-component-slug="{{component.slug}}">
+                        {{component.label}} ({{component.rank}})
+                      </button>
+                    {{/each}}
+                  </div>
+                  <input class="numeric-column" type="number" value="0" data-field="modifier" />
+                </div>
+              {{/each}}
             </div>
-          {{/each}}
-        </div>
-      </section>
+          </section>
+        {{/each}}
+      </div>
 
       <section class="sheet-panel component-panel">
         <div class="panel-header">
