@@ -15,7 +15,26 @@
       "mcp__Claude_in_Chrome__javascript_tool",
       "mcp__Claude_in_Chrome__computer",
       "Bash(Get-ChildItem -Path \"D:\\\\FoundryVTT\\\\Data\\\\systems\\\\cyberpunk-blue\" -Force)",
-      "Bash(Select-Object Name, FullName)"
+      "Bash(Select-Object Name, FullName)",
+      "Bash(ls \"C:\\\\Users\\\\johan\\\\.claude\\\\\" 2>&1 | head -30)",
+      "Bash(git stash *)",
+      "Bash(awk -F'\"' '{print $2}')",
+      "Bash(awk -F: '{print $3}')",
+      "PowerShell($scss = \"D:\\\\FoundryVTT\\\\Data\\\\systems\\\\cyberpunk-blue\\\\src\\\\scss\\\\cyberpunk-blue.scss\"; $css = \"D:\\\\FoundryVTT\\\\Data\\\\systems\\\\cyberpunk-blue\\\\css\\\\cyberpunk-blue.css\"; \"SCSS lines: $\\(\\(Get-Content $scss\\).Count\\)\"; \"CSS lines: $\\(\\(Get-Content $css\\).Count\\)\"; \"Last modified SCSS: $\\(\\(Get-Item $scss\\).LastWriteTime\\)\"; \"Last modified CSS: $\\(\\(Get-Item $css\\).LastWriteTime\\)\")",
+      "Bash(xargs -d '\\\\n' git add)",
+      "Bash(grep -E \"^# [A-Z][a-zA-Z]+$\" docs/Roles-source.md)",
+      "Bash(grep -E \"^\\(Networker|Leader|Protean|Specialist|Sundry\\)$\" docs/Roles-source.md)",
+      "Bash(awk '/^# [A-Z][a-zA-Z]+$/{role=$2; getline cat; print role\" -> \"cat}' docs/Roles-source.md)",
+      "Bash(cd /d/FoundryVTT-Data/systems/cyberpunk-blue)",
+      "Bash(ls module/)",
+      "PowerShell($roots = @\\(\"D:\\\\FoundryVTT\",\"C:\\\\Program Files\\\\FoundryVTT\",\"D:\\\\FoundryVTT\\\\FoundryVTT\"\\); foreach \\($r in $roots\\) { if \\(Test-Path $r\\) { Get-ChildItem $r -Directory -ErrorAction SilentlyContinue | Select-Object FullName } })",
+      "PowerShell($app=\"C:\\\\Program Files\\\\Foundry Virtual Tabletop\\\\resources\\\\app\"; Get-Content \"$app\\\\package.json\" -Raw | ConvertFrom-Json | Select-Object version, release | Format-List; \"--- canvas tree ---\"; Get-ChildItem \"$app\\\\client\\\\canvas\" -Recurse -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)",
+      "Bash(ls -la \"D:/FoundryVTT/Data/systems/cyberpunk-blue/assets/effects/\" 2>/dev/null; echo \"---SETTINGS GREP---\"; grep -rl \"TURN_MARKER_ANIMATIONS\\\\|turnMarker\" \"D:/FoundryVTT\" --include=*.mjs --include=*.js -l 2>/dev/null | grep -iv \"systems/cyberpunk\" | head -20)",
+      "Bash(find \"D:/FoundryVTT\" -maxdepth 3 -iname \"*.js\" -path \"*client*\" 2>/dev/null | head; echo \"---\"; ls \"D:/FoundryVTT\" 2>/dev/null; echo \"---resources---\"; find \"D:/\" -maxdepth 4 -iname \"foundry.js\" 2>/dev/null | head; find \"D:/\" -maxdepth 5 -ipath \"*resources/app*\" -name \"*.mjs\" 2>/dev/null | head)",
+      "Bash(node -e \"const fs=require\\('fs'\\);const s=fs.readFileSync\\('D:/FoundryVTT/Data/systems/daggerheart/build/daggerheart.js','utf8'\\);let i=s.indexOf\\('turnMarkerAnimations'\\);while\\(i>=0\\){console.log\\('---@'+i+'---'\\);console.log\\(s.slice\\(i-220,i+180\\).replace\\(/\\\\n/g,' '\\)\\);i=s.indexOf\\('turnMarkerAnimations',i+1\\);}\")",
+      "Bash(cd \"/c/Program Files/Foundry Virtual Tabletop/resources/app\"; ls; echo \"---client---\"; find . -maxdepth 2 -type d | head -40)",
+      "Bash(node -e \"require\\('child_process'\\);\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('lang/en.json','utf8'\\)\\); console.log\\('en.json valid'\\)\")"
     ]
   }
 }
