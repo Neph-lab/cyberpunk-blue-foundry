@@ -38,6 +38,17 @@ async function getLoadedAmmoName(item, weaponIndex) {
   }
 }
 
+/** Resolve the loaded ammo Item document, or null if none / not found. */
+async function getLoadedAmmoItem(item, weaponIndex) {
+  const uuid = item.system.weapons?.[weaponIndex]?.ammoTypeUuid ?? '';
+  if (!uuid) return null;
+  try {
+    return await fromUuid(uuid);
+  } catch {
+    return null;
+  }
+}
+
 function getTarget() {
   const token = game.user.targets.first() ?? null;
   return { token, actor: token?.actor ?? null };
@@ -174,6 +185,10 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // ── Installed mods (needed for range improvement and dialog bonuses) ───────
   const installedMods = getInstalledWeaponMods(item, weaponIndex, attacker);
 
+  // ── Loaded ammo item (for ammo-specific bonuses) ──────────────────────────
+  const loadedAmmoItem = await getLoadedAmmoItem(item, weaponIndex);
+  const loadedAmmoData = loadedAmmoItem?.system ?? null;
+
   // ── Range DV with scope range improvement ─────────────────────────────────
   // For each mod with rangeImprovementMeters: compute DV for adjusted distances
   // and use the most favourable (lowest non-zero) DV.
@@ -280,6 +295,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     (isCharged && (weapon.chargedAttackBonus ?? 0) > 0) ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-bolt"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChargedAttackBonus', { n: weapon.chargedAttackBonus })}</p>` : '',
     teleOpticsBonusPreview > 0 ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-eye"></i> TeleOptics +1 (range &gt;50m)</p>` : '',
     targetingScopeBonus > 0 ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-crosshairs"></i> Targeting Scope +1 (aimed)</p>` : '',
+    (weapon.isSmartWeapon && (loadedAmmoData?.attackBonus ?? 0) > 0) ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-microchip"></i> ${game.i18n.localize('CYBER_BLUE.Combat.SmartAmmoBonus')} +${loadedAmmoData.attackBonus}</p>` : '',
   ].filter(Boolean).join('');
 
   const dialogContent = `
@@ -414,6 +430,10 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   let attackModifier = 0;
   if (targetVitals || isTargetingVehicleVital) attackModifier += targetVitalsPenalty;
   if (weapon.isSmartWeapon) attackModifier += 1;
+  // Smart Ammo: additional attack bonus (only applies when fired from a Smart Weapon).
+  if (weapon.isSmartWeapon && (loadedAmmoData?.attackBonus ?? 0) > 0) {
+    attackModifier += loadedAmmoData.attackBonus;
+  }
   if (weapon.isExcellentQuality) attackModifier += 1;
   attackModifier += modRecoilBonus;
   attackModifier += beginnerBonus;
@@ -646,12 +666,33 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     return;
   }
 
+  // ── Smart Ammo near-miss re-roll ──────────────────────────────────────────
+  // When Smart Ammo (smartMissReroll: true) is loaded in a Smart Weapon and
+  // the attack misses by ≤5: the guided round self-corrects — roll 1d10+14 as
+  // a replacement attack total.  The re-roll cannot itself trigger another re-roll.
+  let effectiveAttackTotal = attackRoll.total;
+  if (!hit && weapon.isSmartWeapon && loadedAmmoData?.smartMissReroll && resolvedDV !== null) {
+    const missMargin = resolvedDV - attackRoll.total;
+    if (missMargin > 0 && missMargin <= 5) {
+      const rerollRoll = await new Roll('1d10 + 14').evaluate();
+      await rerollRoll.toMessage({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        flavor: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-microchip"></i> <strong>${game.i18n.localize('CYBER_BLUE.Combat.SmartAmmoReroll')}</strong> — ${game.i18n.format('CYBER_BLUE.Combat.SmartAmmoRerollDetail', { margin: missMargin, dv: resolvedDV })}</p></div>`,
+        rollMode: game.settings.get('core', 'rollMode'),
+      });
+      effectiveAttackTotal = rerollRoll.total;
+    }
+  }
+  const effectiveHit = resolvedDV === null || effectiveAttackTotal >= resolvedDV;
+
   // ── ISA miss-redirect (Malorian Arms Sonnet beacon system) ───────────────
   // Smart weapons that miss by ≤5 check if the target has a Beacon Tag AE.
   // If so the ISA round self-guides: consume the tag and treat the attack as a hit.
+  // Beacon redirect is checked after the Smart Ammo re-roll so it only fires if
+  // the guided re-roll also failed (or no smart ammo was loaded).
   let beaconRedirected = false;
-  if (!hit && weapon.isSmartWeapon && resolvedDV !== null) {
-    const missMargin = resolvedDV - attackRoll.total;
+  if (!effectiveHit && weapon.isSmartWeapon && resolvedDV !== null) {
+    const missMargin = resolvedDV - effectiveAttackTotal;
     if (missMargin > 0 && missMargin <= 5 && targetActor) {
       const beaconAE = targetActor.effects.find((e) => e.getFlag('cyberpunk-blue', 'beaconTagged'));
       if (beaconAE) {
@@ -664,7 +705,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
       }
     }
   }
-  if (!hit && !beaconRedirected) return;
+  if (!effectiveHit && !beaconRedirected) return;
 
   // ── Chomp Ammo (KTech Terrier): stick ammo to target on SS hit ────────────
   if ((weapon.chompAmmo ?? false) && targetToken) {

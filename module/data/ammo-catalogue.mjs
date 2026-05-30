@@ -8,7 +8,10 @@
 
 const ASSET_BASE = 'systems/cyberpunk-blue/assets/items/ammo';
 
-function ammoItem({ name, ammoTypes = {}, quantity = 10, note = '', img = '', cost = '€$10 (Cheap)' }) {
+function ammoItem({
+  name, ammoTypes = {}, quantity = 10, note = '', img = '', cost = '€$10 (Cheap)',
+  attackBonus = 0, smartWeaponOnly = false, smartMissReroll = false,
+}) {
   return {
     name,
     type: 'ammo',
@@ -18,6 +21,9 @@ function ammoItem({ name, ammoTypes = {}, quantity = 10, note = '', img = '', co
       quantity,
       cost,
       note,
+      attackBonus,
+      smartWeaponOnly,
+      smartMissReroll,
       ammoTypes: {
         mediumPistol:  !!ammoTypes.mediumPistol,
         heavyPistol:   !!ammoTypes.heavyPistol,
@@ -132,5 +138,110 @@ export const AMMO_CATALOGUE = [
     img: `${ASSET_BASE}/Incendiary.png`,
     cost: '€$500 (Expensive)',
     note: '+2 damage past SP; target and adjacent objects may catch fire on a hit.',
+  }),
+
+  // ── Smart Ammo (Arasaka) ────────────────────────────────────────────────────
+  // Requires a Smart Weapon to function. Grants +1 to attack rolls.
+  // Near-miss re-roll: if the attack misses by ≤5, roll 1d10+14 as a replacement
+  // attack total (cannot chain-trigger another re-roll).
+
+  ammoItem({
+    name: 'Smart Medium Pistol Ammo',
+    ammoTypes: { mediumPistol: true },
+    img: `${ASSET_BASE}/Smart.png`,
+    cost: '€$500 (Expensive)',
+    quantity: 10,
+    note: 'Arasaka smart-guided rounds. Smart Weapons only. +1 attack; miss by ≤5: roll 1d10+14 as replacement (no re-roll chain).',
+    attackBonus: 1, smartWeaponOnly: true, smartMissReroll: true,
+  }),
+  ammoItem({
+    name: 'Smart Heavy Pistol Ammo',
+    ammoTypes: { heavyPistol: true },
+    img: `${ASSET_BASE}/Smart.png`,
+    cost: '€$500 (Expensive)',
+    quantity: 10,
+    note: 'Arasaka smart-guided rounds. Smart Weapons only. +1 attack; miss by ≤5: roll 1d10+14 as replacement (no re-roll chain).',
+    attackBonus: 1, smartWeaponOnly: true, smartMissReroll: true,
+  }),
+  ammoItem({
+    name: 'Smart Very Heavy Pistol Ammo',
+    ammoTypes: { veryHeavyPistol: true },
+    img: `${ASSET_BASE}/Smart.png`,
+    cost: '€$500 (Expensive)',
+    quantity: 10,
+    note: 'Arasaka smart-guided rounds. Smart Weapons only. +1 attack; miss by ≤5: roll 1d10+14 as replacement (no re-roll chain).',
+    attackBonus: 1, smartWeaponOnly: true, smartMissReroll: true,
+  }),
+  ammoItem({
+    name: 'Smart SMG Ammo',
+    ammoTypes: { smg: true },
+    img: `${ASSET_BASE}/Smart.png`,
+    cost: '€$500 (Expensive)',
+    quantity: 10,
+    note: 'Arasaka smart-guided rounds. Fits SMG and Heavy SMG. Smart Weapons only. +1 attack; miss by ≤5: roll 1d10+14 as replacement (no re-roll chain).',
+    attackBonus: 1, smartWeaponOnly: true, smartMissReroll: true,
+  }),
+  ammoItem({
+    name: 'Smart Shotgun Slugs',
+    ammoTypes: { shotgunSlug: true },
+    img: `${ASSET_BASE}/Smart.png`,
+    cost: '€$500 (Expensive)',
+    quantity: 10,
+    note: 'Arasaka smart-guided slugs. Smart Weapons only. +1 attack; miss by ≤5: roll 1d10+14 as replacement (no re-roll chain).',
+    attackBonus: 1, smartWeaponOnly: true, smartMissReroll: true,
+  }),
+  ammoItem({
+    name: 'Smart Shotgun Shells',
+    ammoTypes: { shotgunShell: true },
+    img: `${ASSET_BASE}/Smart.png`,
+    cost: '€$500 (Expensive)',
+    quantity: 10,
+    note: 'Arasaka smart-guided shot. Smart Weapons only. +1 attack; miss by ≤5: roll 1d10+14 as replacement (no re-roll chain).',
+    attackBonus: 1, smartWeaponOnly: true, smartMissReroll: true,
+  }),
+  ammoItem({
+    name: 'Smart Rifle Ammo',
+    ammoTypes: { assault: true },
+    img: `${ASSET_BASE}/Smart.png`,
+    cost: '€$500 (Expensive)',
+    quantity: 10,
+    note: 'Arasaka smart-guided rounds. Fits Assault Rifle, Precision Rifle, and Machine Gun. Smart Weapons only. +1 attack; miss by ≤5: roll 1d10+14 as replacement (no re-roll chain).',
+    attackBonus: 1, smartWeaponOnly: true, smartMissReroll: true,
+  }),
+  ammoItem({
+    name: 'Smart Sniper Ammo',
+    ammoTypes: { sniper: true },
+    img: `${ASSET_BASE}/Smart.png`,
+    cost: '€$500 (Expensive)',
+    quantity: 10,
+    note: 'Arasaka smart-guided rounds. Smart Weapons only. +1 attack; miss by ≤5: roll 1d10+14 as replacement (no re-roll chain).',
+    attackBonus: 1, smartWeaponOnly: true, smartMissReroll: true,
+  }),
+  ammoItem({
+    name: 'Smart Rocket',
+    ammoTypes: { rocket: true },
+    img: `${ASSET_BASE}/Smart.png`,
+    cost: '€$500 (Expensive)',
+    quantity: 10,
+    note: 'Arasaka smart-guided warhead. Smart Weapons only. +1 attack; miss by ≤5: roll 1d10+14 as replacement (no re-roll chain).',
+    attackBonus: 1, smartWeaponOnly: true, smartMissReroll: true,
+  }),
+  ammoItem({
+    name: 'Smart Fuel',
+    ammoTypes: { flamethrower: true },
+    img: `${ASSET_BASE}/Smart.png`,
+    cost: '€$500 (Expensive)',
+    quantity: 10,
+    note: 'Arasaka precision-injected accelerant. Smart Weapons only. +1 attack; miss by ≤5: roll 1d10+14 as replacement (no re-roll chain).',
+    attackBonus: 1, smartWeaponOnly: true, smartMissReroll: true,
+  }),
+  ammoItem({
+    name: 'Smart Battery',
+    ammoTypes: { battery: true },
+    img: `${ASSET_BASE}/Smart.png`,
+    cost: '€$500 (Expensive)',
+    quantity: 10,
+    note: 'Arasaka precision-charge cell. Smart Weapons only. +1 attack; miss by ≤5: roll 1d10+14 as replacement (no re-roll chain).',
+    attackBonus: 1, smartWeaponOnly: true, smartMissReroll: true,
   }),
 ];

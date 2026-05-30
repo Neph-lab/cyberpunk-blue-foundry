@@ -1844,9 +1844,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       return;
     }
 
-    // Filter actor's ammo items to those compatible with this weapon
+    // Filter actor's ammo items to those compatible with this weapon.
+    // Smart-weapon-only ammo (e.g. Smart Ammo) is excluded for non-smart weapons.
+    const isSmartWeapon = !!(sourceWeapon.isSmartWeapon);
     const actorAmmoDocs = this.document.items.filter((i) => {
       if (i.type !== 'ammo') return false;
+      if (i.system.smartWeaponOnly && !isSmartWeapon) return false;
       return compatibleAmmoKeys.some((key) => i.system.ammoTypes?.[key]);
     });
 
