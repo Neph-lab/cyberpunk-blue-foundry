@@ -370,10 +370,10 @@
     <nav class="sheet-tabs tabs" data-group="primary">
       <a class="item" data-tab="description">{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</a>
       <a class="item" data-tab="details">{{localize "CYBER_BLUE.Sheet.Tabs.Details"}}</a>
-      <a class="item" data-tab="notes">{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
       {{#if showAdvancedTab}}
         <a class="item" data-tab="advanced">{{localize "CYBER_BLUE.Sheet.Tabs.Advanced"}}</a>
       {{/if}}
+      <a class="item" data-tab="notes">{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
     </nav>
     <section class="sheet-body">
       <div class="tab active" data-group="primary" data-tab="description">
@@ -563,14 +563,14 @@
           {{#if showAdvancedTab}}
             <a class="item" data-tab="advanced">{{localize "CYBER_BLUE.Sheet.Tabs.Advanced"}}</a>
           {{/if}}
-          {{#if showGearNotesTab}}
-            <a class="item" data-tab="notes">{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
-          {{/if}}
           {{#if showModsTab}}
             <a class="item" data-tab="mods">{{localize "CYBER_BLUE.Sheet.Tabs.Mods"}}</a>
           {{/if}}
           {{#if showEffectsTab}}
             <a class="item" data-tab="effects">{{localize "CYBER_BLUE.Sheet.Tabs.Effects"}}</a>
+          {{/if}}
+          {{#if showGearNotesTab}}
+            <a class="item" data-tab="notes">{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
           {{/if}}
         {{/if}}
       </nav>
