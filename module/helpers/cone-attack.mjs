@@ -6,6 +6,7 @@ import { rollAfflictionDefense, checkAfflictionSP, applyAfflictionEffect } from 
 import { applyDamageWithPermission, rollCriticalInjuryWithPermission } from './socket.mjs';
 import { getActiveAEFlag } from './effects.mjs';
 import { computeVisibilityPenalty, makeElevatedPoint } from './visibility.mjs';
+import { playMediaEffect, DEFAULT_EXPLOSION_MEDIA } from './media-effects.mjs';
 
 // ── Explosion residue region ──────────────────────────────────────────────────
 
@@ -485,6 +486,8 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
 
   // Show persistent area graphic now that the explosion centre is finalised
   showAreaEffectExplosion(explosionCenter.x, explosionCenter.y, spreadPx, halfDamagePx);
+  // One-shot blast video (above tokens, clipped by walls), then the residue region.
+  playMediaEffect(DEFAULT_EXPLOSION_MEDIA, { origin: explosionCenter, radiusPx: spreadPx, mode: 'explosion' });
   await createResidueRegion(item, weapon, explosionCenter, spreadPx, pixelsPerMeter);
 
   // Find tokens in blast radius
@@ -740,6 +743,16 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
 
   // Show cone area effect for N seconds after damage
   showAreaEffectCone(attackerCenter.x, attackerCenter.y, spreadPx, halfDamagePx, halfAngleRad, confirmedAngle);
+  if (weapon.coneMedia) {
+    playMediaEffect(weapon.coneMedia, {
+      origin: attackerCenter,
+      radiusPx: spreadPx,
+      mode: 'cone',
+      angleDeg: halfAngleRad * 2 * (180 / Math.PI),
+      directionRad: confirmedAngle,
+      tint: weapon.coneMediaTint || null,
+    });
+  }
 }
 
 // ─── Scatter Effect (Brunswick AR-9) ────────────────────────────────────────
@@ -857,6 +870,19 @@ export async function resolveAfflictionConeAttack(attacker, item, weaponIndex) {
   ui.notifications.info(game.i18n.localize('CYBER_BLUE.Combat.ConeAimPrompt'));
   const confirmedAngle = await placeConeOverlay(attackerCenter.x, attackerCenter.y, spreadPx, halfDamagePx, angleDeg);
   if (confirmedAngle === null) return;
+
+  // Show cone area graphic + optional media for the affliction cone.
+  showAreaEffectCone(attackerCenter.x, attackerCenter.y, spreadPx, halfDamagePx, halfAngleRad, confirmedAngle);
+  if (weapon.coneMedia) {
+    playMediaEffect(weapon.coneMedia, {
+      origin: attackerCenter,
+      radiusPx: spreadPx,
+      mode: 'cone',
+      angleDeg: halfAngleRad * 2 * (180 / Math.PI),
+      directionRad: confirmedAngle,
+      tint: weapon.coneMediaTint || null,
+    });
+  }
 
   // Attack roll (used for evasion comparison per target)
   const precisionBonus = getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
@@ -1040,6 +1066,8 @@ export async function resolveAfflictionExplosionAttack(attacker, item, weaponInd
 
   // Show persistent area graphic now that the explosion centre is finalised
   showAreaEffectExplosion(explosionCenter.x, explosionCenter.y, spreadPx, halfDamagePx);
+  // One-shot blast video (above tokens, clipped by walls), then the residue region.
+  playMediaEffect(DEFAULT_EXPLOSION_MEDIA, { origin: explosionCenter, radiusPx: spreadPx, mode: 'explosion' });
   await createResidueRegion(item, weapon, explosionCenter, spreadPx, pixelsPerMeter);
 
   // Find tokens in blast radius
