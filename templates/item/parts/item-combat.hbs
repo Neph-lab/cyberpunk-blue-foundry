@@ -284,6 +284,26 @@
                     <span>{{localize "CYBER_BLUE.Sheet.Labels.ConeHalfDamageDistance"}}</span>
                     <input type="number" name="system.weapons.{{weapon.index}}.coneHalfDamageDistance" value="{{weapon.coneHalfDamageDistance}}" data-dtype="Number" min="0" />
                   </label>
+
+                  {{#if (or (eq weapon.damageType "cone") (eq weapon.damageType "affliction-cone"))}}
+                    <label class="compact-field media-field">
+                      <span>{{localize "CYBER_BLUE.Sheet.Labels.ConeMedia"}}</span>
+                      <file-picker name="system.weapons.{{weapon.index}}.coneMedia" value="{{weapon.coneMedia}}" type="video"></file-picker>
+                    </label>
+                    <label class="compact-field">
+                      <span>{{localize "CYBER_BLUE.Sheet.Labels.MediaTint"}}</span>
+                      <color-picker name="system.weapons.{{weapon.index}}.coneMediaTint" value="{{weapon.coneMediaTint}}"></color-picker>
+                    </label>
+                  {{else}}
+                    <label class="compact-field media-field">
+                      <span>{{localize "CYBER_BLUE.Sheet.Labels.ExplosionMedia"}}</span>
+                      <file-picker name="system.weapons.{{weapon.index}}.residueMedia" value="{{weapon.residueMedia}}" type="video"></file-picker>
+                    </label>
+                    <label class="compact-field">
+                      <span>{{localize "CYBER_BLUE.Sheet.Labels.MediaTint"}}</span>
+                      <color-picker name="system.weapons.{{weapon.index}}.residueMediaTint" value="{{weapon.residueMediaTint}}"></color-picker>
+                    </label>
+                  {{/if}}
                 </div>
               {{/if}}
 
