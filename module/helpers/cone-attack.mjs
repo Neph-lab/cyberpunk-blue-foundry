@@ -6,7 +6,7 @@ import { rollAfflictionDefense, checkAfflictionSP, applyAfflictionEffect } from 
 import { applyDamageWithPermission, rollCriticalInjuryWithPermission } from './socket.mjs';
 import { getActiveAEFlag } from './effects.mjs';
 import { computeVisibilityPenalty, makeElevatedPoint } from './visibility.mjs';
-import { playMediaEffect, DEFAULT_EXPLOSION_MEDIA } from './media-effects.mjs';
+import { playMediaEffect, DEFAULT_EXPLOSION_MEDIA, createResidueMediaTile, sampleGroundElevation } from './media-effects.mjs';
 
 // ── Explosion residue region ──────────────────────────────────────────────────
 
@@ -62,8 +62,15 @@ async function createResidueRegion(item, weapon, explosionCenter, spreadPx, pixe
     }
   }
 
-  await scene.createEmbeddedDocuments('Region', [{
+  // Elevation: start at the ground level under the blast centre and rise by
+  // (Spread − ½-damage distance) metres.
+  const bottom = sampleGroundElevation(explosionCenter);
+  const heightMeters = Math.max(0, (weapon.coneSpread ?? 0) - (weapon.coneHalfDamageDistance ?? 0));
+  const top = bottom + heightMeters;
+
+  const [regionDoc] = await scene.createEmbeddedDocuments('Region', [{
     name: `${item.name} Residue`,
+    elevation: { bottom, top },
     shapes: [{
       type:    'ellipse',
       x:       explosionCenter.x,
@@ -87,6 +94,19 @@ async function createResidueRegion(item, weapon, explosionCenter, spreadPx, pixe
       'cyberpunk-blue': { visibilityExpiry: expiryData },
     },
   }]);
+
+  // Linked looping smoke/cloud Tile (renders the media, fades around tokens).
+  if (regionDoc && weapon.residueMedia) {
+    await createResidueMediaTile(regionDoc, {
+      src:     weapon.residueMedia,
+      tint:    weapon.residueMediaTint || null,
+      center:  explosionCenter,
+      radiusX: radiusPx,
+      radiusY: radiusPx,
+      bottom,
+      top,
+    });
+  }
 }
 
 function getPixelsPerMeter() {

@@ -23,6 +23,7 @@ import { syncActorLeaderRoles, syncAllProteanFociAEs, syncAllRoleConditionAEs, n
 import { CyberBlueJsonImportDialog, CyberBlueMacroCreator, CyberBlueWeaponImportDialog, CyberBlueResyncStartingGear } from './helpers/gm-tools.mjs';
 import { CharacterCreationWizard } from './helpers/character-creation.mjs';
 import { initAudio, playUiSound } from './helpers/audio.mjs';
+import { initResidueMediaSync } from './helpers/media-effects.mjs';
 import {
   getActiveCombatant,
   getCombatantForToken,
@@ -1389,6 +1390,7 @@ Hooks.once('ready', async () => {
   // Register socket handlers for all users (handler itself checks isGM where needed)
   registerSocketHandlers();
   initAudio();
+  initResidueMediaSync();
 
   if (!game.user.isGM) {
     return;

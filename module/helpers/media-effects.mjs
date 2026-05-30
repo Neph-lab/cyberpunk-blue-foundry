@@ -175,3 +175,113 @@ export async function playMediaEffect(src, {
     setTimeout(cleanup, fallbackSec * 1000);
   }
 }
+
+// ── Persistent residue smoke (Tile linked to a Region) ───────────────────────
+//
+// The residue Region drives the visibility mechanics; a linked Tile renders the
+// looping smoke/cloud video. The Tile uses RADIAL occlusion so it fades to 0.5
+// opacity around controlled tokens (Foundry's default radius), and its elevation
+// sits at the centre of the Region's elevation range.
+
+const _OCCLUSION_RADIAL = globalThis.CONST?.OCCLUSION_MODES?.RADIAL
+  ?? foundry.CONST?.OCCLUSION_MODES?.RADIAL ?? 4;
+
+/**
+ * Best-effort sample of the ground elevation at a point: the highest top of any
+ * Region that contains the point. Falls back to 0.
+ */
+export function sampleGroundElevation(point) {
+  let base = 0;
+  try {
+    for (const region of canvas.scene?.regions ?? []) {
+      const top = region.elevation?.top;
+      if (top == null) continue;
+      const contains = region.object?.testPoint?.(point, top)
+        ?? region.polygonTree?.testPoint?.(point);
+      if (contains && top > base) base = top;
+    }
+  } catch { /* default */ }
+  return base;
+}
+
+/**
+ * Create a Tile that renders looping smoke media for a residue Region.
+ * GM-only (creates an embedded document).
+ *
+ * @param {RegionDocument} regionDoc
+ * @param {object} opts
+ * @param {string} opts.src
+ * @param {string|number|null} [opts.tint]
+ * @param {{x:number,y:number}} opts.center
+ * @param {number} opts.radiusX
+ * @param {number} opts.radiusY
+ * @param {number} [opts.bottom]
+ * @param {number} [opts.top]
+ */
+export async function createResidueMediaTile(regionDoc, { src, tint, center, radiusX, radiusY, bottom = 0, top = 0 } = {}) {
+  if (!src || !regionDoc) return;
+  if (game.user !== game.users.activeGM) return;
+  const scene = regionDoc.parent;
+  if (!scene) return;
+
+  const x = Math.round(center.x - radiusX);
+  const y = Math.round(center.y - radiusY);
+  const width = Math.max(1, Math.round(radiusX * 2));
+  const height = Math.max(1, Math.round(radiusY * 2));
+  const elevation = ((bottom ?? 0) + (top ?? bottom ?? 0)) / 2;
+
+  const [tile] = await scene.createEmbeddedDocuments('Tile', [{
+    texture: { src, tint: tint || null },
+    x, y, width, height,
+    elevation,
+    occlusion: { modes: [_OCCLUSION_RADIAL], alpha: 0.5 },
+    video: { loop: true, autoplay: true, volume: 0 },
+    flags: { 'cyberpunk-blue': { residueRegionId: regionDoc.id } },
+  }]);
+  if (tile) await regionDoc.setFlag('cyberpunk-blue', 'residueTileId', tile.id);
+}
+
+/** Compute the bounding box {x,y,width,height} of a region's first ellipse shape. */
+function _regionEllipseBounds(regionDoc) {
+  const s = regionDoc?.shapes?.[0];
+  if (!s || s.type !== 'ellipse') return null;
+  return {
+    x: Math.round(s.x - s.radiusX),
+    y: Math.round(s.y - s.radiusY),
+    width: Math.max(1, Math.round(s.radiusX * 2)),
+    height: Math.max(1, Math.round(s.radiusY * 2)),
+  };
+}
+
+/**
+ * Register hooks that keep the residue smoke Tile in sync with its Region:
+ * the Tile resizes when the Region shrinks/moves and is deleted with it.
+ * Call once at ready.
+ */
+export function initResidueMediaSync() {
+  Hooks.on('updateRegion', async (regionDoc, changes) => {
+    if (game.user !== game.users.activeGM) return;
+    const tileId = regionDoc.getFlag('cyberpunk-blue', 'residueTileId');
+    if (!tileId) return;
+    if (!('shapes' in changes) && !('elevation' in changes)) return;
+    const tile = regionDoc.parent?.tiles?.get(tileId);
+    if (!tile) return;
+    const bounds = _regionEllipseBounds(regionDoc);
+    const update = { _id: tileId };
+    if (bounds) Object.assign(update, bounds);
+    if ('elevation' in changes) {
+      const b = regionDoc.elevation?.bottom ?? 0;
+      const t = regionDoc.elevation?.top ?? b;
+      update.elevation = (b + t) / 2;
+    }
+    await regionDoc.parent.updateEmbeddedDocuments('Tile', [update]).catch(() => {});
+  });
+
+  Hooks.on('deleteRegion', async (regionDoc) => {
+    if (game.user !== game.users.activeGM) return;
+    const tileId = regionDoc.getFlag('cyberpunk-blue', 'residueTileId');
+    if (!tileId) return;
+    const tile = regionDoc.parent?.tiles?.get(tileId);
+    if (tile) await tile.delete().catch(() => {});
+  });
+}
