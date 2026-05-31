@@ -283,7 +283,7 @@ export function getVitalAreaSubsystem(vehicleActor, regionId) {
   const subId   = region?.behaviorConfig?.subsystemItemId ?? null;
   if (!subId) return null;
   const item = vehicleActor.items.get(subId);
-  return item?.type === 'vehicle-subsystem' ? item : null;
+  return item?.type === 'vehicleSubsystem' ? item : null;
 }
 
 /**
@@ -332,7 +332,7 @@ export async function applyDamageToSubsystem(subsystemItem, rawDamage) {
  */
 export async function syncSubsystemDestruction(subsystemItem, options = {}) {
   if (options?.cyberBlueSubsystemDestruction) return;
-  if (subsystemItem?.type !== 'vehicle-subsystem') return;
+  if (subsystemItem?.type !== 'vehicleSubsystem') return;
 
   const vehicleActor = subsystemItem.parent;
   if (!(vehicleActor instanceof Actor) || vehicleActor.type !== 'vehicle') return;

@@ -329,7 +329,7 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
         </div>`;
     } else if (region.behaviorType === 'vitalArea') {
       const linked = cfg.subsystemItemId ? this.actor.items.get(cfg.subsystemItemId) : null;
-      const sub = linked?.type === 'vehicle-subsystem' ? linked : null;
+      const sub = linked?.type === 'vehicleSubsystem' ? linked : null;
       const subFields = sub ? `
         <div class="cpb-be-prop-field cpb-be-prop-row">
           <span class="cpb-be-prop-sub">
@@ -429,7 +429,7 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
     rail.querySelectorAll('[data-sub]').forEach((input) => {
       input.addEventListener('change', async (ev) => {
         const sub = this.actor.items.get(region.behaviorConfig?.subsystemItemId);
-        if (sub?.type !== 'vehicle-subsystem') return;
+        if (sub?.type !== 'vehicleSubsystem') return;
         const key = ev.currentTarget.dataset.sub;
         let update = null;
         if (key === 'hp') {
@@ -460,7 +460,7 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
       || game.i18n.localize('CYBER_BLUE.BlueprintEditor.Vital.NewSubsystemName');
     const [item] = await this.actor.createEmbeddedDocuments('Item', [{
       name,
-      type: 'vehicle-subsystem',
+      type: 'vehicleSubsystem',
       system: { hp: { value: 10, max: 10 }, sp: { value: 0, max: 0 } },
     }]);
     if (!item) return;
@@ -483,7 +483,7 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
 
   _subsystemOptions(selectedId) {
     const L = (k) => game.i18n.localize(k);
-    const subs = this.actor.items.filter((i) => i.type === 'vehicle-subsystem');
+    const subs = this.actor.items.filter((i) => i.type === 'vehicleSubsystem');
     const none = `<option value=""${!selectedId ? ' selected' : ''}>${this._esc(L('CYBER_BLUE.BlueprintEditor.Vital.NoneOption'))}</option>`;
     const opts = subs.map((s) =>
       `<option value="${s.id}"${s.id === selectedId ? ' selected' : ''}>${this._esc(s.name)}</option>`).join('');

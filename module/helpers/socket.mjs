@@ -74,7 +74,7 @@ export function registerSocketHandlers() {
         const { applyDamageToSubsystem } = await import('./vehicle-damage.mjs');
         const vehicle = await fromUuid(vehicleUuid);
         const sub = vehicle?.items?.get(subsystemItemId);
-        if (sub?.type !== 'vehicle-subsystem') return;
+        if (sub?.type !== 'vehicleSubsystem') return;
         await applyDamageToSubsystem(sub, rawDamage);
         break;
       }
@@ -222,7 +222,7 @@ export async function rollCriticalInjuryWithPermission(targetActor, tableType, {
  */
 export async function applyDamageToSubsystemWithPermission(vehicleActor, subsystemItemId, rawDamage) {
   const sub = vehicleActor.items?.get(subsystemItemId);
-  if (sub?.type !== 'vehicle-subsystem') return;
+  if (sub?.type !== 'vehicleSubsystem') return;
   if (vehicleActor.isOwner || game.user.isGM) {
     const { applyDamageToSubsystem } = await import('./vehicle-damage.mjs');
     await applyDamageToSubsystem(sub, rawDamage);

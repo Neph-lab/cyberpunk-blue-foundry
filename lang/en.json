@@ -1013,17 +1013,17 @@
         "NotVisibleObscured": "Target is not visible (obscured).",
         "PenaltyNote": "Visibility penalty: {n}",
         "BlockedTitle": "Attack Blocked — Target Not Visible"
-      },
-      "VehicleCombat": {
-        "DeclareManeuver": "Declare Maneuver",
-        "SeriousDamage": "Serious Damage",
-        "CritRoll": "Critical Damage Roll",
-        "CritGmNote": "GM applies the critical damage effect.",
-        "SubsystemCrit": "Critical Damage (Subsystem Destroyed)!",
-        "SubsystemDestroyed": "{name} destroyed!",
-        "LostControlRoll": "Lost Control Roll",
-        "LostControlGmNote": "GM applies the Lost Control consequence."
       }
+    },
+    "VehicleCombat": {
+      "DeclareManeuver": "Declare Maneuver",
+      "SeriousDamage": "Serious Damage",
+      "CritRoll": "Critical Damage Roll",
+      "CritGmNote": "GM applies the critical damage effect.",
+      "SubsystemCrit": "Critical Damage (Subsystem Destroyed)!",
+      "SubsystemDestroyed": "{name} destroyed!",
+      "LostControlRoll": "Lost Control Roll",
+      "LostControlGmNote": "GM applies the Lost Control consequence."
     },
     "VehicleHUD": {
       "Title": "Vehicle Status",

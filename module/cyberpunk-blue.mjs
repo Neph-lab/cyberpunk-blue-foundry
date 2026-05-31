@@ -1298,7 +1298,7 @@ Hooks.on('updateActor', async (actor, changes, options) => {
 Hooks.on('updateItem', async (item, changes, options) => {
   if (game.user !== game.users.activeGM) return;
   if (options?.cyberBlueSubsystemDestruction) return;
-  if (item.type !== 'vehicle-subsystem') return;
+  if (item.type !== 'vehicleSubsystem') return;
   if (!foundry.utils.hasProperty(changes, 'system.hp.value')) return;
   await syncSubsystemDestruction(item, options);
 });
