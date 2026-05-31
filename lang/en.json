@@ -1046,12 +1046,24 @@
       "TitleFor": "Blueprint — {name}",
       "OpenButton": "Edit Blueprint",
       "GMOnly": "Only the GM can edit a vehicle blueprint.",
-      "Fit": "Fit",
+      "Fit": "Fit to view",
       "Footprint": "Footprint",
       "Regions": "Regions",
-      "Empty": "No regions defined yet. Drawing tools arrive in a later phase.",
+      "Empty": "No regions yet. Pick a drawing tool and drag on the art to add one.",
       "NoArt": "This vehicle has no token art. Set a token image to use it as the blueprint canvas.",
-      "TypeNone": "Untyped"
+      "TypeNone": "Untyped",
+      "ToolSelect": "Select / Move / Resize",
+      "ToolRect": "Draw Rectangle",
+      "ToolCircle": "Draw Circle",
+      "ToolEllipse": "Draw Ellipse",
+      "ToolPolygon": "Draw Polygon",
+      "PolygonHint": "Click to add points; double-click or Enter to finish, Esc to cancel.",
+      "Properties": "Properties",
+      "PropsHint": "Select a region to edit its properties.",
+      "LabelField": "Label",
+      "TypeField": "Behavior Type",
+      "DeleteRegion": "Delete Region",
+      "SaveFailed": "Failed to save the vehicle blueprint."
     }
   },
   "TYPES": {

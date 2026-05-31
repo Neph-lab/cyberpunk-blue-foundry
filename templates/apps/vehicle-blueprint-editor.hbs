@@ -2,22 +2,47 @@
 
   {{!-- Toolbar --}}
   <div class="cpb-be-toolbar">
-    <button type="button" class="cpb-btn" data-action="fit">
+    <div class="cpb-be-tools">
+      <button type="button" class="cpb-btn cpb-be-tool active" data-action="tool" data-tool="select"
+              title="{{localize "CYBER_BLUE.BlueprintEditor.ToolSelect"}}">
+        <i class="fa-solid fa-arrow-pointer"></i>
+      </button>
+      <button type="button" class="cpb-btn cpb-be-tool" data-action="tool" data-tool="rectangle"
+              title="{{localize "CYBER_BLUE.BlueprintEditor.ToolRect"}}">
+        <i class="fa-solid fa-vector-square"></i>
+      </button>
+      <button type="button" class="cpb-btn cpb-be-tool" data-action="tool" data-tool="circle"
+              title="{{localize "CYBER_BLUE.BlueprintEditor.ToolCircle"}}">
+        <i class="fa-solid fa-circle"></i>
+      </button>
+      <button type="button" class="cpb-btn cpb-be-tool" data-action="tool" data-tool="ellipse"
+              title="{{localize "CYBER_BLUE.BlueprintEditor.ToolEllipse"}}">
+        <i class="fa-solid fa-circle-half-stroke"></i>
+      </button>
+      <button type="button" class="cpb-btn cpb-be-tool" data-action="tool" data-tool="polygon"
+              title="{{localize "CYBER_BLUE.BlueprintEditor.ToolPolygon"}}">
+        <i class="fa-solid fa-draw-polygon"></i>
+      </button>
+    </div>
+
+    <button type="button" class="cpb-btn" data-action="fit" title="{{localize "CYBER_BLUE.BlueprintEditor.Fit"}}">
       <i class="fa-solid fa-expand"></i>
-      {{localize "CYBER_BLUE.BlueprintEditor.Fit"}}
     </button>
+
     <span class="cpb-be-footprint">
       {{localize "CYBER_BLUE.BlueprintEditor.Footprint"}}:
       {{footprintW}}&times;{{footprintH}}
       <span class="cpb-be-muted">({{referenceGrid}}px/sq)</span>
     </span>
+
+    <span class="cpb-be-status" data-be-status></span>
   </div>
 
   <div class="cpb-be-main">
 
     {{!-- Canvas surface --}}
     <div class="cpb-be-canvas-wrap">
-      <canvas data-be-canvas></canvas>
+      <canvas data-be-canvas tabindex="0"></canvas>
       {{#unless hasArt}}
         <div class="cpb-be-noart">
           <i class="fa-solid fa-image-slash"></i>
@@ -26,24 +51,8 @@
       {{/unless}}
     </div>
 
-    {{!-- Region list --}}
-    <aside class="cpb-be-rail">
-      <h3 class="cpb-be-rail-title">{{localize "CYBER_BLUE.BlueprintEditor.Regions"}}</h3>
-      {{#if hasRegions}}
-        <ul class="cpb-be-region-list">
-          {{#each regions}}
-            <li class="cpb-be-region-row{{#if (eq regionId ../selectedRegionId)}} selected{{/if}}"
-                data-region-id="{{regionId}}">
-              <span class="cpb-be-swatch" style="background:{{color}}"></span>
-              <span class="cpb-be-region-label">{{displayLabel}}</span>
-              <span class="cpb-be-region-type">{{typeLabel}}</span>
-            </li>
-          {{/each}}
-        </ul>
-      {{else}}
-        <p class="cpb-be-empty">{{localize "CYBER_BLUE.BlueprintEditor.Empty"}}</p>
-      {{/if}}
-    </aside>
+    {{!-- Region list + property panel (populated by JS) --}}
+    <aside class="cpb-be-rail" data-be-rail></aside>
 
   </div>
 </div>
