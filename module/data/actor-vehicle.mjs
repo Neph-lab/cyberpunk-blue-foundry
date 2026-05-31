@@ -133,16 +133,31 @@ export default class CyberBlueVehicle extends CyberBlueDataModel {
       // when the vehicle Token is dropped onto a Scene (Phase 2).
       // All coordinates are token-local (origin = token top-left, pixels).
       blueprint: new fields.SchemaField({
+        // Pixels-per-grid-square the blueprint shapes were authored at.
+        // Lets the materialiser rescale shapes to the destination scene's grid
+        // (shape * scene.grid.size / referenceGrid). Default = Foundry default grid.
+        referenceGrid: new fields.NumberField({ required: true, nullable: false, initial: 100, min: 1 }),
         // Behavior Regions to spawn around the vehicle token.
+        // Every drawn zone — seats, vital areas, roof — is a single entry here,
+        // discriminated by `behaviorType`. behaviorConfig carries the per-type
+        // fields (vitalArea: criticalDamageEntryId + subsystemItemId; gunnerSeat: seatIndex).
         regions: new fields.ArrayField(
           new fields.SchemaField({
+            // Stable id for this region, referenced by vital-area targeting and
+            // the editor's selection/reorder. Survives reorders and edits.
+            regionId: new fields.StringField({
+              required: true, blank: false, initial: () => foundry.utils.randomID(),
+            }),
+            // Author-facing name; used as the materialised Region's name and in the editor list.
+            label: new fields.StringField({ required: true, blank: true, initial: '' }),
             // Foundry Region shape descriptor (e.g. { type:'polygon', points:[…] }).
             shape: new fields.ObjectField({ initial: {} }),
             // Offset from token origin (pixels).
             offset: coord(),
-            // Registered RegionBehaviorType key (e.g. 'driverSeat', 'gunnerSeat').
+            // Registered RegionBehaviorType key (e.g. 'driverSeat', 'gunnerSeat', 'vitalArea').
             behaviorType: new fields.StringField({ required: true, blank: true, initial: '' }),
             // Arbitrary config object passed to the behavior on construction.
+            // vitalArea: { criticalDamageEntryId, subsystemItemId }; gunnerSeat: { seatIndex }.
             behaviorConfig: new fields.ObjectField({ initial: {} }),
           }),
           { initial: [] }
@@ -156,33 +171,50 @@ export default class CyberBlueVehicle extends CyberBlueDataModel {
           }),
           { initial: [] }
         ),
-        // Vital-area hit-zones for targeted attacks (Phase 6 targeting UX).
-        // Model (b): optional subsystem link — see design notes.
-        vitalAreas: new fields.ArrayField(
-          new fields.SchemaField({
-            shape: new fields.ObjectField({ initial: {} }),
-            offset: coord(),
-            // When this vital area is hit on a crit, this RollTable entry fires
-            // deterministically instead of a random roll.
-            criticalDamageEntryId: new fields.StringField({ required: true, blank: true, initial: '' }),
-            // If linked to a subsystem Item: damage routes to that subsystem's
-            // HP/SP pool. Null = route to vehicle main HP.
-            subsystemItemId: new fields.StringField({ required: false, nullable: true, blank: true, initial: null }),
-          }),
-          { initial: [] }
-        ),
-        // Spawn positions for seat Regions, token-local (pixels).
-        seatPositions: new fields.SchemaField({
-          driver: coord(),
-          gunners:    new fields.ArrayField(coord(), { initial: [] }),
-          passengers: new fields.ArrayField(coord(), { initial: [] }),
-        }),
       }),
 
       // ── Narrative ────────────────────────────────────────────────────────────
       description: new fields.HTMLField({ initial: '' }),
       notes:       new fields.HTMLField({ initial: '' }),
     };
+  }
+
+  /**
+   * Fold the legacy `blueprint.vitalAreas[]` array into `blueprint.regions[]`
+   * (as `behaviorType: 'vitalArea'` entries) and drop the dead `vitalAreas` /
+   * `seatPositions` keys. Also backfills `regionId` on any region lacking one.
+   *
+   * Idempotent: once an actor is re-saved the legacy keys are gone, so the fold
+   * is skipped on subsequent loads.
+   */
+  static migrateData(source) {
+    const bp = source?.blueprint;
+    if (bp && typeof bp === 'object') {
+      if (Array.isArray(bp.vitalAreas) && bp.vitalAreas.length) {
+        if (!Array.isArray(bp.regions)) bp.regions = [];
+        for (const va of bp.vitalAreas) {
+          bp.regions.push({
+            regionId: foundry.utils.randomID(),
+            label: '',
+            shape: va.shape ?? {},
+            offset: va.offset ?? { x: 0, y: 0 },
+            behaviorType: 'vitalArea',
+            behaviorConfig: {
+              criticalDamageEntryId: va.criticalDamageEntryId ?? '',
+              subsystemItemId: va.subsystemItemId ?? null,
+            },
+          });
+        }
+      }
+      delete bp.vitalAreas;
+      delete bp.seatPositions;
+      if (Array.isArray(bp.regions)) {
+        for (const r of bp.regions) {
+          if (r && !r.regionId) r.regionId = foundry.utils.randomID();
+        }
+      }
+    }
+    return super.migrateData(source);
   }
 
   prepareDerivedData() {

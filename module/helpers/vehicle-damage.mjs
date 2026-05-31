@@ -182,24 +182,26 @@ function _getVehicleCritTable(vehicleActor) {
  * chat.  The upstream attack flow already added +5 to the damage total before
  * calling this.  GM resolves the mechanical effect from the table entry.
  *
- * When `vitalAreaIndex` is provided and the corresponding blueprint vital area
- * has a `criticalDamageEntryId`, that entry fires deterministically instead of
- * a random roll — the attacker targeted that specific component.
+ * When `vitalRegionId` is provided and the corresponding vital-area blueprint
+ * region has a `criticalDamageEntryId`, that entry fires deterministically
+ * instead of a random roll — the attacker targeted that specific component.
  *
  * @param {Actor}               vehicleActor
  * @param {TokenDocument|null}  [vehicleToken=null]
- * @param {number|null}         [vitalAreaIndex=null]  Index into blueprint.vitalAreas
+ * @param {string|null}         [vitalRegionId=null]  regionId of the targeted vital area
  */
-export async function rollVehicleCritical(vehicleActor, vehicleToken = null, vitalAreaIndex = null) {
+export async function rollVehicleCritical(vehicleActor, vehicleToken = null, vitalRegionId = null) {
   const speaker = vehicleToken
     ? ChatMessage.getSpeaker({ token: vehicleToken })
     : { alias: vehicleActor.name };
 
   // ── Vital-area deterministic crit ─────────────────────────────────────────
-  if (vitalAreaIndex !== null) {
-    const vitalAreas = vehicleActor.system?.blueprint?.vitalAreas ?? [];
-    const vitalArea  = vitalAreas[vitalAreaIndex] ?? null;
-    const entryId    = vitalArea?.criticalDamageEntryId ?? '';
+  if (vitalRegionId !== null) {
+    const regions   = vehicleActor.system?.blueprint?.regions ?? [];
+    const vitalArea = regions.find(
+      (r) => r.regionId === vitalRegionId && r.behaviorType === 'vitalArea',
+    ) ?? null;
+    const entryId   = vitalArea?.behaviorConfig?.criticalDamageEntryId ?? '';
     if (entryId) {
       // Find the table entry directly and post it without rolling.
       const table = _getVehicleCritTable(vehicleActor);

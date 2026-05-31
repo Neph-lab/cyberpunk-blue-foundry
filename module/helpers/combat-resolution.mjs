@@ -421,8 +421,8 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // Vehicle vital-area targeting: attacker picked a specific vital area on the
   // target vehicle.  Applies the same to-hit penalty as character vitals and
   // fires the bound crit entry deterministically on a critical hit.
-  const targetVehicleVitalAreaIndex = item.getFlag('cyberpunk-blue', `targetVehicleVitalAreaIndex-${weaponIndex}`) ?? null;
-  const isTargetingVehicleVital     = targetVehicleVitalAreaIndex !== null
+  const targetVehicleVitalRegionId = item.getFlag('cyberpunk-blue', `targetVehicleVitalRegionId-${weaponIndex}`) ?? null;
+  const isTargetingVehicleVital     = targetVehicleVitalRegionId !== null
                                     && targetActor?.type === 'vehicle';
   const rawVitalsPenalty = weapon.targetVitalsPenalty ?? 8;
   const targetVitalsPenalty = -(rawVitalsPenalty - modVitalsPenaltyReduction);
@@ -1025,7 +1025,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
       }
       if (isCritical) {
         if (targetActor.type === 'vehicle') {
-          await rollVehicleCriticalWithPermission(targetActor, targetToken, targetVehicleVitalAreaIndex);
+          await rollVehicleCriticalWithPermission(targetActor, targetToken, targetVehicleVitalRegionId);
         } else {
           await rollCriticalInjuryWithPermission(targetActor, tableType, { attackerActor: attacker, weaponFlags });
         }

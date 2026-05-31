@@ -1,17 +1,18 @@
 /**
  * Vehicle vital-area canvas picker.
  *
- * Draws the vehicle's blueprint.vitalAreas as interactive PIXI polygons on
- * `canvas.controls`.  Returns a Promise that resolves with the selected vital
- * area's index (number) when the attacker clicks one, or `null` if they cancel
- * (Escape key or right-click).
+ * Draws the vehicle's vital-area blueprint regions (entries in
+ * `blueprint.regions` whose `behaviorType === 'vitalArea'`) as interactive PIXI
+ * polygons on `canvas.controls`.  Returns a Promise that resolves with the
+ * selected region's stable `regionId` (string) when the attacker clicks one, or
+ * `null` if they cancel (Escape key or right-click).
  *
  * Usage (from an actor-sheet handler):
  *
  *   const { pickVehicleVitalArea } = await import('./vehicle-vitals-canvas.mjs');
- *   const vitalIndex = await pickVehicleVitalArea(vehicleTokenDocument);
- *   if (vitalIndex !== null) {
- *     // store vitalIndex as a flag on the weapon item
+ *   const vitalRegionId = await pickVehicleVitalArea(vehicleTokenDocument);
+ *   if (vitalRegionId !== null) {
+ *     // store vitalRegionId as a flag on the weapon item
  *   }
  *
  * Coordinate system: blueprint coordinates are token-local pixels (origin =
@@ -39,7 +40,7 @@ let _activePickerCleanup = null;
  * Open the vital area picker for a vehicle token.
  *
  * @param {TokenDocument} vehicleTokenDoc
- * @returns {Promise<number|null>}  Index into blueprint.vitalAreas, or null on cancel.
+ * @returns {Promise<string|null>}  regionId of the chosen vital area, or null on cancel.
  */
 export function pickVehicleVitalArea(vehicleTokenDoc) {
   // If another picker is already open, cancel it.
@@ -50,7 +51,8 @@ export function pickVehicleVitalArea(vehicleTokenDoc) {
 
   return new Promise((resolve) => {
     const actor       = vehicleTokenDoc?.actor;
-    const vitalAreas  = actor?.system?.blueprint?.vitalAreas ?? [];
+    const regions     = actor?.system?.blueprint?.regions ?? [];
+    const vitalAreas  = regions.filter((r) => r.behaviorType === 'vitalArea');
 
     if (vitalAreas.length === 0) {
       ui.notifications.warn(game.i18n.localize('CYBER_BLUE.VehicleVitals.NoAreas'));
@@ -67,42 +69,42 @@ export function pickVehicleVitalArea(vehicleTokenDoc) {
     canvas.controls.addChild(graphics);
 
     // Build hit-area descriptors (used for hover + click testing).
-    const hitAreas = vitalAreas.map((area, idx) => {
+    const hitAreas = vitalAreas.map((area) => {
       const ox = (vehicleTokenDoc.x ?? 0) + (area.offset?.x ?? 0);
       const oy = (vehicleTokenDoc.y ?? 0) + (area.offset?.y ?? 0);
-      return { idx, area, ox, oy };
+      return { regionId: area.regionId, area, ox, oy };
     });
 
-    let hoveredIdx = -1;
+    let hoveredId = null;
 
-    function drawAll(hIdx) {
+    function drawAll(hId) {
       graphics.clear();
-      for (const { idx, area, ox, oy } of hitAreas) {
-        const isHover = idx === hIdx;
+      for (const { regionId, area, ox, oy } of hitAreas) {
+        const isHover = regionId === hId;
         const fill  = isHover ? FILL_HOVER  : FILL_NORMAL;
         const alpha = isHover ? FILL_ALPHA_HOVER : FILL_ALPHA_NORMAL;
         _drawAreaShape(graphics, area.shape, ox, oy, fill, alpha);
       }
     }
 
-    drawAll(-1);
+    drawAll(null);
 
     // ── Event handlers ──────────────────────────────────────────────────────
 
     function onMouseMove(event) {
       const pos   = event.getLocalPosition(canvas.controls);
-      const newIdx = _hitTest(hitAreas, pos.x, pos.y);
-      if (newIdx !== hoveredIdx) {
-        hoveredIdx = newIdx;
-        drawAll(hoveredIdx);
+      const newId = _hitTest(hitAreas, pos.x, pos.y);
+      if (newId !== hoveredId) {
+        hoveredId = newId;
+        drawAll(hoveredId);
       }
     }
 
     function onLeftClick(event) {
       const pos = event.getLocalPosition(canvas.controls);
-      const idx = _hitTest(hitAreas, pos.x, pos.y);
-      if (idx >= 0) {
-        cleanup(idx);
+      const regionId = _hitTest(hitAreas, pos.x, pos.y);
+      if (regionId !== null) {
+        cleanup(regionId);
       }
     }
 
@@ -178,10 +180,10 @@ function _drawFallbackSquare(g, ox, oy) {
 // ── Point-in-shape hit testing ────────────────────────────────────────────────
 
 function _hitTest(hitAreas, px, py) {
-  for (const { idx, area, ox, oy } of hitAreas) {
-    if (_pointInShape(area.shape, ox, oy, px, py)) return idx;
+  for (const { regionId, area, ox, oy } of hitAreas) {
+    if (_pointInShape(area.shape, ox, oy, px, py)) return regionId;
   }
-  return -1;
+  return null;
 }
 
 function _pointInShape(shape, ox, oy, px, py) {

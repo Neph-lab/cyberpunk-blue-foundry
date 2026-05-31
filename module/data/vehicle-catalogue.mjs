@@ -47,8 +47,6 @@ export const VEHICLE_CATALOGUE = [
       blueprint: {
         regions: [],
         tiles: [],
-        vitalAreas: [],
-        seatPositions: { driver: { x: 0, y: 0 }, gunners: [], passengers: [] },
       },
       description: '<p>Compact civilian vehicle. Fast and nimble but lightly armoured.</p>',
       notes: NOTES,
@@ -89,8 +87,6 @@ export const VEHICLE_CATALOGUE = [
       blueprint: {
         regions: [],
         tiles: [],
-        vitalAreas: [],
-        seatPositions: { driver: { x: 0, y: 0 }, gunners: [], passengers: [] },
       },
       description: '<p>Heavy cargo and transport vehicle. Very tough but slow to manoeuvre.</p>',
       notes: NOTES,
@@ -133,8 +129,6 @@ export const VEHICLE_CATALOGUE = [
       blueprint: {
         regions: [],
         tiles: [],
-        vitalAreas: [],
-        seatPositions: { driver: { x: 0, y: 0 }, gunners: [], passengers: [] },
       },
       description: '<p>Armed rotary-wing aircraft. Fast and well-armed; fragile compared to ground armour.</p>',
       notes: NOTES,

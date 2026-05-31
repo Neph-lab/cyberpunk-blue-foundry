@@ -483,7 +483,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         // Target vitals is available on standard and autofire weapons (standard attack only), but not on area-effect types.
         isStandardDamage: !['cone', 'explosion', 'affliction', 'affliction-cone', 'affliction-explosion'].includes(damageType),
         targetVitals: itemDoc.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false,
-        targetVehicleVitalAreaIndex: itemDoc.getFlag('cyberpunk-blue', `targetVehicleVitalAreaIndex-${weaponIndex}`) ?? null,
+        targetVehicleVitalRegionId: itemDoc.getFlag('cyberpunk-blue', `targetVehicleVitalRegionId-${weaponIndex}`) ?? null,
         jammed: !!itemDoc.getFlag('cyberpunk-blue', `jammed-${weaponIndex}`),
         canJam: (weapon.jamOnRoll ?? 0) > 0,
         // Calibration: Hawk Eye scope installed → show calibrate button
@@ -1347,9 +1347,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     if (!item) return;
 
     // If already set, clicking again clears the selection.
-    const existing = item.getFlag('cyberpunk-blue', `targetVehicleVitalAreaIndex-${weaponIndex}`) ?? null;
+    const existing = item.getFlag('cyberpunk-blue', `targetVehicleVitalRegionId-${weaponIndex}`) ?? null;
     if (existing !== null) {
-      await item.unsetFlag('cyberpunk-blue', `targetVehicleVitalAreaIndex-${weaponIndex}`);
+      await item.unsetFlag('cyberpunk-blue', `targetVehicleVitalRegionId-${weaponIndex}`);
       return;
     }
 
@@ -1362,10 +1362,10 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     }
 
     const { pickVehicleVitalArea } = await import('../helpers/vehicle-vitals-canvas.mjs');
-    const areaIndex = await pickVehicleVitalArea(targetToken.document);
-    if (areaIndex === null) return; // cancelled
+    const regionId = await pickVehicleVitalArea(targetToken.document);
+    if (regionId === null) return; // cancelled
 
-    await item.setFlag('cyberpunk-blue', `targetVehicleVitalAreaIndex-${weaponIndex}`, areaIndex);
+    await item.setFlag('cyberpunk-blue', `targetVehicleVitalRegionId-${weaponIndex}`, regionId);
   }
 
   async _onWeaponUnjam(event) {
