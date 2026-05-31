@@ -289,7 +289,19 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const preTargetVitals = item.getFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`) ?? false;
   const targetingScopeBonus = (hasTargetingScope && preTargetVitals) ? 1 : 0;
 
+  // ── Vitals targeting penalty preview ──────────────────────────────────────
+  // Surfaced in the dialog so the to-hit penalty is legible before rolling.
+  // Covers both character vitals (targetVitals flag) and vehicle vital areas
+  // (targetVehicleVitalRegionId flag + vehicle target). Mirrors the actual
+  // penalty math applied after the dialog (rawVitalsPenalty − modReduction).
+  const preTargetVehicleVitalRegionId = item.getFlag('cyberpunk-blue', `targetVehicleVitalRegionId-${weaponIndex}`) ?? null;
+  const isPreTargetingVehicleVital = preTargetVehicleVitalRegionId !== null && targetActor?.type === 'vehicle';
+  const preModVitalsPenaltyReduction = installedMods.reduce((sum, m) => sum + (m.targetVitalsPenaltyReduction ?? 0), 0);
+  const previewVitalsPenalty = Math.max(0, (weapon.targetVitalsPenalty ?? 8) - preModVitalsPenaltyReduction);
+  const showVitalsPenalty = (preTargetVitals || isPreTargetingVehicleVital) && previewVitalsPenalty > 0;
+
   const distanceBonusLines = [
+    showVitalsPenalty ? `<p style="color:var(--cpb-error, #ff4444);margin:0;"><i class="fas fa-crosshairs"></i> ${game.i18n.format('CYBER_BLUE.Combat.TargetVitalsPenalty', { n: previewVitalsPenalty })}</p>` : '',
     trajectoryBonus ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-ruler-combined"></i> ${game.i18n.localize('CYBER_BLUE.Combat.TrajectoryCalculations')}</p>` : '',
     closeRangeBonusVal ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-crosshairs"></i> ${game.i18n.localize('CYBER_BLUE.Combat.CloseRangeBonus')}</p>` : '',
     calibrationBonus > 0 ? `<p style="color:var(--cpb-accent);margin:0;"><i class="fas fa-bullseye"></i> ${game.i18n.format('CYBER_BLUE.Combat.CalibrationActive', { n: calibrationBonus })}</p>` : '',

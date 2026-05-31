@@ -589,6 +589,7 @@
       "TargetVitalsHint": "Target Vitals: −8 attack penalty; +5 damage if any gets through SP; critical hit uses Head Injury table.",
       "TargetVitalsActive": "Targeting Vitals",
       "TargetVitalsBonus": "+5 (target vitals)",
+      "TargetVitalsPenalty": "Targeting vitals: −{n} to attack",
       "PayloadBonus": "+{n} (toxic payload)",
       "WeaponJammed": "Weapon is jammed — clear the jam (Action) before firing.",
       "WeaponJammedAfterShot": "shot fires, then weapon JAMS. (Poor Quality)",
