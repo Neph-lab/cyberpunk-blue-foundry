@@ -36,6 +36,7 @@
  */
 
 import { rollLostControl } from './vehicle-lost-control.mjs';
+import { advanceTokenPosition, quantiseHeading } from './vehicle-vector.mjs';
 
 const FLAG_SCOPE            = 'cyberpunk-blue';
 const INIT_TIEBREAK_FLAG    = 'initTiebreak';
@@ -191,6 +192,26 @@ export async function executeVehicleTurn(vehicleCombatant) {
 
 async function _executeCoast(vehicleCombatant, actor, vehicleToken) {
   const speed = actor.system?.stats?.currentSpeed?.value ?? 0;
+
+  // Re-snap the heading to the nearest 15° in world space immediately before
+  // moving so the vehicle can never accumulate a permanent off-grid offset.
+  const heading = quantiseHeading(vehicleToken?.rotation ?? 0);
+
+  // Advance straight along the (quantised) heading by currentSpeed grid spaces.
+  let moved = false;
+  if (vehicleToken && speed !== 0) {
+    const scene = vehicleToken.parent ?? canvas.scene;
+    const dest = advanceTokenPosition(vehicleToken, speed, scene, heading);
+    const update = { x: dest.x, y: dest.y };
+    if (heading !== (vehicleToken.rotation ?? 0)) update.rotation = heading;
+    // Skip the 90° footprint snap: auto-moves write the exact quantised heading
+    // and rotate art freely. Region / passenger / collision sync still runs via
+    // the updateToken hook.
+    await vehicleToken.update(update, { cyberpunkBlueVehicleSnap: true });
+    moved = true;
+  }
+
+  const spaces = Math.abs(speed);
   await ChatMessage.create({
     speaker: vehicleToken
       ? ChatMessage.getSpeaker({ token: vehicleToken })
@@ -198,8 +219,11 @@ async function _executeCoast(vehicleCombatant, actor, vehicleToken) {
     content: `
       <div class="cyberpunk-blue chat-card">
         <h3><i class="fas fa-car"></i> ${actor.name} — Coasting</h3>
-        <p>No Maneuver declared. Vehicle maintains heading at speed
-           <strong>${speed}</strong>.</p>
+        <p>No Maneuver declared. Vehicle maintains heading
+           (<strong>${heading}°</strong>) at speed <strong>${speed}</strong>.</p>
+        ${moved
+          ? `<p>Advanced <strong>${spaces}</strong> ${spaces === 1 ? 'space' : 'spaces'}${speed < 0 ? ' in reverse' : ''}.</p>`
+          : ''}
       </div>
     `,
   });
@@ -270,6 +294,21 @@ async function _executeDrift(vehicleCombatant, actor, vehicleToken) {
   // Apply speed update to actor
   await actor.update({ 'system.stats.currentSpeed.value': newSpeed });
 
+  // Rotate by the veer angle, then advance along the NEW heading by the reduced
+  // speed. Right = clockwise (+), Left = counter-clockwise (−). Re-snap to the
+  // nearest 15° world-space heading before moving to avoid permanent drift.
+  let newHeading = quantiseHeading(vehicleToken?.rotation ?? 0);
+  if (vehicleToken) {
+    const delta = direction === 'Right' ? angle : -angle;
+    newHeading = quantiseHeading((vehicleToken.rotation ?? 0) + delta);
+    const scene = vehicleToken.parent ?? canvas.scene;
+    const dest = advanceTokenPosition(vehicleToken, newSpeed, scene, newHeading);
+    await vehicleToken.update(
+      { x: dest.x, y: dest.y, rotation: newHeading },
+      { cyberpunkBlueVehicleSnap: true },
+    );
+  }
+
   await ChatMessage.create({
     speaker: vehicleToken
       ? ChatMessage.getSpeaker({ token: vehicleToken })
@@ -279,7 +318,7 @@ async function _executeDrift(vehicleCombatant, actor, vehicleToken) {
         <h3><i class="fas fa-car-burst"></i> ${actor.name} — Drifting (No Driver)</h3>
         <p>
           Veer: <strong>${angle}°</strong> to the <strong>${direction}</strong>
-          (1d10=${angleRoll.total}, Handling=${handling})
+          (1d10=${angleRoll.total}, Handling=${handling}) → heading <strong>${newHeading}°</strong>
         </p>
         <p>Speed: ${currentSpeed} → <strong>${newSpeed}</strong>
            (−${speedReduction} from half-ACC)
