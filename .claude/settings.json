@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_in_Chrome__find",
+      "mcp__Claude_in_Chrome__get_page_text",
+      "mcp__computer-use__screenshot",
+      "mcp__mcp-registry__search_mcp_registry",
+      "mcp__PDF_Tools_-_View__Fill__Merge__Split__Manage_Pages__Extract__read_pdf_content",
+      "mcp__PDF_Tools_-_View__Fill__Merge__Split__Manage_Pages__Extract__get_pdf_info"
+    ]
+  }
+}

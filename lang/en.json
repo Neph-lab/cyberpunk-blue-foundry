@@ -27,6 +27,7 @@
         "Components": "Components",
         "Modifier": "Mod",
         "Roll": "Roll",
+        "Macro": "Macro",
         "Rank": "Rank",
         "State": "State",
         "Summary": "Summary",
@@ -151,7 +152,9 @@
         "Edit": "Edit",
         "Delete": "Delete",
         "MoveUp": "Move Up",
-        "MoveDown": "Move Down"
+        "MoveDown": "Move Down",
+        "CreateSkillMacro": "Create skill macro",
+        "CreateWeaponMacro": "Create weapon macro"
       },
       "Roll": {
         "Standard": "Standard Skill Test",
@@ -160,6 +163,27 @@
         "Success": "Success",
         "Failure": "Failure",
         "UsesLowerRank": "Using the lower of skill and component ranks"
+      },
+      "Macro": {
+        "DialogTitle": "Create Skill Macro",
+        "AddToHotbar": "Add to hotbar",
+        "ChooseComponent": "Component (optional)",
+        "StandardOption": "None — standard skill roll",
+        "Create": "Create Macro",
+        "Created": "Created macro \"{name}\".",
+        "CreatedHotbar": "Created macro \"{name}\" and added it to your hotbar.",
+        "NoActor": "Could not find the actor for this skill macro.",
+        "NoWeapon": "Could not find the weapon for this macro.",
+        "UnknownAction": "Unknown weapon action."
+      },
+      "WeaponMacro": {
+        "DialogTitle": "Create Weapon Macro",
+        "ChooseAction": "Action",
+        "ActionAttack": "Attack",
+        "ActionAutofire": "Autofire",
+        "ActionReload": "Reload",
+        "ActionCharge": "Charge",
+        "ActionRicochet": "Set up Ricochet"
       }
     },
     "Drug": {

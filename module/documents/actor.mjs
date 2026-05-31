@@ -2,6 +2,8 @@ import { getEligiblePlatforms, promptForCyberwarePlatform } from '../helpers/cyb
 import { normalizeGearState } from '../helpers/gear.mjs';
 import { applyFirstRoleSetup, normalizeRoleSystemData } from '../helpers/roles.mjs';
 import { CyberBlueActiveEffect } from './active-effect.mjs';
+import { resolveWeaponAttack, resolveAutofireAttack } from '../helpers/combat-resolution.mjs';
+import { reloadWeapon, toggleWeaponCharge, toggleWeaponRicochet } from '../helpers/weapon-actions.mjs';
 
 export class CyberBlueActor extends Actor {
   static SERIOUS_WOUND_FLAG = 'autoSeriousWound';
@@ -511,6 +513,53 @@ export class CyberBlueActor extends Actor {
     await this.consumeOneUseEffects();
 
     return roll;
+  }
+
+  /**
+   * Entry point for auto-generated weapon macros (and the sheet, if desired).
+   * Dispatches a weapon action without relying on a rendered sheet / DOM event.
+   *
+   * @param {object}  opts
+   * @param {string}  opts.itemId       Embedded weapon Item id on this actor.
+   * @param {number}  opts.weaponIndex  Index into the item's weapons array.
+   * @param {string}  opts.action       'attack' | 'autofire' | 'reload' | 'charge' | 'ricochet'.
+   * @param {object}  [opts.options]    Action-specific options (e.g. { targetVitals }).
+   */
+  async runWeaponAction({ itemId, weaponIndex = 0, action = 'attack', options = {} } = {}) {
+    // Ricochet is actor-scoped and needs no specific weapon.
+    if (action === 'ricochet') {
+      await toggleWeaponRicochet(this);
+      return;
+    }
+
+    const item = this.items.get(itemId);
+    if (!item) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Sheet.Macro.NoWeapon'));
+      return;
+    }
+
+    switch (action) {
+      case 'attack': {
+        // The attack resolver reads the persistent per-weapon vitals flag, so
+        // align it with the macro's choice before resolving.
+        if (typeof options.targetVitals === 'boolean') {
+          await item.setFlag('cyberpunk-blue', `targetVitals-${weaponIndex}`, options.targetVitals);
+        }
+        await resolveWeaponAttack(this, item, weaponIndex);
+        break;
+      }
+      case 'autofire':
+        await resolveAutofireAttack(this, item, weaponIndex);
+        break;
+      case 'reload':
+        await reloadWeapon(this, item, weaponIndex);
+        break;
+      case 'charge':
+        await toggleWeaponCharge(this, item, weaponIndex);
+        break;
+      default:
+        ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Sheet.Macro.UnknownAction'));
+    }
   }
 
   /**

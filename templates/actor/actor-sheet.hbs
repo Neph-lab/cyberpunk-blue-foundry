@@ -292,6 +292,18 @@
                         <i class="fas fa-battery-{{#if (eq weapon.electricChargeUses 0)}}empty{{else}}full{{/if}}"></i> {{weapon.electricChargeUses}}/{{weapon.electricChargeMax}}
                       </span>
                     {{/if}}
+                    <button type="button" class="macro-button" data-action="create-weapon-macro"
+                      data-item-id="{{weapon.itemId}}"
+                      data-weapon-index="{{weapon.weaponIndex}}"
+                      data-weapon-name="{{weapon.name}}"
+                      data-has-autofire="{{weapon.hasAutofire}}"
+                      data-is-standard-damage="{{weapon.isStandardDamage}}"
+                      data-is-tech-weapon="{{weapon.isTechWeapon}}"
+                      data-is-power-weapon="{{weapon.isPowerWeapon}}"
+                      data-shows-ammo="{{weapon.showsAmmo}}"
+                      title="{{localize 'CYBER_BLUE.Sheet.Buttons.CreateWeaponMacro'}}">
+                      <i class="fas fa-scroll"></i>
+                    </button>
                   </td>
                 </tr>
               {{/each}}
@@ -780,6 +792,7 @@
                 <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Rank"}}</span>
                 <span>{{localize "CYBER_BLUE.Sheet.Labels.LinkedComponents"}}</span>
                 <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Modifier"}}</span>
+                <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Macro"}}</span>
               </div>
               {{#each group.skills as |skill|}}
                 <div class="skill-row" data-skill-row data-skill-slug="{{skill.slug}}">
@@ -797,6 +810,9 @@
                     {{/each}}
                   </div>
                   <input class="numeric-column" type="number" value="0" data-field="modifier" />
+                  <button type="button" class="macro-button" data-action="create-skill-macro" data-skill-slug="{{skill.slug}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.CreateSkillMacro"}}">
+                    <i class="fas fa-scroll"></i>
+                  </button>
                 </div>
               {{/each}}
             </div>

@@ -34,7 +34,24 @@
       "Bash(node -e \"const fs=require\\('fs'\\);const s=fs.readFileSync\\('D:/FoundryVTT/Data/systems/daggerheart/build/daggerheart.js','utf8'\\);let i=s.indexOf\\('turnMarkerAnimations'\\);while\\(i>=0\\){console.log\\('---@'+i+'---'\\);console.log\\(s.slice\\(i-220,i+180\\).replace\\(/\\\\n/g,' '\\)\\);i=s.indexOf\\('turnMarkerAnimations',i+1\\);}\")",
       "Bash(cd \"/c/Program Files/Foundry Virtual Tabletop/resources/app\"; ls; echo \"---client---\"; find . -maxdepth 2 -type d | head -40)",
       "Bash(node -e \"require\\('child_process'\\);\")",
-      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('lang/en.json','utf8'\\)\\); console.log\\('en.json valid'\\)\")"
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('lang/en.json','utf8'\\)\\); console.log\\('en.json valid'\\)\")",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(node --check module/sheets/actor-sheet.mjs)",
+      "Bash(git -C \"D:/FoundryVTT/Data/systems/cyberpunk-blue\" status --short)",
+      "Bash(git -C \"D:/FoundryVTT/Data/systems/cyberpunk-blue\" diff --stat)",
+      "Bash(python -c 'import json,sys; d=json.load\\(open\\('\\\\''lang/en.json'\\\\'',encoding='\\\\''utf-8'\\\\''\\)\\); import re; *)",
+      "Bash(python -c 'import json; d=json.load\\(open\\('\\\\''lang/en.json'\\\\'',encoding='\\\\''utf-8'\\\\''\\)\\); *)",
+      "Bash(python -c \"import json; json.load\\(open\\('lang/en.json',encoding='utf-8'\\)\\); print\\('valid JSON'\\)\")",
+      "Bash(npm run *)",
+      "Bash(npx sass *)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(python -c \"import json; d=json.load\\(open\\('lang/en.json',encoding='utf-8'\\)\\); print\\('Cancel:', d['CYBER_BLUE']['Sheet']['Labels'].get\\('Cancel'\\)\\)\")",
+      "Bash(git checkout *)",
+      "Bash(grep -n \"documents/actor\\\\|from '../documents\" module/helpers/combat-resolution.mjs module/helpers/tech-charge.mjs module/helpers/ricochet-canvas.mjs module/helpers/mods.mjs module/helpers/combat.mjs)",
+      "Bash(sed -n '430,470p' module/sheets/actor-sheet.mjs)",
+      "Bash(node --check module/helpers/weapon-actions.mjs)",
+      "Bash(node --check module/documents/actor.mjs)",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('lang/en.json','utf8'\\)\\); console.log\\('JSON OK'\\)\")"
     ]
   }
 }

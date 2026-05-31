@@ -1357,7 +1357,23 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   grid-template-columns: 78px minmax(120px, 1.2fr) 64px 56px minmax(220px, 2fr) 56px;
 }
 
+.cyberpunk-blue .skill-table-container .skill-row {
+  grid-template-columns: 78px minmax(120px, 1.2fr) 64px 56px minmax(220px, 2fr) 56px 40px;
+}
+
 .cyberpunk-blue .skill-row > input.numeric-column {
+  width: 100%;
+}
+
+.cyberpunk-blue .skill-row .macro-button {
+  align-items: center;
+  background: rgba(141, 227, 255, 0.08);
+  border-color: rgba(141, 227, 255, 0.24);
+  color: var(--cpb-accent);
+  display: inline-flex;
+  justify-content: center;
+  justify-self: center;
+  padding-inline: 0;
   width: 100%;
 }
 
@@ -1922,6 +1938,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
     flex-wrap: wrap;
   }
   .cyberpunk-blue .skill-row,
+  .cyberpunk-blue .skill-table-container .skill-row,
   .cyberpunk-blue .component-row,
   .cyberpunk-blue .embedded-row {
     grid-template-columns: 1fr;

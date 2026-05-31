@@ -5,8 +5,8 @@ import { getBrandLogoPath } from '../helpers/branding.mjs';
 import { getEligiblePlatforms, getPlatformUsage, promptForCyberwarePlatform } from '../helpers/cyberware.mjs';
 import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs';
 import { normalizeGearState, getGearStateUpdateData } from '../helpers/gear.mjs';
-import { getEffectiveItemWeapons, getInstalledWeaponMods } from '../helpers/mods.mjs';
-import { buildWeaponUpdate, getWeaponTypeDefinition, getWeaponAmmoTypes } from '../helpers/combat.mjs';
+import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
+import { buildWeaponUpdate, getWeaponTypeDefinition } from '../helpers/combat.mjs';
 import { getTurnState, consumeNetAction, unlockNetActions } from '../helpers/combat-tracker.mjs';
 import {
   getNetConnection, isNetConnected, getPrimaryCyberdeck,
@@ -20,9 +20,9 @@ import {
   startEncryptDecryptTimer,
 } from '../helpers/netrunning.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack, resolveDoubleLockAttack } from '../helpers/combat-resolution.mjs';
-import { startRicochetPlacement, clearRicochetPoint, refreshAllRicochetLines } from '../helpers/ricochet-canvas.mjs';
+import { refreshAllRicochetLines } from '../helpers/ricochet-canvas.mjs';
+import { reloadWeapon, toggleWeaponCharge, toggleWeaponRicochet } from '../helpers/weapon-actions.mjs';
 import { playUiSound } from '../helpers/audio.mjs';
-import { clearWeaponCharge } from '../helpers/tech-charge.mjs';
 import { CRITICAL_INJURY_FLAG } from '../helpers/critical-injury.mjs';
 import { AFFLICTION_EFFECT_FLAG } from '../helpers/affliction-attack.mjs';
 import { startInstructions, advanceInstructions, getInstructionContext } from '../helpers/instructions.mjs';
@@ -1101,6 +1101,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     this.element.querySelectorAll('[data-action="roll-skill"]').forEach((button) => {
       button.addEventListener('click', this._onRollSkill.bind(this));
     });
+    this.element.querySelectorAll('[data-action="create-skill-macro"]').forEach((button) => {
+      button.addEventListener('click', this._onCreateSkillMacro.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="create-weapon-macro"]').forEach((button) => {
+      button.addEventListener('click', this._onCreateWeaponMacro.bind(this));
+    });
     this.element.querySelectorAll('[data-action="open-health-effect"]').forEach((button) => {
       button.addEventListener('click', this._onOpenHealthEffect.bind(this));
     });
@@ -1434,17 +1440,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
    */
   async _onWeaponRicochet(event) {
     event.preventDefault();
-    const actor = this.document;
-    const existing = actor.getFlag?.('cyberpunk-blue', 'ricochetPoint');
-    if (existing) {
-      await clearRicochetPoint(actor);
-      ChatMessage.create({
-        speaker: ChatMessage.getSpeaker({ actor }),
-        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-circle-xmark"></i> ${game.i18n.format('CYBER_BLUE.Combat.RicochetCleared', { name: actor.name })}</p></div>`,
-      });
-    } else {
-      await startRicochetPlacement(actor);
-    }
+    await toggleWeaponRicochet(this.document);
   }
 
   /**
@@ -1454,79 +1450,11 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
    */
   async _onWeaponCharge(event) {
     event.preventDefault();
-    const actor       = this.document;
-    const item        = this._getItemFromEvent(event);
+    const item = this._getItemFromEvent(event);
     if (!item) return;
     const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
     if (Number.isNaN(weaponIndex) || weaponIndex < 0) return;
-
-    const isCharged  = !!(item.getFlag('cyberpunk-blue', `charged-${weaponIndex}`));
-    const isCooldown = !!(item.getFlag('cyberpunk-blue', `chargeCooldown-${weaponIndex}`));
-
-    if (isCharged) {
-      // ── Manual cancel: end charge, set cooldown ──────────────────────────
-      await clearWeaponCharge(actor, item, weaponIndex, true /* setCooldown */);
-      ChatMessage.create({
-        speaker: ChatMessage.getSpeaker({ actor }),
-        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt-lightning"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChargeCancelled', { weapon: item.name })}</p></div>`,
-      });
-      return;
-    }
-
-    if (isCooldown) {
-      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.ChargeOnCooldown'));
-      return;
-    }
-
-    // ── Check if actor has moved this turn ──────────────────────────────────
-    const actorToken = actor.getActiveTokens()[0];
-    const chargeCombatant = game.combat?.started
-      ? game.combat.combatants.find((c) => c.actorId === actor.id)
-      : null;
-    const chargeTurnState = chargeCombatant ? getTurnState(chargeCombatant) : null;
-    const moved = (chargeTurnState?.movementUsed ?? 0) > 0;
-    if (moved) {
-      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.ChargeBlockedByMovement'));
-      return;
-    }
-
-    // ── Determine MOVE override value ────────────────────────────────────────
-    const installedMods    = getInstalledWeaponMods(item, weaponIndex, actor);
-    const hasImprovedCharge = installedMods.some((m) => m.improvedCharge);
-    const hasSRCapacity    = installedMods.some((m) => m.srCapacity);
-    const origMove         = Number(actor.system?.stats?.move?.value) || 0;
-    let aeValue;
-    if (hasImprovedCharge) {
-      aeValue = '1'; // may move 2 m (1 Move unit @ 2 m/unit)
-    } else if (hasSRCapacity) {
-      aeValue = String(Math.max(1, Math.ceil(origMove / 2)));
-    } else {
-      aeValue = '0'; // MOVE = 0 this turn
-    }
-
-    // ── Create Active Effect on actor ────────────────────────────────────────
-    const aeData = {
-      name: game.i18n.format('CYBER_BLUE.Combat.ChargeAELabel', { weapon: item.name }),
-      icon: 'icons/svg/lightning.svg',
-      changes: [{ key: 'system.stats.move.value', mode: 5, value: aeValue }],
-      flags: { 'cyberpunk-blue': { twCharge: true, weaponItemId: item.id, weaponIndex } },
-    };
-    const [ae] = await actor.createEmbeddedDocuments('ActiveEffect', [aeData]);
-
-    // ── Set item charge flags ────────────────────────────────────────────────
-    const currentRound = game.combat?.round ?? 0;
-    await item.setFlag('cyberpunk-blue', `charged-${weaponIndex}`,        true);
-    await item.setFlag('cyberpunk-blue', `chargeStartRound-${weaponIndex}`, currentRound);
-    await item.setFlag('cyberpunk-blue', `chargeOrigMove-${weaponIndex}`, origMove);
-    await item.setFlag('cyberpunk-blue', `chargeAeId-${weaponIndex}`,     ae.id);
-
-    const moveNote = aeValue === '0'
-      ? game.i18n.localize('CYBER_BLUE.Combat.ChargeMoveZero')
-      : game.i18n.format('CYBER_BLUE.Combat.ChargeMoveReduced', { move: aeValue });
-    ChatMessage.create({
-      speaker: ChatMessage.getSpeaker({ actor }),
-      content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt-lightning"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChargeBegun', { weapon: item.name })} ${moveNote}</p></div>`,
-    });
+    await toggleWeaponCharge(this.document, item, weaponIndex);
   }
 
   async _onMartialArtsAttack(event) {
@@ -1695,6 +1623,230 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     });
   }
 
+  async _onCreateSkillMacro(event) {
+    event.preventDefault();
+
+    const skillSlug = event.currentTarget.dataset.skillSlug;
+    const actor = this.document;
+    const skillDef = CONFIG.CYBER_BLUE.skills[skillSlug];
+    if (!skillDef) {
+      return;
+    }
+    const skillLabel = skillDef.label;
+
+    // Components this skill links to that are active on this actor.
+    const components = (skillDef.components ?? [])
+      .filter((slug) => actor.system.components?.[slug]?.active)
+      .map((slug) => ({
+        slug,
+        label: CONFIG.CYBER_BLUE.components[slug]?.label ?? slug,
+        rank: actor.system.components[slug]?.rank ?? 0,
+      }));
+
+    const componentField = components.length
+      ? `<div class="form-group">
+          <label>${game.i18n.localize('CYBER_BLUE.Sheet.Macro.ChooseComponent')}</label>
+          <select name="component">
+            <option value="">${game.i18n.localize('CYBER_BLUE.Sheet.Macro.StandardOption')}</option>
+            ${components.map((c) => `<option value="${c.slug}">${c.label} (${c.rank})</option>`).join('')}
+          </select>
+        </div>`
+      : '';
+
+    const { promise, resolve } = Promise.withResolvers();
+    const dialog = new foundry.applications.api.DialogV2({
+      window: { title: game.i18n.localize('CYBER_BLUE.Sheet.Macro.DialogTitle') },
+      content: `<div class="cyberpunk-blue">
+          ${componentField}
+          <div class="form-group">
+            <label style="display:flex;align-items:center;gap:0.5rem;">
+              <input type="checkbox" name="hotbar" checked /> ${game.i18n.localize('CYBER_BLUE.Sheet.Macro.AddToHotbar')}
+            </label>
+          </div>
+        </div>`,
+      buttons: [
+        { action: 'create', label: game.i18n.localize('CYBER_BLUE.Sheet.Macro.Create'), icon: 'fa-solid fa-scroll', default: true },
+        { action: 'cancel', label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Cancel'), icon: 'fa-solid fa-times' },
+      ],
+      submit: (result, event2, form) => resolve({
+        result,
+        component: form?.querySelector('[name="component"]')?.value || null,
+        hotbar: form?.querySelector('[name="hotbar"]')?.checked ?? false,
+      }),
+    });
+    dialog.addEventListener('close', () => resolve({ result: 'cancel' }), { once: true });
+    dialog.render(true);
+
+    const { result, component, hotbar } = await promise;
+    if (result !== 'create') {
+      return;
+    }
+
+    const componentSlug = component && components.some((c) => c.slug === component) ? component : null;
+    const componentLabel = componentSlug ? components.find((c) => c.slug === componentSlug)?.label : null;
+    const macroName = componentLabel ? `${skillLabel} (${componentLabel})` : skillLabel;
+
+    const command = [
+      `// Cyberpunk Blue — auto-generated skill macro`,
+      `const actor = await fromUuid(${JSON.stringify(actor.uuid)});`,
+      `if (!actor?.rollSkill) {`,
+      `  ui.notifications.warn(game.i18n.localize("CYBER_BLUE.Sheet.Macro.NoActor"));`,
+      `} else {`,
+      `  await actor.rollSkill({ skillSlug: ${JSON.stringify(skillSlug)}, componentSlug: ${JSON.stringify(componentSlug)} });`,
+      `}`,
+    ].join('\n');
+
+    const macro = await Macro.create({
+      name: macroName,
+      type: CONST.MACRO_TYPES.SCRIPT,
+      // Default skill-macro icon; will be swapped for per-category icons once those exist.
+      img: 'systems/cyberpunk-blue/assets/icons/bk_d10.svg',
+      command,
+      flags: {
+        'cyberpunk-blue': {
+          skillMacro: { actorUuid: actor.uuid, skillSlug, componentSlug },
+        },
+      },
+    });
+    if (!macro) {
+      return;
+    }
+
+    if (hotbar) {
+      let slot = null;
+      for (let i = 1; i <= 50; i += 1) {
+        if (!game.user.hotbar[i]) {
+          slot = i;
+          break;
+        }
+      }
+      await game.user.assignHotbarMacro(macro, slot ?? 1);
+      ui.notifications.info(game.i18n.format('CYBER_BLUE.Sheet.Macro.CreatedHotbar', { name: macroName }));
+    } else {
+      ui.notifications.info(game.i18n.format('CYBER_BLUE.Sheet.Macro.Created', { name: macroName }));
+    }
+  }
+
+  async _onCreateWeaponMacro(event) {
+    event.preventDefault();
+
+    const ds = event.currentTarget.dataset;
+    const itemId = ds.itemId;
+    const weaponIndex = Number.parseInt(ds.weaponIndex ?? '-1', 10);
+    const actor = this.document;
+    const item = actor.items.get(itemId);
+    if (!item || Number.isNaN(weaponIndex) || weaponIndex < 0) {
+      return;
+    }
+
+    const weaponName = ds.weaponName || item.name;
+    const hasAutofire = ds.hasAutofire === 'true';
+    const isStandardDamage = ds.isStandardDamage === 'true';
+    const isTechWeapon = ds.isTechWeapon === 'true';
+    const isPowerWeapon = ds.isPowerWeapon === 'true';
+    const showsAmmo = ds.showsAmmo === 'true';
+
+    // Available actions for this weapon, in display order.
+    const actions = [{ value: 'attack', label: game.i18n.localize('CYBER_BLUE.Sheet.WeaponMacro.ActionAttack') }];
+    if (hasAutofire) actions.push({ value: 'autofire', label: game.i18n.localize('CYBER_BLUE.Sheet.WeaponMacro.ActionAutofire') });
+    if (showsAmmo) actions.push({ value: 'reload', label: game.i18n.localize('CYBER_BLUE.Sheet.WeaponMacro.ActionReload') });
+    if (isTechWeapon) actions.push({ value: 'charge', label: game.i18n.localize('CYBER_BLUE.Sheet.WeaponMacro.ActionCharge') });
+    if (isPowerWeapon) actions.push({ value: 'ricochet', label: game.i18n.localize('CYBER_BLUE.Sheet.WeaponMacro.ActionRicochet') });
+
+    const actionField = `<div class="form-group">
+        <label>${game.i18n.localize('CYBER_BLUE.Sheet.WeaponMacro.ChooseAction')}</label>
+        <select name="weapon-action">
+          ${actions.map((a) => `<option value="${a.value}">${a.label}</option>`).join('')}
+        </select>
+      </div>`;
+
+    // Target-vitals is only meaningful for a standard-damage attack.
+    const vitalsField = isStandardDamage
+      ? `<div class="form-group" data-vitals-row>
+          <label style="display:flex;align-items:center;gap:0.5rem;">
+            <input type="checkbox" name="target-vitals" /> ${game.i18n.localize('CYBER_BLUE.Combat.TargetVitals')}
+          </label>
+        </div>`
+      : '';
+
+    const { promise, resolve } = Promise.withResolvers();
+    const dialog = new foundry.applications.api.DialogV2({
+      window: { title: game.i18n.localize('CYBER_BLUE.Sheet.WeaponMacro.DialogTitle') },
+      content: `<div class="cyberpunk-blue">
+          ${actionField}
+          ${vitalsField}
+          <div class="form-group">
+            <label style="display:flex;align-items:center;gap:0.5rem;">
+              <input type="checkbox" name="hotbar" checked /> ${game.i18n.localize('CYBER_BLUE.Sheet.Macro.AddToHotbar')}
+            </label>
+          </div>
+        </div>`,
+      buttons: [
+        { action: 'create', label: game.i18n.localize('CYBER_BLUE.Sheet.Macro.Create'), icon: 'fa-solid fa-scroll', default: true },
+        { action: 'cancel', label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Cancel'), icon: 'fa-solid fa-times' },
+      ],
+      submit: (result, event2, form) => resolve({
+        result,
+        action: form?.querySelector('[name="weapon-action"]')?.value || 'attack',
+        targetVitals: form?.querySelector('[name="target-vitals"]')?.checked ?? false,
+        hotbar: form?.querySelector('[name="hotbar"]')?.checked ?? false,
+      }),
+    });
+    dialog.addEventListener('close', () => resolve({ result: 'cancel' }), { once: true });
+    dialog.render(true);
+
+    const { result, action, targetVitals, hotbar } = await promise;
+    if (result !== 'create') {
+      return;
+    }
+
+    const actionLabel = actions.find((a) => a.value === action)?.label ?? action;
+    const macroName = `${weaponName} — ${actionLabel}`;
+
+    // target-vitals is only relevant for the attack action.
+    const options = action === 'attack' ? { targetVitals } : {};
+    const optionsArg = Object.keys(options).length ? `, options: ${JSON.stringify(options)}` : '';
+
+    const command = [
+      `// Cyberpunk Blue — auto-generated weapon macro`,
+      `const actor = await fromUuid(${JSON.stringify(actor.uuid)});`,
+      `if (!actor?.runWeaponAction) {`,
+      `  ui.notifications.warn(game.i18n.localize("CYBER_BLUE.Sheet.Macro.NoActor"));`,
+      `} else {`,
+      `  await actor.runWeaponAction({ itemId: ${JSON.stringify(itemId)}, weaponIndex: ${weaponIndex}, action: ${JSON.stringify(action)}${optionsArg} });`,
+      `}`,
+    ].join('\n');
+
+    const macro = await Macro.create({
+      name: macroName,
+      type: CONST.MACRO_TYPES.SCRIPT,
+      img: item.img,
+      command,
+      flags: {
+        'cyberpunk-blue': {
+          weaponMacro: { actorUuid: actor.uuid, itemId, weaponIndex, action },
+        },
+      },
+    });
+    if (!macro) {
+      return;
+    }
+
+    if (hotbar) {
+      let slot = null;
+      for (let i = 1; i <= 50; i += 1) {
+        if (!game.user.hotbar[i]) {
+          slot = i;
+          break;
+        }
+      }
+      await game.user.assignHotbarMacro(macro, slot ?? 1);
+      ui.notifications.info(game.i18n.format('CYBER_BLUE.Sheet.Macro.CreatedHotbar', { name: macroName }));
+    } else {
+      ui.notifications.info(game.i18n.format('CYBER_BLUE.Sheet.Macro.Created', { name: macroName }));
+    }
+  }
+
   async _onOpenHealthEffect(event) {
     event.preventDefault();
     const effectId = event.currentTarget.dataset.effectId;
@@ -1841,123 +1993,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     const item = this._getItemFromEvent(event);
     const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
     if (!item || Number.isNaN(weaponIndex) || weaponIndex < 0) return;
-
-    const sourceWeapon = item._source?.system?.weapons?.[weaponIndex] ?? {};
-    const magazine = Math.max(Number(sourceWeapon.magazine) || 0, 0);
-    const ammoCurrent = Math.max(Number(sourceWeapon.ammoCurrent) || 0, 0);
-    const ammoNeededFull = magazine - ammoCurrent;
-
-    if (ammoNeededFull <= 0) {
-      ui.notifications.info(game.i18n.localize('CYBER_BLUE.Combat.WeaponAlreadyFull'));
-      return;
-    }
-
-    // Find compatible ammo types for this weapon type
-    const compatibleAmmoKeys = getWeaponAmmoTypes(sourceWeapon.type ?? '');
-    if (compatibleAmmoKeys.length === 0) {
-      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.NoAmmoType'));
-      return;
-    }
-
-    // Filter actor's ammo items to those compatible with this weapon.
-    // Smart-weapon-only ammo (e.g. Smart Ammo) is excluded for non-smart weapons.
-    const isSmartWeapon = !!(sourceWeapon.isSmartWeapon);
-    const actorAmmoDocs = this.document.items.filter((i) => {
-      if (i.type !== 'ammo') return false;
-      if (i.system.smartWeaponOnly && !isSmartWeapon) return false;
-      return compatibleAmmoKeys.some((key) => i.system.ammoTypes?.[key]);
-    });
-
-    if (actorAmmoDocs.length === 0) {
-      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.NoCompatibleAmmo'));
-      return;
-    }
-
-    // If multiple compatible ammo available, prompt player to choose
-    let chosenAmmoDoc = actorAmmoDocs[0];
-    if (actorAmmoDocs.length > 1) {
-      const { promise, resolve } = Promise.withResolvers();
-      const buttons = actorAmmoDocs.map((ammoDoc) => ({
-        action: ammoDoc.id,
-        label: `${ammoDoc.name} (×${ammoDoc.system.quantity})`,
-        icon: 'fas fa-box-open',
-        callback: () => resolve(ammoDoc.id),
-      }));
-      buttons.push({ action: 'cancel', label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Cancel'), icon: 'fas fa-times', callback: () => resolve(null) });
-      const dialog = new foundry.applications.api.DialogV2({
-        window: { title: game.i18n.localize('CYBER_BLUE.Combat.ChooseAmmo') },
-        content: `<div class="cyberpunk-blue"><p>${game.i18n.localize('CYBER_BLUE.Combat.ChooseAmmoHint')}</p></div>`,
-        buttons,
-        submit: (result) => resolve(result),
-      });
-      dialog.addEventListener('close', () => resolve(null), { once: true });
-      dialog.render(true);
-      const chosenId = await promise;
-      if (!chosenId) return;
-      chosenAmmoDoc = actorAmmoDocs.find((a) => a.id === chosenId);
-      if (!chosenAmmoDoc) return;
-    }
-
-    // Determine how many rounds we can load
-    let ammoNeeded = ammoNeededFull;
-    let currentAfterUnload = ammoCurrent;
-
-    // If loading a different ammo type than currently loaded → unload existing rounds first
-    const prevUuid = sourceWeapon.ammoTypeUuid ?? '';
-    const sameAmmo = prevUuid && prevUuid === chosenAmmoDoc.uuid;
-    if (!sameAmmo && prevUuid && ammoCurrent > 0) {
-      // Try to resolve the previously loaded ammo
-      let prevAmmoItem = null;
-      try { prevAmmoItem = await fromUuid(prevUuid); } catch { /* not found */ }
-
-      // Search for a matching item on the actor (by uuid, then by name)
-      let prevOnActor = this.document.items.find((i) => i.type === 'ammo' && i.uuid === prevUuid);
-      if (!prevOnActor && prevAmmoItem?.name) {
-        prevOnActor = this.document.items.find((i) => i.type === 'ammo' && i.name === prevAmmoItem.name);
-      }
-      if (!prevOnActor && !prevAmmoItem) {
-        // Try searching world items by name fallback (from world Items directory)
-        const worldMatch = game.items.find((i) => i.type === 'ammo' && i.uuid === prevUuid);
-        if (worldMatch) prevAmmoItem = worldMatch;
-      }
-
-      if (prevOnActor) {
-        // Return rounds to existing stack on actor
-        await prevOnActor.update({ 'system.quantity': prevOnActor.system.quantity + ammoCurrent });
-      } else if (prevAmmoItem) {
-        // Create a new ammo entry on the actor with the returned rounds
-        const createdData = prevAmmoItem.toObject();
-        createdData.system.quantity = ammoCurrent;
-        await this.document.createEmbeddedDocuments('Item', [createdData]);
-      }
-      // Empty the mag before reloading with new ammo
-      currentAfterUnload = 0;
-      ammoNeeded = magazine;
-    }
-
-    // Load as many rounds as we have
-    const toLoad = Math.min(ammoNeeded, Math.max(Number(chosenAmmoDoc.system.quantity) || 0, 0));
-    if (toLoad <= 0) {
-      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.NoCompatibleAmmo'));
-      return;
-    }
-
-    const newAmmoCurrent = currentAfterUnload + toLoad;
-    const newAmmoQty = chosenAmmoDoc.system.quantity - toLoad;
-
-    playUiSound('reload');
-    // Update weapon: new ammo count + record which ammo was used
-    await item.update(buildWeaponUpdate(item, weaponIndex, {
-      ammoCurrent: newAmmoCurrent,
-      ammoTypeUuid: chosenAmmoDoc.uuid,
-    }));
-
-    // Update or delete the ammo item
-    if (newAmmoQty <= 0) {
-      await chosenAmmoDoc.delete();
-    } else {
-      await chosenAmmoDoc.update({ 'system.quantity': newAmmoQty });
-    }
+    await reloadWeapon(this.document, item, weaponIndex);
   }
 
   async _onOpenTeamMember(event) {

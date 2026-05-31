@@ -8,7 +8,17 @@ Every location in the system that needs a custom SVG icon, with enough selector 
 
 - **Item-tab / sheet icons** live at `assets/icons/bk_*.svg` (PascalCase, `bk_` prefix). Other icons in `assets/icons/` (e.g. role icons like `Solo.svg`, `Netrunner.svg`) follow plain PascalCase.
 - **Manufacturer logos** live at `assets/logo/<Brand-Name>.svg`. Filename is the brand name, hyphenated, matched against `system.manufacturer` strings via `branding.mjs` (case-insensitive, whitespace → hyphens).
-- **Color**: every SVG in `assets/logo/` and `assets/icons/` is authored **black on transparent** (`fill:#000`, `fill:none` for groups). This is a hard rule — see the wiring patterns below for how each kind of icon ends up the right color in-app.
+- **Color**: the canonical (`bk_`) SVGs in `assets/logo/` and `assets/icons/` are authored **black on transparent** (`fill:#000`, `fill:none` for groups). This is the default — see the wiring patterns below for how each kind of icon ends up the right color in-app via CSS at runtime.
+- **Color prefixes**: an icon's filename prefix declares the colour baked into the file. Prefer the `bk_` version recoloured at runtime via CSS (Pattern A/B below); only ship a separate pre-coloured file when runtime recolouring won't work for the use case.
+
+  | Prefix | Meaning |
+  | --- | --- |
+  | `bk_` | Black on transparent (the canonical/default version). |
+  | `wt_` | White on transparent. |
+  | `acc_` | System accent colour (`--cpb-accent` in the CSS) on transparent. |
+  | `col_` | Some other fixed colour scheme, e.g. a logo's official brand colours. |
+
+  Same base name across variants (e.g. `bk_d10.svg`, `wt_d10.svg`, `acc_d10.svg`). When a non-`bk_` file is genuinely needed, create it and name it with the matching prefix.
 
 ---
 
@@ -446,6 +456,20 @@ Foundry-core widget; overrides may live in `templates/combat/`. Pattern A where 
 | Sprint button | `.sprint-btn` | Running figure | |
 | Initiative input | `.initiative` | Clock / chevron | |
 
+### 19. Martial Arts Component Icons **(new)**
+
+The five Martial Arts Components (`module/helpers/config.mjs` → `martialArts.components`). These need custom `bk_` SVGs; until they exist, anything that wants a per-component icon (e.g. a future martial-arts macro, parallel to the weapon/skill macro buttons) should fall back to Foundry's generic placeholder `icons/svg/mystery-man.svg`.
+
+| Component slug | Label | Suggested icon concept | SVG file |
+|----------------|-------|------------------------|----------|
+| `aikido` | Aikido | Throw / redirect motion | |
+| `brawling` | Brawling | Fist | |
+| `judo` | Judo | Grapple / throw | |
+| `karate` | Karate | Open-hand strike | |
+| `taekwondo` | Taekwondo | High kick | |
+
+> Placeholder for now: `icons/svg/mystery-man.svg`. Swap each entry to `assets/icons/bk_<Name>.svg` once authored.
+
 ---
 
 ## Implementation Notes
@@ -466,4 +490,4 @@ Foundry-core widget; overrides may live in `templates/combat/`. Pattern A where 
 
 6. **FontAwesome icons** (`<i class="fas fa-*">`) embedded inline in templates are still fine and don't need migration. They're already color-correct via FontAwesome's own font-color inheritance.
 
-7. **SCSS vs CSS drift**: `css/cyberpunk-blue.css` is currently hand-edited (the SCSS source has fallen behind). Edits to icon-related rules should land in the CSS directly; mirror to SCSS only for the small subset of rules that still appear in both.
+7. **CSS is the sole source**: `css/cyberpunk-blue.css` is hand-edited and authoritative. The SCSS build step has been removed (no `npm run build`/`watch`), so all style edits — icon-related or otherwise — must land directly in the CSS. The `src/scss/` files are stale and no longer compiled; do not recompile them, as that would overwrite the hand-maintained CSS.
