@@ -1040,6 +1040,18 @@
       "TargetVitalAreaHint": "Pick a vital area on the target vehicle (same penalty as targeting vitals on a character).",
       "PickVehicleVitalHint": "Target a vital area on the vehicle (opens canvas picker; requires a vehicle target).",
       "ClearVehicleVitalHint": "Clear targeted vital area."
+    },
+    "BlueprintEditor": {
+      "Title": "Vehicle Blueprint Editor",
+      "TitleFor": "Blueprint — {name}",
+      "OpenButton": "Edit Blueprint",
+      "GMOnly": "Only the GM can edit a vehicle blueprint.",
+      "Fit": "Fit",
+      "Footprint": "Footprint",
+      "Regions": "Regions",
+      "Empty": "No regions defined yet. Drawing tools arrive in a later phase.",
+      "NoArt": "This vehicle has no token art. Set a token image to use it as the blueprint canvas.",
+      "TypeNone": "Untyped"
     }
   },
   "TYPES": {

@@ -1,0 +1,49 @@
+<div class="cpb-blueprint-editor">
+
+  {{!-- Toolbar --}}
+  <div class="cpb-be-toolbar">
+    <button type="button" class="cpb-btn" data-action="fit">
+      <i class="fa-solid fa-expand"></i>
+      {{localize "CYBER_BLUE.BlueprintEditor.Fit"}}
+    </button>
+    <span class="cpb-be-footprint">
+      {{localize "CYBER_BLUE.BlueprintEditor.Footprint"}}:
+      {{footprintW}}&times;{{footprintH}}
+      <span class="cpb-be-muted">({{referenceGrid}}px/sq)</span>
+    </span>
+  </div>
+
+  <div class="cpb-be-main">
+
+    {{!-- Canvas surface --}}
+    <div class="cpb-be-canvas-wrap">
+      <canvas data-be-canvas></canvas>
+      {{#unless hasArt}}
+        <div class="cpb-be-noart">
+          <i class="fa-solid fa-image-slash"></i>
+          <p>{{localize "CYBER_BLUE.BlueprintEditor.NoArt"}}</p>
+        </div>
+      {{/unless}}
+    </div>
+
+    {{!-- Region list --}}
+    <aside class="cpb-be-rail">
+      <h3 class="cpb-be-rail-title">{{localize "CYBER_BLUE.BlueprintEditor.Regions"}}</h3>
+      {{#if hasRegions}}
+        <ul class="cpb-be-region-list">
+          {{#each regions}}
+            <li class="cpb-be-region-row{{#if (eq regionId ../selectedRegionId)}} selected{{/if}}"
+                data-region-id="{{regionId}}">
+              <span class="cpb-be-swatch" style="background:{{color}}"></span>
+              <span class="cpb-be-region-label">{{displayLabel}}</span>
+              <span class="cpb-be-region-type">{{typeLabel}}</span>
+            </li>
+          {{/each}}
+        </ul>
+      {{else}}
+        <p class="cpb-be-empty">{{localize "CYBER_BLUE.BlueprintEditor.Empty"}}</p>
+      {{/if}}
+    </aside>
+
+  </div>
+</div>

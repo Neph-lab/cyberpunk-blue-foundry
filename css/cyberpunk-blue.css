@@ -4562,3 +4562,145 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   color: #777;
   font-weight: normal;
 }
+
+/* ── Vehicle Blueprint Editor ─────────────────────────────────────────────── */
+.cyberpunk-blue .cpb-blueprint-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 0.5rem;
+}
+
+.cyberpunk-blue .cpb-be-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 0 0 auto;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.cyberpunk-blue .cpb-be-footprint {
+  font-size: var(--font-size-12, 12px);
+  color: #cdd3da;
+}
+
+.cyberpunk-blue .cpb-be-muted {
+  color: #7f8c8d;
+}
+
+.cyberpunk-blue .cpb-be-main {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 0.5rem;
+}
+
+.cyberpunk-blue .cpb-be-canvas-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  background: #0c0f13;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.cyberpunk-blue .cpb-be-canvas-wrap canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+}
+
+.cyberpunk-blue .cpb-be-noart {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #7f8c8d;
+  text-align: center;
+  pointer-events: none;
+  padding: 1rem;
+}
+
+.cyberpunk-blue .cpb-be-noart i {
+  font-size: 2rem;
+}
+
+.cyberpunk-blue .cpb-be-rail {
+  flex: 0 0 240px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.5rem;
+  overflow-y: auto;
+}
+
+.cyberpunk-blue .cpb-be-rail-title {
+  margin: 0 0 0.5rem;
+  font-size: var(--font-size-13, 13px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 0.25rem;
+}
+
+.cyberpunk-blue .cpb-be-region-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cyberpunk-blue .cpb-be-region-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.4rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.cyberpunk-blue .cpb-be-region-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.cyberpunk-blue .cpb-be-region-row.selected {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.cyberpunk-blue .cpb-be-swatch {
+  flex: 0 0 12px;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+.cyberpunk-blue .cpb-be-region-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-12, 12px);
+}
+
+.cyberpunk-blue .cpb-be-region-type {
+  flex: 0 0 auto;
+  font-size: var(--font-size-10, 10px);
+  color: #7f8c8d;
+}
+
+.cyberpunk-blue .cpb-be-empty {
+  color: #7f8c8d;
+  font-size: var(--font-size-12, 12px);
+  font-style: italic;
+}

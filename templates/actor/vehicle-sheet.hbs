@@ -191,6 +191,15 @@
               <input type="text" name="system.critTableId" value="{{system.critTableId}}" placeholder="RollTable document id" style="flex:1" />
             </label>
           </fieldset>
+
+          {{!-- Blueprint ──────────────────────────────────────────────────────── --}}
+          <fieldset class="vehicle-fieldset">
+            <legend>Blueprint</legend>
+            <button type="button" class="cpb-btn" data-action="edit-blueprint">
+              <i class="fa-solid fa-vector-square"></i>
+              {{localize "CYBER_BLUE.BlueprintEditor.OpenButton"}}
+            </button>
+          </fieldset>
         {{/if}}
 
       </section>

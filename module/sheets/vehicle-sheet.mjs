@@ -2,6 +2,8 @@ const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { Tabs } = foundry.applications.ux;
 
+import { CyberBlueVehicleBlueprintEditor } from '../apps/vehicle-blueprint-editor.mjs';
+
 export class CyberBlueVehicleSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
     classes: ['cyberpunk-blue', 'sheet', 'actor', 'vehicle'],
@@ -16,6 +18,9 @@ export class CyberBlueVehicleSheet extends HandlebarsApplicationMixin(ActorSheet
     },
     window: {
       resizable: true,
+    },
+    actions: {
+      'edit-blueprint': CyberBlueVehicleSheet._onEditBlueprint,
     },
   }, { inplace: false });
 
@@ -125,6 +130,11 @@ export class CyberBlueVehicleSheet extends HandlebarsApplicationMixin(ActorSheet
         </div>
       `,
     });
+  }
+
+  /** Launch the standalone visual blueprint editor (GM only). */
+  static _onEditBlueprint(_event, _target) {
+    CyberBlueVehicleBlueprintEditor.open(this.document);
   }
 
   async _onEditProfileImage(event) {
