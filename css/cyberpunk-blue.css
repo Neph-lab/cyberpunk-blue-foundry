@@ -855,7 +855,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .embedded-entries {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  /* gap: 2px; */
 }
 
 .cyberpunk-blue .skill-table {
@@ -1153,7 +1153,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 
 .cyberpunk-blue .embedded-list,
 .cyberpunk-blue .embedded-entries {
-  gap: 0.5rem;
+  /* gap: 0.5rem; */
 }
 
 .cyberpunk-blue .table.embedded-table {
@@ -1339,13 +1339,13 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   min-width: min(100%, 30rem);
 }
 
-/* Grid-only wrapper: flows skill categories into columns when the sheet is wide
+/* Columns-only wrapper: flows skill categories into columns when the sheet is wide
    enough, single column when narrow. Intentionally not a .sheet-panel itself. */
 .cyberpunk-blue .skill-category-grid {
+  margin-top: 1rem;
   align-items: start;
-  display: grid;
-  gap: 0.9rem;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  columns: 3 44rem;
+  gap: 1rem;
 }
 
 .cyberpunk-blue .skill-table-container {
@@ -1387,7 +1387,9 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 /* Each category is its own .sheet-panel inside the grid; the grid gap controls
    vertical rhythm, so drop the panel's default top margin. */
 .cyberpunk-blue .skill-category {
-  margin-top: 0;
+  margin-top: 0 !important;
+  margin-bottom: 1rem;
+  break-inside: avoid;
 }
 
 .cyberpunk-blue .skill-category > .cpb-divider--header {
@@ -3507,9 +3509,9 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 /* ── Sheet tabs — peg/notch interlocked ──────────────────── */
 .cyberpunk-blue .sheet-tabs {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   margin-top: 1rem;
-  border: none;
+  border-bottom: 1px solid var(--cpb-border);
   align-items: flex-end;
   position: relative;
 }
