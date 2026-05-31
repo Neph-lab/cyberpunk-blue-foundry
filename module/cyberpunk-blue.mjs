@@ -69,7 +69,7 @@ import {
   CyberBlueVehicleRoofBehavior,
   CyberBlueVisibilityRegionBehavior,
 } from './helpers/region-behaviors.mjs';
-import { materialiseVehicleBlueprint, cleanupVehicleRegions, syncVehicleRegionPositions } from './helpers/vehicle-regions.mjs';
+import { materialiseVehicleBlueprint, cleanupVehicleRegions, syncVehicleRegionPositions, recordVehicleBaseFootprint, applyVehicleRotationSnap } from './helpers/vehicle-regions.mjs';
 import {
   syncAttachedTokenPositions,
   checkVehicleCollisions,
@@ -89,6 +89,7 @@ import {
   syncVehicleSeriousDamage,
   checkVehicleWreckTransition,
   ensureVehicleCritTables,
+  syncSubsystemDestruction,
 } from './helpers/vehicle-damage.mjs';
 import { ensureLostControlTables } from './helpers/vehicle-lost-control.mjs';
 import { ensureVehicleCatalogue } from './data/vehicle-catalogue.mjs';
@@ -310,6 +311,16 @@ Hooks.once('init', function () {
       mph: 'CYBER_BLUE.Settings.VehicleSpeedUnits.MPH',
     },
     default: 'kmh',
+    requiresReload: false,
+  });
+
+  game.settings.register('cyberpunk-blue', 'vehicleRotationSnap', {
+    name: 'CYBER_BLUE.Settings.VehicleRotationSnap.Name',
+    hint: 'CYBER_BLUE.Settings.VehicleRotationSnap.Hint',
+    scope: 'world',
+    config: true,
+    type: Boolean,
+    default: false,
     requiresReload: false,
   });
 
@@ -1005,6 +1016,7 @@ Hooks.on('createToken', async (tokenDoc, _options, _userId) => {
   if (game.user !== game.users.activeGM) return;
   if (tokenDoc.actor?.type !== 'vehicle') return;
   try {
+    await recordVehicleBaseFootprint(tokenDoc);
     await materialiseVehicleBlueprint(tokenDoc);
   } catch (err) {
     console.error('cyberpunk-blue | vehicle blueprint materialisation failed:', err);
@@ -1036,12 +1048,25 @@ Hooks.on('updateToken', async (tokenDoc, changes, options) => {
   // Position sync applies to vehicle tokens; prune also runs on any token
   // deletion-triggered move edge case.
   if (tokenDoc.actor?.type === 'vehicle') {
+    // 90° snap mode: snap rotation + swap footprint. The resulting token update
+    // re-enters this hook (flagged) and runs the region sync below, so bail out
+    // here when a snap was actually applied.
+    if (!options?.cyberpunkBlueVehicleSnap && 'rotation' in changes) {
+      const snapped = await applyVehicleRotationSnap(tokenDoc, options).catch(() => false);
+      if (snapped) return;
+    }
     const positionChanged = 'x' in changes || 'y' in changes;
-    if (positionChanged) {
+    const rotationChanged = 'rotation' in changes;
+    const sizeChanged = 'width' in changes || 'height' in changes;
+    if (positionChanged || rotationChanged || sizeChanged) {
       try {
+        // Rotation/size changes also need region re-sync so vital areas keep
+        // tracking the token's rotated artwork.
         await syncVehicleRegionPositions(tokenDoc);
-        await syncAttachedTokenPositions(tokenDoc);
-        await checkVehicleCollisions(tokenDoc);
+        if (positionChanged) {
+          await syncAttachedTokenPositions(tokenDoc);
+          await checkVehicleCollisions(tokenDoc);
+        }
       } catch (err) {
         console.error('cyberpunk-blue | vehicle position sync failed:', err);
       }
@@ -1265,6 +1290,17 @@ Hooks.on('updateActor', async (actor, changes, options) => {
   if (actor.type !== 'vehicle') return;
   if (!foundry.utils.hasProperty(changes, 'system.resources.hp.value')) return;
   await checkVehicleWreckTransition(actor);
+});
+
+// ─── Vehicle: subsystem (vital-area) destruction when its HP hits 0 (GM only) ─
+// Sets destroyed, enables the configured disabled vehicle AE, fires the bound
+// crit entry, and posts a chat announcement.
+Hooks.on('updateItem', async (item, changes, options) => {
+  if (game.user !== game.users.activeGM) return;
+  if (options?.cyberBlueSubsystemDestruction) return;
+  if (item.type !== 'vehicle-subsystem') return;
+  if (!foundry.utils.hasProperty(changes, 'system.hp.value')) return;
+  await syncSubsystemDestruction(item, options);
 });
 
 // ─── Tech Weapon charge: turn-start housekeeping (GM only) ───────────────────

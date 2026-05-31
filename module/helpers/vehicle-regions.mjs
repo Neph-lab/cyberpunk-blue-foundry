@@ -40,12 +40,16 @@ export async function materialiseVehicleBlueprint(tokenDoc) {
   const refGrid = actor.system?.blueprint?.referenceGrid ?? 100;
   const k = gridScale(scene, refGrid);
 
+  // Free art-tracking: regions rotate with the token around its centre so the
+  // vital areas / seats stay aligned with the rotated token artwork.
+  const { angle, pivotX, pivotY } = tokenRotationPivot(tokenDoc, scene);
+
   const regionDataList = regions.map((entry, index) => {
     // Map the blueprint shape from token-local blueprint pixels to scene pixels:
     // scale by the grid ratio, then translate by token origin + scaled offset.
     const dx = tx + (entry.offset?.x ?? 0) * k;
     const dy = ty + (entry.offset?.y ?? 0) * k;
-    const shape = transformShape(entry.shape, k, dx, dy);
+    const shape = rotateShape(transformShape(entry.shape, k, dx, dy), angle, pivotX, pivotY);
 
     /** @type {object} */
     const regionData = {
@@ -143,6 +147,9 @@ export async function syncVehicleRegionPositions(tokenDoc) {
   const tx = tokenDoc.x ?? 0;
   const ty = tokenDoc.y ?? 0;
 
+  // Free art-tracking: rotate region shapes with the token around its centre.
+  const { angle, pivotX, pivotY } = tokenRotationPivot(tokenDoc, scene);
+
   const updates = linked.map((region) => {
     const flags = region.flags?.['cyberpunk-blue'] ?? {};
     const origShape = flags.blueprintShape ?? {};
@@ -152,13 +159,80 @@ export async function syncVehicleRegionPositions(tokenDoc) {
     const dy = ty + (flags.blueprintOffsetY ?? 0) * k;
     return {
       _id: region.id,
-      shapes: [transformShape(origShape, k, dx, dy)],
+      shapes: [rotateShape(transformShape(origShape, k, dx, dy), angle, pivotX, pivotY)],
     };
   });
 
   await scene.updateEmbeddedDocuments('Region', updates, {
     cyberpunkBlueVehicleSync: true,
   });
+}
+
+/** Flag key holding a vehicle token's base (rotation-0) grid footprint. */
+export const VEHICLE_BASE_FOOTPRINT_FLAG = 'vehicleBaseFootprint';
+
+/**
+ * Record a vehicle token's base (rotation-0) footprint so the 90° snap mode can
+ * later restore/swap width & height correctly. Called from `createToken`.
+ *
+ * @param {TokenDocument} tokenDoc
+ */
+export async function recordVehicleBaseFootprint(tokenDoc) {
+  if (tokenDoc?.actor?.type !== 'vehicle') return;
+  if (tokenDoc.getFlag('cyberpunk-blue', VEHICLE_BASE_FOOTPRINT_FLAG)) return;
+  // Only trust the current dims as "base" when the token is unrotated.
+  if ((tokenDoc.rotation ?? 0) % 360 !== 0) return;
+  await tokenDoc.setFlag('cyberpunk-blue', VEHICLE_BASE_FOOTPRINT_FLAG, {
+    width: tokenDoc.width ?? 1,
+    height: tokenDoc.height ?? 1,
+  });
+}
+
+/**
+ * Optional 90° snap mode: when enabled, snap a vehicle token's rotation to the
+ * nearest quarter-turn and swap its grid footprint (width/height) at 90°/270°
+ * so the occupied squares match the rotated artwork. The token centre is held
+ * fixed across the swap.
+ *
+ * Performs the token update with the `cyberpunkBlueVehicleSnap` guard so the
+ * re-entrant `updateToken` can detect and skip re-snapping (while still running
+ * the region sync). Returns `true` when an update was issued.
+ *
+ * @param {TokenDocument} tokenDoc
+ * @param {object} options  updateToken hook options
+ * @returns {Promise<boolean>}
+ */
+export async function applyVehicleRotationSnap(tokenDoc, options = {}) {
+  if (options?.cyberpunkBlueVehicleSnap) return false;
+  if (!game.settings.get('cyberpunk-blue', 'vehicleRotationSnap')) return false;
+  const scene = tokenDoc?.parent;
+  if (!scene) return false;
+
+  const base = tokenDoc.getFlag('cyberpunk-blue', VEHICLE_BASE_FOOTPRINT_FLAG)
+            ?? { width: tokenDoc.width ?? 1, height: tokenDoc.height ?? 1 };
+  const rotation = tokenDoc.rotation ?? 0;
+  const snapped = (((Math.round(rotation / 90) * 90) % 360) + 360) % 360;
+  const swap = snapped === 90 || snapped === 270;
+  const newW = swap ? base.height : base.width;
+  const newH = swap ? base.width : base.height;
+
+  const needs = snapped !== rotation
+             || newW !== tokenDoc.width
+             || newH !== tokenDoc.height;
+  if (!needs) return false;
+
+  // Hold the token centre fixed across the footprint swap.
+  const gridSize = scene.grid?.size ?? 100;
+  const cx = (tokenDoc.x ?? 0) + (tokenDoc.width ?? 1) * gridSize / 2;
+  const cy = (tokenDoc.y ?? 0) + (tokenDoc.height ?? 1) * gridSize / 2;
+  const newX = cx - newW * gridSize / 2;
+  const newY = cy - newH * gridSize / 2;
+
+  await tokenDoc.update(
+    { rotation: snapped, width: newW, height: newH, x: newX, y: newY },
+    { cyberpunkBlueVehicleSnap: true },
+  );
+  return true;
 }
 
 /**
@@ -193,14 +267,20 @@ export function captureRegionsFromToken(tokenDoc, referenceGrid = 100) {
   const tx = tokenDoc.x ?? 0;
   const ty = tokenDoc.y ?? 0;
 
+  // Regions on the scene are rotated to track the token's art; undo that
+  // rotation around the token centre before mapping back to blueprint space so
+  // the captured blueprint is always stored at rotation 0.
+  const { angle, pivotX, pivotY } = tokenRotationPivot(tokenDoc, scene);
+
   return linked.map((region) => {
     const src = region.toObject();
     const flags = src.flags?.['cyberpunk-blue'] ?? {};
     const behavior = Array.isArray(src.behaviors) ? src.behaviors[0] : undefined;
+    const unrotated = rotateShape(src.shapes?.[0] ?? {}, -angle, pivotX, pivotY);
     return {
       regionId: flags.blueprintRegionId ?? foundry.utils.randomID(),
       label: flags.blueprintLabel ?? '',
-      shape: inverseShape(src.shapes?.[0] ?? {}, k, tx, ty),
+      shape: inverseShape(unrotated, k, tx, ty),
       offset: { x: 0, y: 0 },
       behaviorType: behavior?.type ?? '',
       behaviorConfig: behavior?.system ? foundry.utils.deepClone(behavior.system) : {},
@@ -215,6 +295,99 @@ function gridScale(scene, referenceGrid) {
   const ref = referenceGrid > 0 ? referenceGrid : 100;
   const size = scene?.grid?.size ?? ref;
   return size / ref;
+}
+
+/**
+ * Compute the rotation angle and scene-pixel pivot (token centre) used to make
+ * linked regions track the token's rotated artwork.
+ *
+ * Foundry tokens rotate their artwork about the token centre; we rotate region
+ * shapes about the same point so vital areas / seats stay aligned with the art.
+ *
+ * @param {TokenDocument} tokenDoc
+ * @param {Scene} scene
+ * @returns {{ angle: number, pivotX: number, pivotY: number }}
+ */
+function tokenRotationPivot(tokenDoc, scene) {
+  const angle = tokenDoc?.rotation ?? 0;
+  const gridSize = scene?.grid?.size ?? 100;
+  const tx = tokenDoc?.x ?? 0;
+  const ty = tokenDoc?.y ?? 0;
+  const w = (tokenDoc?.width ?? 1) * gridSize;
+  const h = (tokenDoc?.height ?? 1) * gridSize;
+  return { angle, pivotX: tx + w / 2, pivotY: ty + h / 2 };
+}
+
+/**
+ * Rotate a scene-pixel RegionShape clockwise by `angleDeg` about the pivot
+ * (matching Foundry's clockwise token-rotation convention in y-down screen
+ * coordinates). Returns a clone; the source is never mutated. A zero angle
+ * returns the shape unchanged.
+ *
+ * Supports polygon / rectangle / circle / ellipse. Rectangle and ellipse carry
+ * their own `rotation` field, so we rotate their centre about the pivot and add
+ * the angle to that field; polygons rotate every vertex; circles only move.
+ *
+ * @param {object|null} shape
+ * @param {number} angleDeg  clockwise degrees
+ * @param {number} pivotX
+ * @param {number} pivotY
+ * @returns {object}
+ */
+function rotateShape(shape, angleDeg, pivotX, pivotY) {
+  const a = (angleDeg ?? 0) % 360;
+  if (!shape?.type || a === 0) return shape;
+
+  const rad = (a * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const rot = (x, y) => {
+    const dx = (x ?? 0) - pivotX;
+    const dy = (y ?? 0) - pivotY;
+    return { x: pivotX + dx * cos - dy * sin, y: pivotY + dx * sin + dy * cos };
+  };
+
+  const s = foundry.utils.deepClone(shape);
+  switch (s.type) {
+    case 'polygon': {
+      const pts = Array.isArray(s.points) ? s.points : [];
+      const out = [];
+      for (let i = 0; i + 1 < pts.length; i += 2) {
+        const p = rot(pts[i], pts[i + 1]);
+        out.push(p.x, p.y);
+      }
+      s.points = out;
+      break;
+    }
+    case 'rectangle': {
+      const w = s.width ?? 0;
+      const h = s.height ?? 0;
+      const c = rot((s.x ?? 0) + w / 2, (s.y ?? 0) + h / 2);
+      s.x = c.x - w / 2;
+      s.y = c.y - h / 2;
+      s.rotation = ((s.rotation ?? 0) + a) % 360;
+      break;
+    }
+    case 'ellipse': {
+      const c = rot(s.x, s.y);
+      s.x = c.x; s.y = c.y;
+      s.rotation = ((s.rotation ?? 0) + a) % 360;
+      break;
+    }
+    case 'circle': {
+      const c = rot(s.x, s.y);
+      s.x = c.x; s.y = c.y;
+      break;
+    }
+    default: {
+      if ('x' in s && 'y' in s) {
+        const c = rot(s.x, s.y);
+        s.x = c.x; s.y = c.y;
+      }
+      break;
+    }
+  }
+  return s;
 }
 
 /**

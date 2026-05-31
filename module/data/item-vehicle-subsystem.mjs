@@ -60,6 +60,17 @@ export default class CyberBlueVehicleSubsystem extends CyberBlueItemBase {
       initial: null,
     });
 
+    // ── Enable-effect on destruction ───────────────────────────────────────────
+    // ActiveEffect _id of an existing (typically disabled) effect on the parent
+    // vehicle actor.  When this subsystem is destroyed, that effect is enabled.
+    // null / blank = no effect toggled.
+    schema.enableEffectId = new fields.StringField({
+      required: false,
+      nullable: true,
+      blank: true,
+      initial: null,
+    });
+
     return schema;
   }
 

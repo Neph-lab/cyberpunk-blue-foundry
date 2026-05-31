@@ -69,6 +69,15 @@ export function registerSocketHandlers() {
         await rollVehicleCritical(actor, null, vitalRegionId);
         break;
       }
+      case 'applyDamageToSubsystem': {
+        const { vehicleUuid, subsystemItemId, rawDamage } = message;
+        const { applyDamageToSubsystem } = await import('./vehicle-damage.mjs');
+        const vehicle = await fromUuid(vehicleUuid);
+        const sub = vehicle?.items?.get(subsystemItemId);
+        if (sub?.type !== 'vehicle-subsystem') return;
+        await applyDamageToSubsystem(sub, rawDamage);
+        break;
+      }
       case 'applyForcedCriticalInjury': {
         const { targetUuid, injuryKey, attackerUuid } = message;
         // Import lazily to avoid circular reference
@@ -199,6 +208,29 @@ export async function rollCriticalInjuryWithPermission(targetActor, tableType, {
       tableType,
       attackerUuid: attackerActor?.uuid ?? null,
       weaponFlags,
+    });
+  }
+}
+
+/**
+ * Apply damage to a vehicle subsystem's own HP/SP pool, delegating to the GM if
+ * needed.  Destruction (HP→0) is handled by the activeGM's updateItem hook.
+ *
+ * @param {Actor}  vehicleActor
+ * @param {string} subsystemItemId
+ * @param {number} rawDamage         pre-SP damage total
+ */
+export async function applyDamageToSubsystemWithPermission(vehicleActor, subsystemItemId, rawDamage) {
+  const sub = vehicleActor.items?.get(subsystemItemId);
+  if (sub?.type !== 'vehicle-subsystem') return;
+  if (vehicleActor.isOwner || game.user.isGM) {
+    const { applyDamageToSubsystem } = await import('./vehicle-damage.mjs');
+    await applyDamageToSubsystem(sub, rawDamage);
+  } else {
+    emitToGM('applyDamageToSubsystem', {
+      vehicleUuid: vehicleActor.uuid,
+      subsystemItemId,
+      rawDamage,
     });
   }
 }

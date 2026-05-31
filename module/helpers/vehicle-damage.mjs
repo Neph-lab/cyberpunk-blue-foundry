@@ -267,6 +267,133 @@ export async function rollVehicleCritical(vehicleActor, vehicleToken = null, vit
   });
 }
 
+// ── Subsystem (vital-area) damage routing + destruction ────────────────────────
+
+/**
+ * Resolve the subsystem item linked to a vital-area blueprint region.
+ *
+ * @param {Actor}  vehicleActor
+ * @param {string} regionId
+ * @returns {Item|null}
+ */
+export function getVitalAreaSubsystem(vehicleActor, regionId) {
+  if (!vehicleActor || vehicleActor.type !== 'vehicle' || !regionId) return null;
+  const regions = vehicleActor.system?.blueprint?.regions ?? [];
+  const region  = regions.find((r) => r.regionId === regionId && r.behaviorType === 'vitalArea');
+  const subId   = region?.behaviorConfig?.subsystemItemId ?? null;
+  if (!subId) return null;
+  const item = vehicleActor.items.get(subId);
+  return item?.type === 'vehicle-subsystem' ? item : null;
+}
+
+/**
+ * Apply raw (pre-SP) damage to a subsystem's own SP/HP pool instead of the
+ * vehicle's main pools.  Mirrors the vehicle branch of `Actor#applyDamage`:
+ * SP reduces the penetrating amount and ablates by 1; the remainder reduces HP.
+ *
+ * Overflow is absorbed — it does NOT cascade into the vehicle's main HP.
+ * Destruction (HP→0) is handled by the `updateItem` hook → syncSubsystemDestruction.
+ *
+ * @param {Item}   subsystemItem  a `vehicle-subsystem` item embedded on a vehicle
+ * @param {number} rawDamage      pre-SP damage total
+ * @returns {Promise<{sp:number, hpLoss:number, ablated:boolean}>}
+ */
+export async function applyDamageToSubsystem(subsystemItem, rawDamage) {
+  const total = Math.max(Number(rawDamage) || 0, 0);
+  const sp    = Math.max(subsystemItem.system?.sp?.value ?? 0, 0);
+  const hp    = Math.max(subsystemItem.system?.hp?.value ?? 0, 0);
+
+  const penetrated = total - sp;
+  const hpLoss     = Math.max(penetrated, 0);
+  const ablate     = sp > 0 && penetrated >= 0;
+
+  const update = {};
+  if (hpLoss > 0)  update['system.hp.value'] = Math.max(hp - hpLoss, 0);
+  if (ablate)      update['system.sp.value'] = Math.max(sp - 1, 0);
+
+  if (Object.keys(update).length) await subsystemItem.update(update);
+  return { sp, hpLoss, ablated: ablate };
+}
+
+/**
+ * Drive subsystem destruction when its HP reaches 0.
+ *
+ * On the transition into destroyed state:
+ *   • sets `system.destroyed = true`
+ *   • enables the configured (disabled) vehicle ActiveEffect, if any
+ *   • fires the bound Critical Damage table entry deterministically, if any
+ *   • posts a chat announcement
+ *
+ * Idempotent: a subsystem already flagged `destroyed` is skipped, so re-saves
+ * don't re-trigger. Call from the `updateItem` hook (activeGM only).
+ *
+ * @param {Item}   subsystemItem
+ * @param {object} [options={}]
+ */
+export async function syncSubsystemDestruction(subsystemItem, options = {}) {
+  if (options?.cyberBlueSubsystemDestruction) return;
+  if (subsystemItem?.type !== 'vehicle-subsystem') return;
+
+  const vehicleActor = subsystemItem.parent;
+  if (!(vehicleActor instanceof Actor) || vehicleActor.type !== 'vehicle') return;
+
+  const hp        = subsystemItem.system?.hp?.value ?? 0;
+  const destroyed = subsystemItem.system?.destroyed ?? false;
+  if (hp > 0 || destroyed) return; // not destroyed, or already handled
+
+  // Flag destroyed first (guarded to avoid the hook re-entering).
+  await subsystemItem.update(
+    { 'system.destroyed': true },
+    { cyberBlueSubsystemDestruction: true },
+  );
+
+  // Enable a configured disabled effect on the vehicle.
+  const effectId = subsystemItem.system?.enableEffectId ?? null;
+  if (effectId) {
+    const effect = vehicleActor.effects.get(effectId);
+    if (effect && effect.disabled) {
+      await effect.update({ disabled: false });
+    }
+  }
+
+  const tokens  = vehicleActor.getActiveTokens();
+  const token   = tokens.length ? tokens[0].document : null;
+  const speaker = token
+    ? ChatMessage.getSpeaker({ token })
+    : { alias: vehicleActor.name };
+
+  // Fire the bound crit entry deterministically, if configured.
+  const entryId = subsystemItem.system?.boundCriticalEntryId ?? null;
+  if (entryId) {
+    const table = _getVehicleCritTable(vehicleActor);
+    const entry = table?.results?.get(entryId) ?? null;
+    if (entry) {
+      await ChatMessage.create({
+        speaker,
+        content: `
+          <div class="cyberpunk-blue chat-card cpb-vehicle-crit">
+            <h3><i class="fas fa-car-burst"></i> ${vehicleActor.name} — ${game.i18n.localize('CYBER_BLUE.VehicleCombat.SubsystemCrit')}</h3>
+            <p>
+              <strong>${game.i18n.localize('CYBER_BLUE.VehicleCombat.CritRoll')}:</strong>
+              <em>${entry.text ?? '—'}</em>
+            </p>
+            <p class="cpb-gm-note">${game.i18n.localize('CYBER_BLUE.VehicleCombat.CritGmNote')}</p>
+          </div>`,
+        rollMode: game.settings.get('core', 'rollMode'),
+      });
+    }
+  }
+
+  // Destruction announcement.
+  await ChatMessage.create({
+    speaker,
+    content: `
+      <div class="cyberpunk-blue chat-card">
+        <h3><i class="fas fa-gear"></i> ${game.i18n.format('CYBER_BLUE.VehicleCombat.SubsystemDestroyed', { name: subsystemItem.name })}</h3>
+      </div>`,
+  });
+}
+
 // ── Table seeding ─────────────────────────────────────────────────────────────
 
 /**

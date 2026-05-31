@@ -20,6 +20,7 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 import { traceShapePath, pointInShape, behaviorColor } from '../helpers/vehicle-shapes.mjs';
 import { captureRegionsFromToken } from '../helpers/vehicle-regions.mjs';
+import { VEHICLE_CRIT_TABLE_NAMES } from '../helpers/vehicle-damage.mjs';
 
 /** Human-readable label per registered behavior type. */
 const BEHAVIOR_LABELS = {
@@ -327,14 +328,36 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
           <input type="number" data-cfg="seatIndex" value="${Number(cfg.seatIndex ?? 0)}" min="0" step="1" />
         </div>`;
     } else if (region.behaviorType === 'vitalArea') {
-      configFields = `
-        <div class="cpb-be-prop-field">
-          <label>${L('CYBER_BLUE.RegionBehavior.VitalArea.CritEntryId')}</label>
-          <input type="text" data-cfg="criticalDamageEntryId" value="${this._esc(cfg.criticalDamageEntryId ?? '')}" />
+      const linked = cfg.subsystemItemId ? this.actor.items.get(cfg.subsystemItemId) : null;
+      const sub = linked?.type === 'vehicle-subsystem' ? linked : null;
+      const subFields = sub ? `
+        <div class="cpb-be-prop-field cpb-be-prop-row">
+          <span class="cpb-be-prop-sub">
+            <label>${L('CYBER_BLUE.BlueprintEditor.Vital.HP')}</label>
+            <input type="number" data-sub="hp" min="1" step="1" value="${Number(sub.system.hp?.max ?? 10)}" />
+          </span>
+          <span class="cpb-be-prop-sub">
+            <label>${L('CYBER_BLUE.BlueprintEditor.Vital.SP')}</label>
+            <input type="number" data-sub="sp" min="0" step="1" value="${Number(sub.system.sp?.max ?? 0)}" />
+          </span>
         </div>
         <div class="cpb-be-prop-field">
-          <label>${L('CYBER_BLUE.RegionBehavior.VitalArea.SubsystemItemId')}</label>
-          <input type="text" data-cfg="subsystemItemId" value="${this._esc(cfg.subsystemItemId ?? '')}" />
+          <label>${L('CYBER_BLUE.BlueprintEditor.Vital.EnableEffect')}</label>
+          <select data-sub="enableEffectId">${this._effectOptions(sub.system.enableEffectId)}</select>
+        </div>
+        <div class="cpb-be-prop-field">
+          <label>${L('CYBER_BLUE.BlueprintEditor.Vital.DestroyCrit')}</label>
+          <select data-sub="boundCriticalEntryId">${this._critOptions(sub.system.boundCriticalEntryId)}</select>
+        </div>` : '';
+      configFields = `
+        <div class="cpb-be-prop-field">
+          <label>${L('CYBER_BLUE.BlueprintEditor.Vital.Subsystem')}</label>
+          <select data-vital="subsystemItemId">${this._subsystemOptions(cfg.subsystemItemId)}</select>
+        </div>
+        ${subFields}
+        <div class="cpb-be-prop-field">
+          <label>${L('CYBER_BLUE.BlueprintEditor.Vital.TargetedCrit')}</label>
+          <select data-cfg="criticalDamageEntryId">${this._critOptions(cfg.criticalDamageEntryId)}</select>
         </div>`;
     }
 
@@ -387,6 +410,109 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
         this._persist();
       });
     });
+
+    // Vital-area subsystem link (select existing or create a new subsystem item).
+    rail.querySelector('[data-vital="subsystemItemId"]')?.addEventListener('change', async (ev) => {
+      const val = ev.currentTarget.value;
+      if (val === '__new__') {
+        await this._createSubsystemFor(region);
+      } else {
+        this._pushHistory();
+        if (!region.behaviorConfig || typeof region.behaviorConfig !== 'object') region.behaviorConfig = {};
+        region.behaviorConfig.subsystemItemId = val || null;
+        this._persist();
+      }
+      this._renderRail();
+    });
+
+    // Subsystem item fields (HP/SP pools + destruction triggers) — direct item writes.
+    rail.querySelectorAll('[data-sub]').forEach((input) => {
+      input.addEventListener('change', async (ev) => {
+        const sub = this.actor.items.get(region.behaviorConfig?.subsystemItemId);
+        if (sub?.type !== 'vehicle-subsystem') return;
+        const key = ev.currentTarget.dataset.sub;
+        let update = null;
+        if (key === 'hp') {
+          const n = Math.max(1, Math.floor(Number(ev.currentTarget.value) || 1));
+          update = { 'system.hp.max': n, 'system.hp.value': n, 'system.destroyed': false };
+        } else if (key === 'sp') {
+          const n = Math.max(0, Math.floor(Number(ev.currentTarget.value) || 0));
+          update = { 'system.sp.max': n, 'system.sp.value': n };
+        } else if (key === 'enableEffectId') {
+          update = { 'system.enableEffectId': ev.currentTarget.value || null };
+        } else if (key === 'boundCriticalEntryId') {
+          update = { 'system.boundCriticalEntryId': ev.currentTarget.value || null };
+        }
+        if (update) {
+          await sub.update(update);
+          this._renderRail();
+        }
+      });
+    });
+  }
+
+  /**
+   * Create a fresh vehicle-subsystem item on the actor (full HP, no SP) and link
+   * it to the given vital-area region. Used by the "New subsystem" picker option.
+   */
+  async _createSubsystemFor(region) {
+    const name = (region.label?.trim())
+      || game.i18n.localize('CYBER_BLUE.BlueprintEditor.Vital.NewSubsystemName');
+    const [item] = await this.actor.createEmbeddedDocuments('Item', [{
+      name,
+      type: 'vehicle-subsystem',
+      system: { hp: { value: 10, max: 10 }, sp: { value: 0, max: 0 } },
+    }]);
+    if (!item) return;
+    this._pushHistory();
+    if (!region.behaviorConfig || typeof region.behaviorConfig !== 'object') region.behaviorConfig = {};
+    region.behaviorConfig.subsystemItemId = item.id;
+    this._persist();
+  }
+
+  // ── Vital-area option builders ───────────────────────────────────────────────
+
+  /** Resolve the vehicle's critical damage RollTable (by id, else by category name). */
+  _getCritTable() {
+    const id = this.actor?.system?.critTableId;
+    if (id) { const t = game.tables.get(id); if (t) return t; }
+    const primary = this.actor?.system?.classification?.primary ?? 'land';
+    const name = VEHICLE_CRIT_TABLE_NAMES[primary] ?? VEHICLE_CRIT_TABLE_NAMES.land;
+    return game.tables.find((t) => t.name === name) ?? null;
+  }
+
+  _subsystemOptions(selectedId) {
+    const L = (k) => game.i18n.localize(k);
+    const subs = this.actor.items.filter((i) => i.type === 'vehicle-subsystem');
+    const none = `<option value=""${!selectedId ? ' selected' : ''}>${this._esc(L('CYBER_BLUE.BlueprintEditor.Vital.NoneOption'))}</option>`;
+    const opts = subs.map((s) =>
+      `<option value="${s.id}"${s.id === selectedId ? ' selected' : ''}>${this._esc(s.name)}</option>`).join('');
+    const create = `<option value="__new__">${this._esc(L('CYBER_BLUE.BlueprintEditor.Vital.NewSubsystem'))}</option>`;
+    return none + opts + create;
+  }
+
+  _critOptions(selectedId) {
+    const L = (k) => game.i18n.localize(k);
+    const none = `<option value=""${!selectedId ? ' selected' : ''}>${this._esc(L('CYBER_BLUE.BlueprintEditor.Vital.RandomOption'))}</option>`;
+    const table = this._getCritTable();
+    if (!table) return none;
+    const opts = [...table.results].map((r) => {
+      const text = String(r.text ?? '').replace(/<[^>]+>/g, '').slice(0, 50);
+      const rng  = Array.isArray(r.range) ? r.range.join('–') : '';
+      const label = (rng ? `${rng}: ` : '') + text;
+      return `<option value="${r.id}"${r.id === selectedId ? ' selected' : ''}>${this._esc(label)}</option>`;
+    }).join('');
+    return none + opts;
+  }
+
+  _effectOptions(selectedId) {
+    const L = (k) => game.i18n.localize(k);
+    const none = `<option value=""${!selectedId ? ' selected' : ''}>${this._esc(L('CYBER_BLUE.BlueprintEditor.Vital.NoneOption'))}</option>`;
+    const opts = [...this.actor.effects].map((e) => {
+      const tag = e.disabled ? '' : ` (${L('CYBER_BLUE.BlueprintEditor.Vital.ActiveTag')})`;
+      return `<option value="${e.id}"${e.id === selectedId ? ' selected' : ''}>${this._esc((e.name ?? 'Effect') + tag)}</option>`;
+    }).join('');
+    return none + opts;
   }
 
   _defaultConfigFor(type) {

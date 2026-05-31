@@ -9,7 +9,8 @@ import {
 } from './combat-tracker.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
 import { resolveAfflictionAttack } from './affliction-attack.mjs';
-import { applyDamageWithPermission, rollCriticalInjuryWithPermission, rollVehicleCriticalWithPermission, deleteActorItemWithPermission, ablateArmorExtraWithPermission, applyForcedCriticalInjuryWithPermission } from './socket.mjs';
+import { applyDamageWithPermission, rollCriticalInjuryWithPermission, rollVehicleCriticalWithPermission, deleteActorItemWithPermission, ablateArmorExtraWithPermission, applyForcedCriticalInjuryWithPermission, applyDamageToSubsystemWithPermission } from './socket.mjs';
+import { getVitalAreaSubsystem } from './vehicle-damage.mjs';
 import { clearWeaponCharge, countWallsBetweenTokens } from './tech-charge.mjs';
 import { getActiveAEFlag } from './effects.mjs';
 import { playUiSound, suppressNextFailSound, playSfx } from './audio.mjs';
@@ -176,7 +177,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   }
 
   const { token: targetToken, actor: targetActor } = getTarget();
-  const targetSP = targetActor ? (targetActor.system?.resources?.armor?.value ?? 0) : null;
+  let targetSP = targetActor ? (targetActor.system?.resources?.armor?.value ?? 0) : null;
   const targetRflx = targetActor?.system?.stats?.rflx?.value ?? 0;
 
   // Distance measurement
@@ -424,6 +425,16 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const targetVehicleVitalRegionId = item.getFlag('cyberpunk-blue', `targetVehicleVitalRegionId-${weaponIndex}`) ?? null;
   const isTargetingVehicleVital     = targetVehicleVitalRegionId !== null
                                     && targetActor?.type === 'vehicle';
+  // Resolve the subsystem item linked to the targeted vital area. When present
+  // and not yet destroyed, damage is routed to the subsystem's own HP/SP pools
+  // instead of the vehicle's main armour/structure.
+  const vitalSubsystem = isTargetingVehicleVital
+    ? getVitalAreaSubsystem(targetActor, targetVehicleVitalRegionId)
+    : null;
+  const vitalSubsystemActive = !!vitalSubsystem && !(vitalSubsystem.system?.destroyed ?? false);
+  if (vitalSubsystemActive) {
+    targetSP = vitalSubsystem.system?.sp?.value ?? 0;
+  }
   const rawVitalsPenalty = weapon.targetVitalsPenalty ?? 8;
   const targetVitalsPenalty = -(rawVitalsPenalty - modVitalsPenaltyReduction);
 
@@ -1018,10 +1029,17 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
         }
       }
 
-      await applyDamageWithPermission(targetActor, actualDamage);
-      // Armor Piercing: ablate 1 extra SP (Tactician slug)
-      if ((weapon.armorPiercing ?? false) && ablatesArmor) {
-        await ablateArmorExtraWithPermission(targetActor);
+      if (vitalSubsystemActive) {
+        // Route raw damage to the linked vital-area subsystem's own HP/SP pools.
+        // The subsystem applies its own SP ablation, so the vehicle's main armour
+        // is untouched (no extra Armor-Piercing ablation against main SP).
+        await applyDamageToSubsystemWithPermission(targetActor, vitalSubsystem.id, actualDamage);
+      } else {
+        await applyDamageWithPermission(targetActor, actualDamage);
+        // Armor Piercing: ablate 1 extra SP (Tactician slug)
+        if ((weapon.armorPiercing ?? false) && ablatesArmor) {
+          await ablateArmorExtraWithPermission(targetActor);
+        }
       }
       if (isCritical) {
         if (targetActor.type === 'vehicle') {
