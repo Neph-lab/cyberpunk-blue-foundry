@@ -57,6 +57,8 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
       fit: CyberBlueVehicleBlueprintEditor._onFitAction,
       tool: CyberBlueVehicleBlueprintEditor._onToolAction,
       capture: CyberBlueVehicleBlueprintEditor._onCaptureAction,
+      undo: CyberBlueVehicleBlueprintEditor._onUndoAction,
+      redo: CyberBlueVehicleBlueprintEditor._onRedoAction,
       'delete-region': CyberBlueVehicleBlueprintEditor._onDeleteAction,
     },
   };
@@ -100,6 +102,11 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
     this._selectedRegionId = null;
     /** Working copy of the blueprint regions (deep-cloned plain objects). */
     this._regions = foundry.utils.deepClone(actor.system?.blueprint?.regions ?? []);
+    /** Undo / redo history — each entry is a deep-cloned `_regions` snapshot. */
+    this._undoStack = [];
+    this._redoStack = [];
+    /** Pre-drag snapshot, captured at pointerdown for move/resize/vertex. */
+    this._dragSnapshot = null;
     /** Active tool: 'select' | 'rectangle' | 'circle' | 'ellipse' | 'polygon'. */
     this._tool = 'select';
     /** In-progress shape during a draw gesture. */
@@ -176,6 +183,7 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
       if (!this._viewReady) { this._fitView(); this._viewReady = true; }
       this._draw();
       this._updateToolUI();
+      this._updateHistoryUI();
     });
   }
 
@@ -202,6 +210,65 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
 
   _findRegion(regionId) {
     return this._regions.find((r) => r.regionId === regionId) ?? null;
+  }
+
+  // ── Undo / redo ──────────────────────────────────────────────────────────────
+
+  static HISTORY_LIMIT = 50;
+
+  _snapshot() {
+    return foundry.utils.deepClone(this._regions);
+  }
+
+  /**
+   * Record the given (pre-mutation) snapshot on the undo stack and clear the
+   * redo stack. Call BEFORE mutating `_regions`, passing the state as it was.
+   */
+  _commitHistory(prevSnapshot) {
+    this._undoStack.push(prevSnapshot);
+    if (this._undoStack.length > CyberBlueVehicleBlueprintEditor.HISTORY_LIMIT) {
+      this._undoStack.shift();
+    }
+    this._redoStack.length = 0;
+    this._updateHistoryUI();
+  }
+
+  /** Snapshot the current state onto the undo stack (convenience for callers). */
+  _pushHistory() {
+    this._commitHistory(this._snapshot());
+  }
+
+  _undo() {
+    if (!this._undoStack.length) return;
+    this._redoStack.push(this._snapshot());
+    this._regions = this._undoStack.pop();
+    this._afterHistorySwap();
+  }
+
+  _redo() {
+    if (!this._redoStack.length) return;
+    this._undoStack.push(this._snapshot());
+    this._regions = this._redoStack.pop();
+    this._afterHistorySwap();
+  }
+
+  _afterHistorySwap() {
+    if (!this._findRegion(this._selectedRegionId)) this._selectedRegionId = null;
+    this._draft = null;
+    this._drag = null;
+    this._persist();
+    this._renderRail();
+    this._draw();
+    this._updateHistoryUI();
+  }
+
+  _updateHistoryUI() {
+    const root = this.element;
+    if (!root) return;
+    const undoBtn = root.querySelector('[data-action="undo"]');
+    const redoBtn = root.querySelector('[data-action="redo"]');
+    if (undoBtn) undoBtn.disabled = this._undoStack.length === 0;
+    if (redoBtn) redoBtn.disabled = this._redoStack.length === 0;
   }
 
   // ── Rail (region list + property panel) ─────────────────────────────────────
@@ -293,12 +360,14 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
     if (!region) return;
 
     rail.querySelector('[data-prop="label"]')?.addEventListener('change', (ev) => {
+      this._pushHistory();
       region.label = ev.currentTarget.value;
       this._persist();
       this._renderRail();
     });
 
     rail.querySelector('[data-prop="behaviorType"]')?.addEventListener('change', (ev) => {
+      this._pushHistory();
       region.behaviorType = ev.currentTarget.value;
       region.behaviorConfig = this._defaultConfigFor(region.behaviorType);
       this._persist();
@@ -312,6 +381,7 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
         const val = ev.currentTarget.type === 'number'
           ? Number(ev.currentTarget.value)
           : ev.currentTarget.value;
+        this._pushHistory();
         if (!region.behaviorConfig || typeof region.behaviorConfig !== 'object') region.behaviorConfig = {};
         region.behaviorConfig[key] = val;
         this._persist();
@@ -673,6 +743,7 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
     if (!id) return;
     const idx = this._regions.findIndex((r) => r.regionId === id);
     if (idx === -1) return;
+    this._pushHistory();
     this._regions.splice(idx, 1);
     this._selectedRegionId = null;
     this._persist();
@@ -718,6 +789,7 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
       behaviorType: '',
       behaviorConfig: {},
     };
+    this._pushHistory();
     this._regions.push(region);
     this._selectedRegionId = region.regionId;
     this._tool = 'select';
@@ -816,6 +888,7 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
     const handle = this._hitHandle(pos.x, pos.y);
     if (handle) {
       const region = this._findRegion(this._selectedRegionId);
+      this._dragSnapshot = this._snapshot();
       this._drag = { mode: handle.kind === 'vertex' ? 'vertex' : 'resize', handle };
       if (region?.shape?.type === 'rectangle') {
         // Capture opposite corner (shape-local) as the fixed anchor.
@@ -835,6 +908,7 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
     const hit = this._hitTestRegions(pos.x, pos.y);
     if (hit) {
       this._selectRegion(hit);
+      this._dragSnapshot = this._snapshot();
       this._drag = { mode: 'move', lastWorld: world };
       this._canvas.setPointerCapture?.(ev.pointerId);
       return;
@@ -900,7 +974,12 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
       return;
     }
     if (drag.mode === 'move' || drag.mode === 'resize' || drag.mode === 'vertex') {
-      this._persist();
+      const snap = this._dragSnapshot;
+      this._dragSnapshot = null;
+      if (snap && JSON.stringify(this._regions) !== JSON.stringify(snap)) {
+        this._commitHistory(snap);
+        this._persist();
+      }
     }
   }
 
@@ -919,6 +998,15 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
     // Only act when focus is inside this editor (avoids hijacking keys globally).
     if (!this.element?.contains(document.activeElement)) return;
 
+    // Undo / redo — but let native text editing handle these inside fields.
+    const tag = document.activeElement?.tagName;
+    const inField = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+    if ((ev.ctrlKey || ev.metaKey) && !inField) {
+      const key = ev.key.toLowerCase();
+      if (key === 'z' && !ev.shiftKey) { ev.preventDefault(); this._undo(); return; }
+      if (key === 'y' || (key === 'z' && ev.shiftKey)) { ev.preventDefault(); this._redo(); return; }
+    }
+
     if (this._tool === 'polygon' && this._draft) {
       if (ev.key === 'Enter') {
         ev.preventDefault();
@@ -934,8 +1022,7 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
     }
 
     if ((ev.key === 'Delete' || ev.key === 'Backspace') && this._selectedRegionId && this._tool === 'select') {
-      const tag = document.activeElement?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (inField) return;
       ev.preventDefault();
       this._deleteSelected();
     }
@@ -958,6 +1045,14 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
 
   static _onCaptureAction() {
     this._captureFromScene();
+  }
+
+  static _onUndoAction() {
+    this._undo();
+  }
+
+  static _onRedoAction() {
+    this._redo();
   }
 
   // ── Capture-from-scene ───────────────────────────────────────────────────────
@@ -994,6 +1089,7 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
     });
     if (!confirmed) return;
 
+    this._pushHistory();
     this._regions = captured;
     this._selectedRegionId = null;
     this._draft = null;

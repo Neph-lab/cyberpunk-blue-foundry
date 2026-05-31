@@ -1046,6 +1046,8 @@
       "TitleFor": "Blueprint — {name}",
       "OpenButton": "Edit Blueprint",
       "GMOnly": "Only the GM can edit a vehicle blueprint.",
+      "Undo": "Undo (Ctrl+Z)",
+      "Redo": "Redo (Ctrl+Y)",
       "Fit": "Fit to view",
       "Footprint": "Footprint",
       "Regions": "Regions",

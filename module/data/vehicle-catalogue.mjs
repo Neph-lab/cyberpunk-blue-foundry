@@ -10,6 +10,13 @@
 
 const NOTES = '<p><em>Placeholder stats — adjust to match your source material.</em></p>';
 
+/** Build a blueprint region entry with sensible defaults filled in. */
+function region(regionId, label, behaviorType, shape, behaviorConfig = {}) {
+  return { regionId, label, shape, offset: { x: 0, y: 0 }, behaviorType, behaviorConfig };
+}
+
+const VITAL = (entryId = '') => ({ criticalDamageEntryId: entryId, subsystemItemId: null });
+
 export const VEHICLE_CATALOGUE = [
   // ── Ground vehicles ───────────────────────────────────────────────────────
 
@@ -18,6 +25,7 @@ export const VEHICLE_CATALOGUE = [
     name: 'Light Car',
     type: 'vehicle',
     img: 'icons/svg/mystery-man.svg',
+    prototypeToken: { width: 2, height: 4 },
     system: {
       stats: {
         maxMove:      { value: 24, bonus: 0 },
@@ -44,8 +52,20 @@ export const VEHICLE_CATALOGUE = [
       state: 'operational',
       pivot: { x: 0, y: 0 },
       critTableId: '',
+      // Authored at 100px/square on a 2×4 footprint (200×400 token-local px),
+      // front toward the top of the token (-y).
       blueprint: {
-        regions: [],
+        referenceGrid: 100,
+        regions: [
+          region('lightcar-driver', 'Driver', 'driverSeat',
+            { type: 'rectangle', x: 12, y: 48, width: 84, height: 104 }),
+          region('lightcar-passenger-front', 'Front passenger', 'passengerSeat',
+            { type: 'rectangle', x: 104, y: 48, width: 84, height: 104 }),
+          region('lightcar-passenger-rear', 'Rear seats', 'passengerSeat',
+            { type: 'rectangle', x: 18, y: 176, width: 164, height: 120 }),
+          region('lightcar-engine', 'Engine', 'vitalArea',
+            { type: 'circle', x: 100, y: 28, radius: 34 }, VITAL()),
+        ],
         tiles: [],
       },
       description: '<p>Compact civilian vehicle. Fast and nimble but lightly armoured.</p>',
@@ -58,6 +78,7 @@ export const VEHICLE_CATALOGUE = [
     name: 'Heavy Truck',
     type: 'vehicle',
     img: 'icons/svg/mystery-man.svg',
+    prototypeToken: { width: 3, height: 6 },
     system: {
       stats: {
         maxMove:      { value: 16, bonus: 0 },
@@ -84,8 +105,20 @@ export const VEHICLE_CATALOGUE = [
       state: 'operational',
       pivot: { x: 0, y: 0 },
       critTableId: '',
+      // Authored at 100px/square on a 3×6 footprint (300×600 token-local px),
+      // cab toward the top of the token (-y), cargo bed at the rear.
       blueprint: {
-        regions: [],
+        referenceGrid: 100,
+        regions: [
+          region('truck-driver', 'Driver', 'driverSeat',
+            { type: 'rectangle', x: 25, y: 70, width: 110, height: 120 }),
+          region('truck-passenger', 'Cab passenger', 'passengerSeat',
+            { type: 'rectangle', x: 165, y: 70, width: 110, height: 120 }),
+          region('truck-cargo', 'Cargo bed', 'passengerSeat',
+            { type: 'rectangle', x: 30, y: 220, width: 240, height: 340 }),
+          region('truck-engine', 'Engine block', 'vitalArea',
+            { type: 'circle', x: 150, y: 42, radius: 46 }, VITAL()),
+        ],
         tiles: [],
       },
       description: '<p>Heavy cargo and transport vehicle. Very tough but slow to manoeuvre.</p>',
@@ -100,6 +133,7 @@ export const VEHICLE_CATALOGUE = [
     name: 'Attack Helicopter',
     type: 'vehicle',
     img: 'icons/svg/mystery-man.svg',
+    prototypeToken: { width: 3, height: 5 },
     system: {
       stats: {
         maxMove:      { value: 32, bonus: 0 },
@@ -126,8 +160,20 @@ export const VEHICLE_CATALOGUE = [
       state: 'operational',
       pivot: { x: 0, y: 0 },
       critTableId: '',
+      // Authored at 100px/square on a 3×5 footprint (300×500 token-local px),
+      // nose toward the top of the token (-y); two gunner stations flank the pilot.
       blueprint: {
-        regions: [],
+        referenceGrid: 100,
+        regions: [
+          region('heli-pilot', 'Pilot', 'driverSeat',
+            { type: 'rectangle', x: 95, y: 55, width: 110, height: 120 }),
+          region('heli-gunner-left', 'Gunner (port)', 'gunnerSeat',
+            { type: 'rectangle', x: 35, y: 190, width: 105, height: 120 }, { seatIndex: 0 }),
+          region('heli-gunner-right', 'Gunner (starboard)', 'gunnerSeat',
+            { type: 'rectangle', x: 160, y: 190, width: 105, height: 120 }, { seatIndex: 1 }),
+          region('heli-engine', 'Engine', 'vitalArea',
+            { type: 'circle', x: 150, y: 340, radius: 58 }, VITAL()),
+        ],
         tiles: [],
       },
       description: '<p>Armed rotary-wing aircraft. Fast and well-armed; fragile compared to ground armour.</p>',
