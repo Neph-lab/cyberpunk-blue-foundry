@@ -19,6 +19,7 @@
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 import { traceShapePath, pointInShape, behaviorColor } from '../helpers/vehicle-shapes.mjs';
+import { captureRegionsFromToken } from '../helpers/vehicle-regions.mjs';
 
 /** Human-readable label per registered behavior type. */
 const BEHAVIOR_LABELS = {
@@ -55,6 +56,7 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
     actions: {
       fit: CyberBlueVehicleBlueprintEditor._onFitAction,
       tool: CyberBlueVehicleBlueprintEditor._onToolAction,
+      capture: CyberBlueVehicleBlueprintEditor._onCaptureAction,
       'delete-region': CyberBlueVehicleBlueprintEditor._onDeleteAction,
     },
   };
@@ -952,5 +954,54 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
 
   static _onDeleteAction() {
     this._deleteSelected();
+  }
+
+  static _onCaptureAction() {
+    this._captureFromScene();
+  }
+
+  // ── Capture-from-scene ───────────────────────────────────────────────────────
+
+  /** Find a placed token for this actor on the active scene (controlled first). */
+  _findActorToken() {
+    const scene = canvas?.scene;
+    if (!scene) return null;
+    const controlled = canvas.tokens?.controlled?.find((t) => t.actor?.id === this.actor.id);
+    if (controlled) return controlled.document;
+    return scene.tokens.find((t) => t.actorId === this.actor.id) ?? null;
+  }
+
+  /**
+   * Overwrite the blueprint from the vehicle token's linked scene Regions,
+   * capturing any manual edits the GM made with Foundry's native region tools.
+   */
+  async _captureFromScene() {
+    const token = this._findActorToken();
+    if (!token) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.BlueprintEditor.CaptureNoToken'));
+      return;
+    }
+    const refGrid = this.actor.system.blueprint?.referenceGrid ?? 100;
+    const captured = captureRegionsFromToken(token, refGrid);
+    if (!captured.length) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.BlueprintEditor.CaptureNoRegions'));
+      return;
+    }
+
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: game.i18n.localize('CYBER_BLUE.BlueprintEditor.CaptureConfirmTitle') },
+      content: `<p>${game.i18n.format('CYBER_BLUE.BlueprintEditor.CaptureConfirm', { n: captured.length })}</p>`,
+    });
+    if (!confirmed) return;
+
+    this._regions = captured;
+    this._selectedRegionId = null;
+    this._draft = null;
+    await this._persist();
+    this._renderRail();
+    this._draw();
+    ui.notifications.info(
+      game.i18n.format('CYBER_BLUE.BlueprintEditor.Captured', { n: captured.length }),
+    );
   }
 }

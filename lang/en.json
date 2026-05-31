@@ -1063,7 +1063,14 @@
       "LabelField": "Label",
       "TypeField": "Behavior Type",
       "DeleteRegion": "Delete Region",
-      "SaveFailed": "Failed to save the vehicle blueprint."
+      "SaveFailed": "Failed to save the vehicle blueprint.",
+      "Capture": "Capture from scene",
+      "CaptureHint": "Overwrite this blueprint from the vehicle token's regions on the current scene (captures manual edits made with Foundry's region tools).",
+      "CaptureConfirmTitle": "Capture Blueprint from Scene",
+      "CaptureConfirm": "Replace this vehicle's blueprint with {n} region(s) captured from its placed token? This overwrites the current blueprint.",
+      "Captured": "Captured {n} region(s) into the blueprint.",
+      "CaptureNoToken": "No token for this vehicle found on the active scene. Drop one and try again.",
+      "CaptureNoRegions": "This vehicle's token has no linked regions on the active scene to capture."
     }
   },
   "TYPES": {
