@@ -293,30 +293,43 @@ export async function resolveRammingCollision(vehicleTokenDoc, targetTokenDoc, o
   ]);
 }
 
-// ── Basic bounding-box collision check ───────────────────────────────────────
+// ── Swept-path collision check ───────────────────────────────────────────────
 
 /**
- * After a vehicle token moves, check if its new bounding box overlaps any
- * non-vehicle, non-attached token on the same scene.
+ * After a vehicle token moves, check whether the vehicle's bounding box swept
+ * from its previous position to its new position overlaps any non-vehicle,
+ * non-attached token on the same scene. Vector moves can be long enough to skip
+ * over a token between frames, so a final-position-only test would miss them.
  *
- * This is an optimistic check (not path-traced) — it detects overlapping
- * final positions, which is sufficient for slow / grid-snapped movement.
- * Full path-based collision detection is added in Phase 5 (Maneuver execution).
+ * Method (exact for axis-aligned rects under translation): expand each other
+ * token's rect by the vehicle's half-extents (Minkowski sum), then test whether
+ * the segment traced by the vehicle CENTRE (from → to) intersects that expanded
+ * rect. If `fromPos` is omitted, falls back to a final-position overlap test.
  *
- * When an overlap is found, `resolveRammingCollision` is called with the
- * colliding token pair.  Each pair is only handled once per move event.
+ * When a hit is found, `resolveRammingCollision` is called. Each pair is handled
+ * at most once per move event (per token.update). A multi-segment maneuver fires
+ * one move per segment, so each leg is swept independently.
  *
  * @param {TokenDocument} vehicleTokenDoc
+ * @param {{x:number,y:number}} [fromPos]  Vehicle top-left before the move.
  */
-export async function checkVehicleCollisions(vehicleTokenDoc) {
+export async function checkVehicleCollisions(vehicleTokenDoc, fromPos = null) {
   const scene = vehicleTokenDoc.parent;
   if (!scene) return;
 
   const gridSize = scene.grid?.size ?? 100;
-  const vx = vehicleTokenDoc.x ?? 0;
-  const vy = vehicleTokenDoc.y ?? 0;
   const vw = (vehicleTokenDoc.width  ?? 1) * gridSize;
   const vh = (vehicleTokenDoc.height ?? 1) * gridSize;
+  const halfW = vw / 2;
+  const halfH = vh / 2;
+
+  // Centre path: from → to. Size is assumed constant across a single move.
+  const toX = vehicleTokenDoc.x ?? 0;
+  const toY = vehicleTokenDoc.y ?? 0;
+  const fromX = fromPos?.x ?? toX;
+  const fromY = fromPos?.y ?? toY;
+  const cAx = fromX + halfW, cAy = fromY + halfH;
+  const cBx = toX + halfW,   cBy = toY + halfH;
 
   const attachedIds = new Set(
     getAttachedTokens(vehicleTokenDoc).map((r) => r.tokenId),
@@ -332,16 +345,37 @@ export async function checkVehicleCollisions(vehicleTokenDoc) {
     const ow = (otherToken.width  ?? 1) * gridSize;
     const oh = (otherToken.height ?? 1) * gridSize;
 
-    if (rectsOverlap(vx, vy, vw, vh, ox, oy, ow, oh)) {
+    // Minkowski-expanded rect: vehicle (rect) overlaps the other token iff the
+    // vehicle centre lies inside [ox-halfW, ox+ow+halfW] × [oy-halfH, oy+oh+halfH].
+    const minX = ox - halfW, maxX = ox + ow + halfW;
+    const minY = oy - halfH, maxY = oy + oh + halfH;
+
+    if (segmentIntersectsAABB(cAx, cAy, cBx, cBy, minX, minY, maxX, maxY)) {
       await resolveRammingCollision(vehicleTokenDoc, otherToken, { postToChat: true });
     }
   }
 }
 
-/** @private */
-function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
-  return ax < bx + bw
-      && ax + aw > bx
-      && ay < by + bh
-      && ay + ah > by;
+/**
+ * Segment ↔ axis-aligned box intersection (Liang–Barsky slab clip). Returns
+ * true if the segment (ax,ay)→(bx,by) touches or enters the box, including when
+ * either endpoint is inside.
+ * @private
+ */
+function segmentIntersectsAABB(ax, ay, bx, by, minX, minY, maxX, maxY) {
+  let t0 = 0, t1 = 1;
+  const dx = bx - ax, dy = by - ay;
+  const clip = (p, q) => {
+    // p·t <= q for the slab edge; tighten [t0,t1].
+    if (p === 0) return q >= 0;           // parallel: inside slab iff q>=0
+    const r = q / p;
+    if (p < 0) { if (r > t1) return false; if (r > t0) t0 = r; }
+    else       { if (r < t0) return false; if (r < t1) t1 = r; }
+    return true;
+  };
+  return clip(-dx, ax - minX)
+      && clip( dx, maxX - ax)
+      && clip(-dy, ay - minY)
+      && clip( dy, maxY - ay)
+      && t0 <= t1;
 }

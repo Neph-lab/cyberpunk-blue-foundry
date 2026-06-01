@@ -1041,6 +1041,17 @@ Hooks.on('deleteToken', async (tokenDoc, _options, _userId) => {
 // The cyberpunkBlueVehicleSync option guards against infinite recursion: when
 // THIS hook updates attached token positions, those updateToken calls re-enter
 // this hook but are immediately skipped.
+// Stash the pre-move position of a vehicle token so the updateToken hook can run
+// a swept-path collision test (from → to). `options` is the same object passed
+// through to updateToken, so a property set here is readable there.
+Hooks.on('preUpdateToken', (tokenDoc, changes, options) => {
+  if (options?.cyberpunkBlueVehicleSync) return;
+  if (tokenDoc.actor?.type !== 'vehicle') return;
+  if ('x' in changes || 'y' in changes) {
+    options.cyberpunkBlueFromPos = { x: tokenDoc.x ?? 0, y: tokenDoc.y ?? 0 };
+  }
+});
+
 Hooks.on('updateToken', async (tokenDoc, changes, options) => {
   if (options?.cyberpunkBlueVehicleSync) return;
   if (game.user !== game.users.activeGM) return;
@@ -1069,7 +1080,7 @@ Hooks.on('updateToken', async (tokenDoc, changes, options) => {
           await syncAttachedTokenPositions(tokenDoc);
         }
         if (positionChanged) {
-          await checkVehicleCollisions(tokenDoc);
+          await checkVehicleCollisions(tokenDoc, options?.cyberpunkBlueFromPos ?? null);
         }
       } catch (err) {
         console.error('cyberpunk-blue | vehicle position sync failed:', err);
