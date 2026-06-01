@@ -18,6 +18,9 @@ import {
   ANGLE_BUCKETS,
   getManeuverDV,
   declareManeuver,
+  declareCruise,
+  getCruiseSpeedEnvelope,
+  CRUISE_MAX_HEADING_DELTA,
 } from '../helpers/vehicle-maneuvers.mjs';
 
 export class VehicleManeuverDialog extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -89,6 +92,9 @@ export class VehicleManeuverDialog extends HandlebarsApplicationMixin(Applicatio
       angleBuckets:   ANGLE_BUCKETS,
       isAir,
       rammableTargets,
+      // Cruise tab
+      cruiseSpeedEnvelope:    getCruiseSpeedEnvelope(actor),
+      cruiseMaxHeadingDelta:  CRUISE_MAX_HEADING_DELTA,
     };
   }
 
@@ -122,9 +128,36 @@ export class VehicleManeuverDialog extends HandlebarsApplicationMixin(Applicatio
 
     updateParams(); // Initial state
 
-    // ── Declare button ───────────────────────────────────────────────────────
+    // ── Tab switching (Maneuver / Cruise) ──────────────────────────────────────
+    const selectTab = (tab) => {
+      root.querySelectorAll('.cpb-mp-tab').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+      });
+      root.querySelectorAll('.cpb-mp-panel').forEach((panel) => {
+        panel.hidden = (panel.dataset.tab !== tab);
+      });
+    };
+    root.querySelectorAll('.cpb-mp-tab').forEach((btn) => {
+      btn.addEventListener('click', () => selectTab(btn.dataset.tab));
+    });
+    selectTab('maneuver'); // Default tab
+
+    // ── Live cruise summary ────────────────────────────────────────────────────
+    const updateCruiseSummary = () => this._updateCruiseSummary(root);
+    root.querySelectorAll('[name="cruiseHeadingDelta"], [name="cruiseSpeedDelta"]').forEach((el) => {
+      el.addEventListener('change', updateCruiseSummary);
+      el.addEventListener('input', updateCruiseSummary);
+    });
+    updateCruiseSummary();
+
+    // ── Declare button (maneuver) ──────────────────────────────────────────────
     root.querySelector('[data-action="declare"]')?.addEventListener('click', () => {
       this._onDeclare(root);
+    });
+
+    // ── Cruise button ──────────────────────────────────────────────────────────
+    root.querySelector('[data-action="cruise"]')?.addEventListener('click', () => {
+      this._onCruise(root);
     });
   }
 
@@ -180,6 +213,37 @@ export class VehicleManeuverDialog extends HandlebarsApplicationMixin(Applicatio
     await declareManeuver(this._vehicleCombatant, this._driverActor, params);
 
     // Resolve the external promise and close.
+    this._resolve?.(true);
+    this._resolve = null;
+    await this.close({ force: true });
+  }
+
+  /**
+   * Update the live cruise summary (resulting heading + speed) as the driver
+   * adjusts the cruise controls.
+   */
+  _updateCruiseSummary(root) {
+    const el = root.querySelector('#cpb-cruise-summary');
+    if (!el) return;
+    const actor = this._vehicleCombatant.actor;
+    const headingDelta = parseInt(root.querySelector('[name="cruiseHeadingDelta"]')?.value ?? 0) || 0;
+    const speedDelta = parseInt(root.querySelector('[name="cruiseSpeedDelta"]')?.value ?? 0) || 0;
+    const dir = headingDelta === 0 ? 'straight' : `${Math.abs(headingDelta)}° ${headingDelta > 0 ? 'right' : 'left'}`;
+    const curSpeed = actor?.system?.stats?.currentSpeed?.value ?? 0;
+    const newSpeed = curSpeed + speedDelta;
+    el.textContent = `${dir}, speed ${curSpeed} → ${newSpeed}`;
+  }
+
+  /**
+   * Called when the driver clicks "Cruise" — applies a no-roll heading/speed
+   * adjustment within the cruise envelope.
+   */
+  async _onCruise(root) {
+    const headingDelta = parseInt(root.querySelector('[name="cruiseHeadingDelta"]')?.value ?? 0) || 0;
+    const speedDelta = parseInt(root.querySelector('[name="cruiseSpeedDelta"]')?.value ?? 0) || 0;
+
+    await declareCruise(this._vehicleCombatant, this._driverActor, { headingDelta, speedDelta });
+
     this._resolve?.(true);
     this._resolve = null;
     await this.close({ force: true });

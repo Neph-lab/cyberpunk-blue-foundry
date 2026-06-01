@@ -29,8 +29,28 @@
 import { getPendingManeuver, clearPendingManeuver, getVehicleHandling } from './vehicle-combat.mjs';
 import { resolveRammingCollision } from './vehicle-movement.mjs';
 import { rollLostControl } from './vehicle-lost-control.mjs';
+import { advanceTokenPosition, quantiseHeading, clampHeadingDelta } from './vehicle-vector.mjs';
 
 const FLAG_SCOPE = 'cyberpunk-blue';
+
+// ── Cruise envelope ────────────────────────────────────────────────────────────
+
+/** Cruise heading-adjust envelope: ± this many degrees, no Drive check. */
+export const CRUISE_MAX_HEADING_DELTA = 30;
+
+/**
+ * Cruise speed-adjust envelope (grid spaces / round, ±):
+ *   max(floor(ACC / 2), floor(|currentSpeed| / 4), 1)
+ *
+ * @param {Actor} vehicleActor
+ * @returns {number}
+ */
+export function getCruiseSpeedEnvelope(vehicleActor) {
+  const acc = (vehicleActor?.system?.stats?.acc?.value ?? 0)
+            + (vehicleActor?.system?.stats?.acc?.bonus ?? 0);
+  const speed = Math.abs(vehicleActor?.system?.stats?.currentSpeed?.value ?? 0);
+  return Math.max(Math.floor(acc / 2), Math.floor(speed / 4), 1);
+}
 
 // ── Maneuver type catalogue ────────────────────────────────────────────────────
 
@@ -285,6 +305,66 @@ export async function declareManeuver(vehicleCombatant, driverActor, params) {
   });
 }
 
+/**
+ * Declare a Cruise adjustment — a free (no Drive check) heading/speed tweak
+ * within the cruise envelope. Stored as a `pendingManeuver` of type 'cruise'
+ * and executed on the vehicle's turn by `_executeCruise`. Cruise is NOT in
+ * MANEUVER_TYPES (it isn't roll-based); the dialog exposes it on its own tab.
+ *
+ * @param {Combatant} vehicleCombatant
+ * @param {Actor}     driverActor
+ * @param {{headingDelta: number, speedDelta: number}} params
+ *   headingDelta: signed degrees (+ = right/clockwise, − = left); quantised to
+ *     15° and clamped to ±CRUISE_MAX_HEADING_DELTA.
+ *   speedDelta: signed grid spaces; clamped to ±getCruiseSpeedEnvelope.
+ */
+export async function declareCruise(vehicleCombatant, driverActor, params) {
+  const vehicleActor = vehicleCombatant.actor;
+  if (!vehicleActor) return;
+
+  const scene = canvas?.scene;
+  const speedEnvelope = getCruiseSpeedEnvelope(vehicleActor);
+
+  // Clamp inputs to the legal envelope.
+  const headingDelta = Math.max(
+    -CRUISE_MAX_HEADING_DELTA,
+    Math.min(CRUISE_MAX_HEADING_DELTA, Math.round((Number(params.headingDelta) || 0) / 15) * 15),
+  );
+  const speedDelta = Math.max(
+    -speedEnvelope,
+    Math.min(speedEnvelope, Math.trunc(Number(params.speedDelta) || 0)),
+  );
+
+  await vehicleCombatant.setFlag(FLAG_SCOPE, 'pendingManeuver', {
+    type: 'cruise',
+    declaredByDriverId: driverActor.id,
+    rollResult: null,
+    dv: null,
+    headingDelta,
+    speedDelta,
+  });
+
+  const vehicleToken = scene?.tokens.get(vehicleCombatant.tokenId);
+  const dirLabel = headingDelta === 0
+    ? 'straight ahead'
+    : `${Math.abs(headingDelta)}° ${headingDelta > 0 ? 'right' : 'left'}`;
+  const spdLabel = speedDelta === 0
+    ? 'holding speed'
+    : `speed ${speedDelta > 0 ? '+' : ''}${speedDelta}`;
+  await ChatMessage.create({
+    speaker: vehicleToken
+      ? ChatMessage.getSpeaker({ token: vehicleToken })
+      : { alias: vehicleActor.name },
+    content: `
+      <div class="cyberpunk-blue chat-card">
+        <h3><i class="fas fa-gauge-high"></i> ${vehicleActor.name} — Cruise</h3>
+        <p><strong>${driverActor.name}</strong> cruises: ${dirLabel}, ${spdLabel}.
+           No Drive check required.</p>
+      </div>
+    `,
+  });
+}
+
 // ── Execution ─────────────────────────────────────────────────────────────────
 
 /**
@@ -309,6 +389,7 @@ export async function executeManeuver(vehicleCombatant, actor, vehicleToken) {
     case 'aerobatics':  await _executeAerobatics    (vehicleCombatant, actor, vehicleToken, maneuver); break;
     case 'diveRise':    await _executeDiveRise      (vehicleCombatant, actor, vehicleToken, maneuver); break;
     case 'useEquipment': await _executeUseEquipment (vehicleCombatant, actor, vehicleToken, maneuver); break;
+    case 'cruise':      await _executeCruise        (vehicleCombatant, actor, vehicleToken, maneuver); break;
     default:
       await _postManeuverChat(actor, vehicleToken, maneuver.type, 'Unknown Maneuver type — GM resolves.');
   }
@@ -513,6 +594,46 @@ async function _executeUseEquipment(vehicleCombatant, actor, vehicleToken, maneu
   await _postManeuverChat(actor, vehicleToken, MANEUVER_TYPES.useEquipment.label,
     `<p>Mounted weapon fire / equipment activation — handled by the gunner or driver.</p>
      <p class="cpb-gm-note">Resolve weapon attack or item effect normally. (Phase 6 will automate this.)</p>`
+  );
+}
+
+async function _executeCruise(vehicleCombatant, actor, vehicleToken, maneuver) {
+  const currentSpeed = actor.system?.stats?.currentSpeed?.value ?? 0;
+  const maxMove = (actor.system?.stats?.maxMove?.value ?? 0)
+                + (actor.system?.stats?.maxMove?.bonus ?? 0);
+
+  // Apply the speed delta, clamped to the vehicle's max move in both directions.
+  const speedDelta = maneuver.speedDelta ?? 0;
+  let newSpeed = currentSpeed + speedDelta;
+  if (maxMove > 0) newSpeed = Math.max(-maxMove, Math.min(maxMove, newSpeed));
+  await actor.update({ 'system.stats.currentSpeed.value': newSpeed });
+
+  // Heading: clamp the requested delta to the ±30° envelope, then re-snap to the
+  // nearest 15° world-space heading immediately before moving (anti-drift).
+  const curRot = vehicleToken?.rotation ?? 0;
+  const headingDelta = maneuver.headingDelta ?? 0;
+  const newHeading = quantiseHeading(
+    clampHeadingDelta(curRot, curRot + headingDelta, CRUISE_MAX_HEADING_DELTA),
+  );
+
+  if (vehicleToken) {
+    const scene = vehicleToken.parent ?? canvas.scene;
+    const dest = advanceTokenPosition(vehicleToken, newSpeed, scene, newHeading);
+    // Skip the 90° footprint snap so the art rotates freely to the exact (already
+    // quantised) heading; region / passenger / collision sync still runs via the
+    // updateToken hook.
+    await vehicleToken.update(
+      { x: dest.x, y: dest.y, rotation: newHeading },
+      { cyberpunkBlueVehicleSnap: true },
+    );
+  }
+
+  const spaces = Math.abs(newSpeed);
+  await _postManeuverChat(actor, vehicleToken, 'Cruise',
+    `<p>Heading → <strong>${newHeading}°</strong>${headingDelta !== 0
+        ? ` (${Math.abs(headingDelta)}° ${headingDelta > 0 ? 'right' : 'left'})` : ''}.</p>
+     <p>Speed: ${currentSpeed} → <strong>${newSpeed}</strong>. Advanced
+        <strong>${spaces}</strong> ${spaces === 1 ? 'space' : 'spaces'}${newSpeed < 0 ? ' in reverse' : ''}.</p>`,
   );
 }
 

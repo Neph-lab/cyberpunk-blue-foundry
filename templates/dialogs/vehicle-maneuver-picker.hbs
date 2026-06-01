@@ -18,128 +18,176 @@
     </div>
   </header>
 
-  {{!-- Maneuver type selection --}}
-  <div class="cpb-mp-types">
-    {{#each maneuverTypes as |def key|}}
-    {{#unless (and def.airOnly (not ../isAir))}}
-    <label class="cpb-mp-type-row" data-type="{{key}}">
-      <input type="radio" name="type" value="{{key}}" {{#if @first}}checked{{/if}}>
-      <span class="cpb-mp-type-name">{{def.label}}</span>
-      {{#if def.dv}}
-      <span class="cpb-mp-type-dv">DV {{def.dv}}</span>
-      {{/if}}
-      {{#if def.narrative}}
-      <span class="cpb-mp-type-note">GM resolves</span>
-      {{/if}}
-    </label>
-    {{/unless}}
-    {{/each}}
-  </div>
-
-  {{!-- Conditional parameter sections, shown/hidden by JS --}}
-
-  {{!-- Sharp Turn --}}
-  <div class="cpb-mp-params" data-type="sharpTurn">
-    <div class="form-group">
-      <label>Turn angle</label>
-      <select name="angleBucket">
-        {{#each angleBuckets as |b i|}}
-        <option value="{{i}}">{{b.label}}</option>
-        {{/each}}
-      </select>
-    </div>
-    <p class="cpb-mp-hint">DV is computed from current speed and angle bucket.</p>
-  </div>
-
-  {{!-- Hard Brakes --}}
-  <div class="cpb-mp-params" data-type="hardBrakes" hidden>
-    <div class="form-group">
-      <label>Brake tier</label>
-      <select name="hardBrakeTier">
-        <option value="2">×2 — DV 15 (−ACC×2 speed)</option>
-        <option value="3">×3 — DV 25 (−ACC×3 speed)</option>
-      </select>
-    </div>
-  </div>
-
-  {{!-- Accelerate --}}
-  <div class="cpb-mp-params" data-type="accelerate" hidden>
-    <div class="form-group">
-      <label>Speed increase (1–{{acc}})</label>
-      <input type="number" name="speedDelta" min="1" max="{{acc}}" value="{{acc}}">
-    </div>
-    <p class="cpb-mp-hint">No Drive check required. Costs action + movement.</p>
-  </div>
-
-  {{!-- Decelerate --}}
-  <div class="cpb-mp-params" data-type="decelerate" hidden>
-    <div class="form-group">
-      <label>Speed decrease (1–{{acc}})</label>
-      <input type="number" name="speedDelta" min="1" max="{{acc}}" value="1">
-    </div>
-    <p class="cpb-mp-hint">No Drive check required. Costs action + movement.</p>
-  </div>
-
-  {{!-- Ram --}}
-  <div class="cpb-mp-params" data-type="ram" hidden>
-    <div class="form-group">
-      <label>Target</label>
-      <select name="rammingTargetTokenId">
-        {{#each rammableTargets}}
-        <option value="{{id}}">{{name}}</option>
-        {{else}}
-        <option value="">(no tokens in scene)</option>
-        {{/each}}
-      </select>
-    </div>
-    <p class="cpb-mp-hint">DV = 13 + target Handling (or target's Swerve result if higher).</p>
-  </div>
-
-  {{!-- Swerve --}}
-  <div class="cpb-mp-params" data-type="swerve" hidden>
-    <p class="cpb-mp-hint">Your Drive check result becomes the Evasion DV for this vehicle
-      and all occupants until the vehicle's next turn.</p>
-  </div>
-
-  {{!-- Aerobatics --}}
-  <div class="cpb-mp-params" data-type="aerobatics" hidden>
-    <p class="cpb-mp-hint">DV 17. Success = narrative maneuver. Failure = Lost Control.</p>
-  </div>
-
-  {{!-- Dive / Rise --}}
-  <div class="cpb-mp-params" data-type="diveRise" hidden>
-    <div class="form-group">
-      <label>Pitch angle</label>
-      <select name="angleBucket">
-        {{#each angleBuckets as |b i|}}
-        <option value="{{i}}">{{b.label}}</option>
-        {{/each}}
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Elevation delta (m)</label>
-      <input type="number" name="speedDelta" min="1" max="{{acc}}" value="{{acc}}">
-    </div>
-    <p class="cpb-mp-hint">Max per-turn change = min(ACC, |Speed|).</p>
-  </div>
-
-  {{!-- Use Equipment --}}
-  <div class="cpb-mp-params" data-type="useEquipment" hidden>
-    <p class="cpb-mp-hint">Mounted weapon fire or vehicle equipment activation.
-      GM / player resolves the action during the vehicle's turn.</p>
-  </div>
-
-  {{!-- Live DV display --}}
-  <div class="cpb-mp-dv-row">
-    <span>Drive check DV:</span>
-    <strong class="cpb-mp-dv-value" id="cpb-mp-dv">—</strong>
-  </div>
-
-  {{!-- Declare button --}}
-  <footer class="cpb-mp-footer">
-    <button type="button" data-action="declare" class="cpb-btn">
-      <i class="fas fa-dice-d10"></i> Declare &amp; Roll Drive
+  {{!-- Tab nav: Maneuver (roll-based) vs Cruise (free adjust) --}}
+  <nav class="cpb-mp-tabs">
+    <button type="button" class="cpb-mp-tab" data-tab="maneuver">
+      <i class="fas fa-dice-d10"></i> Maneuver
     </button>
-  </footer>
+    <button type="button" class="cpb-mp-tab" data-tab="cruise">
+      <i class="fas fa-gauge-high"></i> Cruise
+    </button>
+  </nav>
+
+  {{!-- ── Maneuver panel ─────────────────────────────────────────────────── --}}
+  <div class="cpb-mp-panel" data-tab="maneuver">
+
+    {{!-- Maneuver type selection --}}
+    <div class="cpb-mp-types">
+      {{#each maneuverTypes as |def key|}}
+      {{#unless (and def.airOnly (not ../isAir))}}
+      <label class="cpb-mp-type-row" data-type="{{key}}">
+        <input type="radio" name="type" value="{{key}}" {{#if @first}}checked{{/if}}>
+        <span class="cpb-mp-type-name">{{def.label}}</span>
+        {{#if def.dv}}
+        <span class="cpb-mp-type-dv">DV {{def.dv}}</span>
+        {{/if}}
+        {{#if def.narrative}}
+        <span class="cpb-mp-type-note">GM resolves</span>
+        {{/if}}
+      </label>
+      {{/unless}}
+      {{/each}}
+    </div>
+
+    {{!-- Conditional parameter sections, shown/hidden by JS --}}
+
+    {{!-- Sharp Turn --}}
+    <div class="cpb-mp-params" data-type="sharpTurn">
+      <div class="form-group">
+        <label>Turn angle</label>
+        <select name="angleBucket">
+          {{#each angleBuckets as |b i|}}
+          <option value="{{i}}">{{b.label}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <p class="cpb-mp-hint">DV is computed from current speed and angle bucket.</p>
+    </div>
+
+    {{!-- Hard Brakes --}}
+    <div class="cpb-mp-params" data-type="hardBrakes" hidden>
+      <div class="form-group">
+        <label>Brake tier</label>
+        <select name="hardBrakeTier">
+          <option value="2">×2 — DV 15 (−ACC×2 speed)</option>
+          <option value="3">×3 — DV 25 (−ACC×3 speed)</option>
+        </select>
+      </div>
+    </div>
+
+    {{!-- Accelerate --}}
+    <div class="cpb-mp-params" data-type="accelerate" hidden>
+      <div class="form-group">
+        <label>Speed increase (1–{{acc}})</label>
+        <input type="number" name="speedDelta" min="1" max="{{acc}}" value="{{acc}}">
+      </div>
+      <p class="cpb-mp-hint">No Drive check required. Costs action + movement.</p>
+    </div>
+
+    {{!-- Decelerate --}}
+    <div class="cpb-mp-params" data-type="decelerate" hidden>
+      <div class="form-group">
+        <label>Speed decrease (1–{{acc}})</label>
+        <input type="number" name="speedDelta" min="1" max="{{acc}}" value="1">
+      </div>
+      <p class="cpb-mp-hint">No Drive check required. Costs action + movement.</p>
+    </div>
+
+    {{!-- Ram --}}
+    <div class="cpb-mp-params" data-type="ram" hidden>
+      <div class="form-group">
+        <label>Target</label>
+        <select name="rammingTargetTokenId">
+          {{#each rammableTargets}}
+          <option value="{{id}}">{{name}}</option>
+          {{else}}
+          <option value="">(no tokens in scene)</option>
+          {{/each}}
+        </select>
+      </div>
+      <p class="cpb-mp-hint">DV = 13 + target Handling (or target's Swerve result if higher).</p>
+    </div>
+
+    {{!-- Swerve --}}
+    <div class="cpb-mp-params" data-type="swerve" hidden>
+      <p class="cpb-mp-hint">Your Drive check result becomes the Evasion DV for this vehicle
+        and all occupants until the vehicle's next turn.</p>
+    </div>
+
+    {{!-- Aerobatics --}}
+    <div class="cpb-mp-params" data-type="aerobatics" hidden>
+      <p class="cpb-mp-hint">DV 17. Success = narrative maneuver. Failure = Lost Control.</p>
+    </div>
+
+    {{!-- Dive / Rise --}}
+    <div class="cpb-mp-params" data-type="diveRise" hidden>
+      <div class="form-group">
+        <label>Pitch angle</label>
+        <select name="angleBucket">
+          {{#each angleBuckets as |b i|}}
+          <option value="{{i}}">{{b.label}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Elevation delta (m)</label>
+        <input type="number" name="speedDelta" min="1" max="{{acc}}" value="{{acc}}">
+      </div>
+      <p class="cpb-mp-hint">Max per-turn change = min(ACC, |Speed|).</p>
+    </div>
+
+    {{!-- Use Equipment --}}
+    <div class="cpb-mp-params" data-type="useEquipment" hidden>
+      <p class="cpb-mp-hint">Mounted weapon fire or vehicle equipment activation.
+        GM / player resolves the action during the vehicle's turn.</p>
+    </div>
+
+    {{!-- Live DV display --}}
+    <div class="cpb-mp-dv-row">
+      <span>Drive check DV:</span>
+      <strong class="cpb-mp-dv-value" id="cpb-mp-dv">—</strong>
+    </div>
+
+    {{!-- Declare button --}}
+    <footer class="cpb-mp-footer">
+      <button type="button" data-action="declare" class="cpb-btn">
+        <i class="fas fa-dice-d10"></i> Declare &amp; Roll Drive
+      </button>
+    </footer>
+  </div>
+
+  {{!-- ── Cruise panel ───────────────────────────────────────────────────── --}}
+  <div class="cpb-mp-panel" data-tab="cruise" hidden>
+    <div class="cpb-mp-params">
+      <div class="form-group">
+        <label>Heading adjust (±{{cruiseMaxHeadingDelta}}°)</label>
+        <select name="cruiseHeadingDelta">
+          <option value="-30">Left 30°</option>
+          <option value="-15">Left 15°</option>
+          <option value="0" selected>Straight</option>
+          <option value="15">Right 15°</option>
+          <option value="30">Right 30°</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Speed adjust (±{{cruiseSpeedEnvelope}})</label>
+        <input type="number" name="cruiseSpeedDelta"
+               min="-{{cruiseSpeedEnvelope}}" max="{{cruiseSpeedEnvelope}}" value="0" step="1">
+      </div>
+      <p class="cpb-mp-hint">No Drive check. Free heading/speed tweak within the cruise
+        envelope; the vehicle moves on its turn. Heading snaps to 15°.</p>
+    </div>
+
+    <div class="cpb-mp-dv-row">
+      <span>Result:</span>
+      <strong class="cpb-mp-dv-value" id="cpb-cruise-summary">—</strong>
+    </div>
+
+    <footer class="cpb-mp-footer">
+      <button type="button" data-action="cruise" class="cpb-btn">
+        <i class="fas fa-gauge-high"></i> Cruise
+      </button>
+    </footer>
+  </div>
 
 </div>
