@@ -8,7 +8,7 @@ import {
   markDamageDeflectionUsed,
 } from './combat-tracker.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
-import { resolveAfflictionAttack } from './affliction-attack.mjs';
+import { resolveAfflictionAttack, resolveAppliedAffliction } from './affliction-attack.mjs';
 import { applyDamageWithPermission, rollCriticalInjuryWithPermission, rollVehicleCriticalWithPermission, deleteActorItemWithPermission, ablateArmorExtraWithPermission, applyForcedCriticalInjuryWithPermission, applyDamageToSubsystemWithPermission } from './socket.mjs';
 import { getVitalAreaSubsystem } from './vehicle-damage.mjs';
 import { clearWeaponCharge, countWallsBetweenTokens } from './tech-charge.mjs';
@@ -1124,6 +1124,16 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
       content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-person-falling-burst"></i> ${game.i18n.format('CYBER_BLUE.Combat.CarnageCritOnBody', { name: attacker.name, required: critOnBodyReq, body: attackerBody })}</p></div>`,
     });
     await applyForcedCriticalInjuryWithPermission(attacker, 'tornMuscle', null);
+  }
+
+  // ── Applied toxins (weapon-coated affliction Mods) ────────────────────────
+  // A coated toxin is delivered when the attack draws blood (hit penetrates SP).
+  if (hit && targetActor && netDamage > 0) {
+    const toxinMods = installedMods.filter((m) => m.appliesAffliction);
+    for (const m of toxinMods) {
+      const modDoc = attacker.items.get(m._docId);
+      if (modDoc) await resolveAppliedAffliction(attacker, modDoc, targetActor);
+    }
   }
 
   // ── Scatter (Brunswick AR-9 single-shot) ─────────────────────────────────

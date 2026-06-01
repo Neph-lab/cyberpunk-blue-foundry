@@ -627,16 +627,8 @@ export const EQUIPMENT_CATALOGUE = [
     folder: 'Clandestine Gear', imgPath: `${A_GEAR}/scrambler-descramber.png`, cost: 'EX',
     description: 'Sold in pairs for encrypted communications. Can read additional encryption keys from a shard.',
   }),
-  gear({
-    name: 'Toxin',
-    folder: 'Clandestine Gear', imgPath: `${A_GEAR}/toxin.png`, cost: 'PR',
-    description: 'DV13 BODY+Endurance or take 2d6 HP and suffer −1 to BODY checks for the duration; on a successful resist, take 1d6 HP. Duration: 40 − (2 × BODY) minutes.',
-  }),
-  gear({
-    name: 'Toxin, Strong',
-    folder: 'Clandestine Gear', cost: 'EX',
-    description: '‡ Illegal without a permit. DV15 BODY+Endurance or take 3d6 HP and suffer −1 to both BODY and RFLX checks for the duration; on a successful resist, take 1d6 HP. Duration: 40 − (2 × BODY) minutes.',
-  }),
+  // Toxin and Toxin, Strong are implemented as weapon-coating Mods (any weapon)
+  // — see toxinMods in mod-catalogue.mjs. They are no longer standalone gear.
 
   // ── Miscellaneous Gear ────────────────────────────────────────────────────
 

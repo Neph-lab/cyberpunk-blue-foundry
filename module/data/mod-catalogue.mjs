@@ -32,11 +32,12 @@ const img = (folder, file) => `${folder}/${file}`;
  * Build a Foundry Item create-data record for a mod.
  * Sensible defaults for unused fields; override only what matters.
  */
-function modItem({ name, manufacturer = '', cost = '', description = '', imgPath = '', system = {} }) {
+function modItem({ name, manufacturer = '', cost = '', description = '', imgPath = '', system = {}, effects = [] }) {
   return {
     name,
     type: 'mod',
     img: imgPath,
+    effects,
     system: {
       manufacturer,
       cost: COST_EXPAND[cost] ?? cost,
@@ -74,10 +75,29 @@ function modItem({ name, manufacturer = '', cost = '', description = '', imgPath
       burstControlAmmoReduction: system.burstControlAmmoReduction ?? 0,
       beginnerFriendly: !!system.beginnerFriendly,
       targetVitalsPenaltyReduction: system.targetVitalsPenaltyReduction ?? 0,
+      // ── Applied affliction (coated toxins) ──
+      appliesAffliction: !!system.appliesAffliction,
+      afflictionPrimary: system.afflictionPrimary ?? 'body',
+      afflictionSkill: system.afflictionSkill ?? 'endurance',
+      afflictionDv: system.afflictionDv ?? 13,
+      afflictionDamageFormula: system.afflictionDamageFormula ?? '2d6',
+      afflictionResistDamage: system.afflictionResistDamage ?? '1d6',
+      afflictionEffectId: system.afflictionEffectId ?? '',
+      afflictionDurationFormula: system.afflictionDurationFormula ?? '40 - 2 * body',
       description: description || '',
     },
   };
 }
+
+/** Active Effect template for a coated toxin: stat-check penalties, applied to
+ *  the struck target on a failed save (copied by applyAfflictionEffect). */
+const toxinAE = (name, changes) => ({
+  name,
+  disabled: true,
+  transfer: false,
+  changes: changes.map((c) => ({ priority: 20, mode: 2, ...c })),
+  flags: { 'cyberpunk-blue': { isAfflictionEffect: true } },
+});
 
 // ═══════════════════════════════════════════════════════════════════════════
 //   SHORT SCOPES — pistols + SMGs
@@ -328,6 +348,48 @@ const computerMods = [
   }),
 ];
 
+// ═══════════════════════════════════════════════════════════════════════════
+//   APPLIED TOXINS — weapon-coating mods (any weapon)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// A coated toxin is a weaponMod that, on a hit drawing blood (net damage > 0),
+// forces the target to save (BODY + Endurance) or suffer HP damage and a
+// lingering stat-check penalty for 40 − 2×BODY minutes. Even a successful resist
+// still does a little HP. Resolution lives in affliction-attack.mjs
+// (resolveAppliedAffliction), triggered from combat-resolution.mjs.
+
+const toxinMods = [
+  modItem({
+    name: 'Toxin',
+    cost: 'PR',
+    system: {
+      modType: 'weaponMod',
+      appliesAffliction: true,
+      afflictionPrimary: 'body', afflictionSkill: 'endurance', afflictionDv: 13,
+      afflictionDamageFormula: '2d6', afflictionResistDamage: '1d6',
+      afflictionDurationFormula: '40 - 2 * body',
+    },
+    effects: [toxinAE('Toxin', [{ key: 'system.stats.body.rollMod', value: '-1' }])],
+    description: desc('Coat a weapon. On a hit that draws blood, target rolls BODY + Endurance vs DV13 or takes 2d6 HP and −1 to BODY checks for 40 − (2 × BODY) minutes. On a successful resist, still take 1d6 HP.'),
+  }),
+  modItem({
+    name: 'Toxin, Strong',
+    cost: 'EX',
+    system: {
+      modType: 'weaponMod',
+      appliesAffliction: true,
+      afflictionPrimary: 'body', afflictionSkill: 'endurance', afflictionDv: 15,
+      afflictionDamageFormula: '3d6', afflictionResistDamage: '1d6',
+      afflictionDurationFormula: '40 - 2 * body',
+    },
+    effects: [toxinAE('Toxin, Strong', [
+      { key: 'system.stats.body.rollMod', value: '-1' },
+      { key: 'system.stats.rflx.rollMod', value: '-1' },
+    ])],
+    description: desc('‡ Illegal without a permit. Coat a weapon. On a hit that draws blood, target rolls BODY + Endurance vs DV15 or takes 3d6 HP and −1 to both BODY and RFLX checks for 40 − (2 × BODY) minutes. On a successful resist, still take 1d6 HP.'),
+  }),
+];
+
 export const MOD_CATALOGUE = [
   ...shortScopes,
   ...longScopes,
@@ -339,4 +401,5 @@ export const MOD_CATALOGUE = [
   ...underBarrels,
   ...accessories,
   ...computerMods,
+  ...toxinMods,
 ];

@@ -129,6 +129,26 @@ export default class CyberBlueMod extends CyberBlueItemBase {
     // sheet shows a bayonet attack row.
     schema.bayonet = new fields.BooleanField({ initial: false });
 
+    // ── Applied affliction (toxins / poisons coated on the weapon) ─────────────
+    // When `appliesAffliction` is true, a successful hit with the host weapon
+    // triggers a save-or-suffer check on the target (see combat-resolution.mjs):
+    //   roll 1d10 + afflictionPrimary + afflictionSkill vs afflictionDv
+    //   fail   → afflictionDamageFormula HP + the mod's affliction AE (duration
+    //            afflictionDurationFormula minutes, BODY-scaled)
+    //   resist → afflictionResistDamage HP (toxins still do a little on resist)
+    // The applied AE is the mod item's effect flagged isAfflictionEffect (or the
+    // one referenced by afflictionEffectId).
+    schema.appliesAffliction = new fields.BooleanField({ initial: false });
+    schema.afflictionPrimary = new fields.StringField({ required: true, blank: true, initial: 'body' });
+    schema.afflictionSkill = new fields.StringField({ required: true, blank: true, initial: 'endurance' });
+    schema.afflictionDv = new fields.NumberField({ ...requiredInteger, initial: 13, min: 0 });
+    schema.afflictionDamageFormula = new fields.StringField({ required: true, blank: true, initial: '2d6' });
+    schema.afflictionResistDamage = new fields.StringField({ required: true, blank: true, initial: '1d6' });
+    schema.afflictionEffectId = new fields.StringField({ required: true, blank: true, initial: '' });
+    // Duration in minutes; supports `body` as the target's BODY value, e.g.
+    // "40 - 2 * body". Evaluated per target at apply time.
+    schema.afflictionDurationFormula = new fields.StringField({ required: true, blank: true, initial: '40 - 2 * body' });
+
     return schema;
   }
 }

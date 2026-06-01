@@ -15,6 +15,7 @@
 import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
 import { getEffectiveItemWeapons } from './mods.mjs';
 import { getActiveAEFlag } from './effects.mjs';
+import { applyDamageWithPermission } from './socket.mjs';
 
 /** Flag key written onto every affliction AE applied to an actor. */
 export const AFFLICTION_EFFECT_FLAG = 'isAffliction';
@@ -127,7 +128,7 @@ export async function checkAfflictionSP(weapon, targetActor, isHalfDamage = fals
  *  2. Otherwise fall back to the first AE on the item that carries
  *     `flags.cyberpunk-blue.isAfflictionEffect = true`.
  */
-export async function applyAfflictionEffect(item, weapon, targetActor) {
+export async function applyAfflictionEffect(item, weapon, targetActor, { durationSeconds = null } = {}) {
   let sourceEffect = null;
 
   if (weapon.afflictionEffectId) {
@@ -149,6 +150,9 @@ export async function applyAfflictionEffect(item, weapon, targetActor) {
   const aeData = sourceEffect.toObject();
   aeData.disabled = false;
   foundry.utils.setProperty(aeData, `flags.cyberpunk-blue.${AFFLICTION_EFFECT_FLAG}`, true);
+  if (durationSeconds && durationSeconds > 0) {
+    aeData.duration = { ...(aeData.duration ?? {}), seconds: Math.round(durationSeconds) };
+  }
   delete aeData._id;
 
   await targetActor.createEmbeddedDocuments('ActiveEffect', [aeData]);
@@ -338,4 +342,80 @@ export async function resolveAfflictionAttack(attacker, item, weaponIndex) {
 
   // Apply AE
   await applyAfflictionEffect(item, weapon, targetActor);
+}
+
+// ─── Applied affliction (weapon-coated toxins delivered via a Mod) ───────────
+
+/**
+ * Evaluate a duration formula (minutes) that may reference `body`.
+ * Catalogue-controlled string (not user input). Returns minutes, or 0 on error.
+ * @param {string} formula
+ * @param {number} body
+ * @returns {number}
+ */
+function evalDurationMinutes(formula, body) {
+  const expr = (formula ?? '').trim();
+  if (!expr) return 0;
+  try {
+    // eslint-disable-next-line no-new-func
+    const fn = new Function('body', `"use strict"; return (${expr});`);
+    const v = Number(fn(Number(body) || 0));
+    return Number.isFinite(v) && v > 0 ? v : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Resolve a toxin/poison delivered by a weapon Mod on a successful hit.
+ *
+ * Target rolls afflictionPrimary + afflictionSkill vs afflictionDv:
+ *   • resist → afflictionResistDamage HP (toxins still do a little on resist)
+ *   • fail   → afflictionDamageFormula HP + the mod's affliction AE, applied for
+ *              afflictionDurationFormula minutes (BODY-scaled).
+ *
+ * @param {Actor}     attacker
+ * @param {Item}      modDoc      The weapon Mod item carrying the affliction.
+ * @param {Actor}     targetActor
+ */
+export async function resolveAppliedAffliction(attacker, modDoc, targetActor) {
+  const mod = modDoc.system ?? {};
+  if (!targetActor) return;
+
+  const weaponLike = {
+    afflictionPrimary: mod.afflictionPrimary || 'body',
+    afflictionSkill:   mod.afflictionSkill   || 'endurance',
+    afflictionDv:      mod.afflictionDv ?? 13,
+  };
+
+  const defenseRoll = await rollAfflictionDefense(targetActor, weaponLike, 0);
+  const dv = weaponLike.afflictionDv;
+  const resisted = defenseRoll.total >= dv;
+
+  // Damage (full on fail, a reduced amount on resist).
+  const dmgFormula = (resisted ? mod.afflictionResistDamage : mod.afflictionDamageFormula) ?? '';
+  if (dmgFormula.trim()) {
+    const dmgRoll = await new Roll(dmgFormula).evaluate();
+    await dmgRoll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: targetActor }),
+      flavor: `<div class="cyberpunk-blue chat-card">
+        <h3><i class="fas fa-vial-virus"></i> ${game.i18n.format('CYBER_BLUE.Combat.ToxinDamage', { name: modDoc.name })}</h3>
+        <p>${game.i18n.localize(resisted ? 'CYBER_BLUE.Combat.AfflictionResisted' : 'CYBER_BLUE.Combat.AfflictionFailed')}</p>
+      </div>`,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
+    await applyDamageWithPermission(targetActor, dmgRoll.total);
+  }
+
+  // On failure, also apply the lingering stat-penalty AE for its duration.
+  if (!resisted && mod.afflictionEffectId !== undefined) {
+    const body = targetActor.system?.stats?.body?.value ?? 0;
+    const minutes = evalDurationMinutes(mod.afflictionDurationFormula, body);
+    await applyAfflictionEffect(
+      modDoc,
+      { afflictionEffectId: mod.afflictionEffectId || '' },
+      targetActor,
+      { durationSeconds: minutes > 0 ? minutes * 60 : null },
+    );
+  }
 }

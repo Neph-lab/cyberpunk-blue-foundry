@@ -612,6 +612,7 @@
       "AfflictionDefense": "Affliction Defense",
       "AfflictionResisted": "Resisted!",
       "AfflictionFailed": "Failed — afflicted!",
+      "ToxinDamage": "{name} — toxin",
       "AfflictionOuterZone": "outer zone",
       "AfflictionApplied": "is afflicted with {effect}.",
       "AfflictionRemove": "Remove affliction (GM only)",

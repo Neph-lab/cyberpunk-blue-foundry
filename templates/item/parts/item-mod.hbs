@@ -86,6 +86,56 @@
         <p class="hint">No weapon changes defined.</p>
       {{/if}}
     </section>
+
+    {{#if canManageRestricted}}
+      <section class="sheet-panel">
+        <div class="panel-header"><h2>Applied Toxin / Affliction</h2></div>
+        <label class="compact-field">
+          <input type="checkbox" name="system.appliesAffliction" {{checked system.appliesAffliction}} />
+          <span>Delivers an affliction on a hit that draws blood</span>
+        </label>
+        {{#if system.appliesAffliction}}
+          <div class="item-meta-row">
+            <label class="compact-field">
+              <span>Save stat</span>
+              <select name="system.afflictionPrimary">
+                {{#each afflictionStatOptions as |opt|}}
+                  <option value="{{opt.value}}" {{#if (eq opt.value @root.item.system.afflictionPrimary)}}selected{{/if}}>{{opt.label}}</option>
+                {{/each}}
+              </select>
+            </label>
+            <label class="compact-field">
+              <span>Save skill</span>
+              <select name="system.afflictionSkill">
+                <option value="" {{#if (eq "" system.afflictionSkill)}}selected{{/if}}>—</option>
+                {{#each afflictionSkillOptions as |opt|}}
+                  <option value="{{opt.value}}" {{#if (eq opt.value @root.item.system.afflictionSkill)}}selected{{/if}}>{{opt.label}}</option>
+                {{/each}}
+              </select>
+            </label>
+            <label class="compact-field">
+              <span>DV</span>
+              <input type="number" name="system.afflictionDv" value="{{system.afflictionDv}}" data-dtype="Number" min="0" />
+            </label>
+          </div>
+          <div class="item-meta-row">
+            <label class="compact-field">
+              <span>Damage on fail</span>
+              <input type="text" name="system.afflictionDamageFormula" value="{{system.afflictionDamageFormula}}" placeholder="2d6" />
+            </label>
+            <label class="compact-field">
+              <span>Damage on resist</span>
+              <input type="text" name="system.afflictionResistDamage" value="{{system.afflictionResistDamage}}" placeholder="1d6" />
+            </label>
+            <label class="compact-field">
+              <span>Duration (min)</span>
+              <input type="text" name="system.afflictionDurationFormula" value="{{system.afflictionDurationFormula}}" placeholder="40 - 2 * body" />
+            </label>
+          </div>
+          <p class="hint">On a failed save the mod's affliction Active Effect (flagged <em>isAfflictionEffect</em>, below) is applied to the target for the duration. <code>body</code> in the duration is the target's BODY.</p>
+        {{/if}}
+      </section>
+    {{/if}}
   {{/if}}
 
   {{#if showEffectsTab}}
