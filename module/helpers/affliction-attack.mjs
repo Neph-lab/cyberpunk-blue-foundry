@@ -151,7 +151,8 @@ export async function applyAfflictionEffect(item, weapon, targetActor, { duratio
   aeData.disabled = false;
   foundry.utils.setProperty(aeData, `flags.cyberpunk-blue.${AFFLICTION_EFFECT_FLAG}`, true);
   if (durationSeconds && durationSeconds > 0) {
-    aeData.duration = { ...(aeData.duration ?? {}), seconds: Math.round(durationSeconds) };
+    // Foundry v14 ActiveEffect duration is { value, units } (not seconds/rounds).
+    aeData.duration = { ...(aeData.duration ?? {}), value: Math.round(durationSeconds), units: 'seconds' };
   }
   delete aeData._id;
 
