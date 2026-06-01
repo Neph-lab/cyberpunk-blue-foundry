@@ -182,7 +182,7 @@ export class CharacterCreationWizard extends HandlebarsApplicationMixin(Applicat
             shortLabel: def.shortLabel,
             value,
             atMin: value <= STAT_MIN,
-            atMax: value >= STAT_MAX,
+            atMax: value >= STAT_MAX || remaining <= 0,
           };
         }),
         remaining,
