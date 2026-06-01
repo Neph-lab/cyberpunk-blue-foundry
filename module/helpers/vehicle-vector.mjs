@@ -150,3 +150,32 @@ export function quantiseHeading(rotationDeg, step = 15) {
   const snapped = Math.round(normalise360(rotationDeg) / s) * s;
   return normalise360(snapped);
 }
+
+/**
+ * Rotate a point clockwise by `angleDeg` about a pivot, in y-down screen space
+ * (same convention as `rotateShape` in vehicle-regions.mjs and Foundry token
+ * rotation). Used for arc-correct vehicle turns (pivot = rear axle) and for
+ * keeping attached passengers in their seats when the vehicle rotates.
+ *
+ * @param {{x: number, y: number}} point  Point to rotate (scene pixels).
+ * @param {{x: number, y: number}} pivot  Pivot centre (scene pixels).
+ * @param {number} angleDeg  Clockwise degrees.
+ * @returns {{x: number, y: number}} Rotated point.
+ */
+export function rotatePointAboutPivot(point, pivot, angleDeg) {
+  const px = pivot?.x ?? 0;
+  const py = pivot?.y ?? 0;
+  const x0 = point?.x ?? 0;
+  const y0 = point?.y ?? 0;
+  const a = (angleDeg ?? 0) % 360;
+  if (a === 0) return { x: x0, y: y0 };
+  const rad = a * DEG2RAD;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const dx = x0 - px;
+  const dy = y0 - py;
+  return {
+    x: px + dx * cos - dy * sin,
+    y: py + dx * sin + dy * cos,
+  };
+}

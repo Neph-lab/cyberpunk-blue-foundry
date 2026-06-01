@@ -16,6 +16,7 @@ import {
   turnAngleBetween,
   clampHeadingDelta,
   quantiseHeading,
+  rotatePointAboutPivot,
 } from '../module/helpers/vehicle-vector.mjs';
 
 const EPS = 1e-9;
@@ -148,4 +149,30 @@ test('quantiseHeading is idempotent on grid values', () => {
   for (let d = 0; d < 360; d += 15) {
     assert.equal(quantiseHeading(d), d % 360);
   }
+});
+
+test('rotatePointAboutPivot rotates clockwise in y-down space', () => {
+  const pivot = { x: 0, y: 0 };
+  // +90° clockwise (y-down): (1,0) → (0,1)
+  assert.ok(nearVec(rotatePointAboutPivot({ x: 1, y: 0 }, pivot, 90), 0, 1));
+  // +90°: (0,1) → (-1,0)
+  assert.ok(nearVec(rotatePointAboutPivot({ x: 0, y: 1 }, pivot, 90), -1, 0));
+  // -90°: (1,0) → (0,-1)
+  assert.ok(nearVec(rotatePointAboutPivot({ x: 1, y: 0 }, pivot, -90), 0, -1));
+  // 180°: (1,2) → (-1,-2)
+  assert.ok(nearVec(rotatePointAboutPivot({ x: 1, y: 2 }, pivot, 180), -1, -2));
+});
+
+test('rotatePointAboutPivot is identity at 0° and about its own pivot', () => {
+  const p = { x: 5, y: 7 };
+  const out = rotatePointAboutPivot({ x: 9, y: 3 }, p, 0);
+  assert.deepEqual(out, { x: 9, y: 3 });
+  // a point at the pivot never moves
+  assert.ok(nearVec(rotatePointAboutPivot(p, p, 123), p.x, p.y));
+});
+
+test('rotatePointAboutPivot rotates about a non-origin pivot', () => {
+  const pivot = { x: 10, y: 10 };
+  // point (12,10) is 2 right of pivot; +90° cw → 2 below pivot → (10,12)
+  assert.ok(nearVec(rotatePointAboutPivot({ x: 12, y: 10 }, pivot, 90), 10, 12));
 });

@@ -29,7 +29,13 @@
 import { getPendingManeuver, clearPendingManeuver, getVehicleHandling } from './vehicle-combat.mjs';
 import { resolveRammingCollision } from './vehicle-movement.mjs';
 import { rollLostControl } from './vehicle-lost-control.mjs';
-import { advanceTokenPosition, quantiseHeading, clampHeadingDelta } from './vehicle-vector.mjs';
+import {
+  advanceTokenPosition,
+  quantiseHeading,
+  clampHeadingDelta,
+  displacementPx,
+  rotatePointAboutPivot,
+} from './vehicle-vector.mjs';
 
 const FLAG_SCOPE = 'cyberpunk-blue';
 
@@ -276,6 +282,7 @@ export async function declareManeuver(vehicleCombatant, driverActor, params) {
     dv,
     success,
     angleBucket:          params.angleBucket         ?? null,
+    turnDirection:        params.turnDirection        ?? 'right',
     speedDelta:           params.speedDelta          ?? null,
     hardBrakeTier:        params.hardBrakeTier        ?? null,
     rammingTargetTokenId: params.rammingTargetTokenId ?? null,
@@ -413,12 +420,22 @@ async function _executeSharpTurn(vehicleCombatant, actor, vehicleToken, maneuver
     return;
   }
 
+  // Rotate to the new heading about the pivot, then advance.
+  const direction = maneuver.turnDirection === 'left' ? -1 : 1;
+  const turnAngle = _bucketTurnAngle(maneuver.angleBucket ?? 0);
+  const curRot = vehicleToken?.rotation ?? 0;
+  const newHeading = quantiseHeading(curRot + direction * turnAngle);
+  const currentSpeed = actor.system?.stats?.currentSpeed?.value ?? 0;
+
+  await _moveVehicleToHeading(vehicleToken, actor, newHeading);
+
+  const spaces = Math.abs(currentSpeed);
   await _postManeuverChat(actor, vehicleToken, typeDef.label,
-    `<p>Declared: <strong>${bucketLabel}</strong></p>
-     <p>Drive check succeeded (${maneuver.rollResult} ≥ ${maneuver.dv}).
-        Vehicle executes the turn.</p>
-     <p class="cpb-gm-note">Move the vehicle token to the new heading.
-        Vector UI (Phase 8) will automate this.</p>`
+    `<p>Declared: <strong>${bucketLabel}</strong>,
+        ${maneuver.turnDirection === 'left' ? 'left' : 'right'}.</p>
+     <p>Drive check succeeded (${maneuver.rollResult} ≥ ${maneuver.dv}).</p>
+     <p>Heading → <strong>${newHeading}°</strong>. Advanced
+        <strong>${spaces}</strong> ${spaces === 1 ? 'space' : 'spaces'}${currentSpeed < 0 ? ' in reverse' : ''}.</p>`
   );
 }
 
@@ -582,11 +599,20 @@ async function _executeDiveRise(vehicleCombatant, actor, vehicleToken, maneuver)
   const maxDelta       = Math.min(acc, Math.abs(currentSpeed));
   const clampedDelta   = Math.min(Math.abs(speedDelta), maxDelta) * Math.sign(speedDelta || 1);
 
+  // Dive/Rise does not change horizontal heading (pitch only); the vehicle still
+  // advances forward along its current heading and its elevation changes by the
+  // clamped delta (scene distance units).
+  const curRot = quantiseHeading(vehicleToken?.rotation ?? 0);
+  const curElevation = vehicleToken?.elevation ?? 0;
+  await _moveVehicleToHeading(vehicleToken, actor, curRot, { elevation: curElevation + clampedDelta });
+
+  const spaces = Math.abs(currentSpeed);
   await _postManeuverChat(actor, vehicleToken, MANEUVER_TYPES.diveRise.label,
     `<p>Declared: <strong>${bucketLabel}</strong></p>
-     <p>Drive check succeeded (${maneuver.rollResult} ≥ ${maneuver.dv}).
-        Elevation change: ${clampedDelta > 0 ? '+' : ''}${clampedDelta} m.</p>
-     <p class="cpb-gm-note">Move the vehicle token to the new altitude.</p>`
+     <p>Drive check succeeded (${maneuver.rollResult} ≥ ${maneuver.dv}).</p>
+     <p>Elevation: ${curElevation} → <strong>${curElevation + clampedDelta}</strong>
+        (${clampedDelta > 0 ? '+' : ''}${clampedDelta}). Advanced
+        <strong>${spaces}</strong> ${spaces === 1 ? 'space' : 'spaces'}.</p>`
   );
 }
 
@@ -638,6 +664,83 @@ async function _executeCruise(vehicleCombatant, actor, vehicleToken, maneuver) {
 }
 
 // ── Shared utilities ──────────────────────────────────────────────────────────
+
+/**
+ * Representative turn angle (degrees) for an angle bucket — the bucket midpoint.
+ * Used to pick a concrete rotation for Sharp Turn from the declared bucket. The
+ * final heading is re-quantised to 15° before the move, so the exact midpoint
+ * value only needs to be inside the bucket.
+ *
+ * @param {number} bucketIndex
+ * @returns {number}
+ */
+function _bucketTurnAngle(bucketIndex) {
+  const b = ANGLE_BUCKETS[bucketIndex] ?? ANGLE_BUCKETS[0];
+  return (b.min + b.max) / 2;
+}
+
+/**
+ * Resolve the vehicle's rotation pivot in scene pixels. Uses the authored
+ * `system.pivot` (token-local pixels at the blueprint reference grid) when set
+ * to a non-zero point (e.g. the rear axle for arc-correct turns); otherwise
+ * falls back to the token centre (rotate-in-place).
+ *
+ * @param {TokenDocument} vehicleToken
+ * @param {Actor}         actor
+ * @param {Scene}         scene
+ * @returns {{x: number, y: number}}
+ */
+function _resolvePivotWorld(vehicleToken, actor, scene) {
+  const gridSize = scene?.grid?.size ?? 100;
+  const w = (vehicleToken.width ?? 1) * gridSize;
+  const h = (vehicleToken.height ?? 1) * gridSize;
+  const tx = vehicleToken.x ?? 0;
+  const ty = vehicleToken.y ?? 0;
+  const centre = { x: tx + w / 2, y: ty + h / 2 };
+
+  const pivot = actor?.system?.pivot;
+  if (!pivot || ((pivot.x ?? 0) === 0 && (pivot.y ?? 0) === 0)) return centre;
+
+  const referenceGrid = actor?.system?.blueprint?.referenceGrid ?? 100;
+  const k = gridSize / referenceGrid;
+  return { x: tx + (pivot.x ?? 0) * k, y: ty + (pivot.y ?? 0) * k };
+}
+
+/**
+ * Rotate the vehicle to `newHeading` about its pivot, then advance forward by
+ * its current speed along that heading, in a single token update. Skips the 90°
+ * footprint snap (free art rotation); region / passenger / collision sync runs
+ * via the `updateToken` hook. No-op (returns) when there is no token.
+ *
+ * @param {TokenDocument|null} vehicleToken
+ * @param {Actor}              actor
+ * @param {number}             newHeading  Final heading (already quantised).
+ * @param {object}             [extraUpdate]  Extra token fields to set in the
+ *   same update (e.g. `{ elevation }` for Dive/Rise).
+ */
+async function _moveVehicleToHeading(vehicleToken, actor, newHeading, extraUpdate = {}) {
+  if (!vehicleToken) return;
+  const scene = vehicleToken.parent ?? canvas.scene;
+  const gridSize = scene?.grid?.size ?? 100;
+  const w = (vehicleToken.width ?? 1) * gridSize;
+  const h = (vehicleToken.height ?? 1) * gridSize;
+  const curRot = vehicleToken.rotation ?? 0;
+  const currentSpeed = actor.system?.stats?.currentSpeed?.value ?? 0;
+
+  // 1. Arc the token centre about the pivot by the applied rotation delta.
+  const oldCentre = { x: (vehicleToken.x ?? 0) + w / 2, y: (vehicleToken.y ?? 0) + h / 2 };
+  const pivotWorld = _resolvePivotWorld(vehicleToken, actor, scene);
+  const arced = rotatePointAboutPivot(oldCentre, pivotWorld, newHeading - curRot);
+
+  // 2. Advance forward along the new heading by the current speed.
+  const disp = displacementPx(newHeading, currentSpeed, gridSize);
+  const newCentre = { x: arced.x + disp.x, y: arced.y + disp.y };
+
+  await vehicleToken.update(
+    { x: newCentre.x - w / 2, y: newCentre.y - h / 2, rotation: newHeading, ...extraUpdate },
+    { cyberpunkBlueVehicleSnap: true },
+  );
+}
 
 /**
  * Post a standardised Maneuver execution chat card.

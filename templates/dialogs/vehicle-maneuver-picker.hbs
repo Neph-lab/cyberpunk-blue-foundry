@@ -61,7 +61,15 @@
           {{/each}}
         </select>
       </div>
-      <p class="cpb-mp-hint">DV is computed from current speed and angle bucket.</p>
+      <div class="form-group">
+        <label>Direction</label>
+        <div class="cpb-mp-radio-row">
+          <label><input type="radio" name="turnDirection" value="left"> <i class="fas fa-arrow-rotate-left"></i> Left</label>
+          <label><input type="radio" name="turnDirection" value="right" checked> <i class="fas fa-arrow-rotate-right"></i> Right</label>
+        </div>
+      </div>
+      <p class="cpb-mp-hint">DV is computed from current speed and angle bucket.
+        On success the vehicle rotates and advances along the new heading.</p>
     </div>
 
     {{!-- Hard Brakes --}}

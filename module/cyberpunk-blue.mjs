@@ -1063,8 +1063,12 @@ Hooks.on('updateToken', async (tokenDoc, changes, options) => {
         // Rotation/size changes also need region re-sync so vital areas keep
         // tracking the token's rotated artwork.
         await syncVehicleRegionPositions(tokenDoc);
-        if (positionChanged) {
+        // Passengers must follow both translation and rotation (so they stay in
+        // their seats as the vehicle turns).
+        if (positionChanged || rotationChanged) {
           await syncAttachedTokenPositions(tokenDoc);
+        }
+        if (positionChanged) {
           await checkVehicleCollisions(tokenDoc);
         }
       } catch (err) {

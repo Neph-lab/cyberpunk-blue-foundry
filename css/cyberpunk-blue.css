@@ -4391,6 +4391,19 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 .cpb-mp-panel[hidden] { display: none; }
 
+/* Inline horizontal radio row (e.g. Sharp Turn direction) */
+.cpb-mp-radio-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.cpb-mp-radio-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
 /* Maneuver type radio list */
 .cpb-mp-types {
   display: flex;

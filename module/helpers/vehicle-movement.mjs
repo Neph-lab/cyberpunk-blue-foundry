@@ -8,13 +8,20 @@
  * vehicle token's flags:
  *
  *   token.flags['cyberpunk-blue'].attachedTokens: [
- *     { tokenId: string, offsetX: number, offsetY: number },
+ *     { tokenId, offsetX, offsetY, localX, localY, rotAtAttach, passRotAtAttach },
  *     …
  *   ]
  *
- * `offsetX` / `offsetY` are the passenger token's position relative to the
- * vehicle token's top-left corner (pixels).  When the vehicle moves to (x, y)
- * the passenger is placed at (x + offsetX, y + offsetY).
+ * `localX` / `localY` are the passenger token's *centre* relative to the vehicle
+ * *centre*, expressed in the vehicle's un-rotated (body-local) frame, captured
+ * at attach time. On every sync the offset is rotated by the vehicle's current
+ * rotation, so passengers stay in their seats as the vehicle turns (no drift —
+ * the offset is absolute, re-derived from the current rotation each move). The
+ * passenger's own facing is rotated by the vehicle's rotation delta since attach.
+ *
+ * `offsetX` / `offsetY` (legacy, top-left axis-aligned offset) are retained as a
+ * fallback for records attached before the rotation-aware model existed; those
+ * follow translation only.
  *
  * ── Collision model ──────────────────────────────────────────────────────────
  * `resolveRammingCollision` is the shared service used by:
@@ -28,6 +35,19 @@
  */
 
 import { applyDamageWithPermission } from './socket.mjs';
+import { rotatePointAboutPivot, normalise360 } from './vehicle-vector.mjs';
+
+/**
+ * Centre of a token in scene pixels.
+ * @param {TokenDocument} tokenDoc
+ * @param {number} gridSize
+ * @returns {{x: number, y: number}}
+ */
+function _tokenCentre(tokenDoc, gridSize) {
+  const w = (tokenDoc.width ?? 1) * gridSize;
+  const h = (tokenDoc.height ?? 1) * gridSize;
+  return { x: (tokenDoc.x ?? 0) + w / 2, y: (tokenDoc.y ?? 0) + h / 2 };
+}
 
 /** Flag key used to store the list of tokens attached to a vehicle. */
 export const ATTACHED_TOKENS_FLAG = 'attachedTokens';
@@ -57,12 +77,34 @@ export async function attachTokenToVehicle(vehicleTokenDoc, passengerTokenDoc) {
   const existing = getAttachedTokens(vehicleTokenDoc);
   if (existing.some((r) => r.tokenId === passengerTokenDoc.id)) return;
 
+  const gridSize = vehicleTokenDoc.parent?.grid?.size ?? 100;
+
+  // Legacy axis-aligned top-left offset (kept as a fallback).
   const offsetX = (passengerTokenDoc.x ?? 0) - (vehicleTokenDoc.x ?? 0);
   const offsetY = (passengerTokenDoc.y ?? 0) - (vehicleTokenDoc.y ?? 0);
 
+  // Rotation-aware model: passenger centre relative to vehicle centre, expressed
+  // in the vehicle's un-rotated body frame.
+  const vC = _tokenCentre(vehicleTokenDoc, gridSize);
+  const pC = _tokenCentre(passengerTokenDoc, gridSize);
+  const rotAtAttach = vehicleTokenDoc.rotation ?? 0;
+  const local = rotatePointAboutPivot(
+    { x: pC.x - vC.x, y: pC.y - vC.y },
+    { x: 0, y: 0 },
+    -rotAtAttach,
+  );
+
   await vehicleTokenDoc.setFlag('cyberpunk-blue', ATTACHED_TOKENS_FLAG, [
     ...existing,
-    { tokenId: passengerTokenDoc.id, offsetX, offsetY },
+    {
+      tokenId: passengerTokenDoc.id,
+      offsetX,
+      offsetY,
+      localX: local.x,
+      localY: local.y,
+      rotAtAttach,
+      passRotAtAttach: passengerTokenDoc.rotation ?? 0,
+    },
   ]);
 }
 
@@ -102,17 +144,46 @@ export async function syncAttachedTokenPositions(vehicleTokenDoc) {
   const attached = getAttachedTokens(vehicleTokenDoc);
   if (!attached.length) return;
 
+  const gridSize = scene.grid?.size ?? 100;
   const vx = vehicleTokenDoc.x ?? 0;
   const vy = vehicleTokenDoc.y ?? 0;
+  const vC = _tokenCentre(vehicleTokenDoc, gridSize);
+  const vRot = vehicleTokenDoc.rotation ?? 0;
 
   const updates = [];
   for (const record of attached) {
     const tokenDoc = scene.tokens.get(record.tokenId);
     if (!tokenDoc) continue;
+
+    // Rotation-aware model: rotate the stored body-local offset by the vehicle's
+    // current rotation and place the passenger centre relative to the vehicle
+    // centre. Also rotate the passenger's facing by the vehicle's rotation delta.
+    if (record.localX !== undefined && record.localY !== undefined) {
+      const world = rotatePointAboutPivot(
+        { x: record.localX, y: record.localY },
+        { x: 0, y: 0 },
+        vRot,
+      );
+      const pw = (tokenDoc.width ?? 1) * gridSize;
+      const ph = (tokenDoc.height ?? 1) * gridSize;
+      const update = {
+        _id: record.tokenId,
+        x: vC.x + world.x - pw / 2,
+        y: vC.y + world.y - ph / 2,
+      };
+      const rotDelta = vRot - (record.rotAtAttach ?? 0);
+      if (rotDelta !== 0) {
+        update.rotation = normalise360((record.passRotAtAttach ?? 0) + rotDelta);
+      }
+      updates.push(update);
+      continue;
+    }
+
+    // Legacy fallback: translation only (no rotation).
     updates.push({
       _id: record.tokenId,
-      x: vx + record.offsetX,
-      y: vy + record.offsetY,
+      x: vx + (record.offsetX ?? 0),
+      y: vy + (record.offsetY ?? 0),
     });
   }
 

@@ -197,8 +197,9 @@ export class VehicleManeuverDialog extends HandlebarsApplicationMixin(Applicatio
     const hardBrakeTier  = parseInt(root.querySelector('[name="hardBrakeTier"]')?.value ?? 2);
     const speedDelta     = parseInt(root.querySelector('[name="speedDelta"]')?.value ?? 1);
     const rammingTargetTokenId = root.querySelector('[name="rammingTargetTokenId"]')?.value ?? null;
+    const turnDirection  = root.querySelector('[name="turnDirection"]:checked')?.value ?? 'right';
 
-    return { type, angleBucket, hardBrakeTier, speedDelta, rammingTargetTokenId };
+    return { type, angleBucket, turnDirection, hardBrakeTier, speedDelta, rammingTargetTokenId };
   }
 
   /**
