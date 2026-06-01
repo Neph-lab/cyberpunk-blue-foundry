@@ -68,6 +68,7 @@ import {
   CyberBlueVitalAreaBehavior,
   CyberBlueVehicleRoofBehavior,
   CyberBlueVisibilityRegionBehavior,
+  CyberBlueHazardRegionBehavior,
 } from './helpers/region-behaviors.mjs';
 import { materialiseVehicleBlueprint, cleanupVehicleRegions, syncVehicleRegionPositions, recordVehicleBaseFootprint, applyVehicleRotationSnap } from './helpers/vehicle-regions.mjs';
 import {
@@ -220,6 +221,7 @@ Hooks.once('init', function () {
 
   // ── Visibility behavior ───────────────────────────────────────────────────
   CONFIG.RegionBehavior.dataModels['visibility'] = CyberBlueVisibilityRegionBehavior;
+  CONFIG.RegionBehavior.dataModels['hazard']     = CyberBlueHazardRegionBehavior;
   CONFIG.RegionBehavior.typeLabels['visibility'] = 'CYBER_BLUE.RegionBehavior.Visibility.Label';
 
   Actors.registerSheet('cyberpunk-blue', CyberBlueActorSheet, {

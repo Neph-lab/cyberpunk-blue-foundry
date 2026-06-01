@@ -997,6 +997,46 @@ export async function resolveAfflictionConeAttack(attacker, item, weaponIndex) {
 
 // ─── Affliction Explosion ───────────────────────────────────────────────────
 
+/**
+ * Create a persistent movement-hazard Region (e.g. caltrops) at a point.
+ * Reads hazard config from `item.flags.cyberpunk-blue.hazard`; the Region runs
+ * the `hazard` Region Behavior (region-behaviors.mjs) that damages tokens which
+ * move through it. activeGM only.
+ *
+ * @returns {Promise<RegionDocument|null>}
+ */
+async function createHazardRegion(item, center, radiusPx) {
+  if (game.user !== game.users.activeGM) return null;
+  const scene = canvas.scene;
+  if (!scene) return null;
+
+  const cfg = item.getFlag('cyberpunk-blue', 'hazard') ?? {};
+  const bottom = sampleGroundElevation(center);
+
+  const [regionDoc] = await scene.createEmbeddedDocuments('Region', [{
+    name: item.name,
+    color: '#cc6600',
+    elevation: { bottom, top: bottom + 1 },
+    shapes: [{
+      type: 'ellipse', x: center.x, y: center.y,
+      radiusX: radiusPx, radiusY: radiusPx, rotation: 0, hole: false,
+    }],
+    behaviors: [{
+      type: 'hazard',
+      system: {
+        label:         cfg.label ?? item.name,
+        dv:            cfg.dv ?? 15,
+        savePrimary:   cfg.savePrimary ?? 'rflx',
+        saveSkill:     cfg.saveSkill ?? 'athletics',
+        damageDie:     cfg.damageDie ?? '1d6',
+        metersPerStep: cfg.metersPerStep ?? 2,
+      },
+    }],
+    flags: { 'cyberpunk-blue': { hazardDeployedBy: item.id } },
+  }]);
+  return regionDoc;
+}
+
 export async function resolveAfflictionExplosionAttack(attacker, item, weaponIndex) {
   const effectiveWeapons = item.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(item);
   const weapon = effectiveWeapons[weaponIndex];
@@ -1110,6 +1150,20 @@ export async function resolveAfflictionExplosionAttack(attacker, item, weaponInd
       tint: weapon.effectMediaTint || null,
     });
     await createResidueRegion(item, weapon, explosionCenter, spreadPx, pixelsPerMeter);
+  }
+
+  // ── Caltrops / deployed hazard: drop a persistent movement-hazard Region and
+  // stop (the region IS the effect — no immediate per-target affliction). ──────
+  if (item.getFlag('cyberpunk-blue', 'deploysHazardRegion')) {
+    await createHazardRegion(item, explosionCenter, spreadPx);
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      content: `<div class="cyberpunk-blue chat-card">
+        <h3><i class="fas fa-shoe-prints"></i> ${item.name}</h3>
+        <p>${game.i18n.localize('CYBER_BLUE.Combat.HazardDeployed')}</p>
+      </div>`,
+    });
+    return;
   }
 
   // Find tokens in blast radius

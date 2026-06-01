@@ -21,6 +21,7 @@ import { getNetConnection, resolveNetAttack } from './netrunning.mjs';
 import { attachTokenToVehicle, detachTokenFromVehicle } from './vehicle-movement.mjs';
 import { DRIVER_TOKEN_FLAG } from './vehicle-combat.mjs';
 import { VIS } from './visibility.mjs';
+import { applyDamageWithPermission } from './socket.mjs';
 
 /**
  * Access Point — placed in a meat-world scene.
@@ -607,4 +608,146 @@ export class CyberBlueVisibilityRegionBehavior extends foundry.data.regionBehavi
       CyberBlueVisibilityRegionBehavior._onRegionBoundary.call(this, event);
     },
   };
+}
+
+// ── Hazard Region Behavior (caltrops, broken glass, etc.) ─────────────────────
+//
+// A movement hazard: when a token moves through the region, it must save
+// (default DV15 RFLX + Athletics) or take damage scaled by the distance moved
+// through the hazard (default 1d6 per 2m). Deployed by caltrops (see
+// cone-attack.mjs createHazardRegion) but usable as a generic GM tool.
+
+/** Dedupe processed movements so MOVE_IN + MOVE_WITHIN don't double-hit. */
+const _hazardProcessed = new Set();
+
+export class CyberBlueHazardRegionBehavior extends foundry.data.regionBehaviors.RegionBehaviorType {
+  static defineSchema() {
+    const fields = foundry.data.fields;
+    return {
+      label: new fields.StringField({
+        required: true, blank: true, initial: 'Hazard',
+        label: 'CYBER_BLUE.RegionBehavior.Hazard.Label',
+      }),
+      dv: new fields.NumberField({
+        required: true, nullable: false, integer: true, initial: 15, min: 0,
+        label: 'CYBER_BLUE.RegionBehavior.Hazard.Dv',
+      }),
+      savePrimary: new fields.StringField({
+        required: true, blank: false, initial: 'rflx',
+        label: 'CYBER_BLUE.RegionBehavior.Hazard.SavePrimary',
+      }),
+      saveSkill: new fields.StringField({
+        required: true, blank: true, initial: 'athletics',
+        label: 'CYBER_BLUE.RegionBehavior.Hazard.SaveSkill',
+      }),
+      damageDie: new fields.StringField({
+        required: true, blank: false, initial: '1d6',
+        label: 'CYBER_BLUE.RegionBehavior.Hazard.DamageDie',
+      }),
+      metersPerStep: new fields.NumberField({
+        required: true, nullable: false, initial: 2, min: 0.1,
+        label: 'CYBER_BLUE.RegionBehavior.Hazard.MetersPerStep',
+      }),
+    };
+  }
+
+  static events = {
+    [CONST.REGION_EVENTS.TOKEN_MOVE_IN]: async function _hazardMoveIn(event) {
+      return CyberBlueHazardRegionBehavior._onHazardMove.call(this, event);
+    },
+    [CONST.REGION_EVENTS.TOKEN_MOVE_WITHIN]: async function _hazardMoveWithin(event) {
+      return CyberBlueHazardRegionBehavior._onHazardMove.call(this, event);
+    },
+  };
+
+  /**
+   * Metres travelled by the token's centre inside this region during `movement`.
+   * Uses Region#segmentizeMovementPath; falls back to one step on any failure.
+   * @returns {number}
+   */
+  _inRegionMeters(token, movement) {
+    const gridSize = canvas?.grid?.size ?? 100;
+    const gridDistance = canvas.scene?.grid?.distance ?? 1;
+    const units = (canvas.scene?.grid?.units ?? '').toLowerCase().trim();
+    const metersPerUnit = ['m', 'meter', 'meters'].includes(units) ? gridDistance : 2;
+    try {
+      const wpSource = (movement?.passed?.waypoints?.length ?? 0) >= 2
+        ? movement.passed.waypoints
+        : [movement.origin, movement.destination];
+      const waypoints = wpSource.map((w) => ({ x: w.x, y: w.y, elevation: w.elevation ?? 0, teleport: !!w.teleport }));
+      const cx = ((token.width ?? 1) * gridSize) / 2;
+      const cy = ((token.height ?? 1) * gridSize) / 2;
+      const segments = this.region.segmentizeMovementPath(waypoints, [{ x: cx, y: cy }]);
+      let px = 0;
+      for (const s of segments) {
+        px += Math.hypot((s.to.x ?? 0) - (s.from.x ?? 0), (s.to.y ?? 0) - (s.from.y ?? 0));
+      }
+      if (px <= 0) return this.metersPerStep; // entered but no measurable path → one step
+      return (px / gridSize) * metersPerUnit;
+    } catch (_err) {
+      return this.metersPerStep;
+    }
+  }
+
+  /** Build a damage formula for N steps from the per-step die (e.g. '1d6' → 'Nd6'). */
+  _stepDamageFormula(steps) {
+    const m = /^\s*(\d*)d(\d+)\s*$/i.exec(this.damageDie ?? '1d6');
+    if (!m) return `${steps}d6`;
+    const perStep = m[1] === '' ? 1 : Number(m[1]);
+    const dieSize = Number(m[2]);
+    return `${Math.max(1, steps * perStep)}d${dieSize}`;
+  }
+
+  static async _onHazardMove(event) {
+    if (game.user !== game.users.activeGM) return;
+    const token = event.data?.token;
+    const actor = token?.actor;
+    if (!actor) return;
+
+    // Dedupe by movement id so MOVE_IN + MOVE_WITHIN don't both fire.
+    const moveId = event.data?.movement?.id;
+    const key = `${this.behavior?.id ?? this.region?.id}:${moveId}`;
+    if (moveId) {
+      if (_hazardProcessed.has(key)) return;
+      _hazardProcessed.add(key);
+      if (_hazardProcessed.size > 200) _hazardProcessed.clear();
+    }
+
+    const meters = this._inRegionMeters(token, event.data.movement);
+    const steps = Math.max(1, Math.floor(meters / (this.metersPerStep || 2)));
+
+    // Save: 1d10 + primary stat + skill vs DV.
+    const statSlug = this.savePrimary || 'rflx';
+    const skillSlug = this.saveSkill || '';
+    const statVal = actor.system?.stats?.[statSlug]?.value ?? 0;
+    const statMod = actor.system?.stats?.[statSlug]?.rollMod ?? 0;
+    const skillRank = skillSlug ? (actor.system?.skills?.[skillSlug]?.rank ?? 0) : 0;
+    const skillBonus = skillSlug ? (actor.system?.skills?.[skillSlug]?.bonus ?? 0) : 0;
+    const flat = statVal + statMod + skillRank + skillBonus;
+    const saveRoll = await new Roll(`1d10 + ${flat}`).evaluate();
+
+    const statLabel = CONFIG.CYBER_BLUE.stats?.[statSlug]?.shortLabel ?? statSlug.toUpperCase();
+    const skillLabel = skillSlug ? (CONFIG.CYBER_BLUE.skills?.[skillSlug]?.label ?? skillSlug) : null;
+    const passed = saveRoll.total >= this.dv;
+
+    await saveRoll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      flavor: `<div class="cyberpunk-blue chat-card">
+        <h3><i class="fas fa-shoe-prints"></i> ${this.label || game.i18n.localize('CYBER_BLUE.RegionBehavior.Hazard.Label')}: ${actor.name}</h3>
+        <p>${statLabel}${skillLabel ? ` + ${skillLabel}` : ''} vs DV <strong>${this.dv}</strong> — <strong>${game.i18n.localize(passed ? 'CYBER_BLUE.Combat.AfflictionResisted' : 'CYBER_BLUE.Combat.AfflictionFailed')}</strong></p>
+        <p>${game.i18n.format('CYBER_BLUE.RegionBehavior.Hazard.MovedThrough', { m: meters.toFixed(1) })}</p>
+      </div>`,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
+
+    if (passed) return;
+
+    const dmgRoll = await new Roll(this._stepDamageFormula(steps)).evaluate();
+    await dmgRoll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      flavor: `<div class="cyberpunk-blue chat-card"><h3><i class="fas fa-droplet"></i> ${this.label}: ${actor.name}</h3></div>`,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
+    await applyDamageWithPermission(actor, dmgRoll.total);
+  }
 }

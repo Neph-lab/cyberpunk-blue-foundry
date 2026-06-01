@@ -74,7 +74,7 @@ function gear({
   isArmor = false, maxSp = 0, quantity = 1,
   isComputer = false, computer = {},
   isWeapon = false, weapons = [],
-  effects = [], instructions = [],
+  effects = [], instructions = [], flags = {},
 }) {
   return {
     _folder: folder,
@@ -82,6 +82,7 @@ function gear({
     type: 'gear',
     img: imgPath,
     effects,
+    flags,
     system: {
       manufacturer,
       cost: COST[cost] ?? cost,
@@ -596,6 +597,29 @@ export const EQUIPMENT_CATALOGUE = [
     name: 'Caltrops',
     folder: 'Clandestine Gear', cost: 'EV',
     description: 'Covers 2m². Any creature moving through must make a DV15 RFLX+Athletics check or take 1d6 damage per 2m of movement through the area. Shoes have SP 1 against this; army boots have SP 5. DV10 INT+Perception to detect.',
+    // Deployed as an "affliction explosion" placement that drops a persistent
+    // movement-hazard Region (see createHazardRegion / CyberBlueHazardRegionBehavior).
+    isWeapon: true,
+    weapons: [{
+      type: 'thrown', skill: 'athletics', damage: '0', rateOfFire: 1,
+      magazine: 0, ammoCurrent: 0, shots: 0, hands: 1, concealable: true,
+      damageType: 'affliction-explosion', autofireMultiplier: 1, autofireRangeTable: Array(8).fill(0),
+      coneSpread: 1, coneAngle: 45, coneHalfDamageDistance: 0,
+      rangeTable: [13, 15, 0, 0, 0, 0, 0, 0],
+      ammoTypeUuid: '', autofireDamage: '',
+      isPowerWeapon: false, isSmartWeapon: false, isTechWeapon: false, isExcellentQuality: false,
+      chargeType: '', silenceBuiltIn: false, silenceBuiltInDV: 0,
+      jamOnRoll: 0, jamFiresFirst: false, shellDvModifier: 0, targetVitalsPenalty: 8,
+      payloadDmgBonus: 0, critSlicing: false, critBlunt: false, critCrushing: false, critStun: false,
+      afflictionPrimary: 'rflx', afflictionSkill: 'athletics', afflictionDv: 15, afflictionEffectId: '',
+      outerZoneResistBonus: 0,
+    }],
+    flags: {
+      'cyberpunk-blue': {
+        deploysHazardRegion: true,
+        hazard: { label: 'Caltrops', dv: 15, savePrimary: 'rflx', saveSkill: 'athletics', damageDie: '1d6', metersPerStep: 2 },
+      },
+    },
   }),
   gear({
     name: 'Disposable Phone',

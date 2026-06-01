@@ -620,6 +620,7 @@
       "AfflictionHitNoTarget": "Affliction hit — no target selected to resolve against.",
       "AfflictionCone": "Affliction Cone",
       "AfflictionExplosion": "Affliction Explosion",
+      "HazardDeployed": "Hazard deployed — tokens moving through the area must save or take damage.",
       "MovementOutsideTurn": "Not your turn — token movement is locked during encounters.",
       "MovementExhausted": "No movement remaining this turn (budget: {max}m).",
       "MovementExceeded": "Not enough movement remaining ({remaining}m left) — move cancelled.",
@@ -961,6 +962,15 @@
       }
     },
     "RegionBehavior": {
+      "Hazard": {
+        "Label": "Hazard (Caltrops)",
+        "Dv": "Save DV",
+        "SavePrimary": "Save stat (slug, e.g. rflx)",
+        "SaveSkill": "Save skill (slug, e.g. athletics)",
+        "DamageDie": "Damage per step (e.g. 1d6)",
+        "MetersPerStep": "Metres per damage step",
+        "MovedThrough": "Moved {m} m through the hazard."
+      },
       "AccessPoint": {
         "Label": "NET: Access Point",
         "ArchitectureScene": "Architecture Scene",
