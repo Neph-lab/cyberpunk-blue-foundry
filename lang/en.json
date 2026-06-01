@@ -1018,6 +1018,7 @@
     },
     "VehicleCombat": {
       "DeclareManeuver": "Declare Maneuver",
+      "VectorDrawHint": "Click to set the turn point, click again to set the turn. Right-click or Esc to cancel.",
       "SeriousDamage": "Serious Damage",
       "CritRoll": "Critical Damage Roll",
       "CritGmNote": "GM applies the critical damage effect.",

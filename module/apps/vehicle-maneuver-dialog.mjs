@@ -21,7 +21,9 @@ import {
   declareCruise,
   getCruiseSpeedEnvelope,
   CRUISE_MAX_HEADING_DELTA,
+  angleToBucket,
 } from '../helpers/vehicle-maneuvers.mjs';
+import { startVectorDraw } from '../helpers/vehicle-vector-draw.mjs';
 
 export class VehicleManeuverDialog extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
@@ -117,10 +119,15 @@ export class VehicleManeuverDialog extends HandlebarsApplicationMixin(Applicatio
       radio.addEventListener('change', updateParams);
     });
 
-    // Also update DV when angle bucket or hard-brake tier changes.
+    // Also update DV when angle bucket or hard-brake tier changes. Manually
+    // editing the angle/direction discards any drawn path (the manual values win).
     root.addEventListener('change', (ev) => {
       const name = ev.target.name;
-      if (name === 'angleBucket' || name === 'hardBrakeTier' || name === 'rammingTargetTokenId') {
+      if (name === 'angleBucket' || name === 'turnDirection') {
+        this._drawnPath = null;
+        this._updateDrawSummary(root);
+      }
+      if (name === 'angleBucket' || name === 'hardBrakeTier' || name === 'rammingTargetTokenId' || name === 'turnDirection') {
         const type = root.querySelector('[name="type"]:checked')?.value ?? '';
         this._updateDvDisplay(root, type);
       }
@@ -159,6 +166,12 @@ export class VehicleManeuverDialog extends HandlebarsApplicationMixin(Applicatio
     root.querySelector('[data-action="cruise"]')?.addEventListener('click', () => {
       this._onCruise(root);
     });
+
+    // ── Draw path on canvas (Sharp Turn) ───────────────────────────────────────
+    root.querySelector('[data-action="drawPath"]')?.addEventListener('click', () => {
+      this._onDrawPath(root);
+    });
+    this._updateDrawSummary(root);
   }
 
   async close(options) {
@@ -199,7 +212,59 @@ export class VehicleManeuverDialog extends HandlebarsApplicationMixin(Applicatio
     const rammingTargetTokenId = root.querySelector('[name="rammingTargetTokenId"]')?.value ?? null;
     const turnDirection  = root.querySelector('[name="turnDirection"]:checked')?.value ?? 'right';
 
-    return { type, angleBucket, turnDirection, hardBrakeTier, speedDelta, rammingTargetTokenId };
+    return {
+      type, angleBucket, turnDirection, hardBrakeTier, speedDelta, rammingTargetTokenId,
+      drawnPath: (type === 'sharpTurn' ? (this._drawnPath ?? null) : null),
+    };
+  }
+
+  /**
+   * Enter canvas vector-draw mode, then apply the drawn relative path:
+   * set the angle bucket + direction from the drawn turn and store the path so
+   * `_readParams` carries it into the declaration. Minimises the dialog while
+   * drawing so the canvas is clear.
+   */
+  async _onDrawPath(root) {
+    const scene = canvas?.scene;
+    const vehicleToken = scene?.tokens.get(this._vehicleCombatant.tokenId) ?? null;
+    if (!vehicleToken) {
+      ui.notifications?.warn('Vehicle token not found on the canvas.');
+      return;
+    }
+
+    await this.minimize();
+    let path = null;
+    try {
+      path = await startVectorDraw(vehicleToken);
+    } finally {
+      await this.maximize();
+    }
+    if (!path) return; // cancelled
+
+    this._drawnPath = path;
+
+    // Reflect the drawn turn in the angle bucket + direction controls.
+    const bucket = angleToBucket(Math.abs(path.turnAngle));
+    const bucketSel = root.querySelector('[name="angleBucket"]');
+    if (bucketSel) bucketSel.value = String(bucket);
+    const dir = path.turnAngle < 0 ? 'left' : 'right';
+    const dirRadio = root.querySelector(`[name="turnDirection"][value="${dir}"]`);
+    if (dirRadio) dirRadio.checked = true;
+
+    this._updateDrawSummary(root);
+    this._updateDvDisplay(root, 'sharpTurn');
+  }
+
+  /**
+   * Update the small "drawn path" summary next to the Draw button.
+   */
+  _updateDrawSummary(root) {
+    const el = root.querySelector('#cpb-mp-draw-summary');
+    if (!el) return;
+    const p = this._drawnPath;
+    el.textContent = p
+      ? `Forward ${p.forward1} → ${Math.abs(p.turnAngle)}° ${p.turnAngle < 0 ? 'left' : 'right'} → forward ${p.forward2}`
+      : '';
   }
 
   /**

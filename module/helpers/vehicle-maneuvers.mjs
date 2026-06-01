@@ -283,6 +283,7 @@ export async function declareManeuver(vehicleCombatant, driverActor, params) {
     success,
     angleBucket:          params.angleBucket         ?? null,
     turnDirection:        params.turnDirection        ?? 'right',
+    drawnPath:            params.drawnPath            ?? null,
     speedDelta:           params.speedDelta          ?? null,
     hardBrakeTier:        params.hardBrakeTier        ?? null,
     rammingTargetTokenId: params.rammingTargetTokenId ?? null,
@@ -420,7 +421,34 @@ async function _executeSharpTurn(vehicleCombatant, actor, vehicleToken, maneuver
     return;
   }
 
-  // Rotate to the new heading about the pivot, then advance.
+  // ── Drawn relative path: forward X → turn Y° → forward Z ───────────────────
+  // Stored relative (not absolute scene coords): replays from the vehicle's
+  // ACTUAL position/heading at execution time. If the vehicle was displaced
+  // since declaration, the path simply executes from where it now is.
+  const path = maneuver.drawnPath;
+  if (path) {
+    const startRot = quantiseHeading(vehicleToken?.rotation ?? 0);
+    const f1 = Math.max(0, Number(path.forward1) || 0);
+    const f2 = Math.max(0, Number(path.forward2) || 0);
+    const turnY = Number(path.turnAngle) || 0;
+    const newHeading = quantiseHeading(startRot + turnY);
+
+    // Step 1: drive forward f1 along the current heading (no rotation).
+    if (f1 > 0) await _moveVehicleToHeading(vehicleToken, actor, startRot, { distance: f1 });
+    // Step 2: turn to the new heading and drive forward f2.
+    await _moveVehicleToHeading(vehicleToken, actor, newHeading, { distance: f2 });
+
+    await _postManeuverChat(actor, vehicleToken, typeDef.label,
+      `<p>Declared: <strong>${bucketLabel}</strong> (drawn path).</p>
+       <p>Drive check succeeded (${maneuver.rollResult} ≥ ${maneuver.dv}).</p>
+       <p>Forward <strong>${f1}</strong>, turn
+          <strong>${Math.abs(turnY)}° ${turnY >= 0 ? 'right' : 'left'}</strong>
+          → heading <strong>${newHeading}°</strong>, forward <strong>${f2}</strong>.</p>`
+    );
+    return;
+  }
+
+  // ── Fallback: bucket + Left/Right (no drawn path) ──────────────────────────
   const direction = maneuver.turnDirection === 'left' ? -1 : 1;
   const turnAngle = _bucketTurnAngle(maneuver.angleBucket ?? 0);
   const curRot = vehicleToken?.rotation ?? 0;
@@ -604,7 +632,7 @@ async function _executeDiveRise(vehicleCombatant, actor, vehicleToken, maneuver)
   // clamped delta (scene distance units).
   const curRot = quantiseHeading(vehicleToken?.rotation ?? 0);
   const curElevation = vehicleToken?.elevation ?? 0;
-  await _moveVehicleToHeading(vehicleToken, actor, curRot, { elevation: curElevation + clampedDelta });
+  await _moveVehicleToHeading(vehicleToken, actor, curRot, { extraUpdate: { elevation: curElevation + clampedDelta } });
 
   const spaces = Math.abs(currentSpeed);
   await _postManeuverChat(actor, vehicleToken, MANEUVER_TYPES.diveRise.label,
@@ -680,6 +708,22 @@ function _bucketTurnAngle(bucketIndex) {
 }
 
 /**
+ * Map a turn-angle magnitude (degrees) to an ANGLE_BUCKETS index. Angles below
+ * the first bucket's minimum clamp to bucket 0; angles above the last clamp to
+ * the last bucket. Used to derive the Drive-check DV from a drawn turn.
+ *
+ * @param {number} absAngle  Absolute turn angle in degrees.
+ * @returns {number} Bucket index (0..ANGLE_BUCKETS.length-1).
+ */
+export function angleToBucket(absAngle) {
+  const a = Math.abs(absAngle);
+  for (let i = 0; i < ANGLE_BUCKETS.length; i++) {
+    if (a <= ANGLE_BUCKETS[i].max) return i;
+  }
+  return ANGLE_BUCKETS.length - 1;
+}
+
+/**
  * Resolve the vehicle's rotation pivot in scene pixels. Uses the authored
  * `system.pivot` (token-local pixels at the blueprint reference grid) when set
  * to a non-zero point (e.g. the rear axle for arc-correct turns); otherwise
@@ -715,25 +759,28 @@ function _resolvePivotWorld(vehicleToken, actor, scene) {
  * @param {TokenDocument|null} vehicleToken
  * @param {Actor}              actor
  * @param {number}             newHeading  Final heading (already quantised).
- * @param {object}             [extraUpdate]  Extra token fields to set in the
- *   same update (e.g. `{ elevation }` for Dive/Rise).
+ * @param {object}             [opts]
+ * @param {number}             [opts.distance]  Grid spaces to advance after the
+ *   rotation. Defaults to the actor's current speed. Negative = reverse.
+ * @param {object}             [opts.extraUpdate]  Extra token fields to set in
+ *   the same update (e.g. `{ elevation }` for Dive/Rise).
  */
-async function _moveVehicleToHeading(vehicleToken, actor, newHeading, extraUpdate = {}) {
+async function _moveVehicleToHeading(vehicleToken, actor, newHeading, { distance, extraUpdate = {} } = {}) {
   if (!vehicleToken) return;
   const scene = vehicleToken.parent ?? canvas.scene;
   const gridSize = scene?.grid?.size ?? 100;
   const w = (vehicleToken.width ?? 1) * gridSize;
   const h = (vehicleToken.height ?? 1) * gridSize;
   const curRot = vehicleToken.rotation ?? 0;
-  const currentSpeed = actor.system?.stats?.currentSpeed?.value ?? 0;
+  const advance = distance ?? (actor.system?.stats?.currentSpeed?.value ?? 0);
 
   // 1. Arc the token centre about the pivot by the applied rotation delta.
   const oldCentre = { x: (vehicleToken.x ?? 0) + w / 2, y: (vehicleToken.y ?? 0) + h / 2 };
   const pivotWorld = _resolvePivotWorld(vehicleToken, actor, scene);
   const arced = rotatePointAboutPivot(oldCentre, pivotWorld, newHeading - curRot);
 
-  // 2. Advance forward along the new heading by the current speed.
-  const disp = displacementPx(newHeading, currentSpeed, gridSize);
+  // 2. Advance forward along the new heading by the requested distance.
+  const disp = displacementPx(newHeading, advance, gridSize);
   const newCentre = { x: arced.x + disp.x, y: arced.y + disp.y };
 
   await vehicleToken.update(

@@ -4404,6 +4404,18 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   cursor: pointer;
 }
 
+/* Draw-path row (Sharp Turn vector-draw) */
+.cpb-mp-draw-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+}
+.cpb-mp-draw-summary {
+  font-size: var(--font-size-11, 11px);
+  color: #a0c8e0;
+}
+
 /* Maneuver type radio list */
 .cpb-mp-types {
   display: flex;

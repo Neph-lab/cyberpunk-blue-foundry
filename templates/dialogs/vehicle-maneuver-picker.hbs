@@ -70,6 +70,15 @@
       </div>
       <p class="cpb-mp-hint">DV is computed from current speed and angle bucket.
         On success the vehicle rotates and advances along the new heading.</p>
+      <div class="cpb-mp-draw-row">
+        <button type="button" data-action="drawPath" class="cpb-btn">
+          <i class="fas fa-pen-ruler"></i> Draw path on canvas
+        </button>
+        <span class="cpb-mp-draw-summary" id="cpb-mp-draw-summary"></span>
+      </div>
+      <p class="cpb-mp-hint">Drawing sets the path as <em>forward → turn → forward</em>
+        (relative); it fills the angle &amp; direction above and is followed on
+        the vehicle's turn.</p>
     </div>
 
     {{!-- Hard Brakes --}}
