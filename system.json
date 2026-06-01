@@ -59,7 +59,8 @@
       "passengerSeat": {},
       "vitalArea": {},
       "vehicleRoof": {},
-      "visibility": {}
+      "visibility": {},
+      "hazard": {}
     },
     "Actor": {
       "character": {
