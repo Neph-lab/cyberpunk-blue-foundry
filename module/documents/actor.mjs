@@ -78,6 +78,62 @@ export class CyberBlueActor extends Actor {
     this.system.resources.armor.max = maxSp;
   }
 
+  async _preUpdate(changed, options, userId) {
+    await super._preUpdate(changed, options, userId);
+
+    if (this.type !== 'character' && this.type !== 'npc') return;
+
+    // Find any skill rank changes in this update (handles both flat and nested formats).
+    const flat = foundry.utils.flattenObject(changed);
+    const rankChanges = {};
+    for (const [key, value] of Object.entries(flat)) {
+      const m = key.match(/^system\.skills\.(\w+)\.rank$/);
+      if (m) rankChanges[m[1]] = Number(value) || 0;
+    }
+    if (!Object.keys(rankChanges).length) return;
+
+    const skills = CONFIG.CYBER_BLUE?.skills ?? {};
+    const components = CONFIG.CYBER_BLUE?.components ?? {};
+    const compUpdates = {};
+
+    for (const [skillSlug, newRank] of Object.entries(rankChanges)) {
+      const skillDef = skills[skillSlug];
+      if (!skillDef?.components?.length) continue;
+
+      const currentRank = this.system.skills[skillSlug]?.rank ?? 0;
+
+      if (currentRank === 0 && newRank > 0) {
+        // 0 → active: activate linked components not already in the table.
+        for (const compSlug of skillDef.components) {
+          if (!this.system.components[compSlug]?.active) {
+            compUpdates[`system.components.${compSlug}.active`] = true;
+          }
+        }
+      } else if (currentRank > 0 && newRank === 0) {
+        // active → 0: deactivate linked components with no other skill remaining at rank > 0.
+        for (const compSlug of skillDef.components) {
+          if (!this.system.components[compSlug]?.active) continue;
+
+          const compDef = components[compSlug];
+          const hasOtherActiveSkill = (compDef?.skills ?? []).some((otherSlug) => {
+            if (otherSlug === skillSlug) return false;
+            const rank = rankChanges[otherSlug] !== undefined
+              ? rankChanges[otherSlug]
+              : (this.system.skills[otherSlug]?.rank ?? 0);
+            return rank > 0;
+          });
+
+          if (!hasOtherActiveSkill) {
+            compUpdates[`system.components.${compSlug}.active`] = false;
+            compUpdates[`system.components.${compSlug}.rank`] = 0;
+          }
+        }
+      }
+    }
+
+    Object.assign(changed, compUpdates);
+  }
+
   async createEmbeddedDocuments(embeddedName, data = [], options = {}) {
     const hadNoRoles = embeddedName === 'Item'
       && this.items.contents.every((item) => item.type !== 'role');
