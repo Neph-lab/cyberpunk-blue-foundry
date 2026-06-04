@@ -1016,6 +1016,9 @@ async function createHazardRegion(item, center, radiusPx) {
   const [regionDoc] = await scene.createEmbeddedDocuments('Region', [{
     name: item.name,
     color: '#cc6600',
+    // Always-visible so players and the GM can see the hazard zone; it persists
+    // until manually deleted (no expiry — unlike explosion gas residue).
+    visibility: CONST.REGION_VISIBILITY.ALWAYS,
     elevation: { bottom, top: bottom + 1 },
     shapes: [{
       type: 'ellipse', x: center.x, y: center.y,
