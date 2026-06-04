@@ -289,6 +289,18 @@ Hooks.once('init', function () {
   });
 
   // ── System settings ────────────────────────────────────────────────────────
+
+  // Per-user tooltip preference for stat/skill/component descriptions.
+  game.settings.register('cyberpunk-blue', 'descriptionTooltips', {
+    name: 'CYBER_BLUE.Settings.DescriptionTooltips.Name',
+    hint: 'CYBER_BLUE.Settings.DescriptionTooltips.Hint',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: true,
+    requiresReload: false,
+  });
+
   game.settings.register('cyberpunk-blue', 'areaEffectDuration', {
     name: 'CYBER_BLUE.Settings.AreaEffectDuration.Name',
     hint: 'CYBER_BLUE.Settings.AreaEffectDuration.Hint',

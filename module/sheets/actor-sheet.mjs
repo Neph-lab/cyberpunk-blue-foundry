@@ -133,6 +133,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       .map(([slug, data]) => ({
         slug,
         label: data.label,
+        description: data.description ?? '',
         rank: system.components[slug].rank,
         linkedSkills: data.skills.map((skillSlug) => CONFIG.CYBER_BLUE.skills[skillSlug].label).join(', '),
       }));
@@ -151,6 +152,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     context.canManageRestricted = canManageRestricted;
     context.isNPC = actorData.type === 'npc';
     context.itemTypes = CONFIG.CYBER_BLUE.itemTypes;
+    context.showDescriptionTooltips = game.settings.get('cyberpunk-blue', 'descriptionTooltips');
     const moveEntry = { slug: 'move', ...CONFIG.CYBER_BLUE.stats.move, value: system.stats.move.value, iconPath: 'systems/cyberpunk-blue/assets/icons/bk_MOVE.svg' };
     context.stats = Object.entries(CONFIG.CYBER_BLUE.stats)
       .filter(([slug]) => slug !== 'move')
@@ -200,6 +202,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     const skillEntries = Object.entries(CONFIG.CYBER_BLUE.skills).map(([slug, data]) => ({
       slug,
       label: data.label,
+      description: data.description ?? '',
       statSlug: data.stat,
       statLabel: CONFIG.CYBER_BLUE.stats[data.stat]?.shortLabel ?? data.stat.toUpperCase(),
       rank: system.skills[slug].rank,
@@ -787,13 +790,18 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         })))
         : null,
     })));
+    const _hid = CONFIG.CYBER_BLUE.healthItemDescriptions ?? {};
     context.health = {
       hp: {
         value: system.resources.hp.value,
         max: system.resources.hp.max,
+        description: CONFIG.CYBER_BLUE.resources.hp?.description ?? '',
       },
       seriousWoundThreshold: system.resources.seriousWoundThreshold.value,
+      seriousWoundDescription: _hid.seriousWound ?? '',
       deathSave: system.resources.deathSave.value,
+      deathSaveDescription: _hid.deathSave ?? '',
+      stoppingPowerDescription: _hid.stoppingPower ?? '',
       effects: this.document.effects.contents
         .filter((effect) => !effect.disabled)
         .map((effect) => {
@@ -1282,6 +1290,11 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       input.addEventListener('change', this._onUpdateMoney.bind(this));
     });
 
+    // Description tooltip / click-to-chat
+    this.element.querySelectorAll('[data-description]').forEach((el) => {
+      el.addEventListener('click', this._onShowDescription.bind(this));
+    });
+
     // Restore scroll positions after re-render
     if (this._savedScrolls?.length) {
       for (const { key, scrollTop } of this._savedScrolls) {
@@ -1290,6 +1303,20 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       }
       this._savedScrolls = null;
     }
+  }
+
+  _onShowDescription(event) {
+    if (game.settings.get('cyberpunk-blue', 'descriptionTooltips')) return;
+    const el = event.currentTarget;
+    const description = el.dataset.description;
+    if (!description) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const label = el.dataset.label || el.textContent?.trim() || '';
+    ChatMessage.create({
+      content: `<p>${label ? `<strong>${label}</strong><br>` : ''}${description}</p>`,
+      whisper: [game.user.id],
+    });
   }
 
   async _onRemoveCriticalInjury(event) {

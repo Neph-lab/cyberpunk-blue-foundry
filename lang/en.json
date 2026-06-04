@@ -415,6 +415,10 @@
       "VisibilityDarkThreshold": {
         "Name": "Dark darkness threshold",
         "Hint": "Ambient darkness level (0–1) above which a point counts as full darkness. Default 0.50."
+      },
+      "DescriptionTooltips": {
+        "Name": "Stat & Skill Description Tooltips",
+        "Hint": "When enabled, hovering over a stat, skill, or component name shows its description as a tooltip. When disabled, clicking the name posts the description to chat as a private message visible only to you."
       }
     },
     "CC": {

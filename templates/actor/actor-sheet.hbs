@@ -9,8 +9,8 @@
         <div class="header-stats {{#if charCreation.highlightStats}}char-creation-highlight{{/if}}">
           {{#each stats as |stat|}}
             <label class="header-stat" title="{{stat.label}}">
-              <img class="stat-icon" src="{{stat.iconPath}}" alt="{{stat.shortLabel}}" />
-              <span class="stat-short">{{stat.shortLabel}}</span>
+              <img class="stat-icon" src="{{stat.iconPath}}" alt="{{stat.shortLabel}}" data-description="{{stat.description}}" data-label="{{stat.shortLabel}}" {{#if @root.showDescriptionTooltips}}data-tooltip="{{stat.description}}"{{/if}} />
+              <span class="stat-short" data-description="{{stat.description}}" data-label="{{stat.shortLabel}}" {{#if @root.showDescriptionTooltips}}data-tooltip="{{stat.description}}"{{/if}}>{{stat.shortLabel}}</span>
               <input type="number" name="system.stats.{{stat.slug}}.value" value="{{stat.value}}" data-dtype="Number" {{#unless ../charCreation.statsWritable}}disabled{{/unless}} />
             </label>
           {{/each}}
@@ -88,8 +88,8 @@
         </div>
 
         <div class="stat-card sheet-panel health-hp">
-          <div class="cpb-divider--header"><span>Hit Points (HP)</span></div>
-          <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_HP.svg" alt="HP" />
+          <div class="cpb-divider--header"><span data-description="{{health.hp.description}}" data-label="HP" {{#if showDescriptionTooltips}}data-tooltip="{{health.hp.description}}"{{/if}}>Hit Points (HP)</span></div>
+          <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_HP.svg" alt="HP" data-description="{{health.hp.description}}" data-label="HP" {{#if showDescriptionTooltips}}data-tooltip="{{health.hp.description}}"{{/if}} />
           <div class="resource-fields">
             <input type="number" name="system.resources.hp.value" value="{{health.hp.value}}" data-dtype="Number" />
             <span>/</span>
@@ -98,19 +98,19 @@
         </div>
 
         <div class="stat-card sheet-panel health-threshold">
-          <div class="cpb-divider--header"><span>Serious Wound</span></div>
-          <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_SWT.svg" alt="Serious Wound Threshold" />
+          <div class="cpb-divider--header"><span data-description="{{health.seriousWoundDescription}}" data-label="Serious Wound" {{#if showDescriptionTooltips}}data-tooltip="{{health.seriousWoundDescription}}"{{/if}}>Serious Wound</span></div>
+          <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_SWT.svg" alt="Serious Wound Threshold" data-description="{{health.seriousWoundDescription}}" data-label="Serious Wound Threshold" {{#if showDescriptionTooltips}}data-tooltip="{{health.seriousWoundDescription}}"{{/if}} />
           <div class="health-value">{{health.seriousWoundThreshold}}</div>
         </div>
 
         <div class="stat-card sheet-panel health-threshold">
-          <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Sheet.Labels.DeathSave"}}</span></div>
-          <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_Death_Save.svg" alt="Death Save" />
+          <div class="cpb-divider--header"><span data-description="{{health.deathSaveDescription}}" data-label="Death Save" {{#if showDescriptionTooltips}}data-tooltip="{{health.deathSaveDescription}}"{{/if}}>{{localize "CYBER_BLUE.Sheet.Labels.DeathSave"}}</span></div>
+          <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_Death_Save.svg" alt="Death Save" data-description="{{health.deathSaveDescription}}" data-label="Death Save" {{#if showDescriptionTooltips}}data-tooltip="{{health.deathSaveDescription}}"{{/if}} />
           <div class="health-value">{{health.deathSave}}</div>
         </div>
 
         <div class="stat-card sheet-panel armor-card">
-          <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Sheet.Labels.StoppingPower"}}</span></div>
+          <div class="cpb-divider--header"><span data-description="{{health.stoppingPowerDescription}}" data-label="SP" {{#if showDescriptionTooltips}}data-tooltip="{{health.stoppingPowerDescription}}"{{/if}}>{{localize "CYBER_BLUE.Sheet.Labels.StoppingPower"}}</span></div>
           <select name="system.combat.activeArmorItemId">
             {{#if armor.options.length}}
               {{#each armor.options as |option|}}
@@ -128,14 +128,14 @@
         </div>
         
         <label class="sheet-panel stat-card move-card">
-          <div class="cpb-divider--header"><span>{{move.shortLabel}}</span></div>
-          <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_MOVE.svg" alt="{{move.label}}" />
+          <div class="cpb-divider--header"><span data-description="{{move.description}}" data-label="{{move.shortLabel}}" {{#if showDescriptionTooltips}}data-tooltip="{{move.description}}"{{/if}}>{{move.shortLabel}}</span></div>
+          <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_MOVE.svg" alt="{{move.label}}" data-description="{{move.description}}" data-label="{{move.shortLabel}}" {{#if showDescriptionTooltips}}data-tooltip="{{move.description}}"{{/if}} />
           <input type="number" name="system.stats.move.value" value="{{move.value}}" data-dtype="Number" />
         </label>
         
         <div class="sheet-panel stat-card psyche-card">
-          <div class="cpb-divider--header"><span>{{psyche.label}}</span></div>
-          <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_PSYCHE.svg" alt="{{psyche.label}}" />
+          <div class="cpb-divider--header"><span data-description="{{psyche.description}}" data-label="{{psyche.label}}" {{#if showDescriptionTooltips}}data-tooltip="{{psyche.description}}"{{/if}}>{{psyche.label}}</span></div>
+          <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_PSYCHE.svg" alt="{{psyche.label}}" data-description="{{psyche.description}}" data-label="{{psyche.label}}" {{#if showDescriptionTooltips}}data-tooltip="{{psyche.description}}"{{/if}} />
           <div class="resource-fields">
             <input type="number" name="system.resources.psyche.value" value="{{psyche.value}}" data-dtype="Number" />
             <span>/</span>
@@ -145,8 +145,8 @@
 
         {{#unless isNPC}}
           <div class="sheet-panel stat-card luck-card">
-            <div class="cpb-divider--header"><span>{{luck.label}}</span></div>
-            <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_LUCK.svg" alt="{{luck.label}}" />
+            <div class="cpb-divider--header"><span data-description="{{luck.description}}" data-label="{{luck.label}}" {{#if showDescriptionTooltips}}data-tooltip="{{luck.description}}"{{/if}}>{{luck.label}}</span></div>
+            <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_LUCK.svg" alt="{{luck.label}}" data-description="{{luck.description}}" data-label="{{luck.label}}" {{#if showDescriptionTooltips}}data-tooltip="{{luck.description}}"{{/if}} />
             <div class="resource-fields">
               <input type="number" name="system.resources.luck.value" value="{{luck.value}}" data-dtype="Number" />
               <span>/</span>
@@ -174,12 +174,12 @@
               <tr>
                 <th>Weapon</th>
                 <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Attack"}}</th>
-                <th class="numeric-column" title="{{localize 'CYBER_BLUE.Combat.TargetVitals'}}"><i class="fas fa-crosshairs"></i></th>
+                <th class="numeric-column" data-description="{{config.tableHeaderDescriptions.targetVitals}}" data-label="Target Vitals" {{#if showDescriptionTooltips}}data-tooltip="{{config.tableHeaderDescriptions.targetVitals}}"{{/if}}><i class="fas fa-crosshairs"></i></th>
                 <th>{{localize "CYBER_BLUE.Sheet.Labels.WeaponSkill"}}</th>
                 <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Damage"}}</th>
-                <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.RateOfFire"}}</th>
-                <th class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Mag"}}</th>
-                <th class="numeric-column" title="{{localize "CYBER_BLUE.Sheet.Labels.Concealable"}}"><i class="fas fa-eye-slash"></i></th>
+                <th class="numeric-column" data-description="{{config.tableHeaderDescriptions.rateOfFire}}" data-label="Rate of Fire" {{#if showDescriptionTooltips}}data-tooltip="{{config.tableHeaderDescriptions.rateOfFire}}"{{/if}}>{{localize "CYBER_BLUE.Sheet.Labels.RateOfFire"}}</th>
+                <th class="numeric-column" data-description="{{config.tableHeaderDescriptions.mag}}" data-label="Mag" {{#if showDescriptionTooltips}}data-tooltip="{{config.tableHeaderDescriptions.mag}}"{{/if}}>{{localize "CYBER_BLUE.Sheet.Labels.Mag"}}</th>
+                <th class="numeric-column" data-description="{{config.tableHeaderDescriptions.concealable}}" data-label="Concealable" {{#if showDescriptionTooltips}}data-tooltip="{{config.tableHeaderDescriptions.concealable}}"{{/if}}><i class="fas fa-eye-slash"></i></th>
                 <th class="numeric-column">Controls</th>
               </tr>
             </thead>
@@ -799,7 +799,7 @@
                   <button type="button" class="roll-button" data-action="roll-skill" data-skill-slug="{{skill.slug}}">
                     {{localize "CYBER_BLUE.Sheet.Labels.Roll"}}
                   </button>
-                  <span class="skill-name">{{skill.label}}</span>
+                  <span class="skill-name" data-description="{{skill.description}}" data-label="{{skill.label}}" {{#if @root.showDescriptionTooltips}}data-tooltip="{{skill.description}}"{{/if}}>{{skill.label}}</span>
                   <span class="skill-stat numeric-column">{{skill.statLabel}}</span>
                   <input class="numeric-column" type="number" name="system.skills.{{skill.slug}}.rank" value="{{skill.rank}}" data-dtype="Number" {{#unless ../../charCreation.skillsWritable}}disabled{{/unless}} />
                   <div class="component-pill-list">
@@ -845,7 +845,7 @@
             <div class="component-entries">
               {{#each components as |component|}}
                 <div class="component-row">
-                  <span class="component-name">{{component.label}}</span>
+                  <span class="component-name" data-description="{{component.description}}" data-label="{{component.label}}" {{#if ../showDescriptionTooltips}}data-tooltip="{{component.description}}"{{/if}}>{{component.label}}</span>
                   <input class="numeric-column" type="number" name="system.components.{{component.slug}}.rank" value="{{component.rank}}" data-dtype="Number" />
                   <span class="component-links">{{component.linkedSkills}}</span>
                   <button type="button" data-action="remove-component" data-component-slug="{{component.slug}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.RemoveComponent"}}">
@@ -869,9 +869,9 @@
               <div class="embedded-list">
                 <div class="embedded-header embedded-row cyberware-row">
                   <span>Cyberware</span>
-                  <span>{{localize "CYBER_BLUE.Sheet.Labels.Integration"}}</span>
+                  <span data-description="{{@root.config.tableHeaderDescriptions.integration}}" data-label="Integration" {{#if @root.showDescriptionTooltips}}data-tooltip="{{@root.config.tableHeaderDescriptions.integration}}"{{/if}}>{{localize "CYBER_BLUE.Sheet.Labels.Integration"}}</span>
                   <span class="numeric-column">Slots</span>
-                  <span>{{localize "CYBER_BLUE.Sheet.Labels.Platform"}}</span>
+                  <span data-description="{{@root.config.tableHeaderDescriptions.platform}}" data-label="Platform" {{#if @root.showDescriptionTooltips}}data-tooltip="{{@root.config.tableHeaderDescriptions.platform}}"{{/if}}>{{localize "CYBER_BLUE.Sheet.Labels.Platform"}}</span>
                   <span>{{localize "CYBER_BLUE.Instructions.Activate"}}</span>
                   <span>Controls</span>
                 </div>
