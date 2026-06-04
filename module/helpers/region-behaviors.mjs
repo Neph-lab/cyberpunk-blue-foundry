@@ -616,9 +616,14 @@ export class CyberBlueVisibilityRegionBehavior extends foundry.data.regionBehavi
 // (default DV15 RFLX + Athletics) or take damage scaled by the distance moved
 // through the hazard (default 1d6 per 2m). Deployed by caltrops (see
 // cone-attack.mjs createHazardRegion) but usable as a generic GM tool.
-
-/** Dedupe processed movements so MOVE_IN + MOVE_WITHIN don't double-hit. */
-const _hazardProcessed = new Set();
+//
+// NB: this behavior carries only config + resolution logic. The trigger is the
+// `updateToken` hook (cyberpunk-blue.mjs → checkHazardRegionsForMove), NOT region
+// movement events: Foundry splits one logical move into many segment-operations
+// (and multiple subpaths) with unstable ids spread unpredictably over time, so
+// region events can't reliably produce ONE save per move. The hook fires exactly
+// once per token.update, giving a clean from→to for a single save with damage
+// scaled by the true in-region distance.
 
 export class CyberBlueHazardRegionBehavior extends foundry.data.regionBehaviors.RegionBehaviorType {
   static defineSchema() {
@@ -651,15 +656,6 @@ export class CyberBlueHazardRegionBehavior extends foundry.data.regionBehaviors.
     };
   }
 
-  static events = {
-    [CONST.REGION_EVENTS.TOKEN_MOVE_IN]: async function _hazardMoveIn(event) {
-      return CyberBlueHazardRegionBehavior._onHazardMove.call(this, event);
-    },
-    [CONST.REGION_EVENTS.TOKEN_MOVE_WITHIN]: async function _hazardMoveWithin(event) {
-      return CyberBlueHazardRegionBehavior._onHazardMove.call(this, event);
-    },
-  };
-
   /**
    * Metres travelled by the token's centre inside this region during `movement`.
    * Uses Region#segmentizeMovementPath; falls back to one step on any failure.
@@ -682,10 +678,10 @@ export class CyberBlueHazardRegionBehavior extends foundry.data.regionBehaviors.
       for (const s of segments) {
         px += Math.hypot((s.to.x ?? 0) - (s.from.x ?? 0), (s.to.y ?? 0) - (s.from.y ?? 0));
       }
-      if (px <= 0) return this.metersPerStep; // entered but no measurable path → one step
+      if (px <= 0) return 0; // this segment didn't pass through the region
       return (px / gridSize) * metersPerUnit;
     } catch (_err) {
-      return this.metersPerStep;
+      return this.metersPerStep; // measurement failed → count one step
     }
   }
 
@@ -698,27 +694,37 @@ export class CyberBlueHazardRegionBehavior extends foundry.data.regionBehaviors.
     return `${Math.max(1, steps * perStep)}d${dieSize}`;
   }
 
-  static async _onHazardMove(event) {
+  /**
+   * In-region metres for a straight from→to move (token top-left positions),
+   * used by the updateToken-hook driver.
+   */
+  _inRegionMetersForMove(token, from, to) {
+    const elevation = token.elevation ?? 0;
+    return this._inRegionMeters(token, {
+      origin: { x: from.x, y: from.y, elevation },
+      destination: { x: to.x, y: to.y, elevation },
+    });
+  }
+
+  /**
+   * Resolve a single hazard save for one logical move and apply scaled damage.
+   * @param {CyberBlueHazardRegionBehavior} behaviorSys  The behavior data model.
+   * @param {TokenDocument} token
+   * @param {number} totalMeters  Total distance moved through the region.
+   */
+  static async _resolveHazard(behaviorSys, token, totalMeters) {
     if (game.user !== game.users.activeGM) return;
-    const token = event.data?.token;
     const actor = token?.actor;
     if (!actor) return;
+    // No measurable passage through the hazard → no save (e.g. edge-grazing).
+    if (!(totalMeters > 0)) return;
 
-    // Dedupe by movement id so MOVE_IN + MOVE_WITHIN don't both fire.
-    const moveId = event.data?.movement?.id;
-    const key = `${this.behavior?.id ?? this.region?.id}:${moveId}`;
-    if (moveId) {
-      if (_hazardProcessed.has(key)) return;
-      _hazardProcessed.add(key);
-      if (_hazardProcessed.size > 200) _hazardProcessed.clear();
-    }
-
-    const meters = this._inRegionMeters(token, event.data.movement);
-    const steps = Math.max(1, Math.floor(meters / (this.metersPerStep || 2)));
+    const metersPerStep = behaviorSys.metersPerStep || 2;
+    const steps = Math.max(1, Math.floor(totalMeters / metersPerStep));
 
     // Save: 1d10 + primary stat + skill vs DV.
-    const statSlug = this.savePrimary || 'rflx';
-    const skillSlug = this.saveSkill || '';
+    const statSlug = behaviorSys.savePrimary || 'rflx';
+    const skillSlug = behaviorSys.saveSkill || '';
     const statVal = actor.system?.stats?.[statSlug]?.value ?? 0;
     const statMod = actor.system?.stats?.[statSlug]?.rollMod ?? 0;
     const skillRank = skillSlug ? (actor.system?.skills?.[skillSlug]?.rank ?? 0) : 0;
@@ -728,26 +734,76 @@ export class CyberBlueHazardRegionBehavior extends foundry.data.regionBehaviors.
 
     const statLabel = CONFIG.CYBER_BLUE.stats?.[statSlug]?.shortLabel ?? statSlug.toUpperCase();
     const skillLabel = skillSlug ? (CONFIG.CYBER_BLUE.skills?.[skillSlug]?.label ?? skillSlug) : null;
-    const passed = saveRoll.total >= this.dv;
+    const passed = saveRoll.total >= behaviorSys.dv;
+    const label = behaviorSys.label || game.i18n.localize('CYBER_BLUE.RegionBehavior.Hazard.Label');
 
     await saveRoll.toMessage({
       speaker: ChatMessage.getSpeaker({ actor }),
       flavor: `<div class="cyberpunk-blue chat-card">
-        <h3><i class="fas fa-shoe-prints"></i> ${this.label || game.i18n.localize('CYBER_BLUE.RegionBehavior.Hazard.Label')}: ${actor.name}</h3>
-        <p>${statLabel}${skillLabel ? ` + ${skillLabel}` : ''} vs DV <strong>${this.dv}</strong> — <strong>${game.i18n.localize(passed ? 'CYBER_BLUE.Combat.AfflictionResisted' : 'CYBER_BLUE.Combat.AfflictionFailed')}</strong></p>
-        <p>${game.i18n.format('CYBER_BLUE.RegionBehavior.Hazard.MovedThrough', { m: meters.toFixed(1) })}</p>
+        <h3><i class="fas fa-shoe-prints"></i> ${label}: ${actor.name}</h3>
+        <p>${statLabel}${skillLabel ? ` + ${skillLabel}` : ''} vs DV <strong>${behaviorSys.dv}</strong> — <strong>${game.i18n.localize(passed ? 'CYBER_BLUE.Combat.AfflictionResisted' : 'CYBER_BLUE.Combat.AfflictionFailed')}</strong></p>
+        <p>${game.i18n.format('CYBER_BLUE.RegionBehavior.Hazard.MovedThrough', { m: totalMeters.toFixed(1) })}</p>
       </div>`,
       rollMode: game.settings.get('core', 'rollMode'),
     });
 
     if (passed) return;
 
-    const dmgRoll = await new Roll(this._stepDamageFormula(steps)).evaluate();
+    const dmgRoll = await new Roll(behaviorSys._stepDamageFormula(steps)).evaluate();
     await dmgRoll.toMessage({
       speaker: ChatMessage.getSpeaker({ actor }),
-      flavor: `<div class="cyberpunk-blue chat-card"><h3><i class="fas fa-droplet"></i> ${this.label}: ${actor.name}</h3></div>`,
+      flavor: `<div class="cyberpunk-blue chat-card"><h3><i class="fas fa-droplet"></i> ${label}: ${actor.name}</h3></div>`,
       rollMode: game.settings.get('core', 'rollMode'),
     });
     await applyDamageWithPermission(actor, dmgRoll.total);
+  }
+}
+
+/**
+ * Pending hazard resolutions, keyed region+token. A single move fires the
+ * updateToken hook once for a pass-through but TWICE (identical from→to) when it
+ * ends inside the region, so we debounce briefly and resolve once per move,
+ * taking the max distance seen (each hook call already carries the full-move
+ * in-region distance, so we dedupe rather than sum).
+ * @type {Map<string, {meters:number, sys:object, token:object, timer:any}>}
+ */
+const _hazardPending = new Map();
+
+/**
+ * Driver for hazard regions, called once (or twice, for moves ending inside)
+ * per token move from the `updateToken` hook (activeGM only). For each hazard
+ * Region on the scene, measure how far the token's straight from→to path passed
+ * through it and, if non-zero, schedule a single debounced save-or-damage.
+ *
+ * @param {TokenDocument} tokenDoc
+ * @param {{x:number,y:number}} fromPos  Token top-left before the move.
+ */
+export async function checkHazardRegionsForMove(tokenDoc, fromPos) {
+  if (game.user !== game.users.activeGM) return;
+  const scene = tokenDoc?.parent;
+  if (!scene || !tokenDoc.actor || !fromPos) return;
+  const to = { x: tokenDoc.x ?? 0, y: tokenDoc.y ?? 0 };
+  if (to.x === fromPos.x && to.y === fromPos.y) return;
+
+  for (const region of scene.regions) {
+    const beh = region.behaviors.find((b) => b.type === 'hazard' && !b.disabled);
+    if (!beh) continue;
+    const sys = beh.system;
+    const meters = sys._inRegionMetersForMove(tokenDoc, fromPos, to);
+    if (!(meters > 0)) continue;
+
+    const key = `${region.id}:${tokenDoc.id}`;
+    let p = _hazardPending.get(key);
+    if (!p) { p = { meters: 0, sys, token: tokenDoc, timer: null }; _hazardPending.set(key, p); }
+    p.meters = Math.max(p.meters, meters); // dedupe identical double-fires (not sum)
+    p.sys = sys;
+    p.token = tokenDoc;
+    if (p.timer) clearTimeout(p.timer);
+    p.timer = setTimeout(() => {
+      const m = p.meters;
+      _hazardPending.delete(key);
+      CyberBlueHazardRegionBehavior._resolveHazard(p.sys, p.token, m)
+        .catch((err) => console.error('cyberpunk-blue | hazard resolve failed:', err));
+    }, 200);
   }
 }

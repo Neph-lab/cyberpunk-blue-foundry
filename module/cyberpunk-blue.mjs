@@ -69,6 +69,7 @@ import {
   CyberBlueVehicleRoofBehavior,
   CyberBlueVisibilityRegionBehavior,
   CyberBlueHazardRegionBehavior,
+  checkHazardRegionsForMove,
 } from './helpers/region-behaviors.mjs';
 import { materialiseVehicleBlueprint, cleanupVehicleRegions, syncVehicleRegionPositions, recordVehicleBaseFootprint, applyVehicleRotationSnap } from './helpers/vehicle-regions.mjs';
 import {
@@ -1048,7 +1049,8 @@ Hooks.on('deleteToken', async (tokenDoc, _options, _userId) => {
 // through to updateToken, so a property set here is readable there.
 Hooks.on('preUpdateToken', (tokenDoc, changes, options) => {
   if (options?.cyberpunkBlueVehicleSync) return;
-  if (tokenDoc.actor?.type !== 'vehicle') return;
+  // Stash for ANY moving token: vehicles use it for swept-path collision, and
+  // hazard regions (caltrops) use it to measure the from→to in-region distance.
   if ('x' in changes || 'y' in changes) {
     options.cyberpunkBlueFromPos = { x: tokenDoc.x ?? 0, y: tokenDoc.y ?? 0 };
   }
@@ -1057,6 +1059,13 @@ Hooks.on('preUpdateToken', (tokenDoc, changes, options) => {
 Hooks.on('updateToken', async (tokenDoc, changes, options) => {
   if (options?.cyberpunkBlueVehicleSync) return;
   if (game.user !== game.users.activeGM) return;
+
+  // Hazard regions (caltrops, broken glass, …) — applies to any token that
+  // moves. One updateToken = one logical move = one save per hazard region.
+  if (('x' in changes || 'y' in changes) && options?.cyberpunkBlueFromPos) {
+    await checkHazardRegionsForMove(tokenDoc, options.cyberpunkBlueFromPos)
+      .catch((err) => console.error('cyberpunk-blue | hazard check failed:', err));
+  }
 
   // Position sync applies to vehicle tokens; prune also runs on any token
   // deletion-triggered move edge case.
