@@ -1389,6 +1389,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .skill-category {
   margin-top: 0 !important;
   margin-bottom: 1rem;
+  padding-top: 0 !important;
   break-inside: avoid;
 }
 

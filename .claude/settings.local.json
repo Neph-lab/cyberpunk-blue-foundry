@@ -99,7 +99,14 @@
       "Bash(git worktree *)",
       "Bash(git branch *)",
       "Bash(FM=\"/c/Program Files/Foundry Virtual Tabletop/resources/app/public/scripts/foundry.mjs\"; echo \"=== core AE duration schema? ===\"; grep -n \"units:.*new fields\\\\|duration.*units\\\\|EffectDurationData\\\\|expiry\" \"$FM\" | head; echo \"=== modules that might extend AE duration ===\"; ls /d/FoundryVTT/Data/modules 2>/dev/null | grep -iE \"effect|dae|times|dfred\" )",
-      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('system.json','utf8'\\)\\);console.log\\('system.json valid'\\)\")"
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('system.json','utf8'\\)\\);console.log\\('system.json valid'\\)\")",
+      "Bash(node --check module/helpers/region-behaviors.mjs)",
+      "Bash(grep -E \"\\\\.\\(mjs|json\\)$\")",
+      "Bash(grep -E \"\\\\.\\(mjs|js\\)$\")",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('lang/en.json'\\)\\); s=d.get\\('CYBER_BLUE',{}\\).get\\('Settings',{}\\); [print\\(k,':', json.dumps\\(v, indent=2\\)\\) for k,v in list\\(s.items\\(\\)\\)[:3]]\")",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('lang/en.json'\\)\\); print\\(json.dumps\\(list\\(d['CYBER_BLUE']['Settings'].keys\\(\\)\\), indent=2\\)\\)\")",
+      "Bash(python3 -c ' *)",
+      "Bash(node -e ' *)"
     ]
   }
 }
