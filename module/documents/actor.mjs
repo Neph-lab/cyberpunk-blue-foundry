@@ -132,6 +132,35 @@ export class CyberBlueActor extends Actor {
     }
 
     Object.assign(changed, compUpdates);
+
+    // Signal the one-time components explainer dialog to the initiating client.
+    // Only needed the first time any skill with linked components goes 0 → >0.
+    if (!options.cyberBlueShowComponentsExplainer
+      && !game.user.getFlag('cyberpunk-blue', 'seenComponentsExplainer')) {
+      const firstActivation = Object.entries(rankChanges).some(([slug, newRank]) => {
+        if (newRank === 0) return false;
+        if ((this.system.skills[slug]?.rank ?? 0) !== 0) return false;
+        return (CONFIG.CYBER_BLUE?.skills[slug]?.components?.length ?? 0) > 0;
+      });
+      if (firstActivation) options.cyberBlueShowComponentsExplainer = true;
+    }
+  }
+
+  _onUpdate(changed, options, userId) {
+    super._onUpdate(changed, options, userId);
+
+    if (options.cyberBlueShowComponentsExplainer && userId === game.user.id) {
+      game.user.setFlag('cyberpunk-blue', 'seenComponentsExplainer', true);
+      new Dialog({
+        title: 'Skills & Components',
+        content: `
+          <p>Some skills have linked Components that are ways to specialize within that Skill. But some Components can be used with several Skills, allowing you to benefit from what you've learned across those skills. When you make a check with these skills, you do so along with a Component and add the lower of the two to your check. The table of Components is located below the skills — make sure you add those you want.</p>
+          <p>"When you gain a rank in a skill with linked Components, you also gain a rank in one of those Components (one you already have ranks in or a different one). Instead of using a skill-point to buy a rank in a Skill, you may increase two Components by 1 each, or one Component by 2. Or, you may instead use your skill-point to raise a skill linked to Components by 2 ranks, but only if you had a Component at least 2 ranks higher than the skill, and you don't get any Component rank this way."</p>
+        `,
+        buttons: { ok: { label: 'OK' } },
+        default: 'ok',
+      }).render(true);
+    }
   }
 
   async createEmbeddedDocuments(embeddedName, data = [], options = {}) {
