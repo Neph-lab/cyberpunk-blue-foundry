@@ -2725,7 +2725,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     const roleItem = this.document.items.get(roleId);
     if (!roleItem || roleItem.type !== 'role') return;
 
-    const system = normalizeRoleSystemData(roleItem.system);
+    // Work on a full clone of the role system and write back the WHOLE object.
+    // Updating a single array element via a dotted path (system.specialties.N.rank)
+    // collides with the intact array in CyberBlueItem#_preUpdate's role merge and
+    // wipes the specialties (and the rest of the role). Mirror the safe pattern in
+    // _onToggleSpecialtyOption: clone → mutate → update({ system }).
+    const system = normalizeRoleSystemData(roleItem.system.toObject?.() ?? roleItem.system);
     const specialty = system.specialties[specialtyIndex];
     if (!specialty) return;
 
@@ -2738,7 +2743,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     if (delta > 0 && currentTotal >= totalBudget) return;
     if (newRank === currentRank) return;
 
-    await roleItem.update({ [`system.specialties.${specialtyIndex}.rank`]: newRank });
+    specialty.rank = newRank;
+    await roleItem.update({ system });
   }
 
   async _onFixerHaggle(event) {

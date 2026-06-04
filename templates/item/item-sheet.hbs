@@ -899,6 +899,52 @@
 
             {{#if (eq roleCategoryData.category "specialist")}}
               <section class="sheet-panel">
+                {{!-- Point allocation & option selection — owner + GM (in play) --}}
+                {{#if roleCanEditChoices}}
+                  {{#unless roleShowRestrictedEditing}}
+                    <div class="panel-header">
+                      <span>{{localize "CYBER_BLUE.Role.Specialties"}}</span>
+                    </div>
+                  {{/unless}}
+                  {{#if specialtyBudget}}
+                    <div class="specialty-budget">
+                      <span>{{localize "CYBER_BLUE.Role.Specialist.Budget"}}: <strong>{{specialtyBudget.remaining}} / {{specialtyBudget.total}}</strong> {{localize "CYBER_BLUE.Role.Specialist.PointsRemaining"}}</span>
+                    </div>
+                  {{/if}}
+                  {{#each roleSpecialties as |specialty|}}
+                    <section class="role-config-block">
+                      <div class="specialty-header">
+                        <strong class="specialty-name">{{specialty.name}}</strong>
+                        <div class="specialty-rank-controls">
+                          <button type="button" data-action="specialty-rank-change" data-specialty-index="{{specialty.specialtyIndex}}" data-delta="-1" {{#unless specialty.canDecrement}}disabled{{/unless}} class="specialty-rank-btn" title="{{localize "CYBER_BLUE.Role.Specialist.RemoveRank"}}">
+                            <i class="fas fa-minus"></i>
+                          </button>
+                          <span class="specialty-rank-value">{{specialty.rank}}</span>
+                          <button type="button" data-action="specialty-rank-change" data-specialty-index="{{specialty.specialtyIndex}}" data-delta="1" {{#unless specialty.canIncrement}}disabled{{/unless}} class="specialty-rank-btn" title="{{localize "CYBER_BLUE.Role.Specialist.AddRank"}}">
+                            <i class="fas fa-plus"></i>
+                          </button>
+                        </div>
+                      </div>
+                      {{#if specialty.description}}
+                        <p class="specialty-description hint">{{specialty.description}}</p>
+                      {{/if}}
+                      {{#each specialty.enrichedSections as |section|}}
+                        <div class="enriched-html">{{{section.enrichedContent}}}</div>
+                      {{/each}}
+                      {{#each specialty.optionGroups as |group|}}
+                        <div class="checkbox-group">
+                          {{#each group.options as |option|}}
+                            <label class="checkbox" title="{{option.description}}">
+                              <input type="checkbox" data-action="toggle-specialty-option" data-specialty-index="{{../../specialtyIndex}}" data-group-index="{{../groupIndex}}" data-option-id="{{option.id}}" {{checked (includes ../selectedOptionIds option.id)}} />
+                              <span>{{option.name}}</span>
+                            </label>
+                          {{/each}}
+                        </div>
+                      {{/each}}
+                    </section>
+                  {{/each}}
+                {{/if}}
+
                 {{#if roleShowRestrictedEditing}}
                   <div class="panel-header panel-actions">
                     <span>{{localize "CYBER_BLUE.Role.Specialties"}}</span>
@@ -996,35 +1042,21 @@
                     </section>
                   {{/each}}
                 {{else}}
-                  {{#each roleSpecialties as |specialty|}}
-                    <section class="role-config-block">
-                      <div class="item-meta-row">
-                        <label>
-                          <span>{{specialty.name}}</span>
-                          {{#if @root.roleCanEditChoices}}
-                            <input type="number" name="system.specialties.{{specialty.specialtyIndex}}.rank" value="{{specialty.rank}}" data-dtype="Number" />
-                          {{else}}
+                  {{#unless roleCanEditChoices}}
+                    {{#each roleSpecialties as |specialty|}}
+                      <section class="role-config-block">
+                        <div class="item-meta-row">
+                          <label>
+                            <span>{{specialty.name}}</span>
                             <div class="readonly-value">{{specialty.rank}}</div>
-                          {{/if}}
-                        </label>
-                      </div>
-                      {{#each specialty.enrichedSections as |section|}}
-                        <div class="enriched-html">{{{section.enrichedContent}}}</div>
-                      {{/each}}
-                      {{#each specialty.optionGroups as |group|}}
-                        <div class="checkbox-group">
-                          {{#each group.options as |option|}}
-                            <label class="checkbox" title="{{option.description}}">
-                              {{#if @root.roleCanEditChoices}}
-                                <input type="checkbox" data-action="toggle-specialty-option" data-specialty-index="{{../../specialtyIndex}}" data-group-index="{{../groupIndex}}" data-option-id="{{option.id}}" {{checked (includes ../selectedOptionIds option.id)}} />
-                              {{/if}}
-                              <span>{{option.name}}</span>
-                            </label>
-                          {{/each}}
+                          </label>
                         </div>
-                      {{/each}}
-                    </section>
-                  {{/each}}
+                        {{#each specialty.enrichedSections as |section|}}
+                          <div class="enriched-html">{{{section.enrichedContent}}}</div>
+                        {{/each}}
+                      </section>
+                    {{/each}}
+                  {{/unless}}
                 {{/if}}
               </section>
             {{/if}}

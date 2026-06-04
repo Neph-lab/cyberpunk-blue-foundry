@@ -237,6 +237,19 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
         })),
       })))
       : [];
+    // Budget-aware allocation metadata (specialist roles). Total budget is twice
+    // the role rank; a single specialty may not exceed the role rank.
+    if (context.isRole && roleCategoryData?.category === 'specialist') {
+      const totalBudget = roleRank * 2;
+      const used = context.roleSpecialties.reduce((sum, s) => sum + (Number(s.rank) || 0), 0);
+      const remaining = totalBudget - used;
+      context.specialtyBudget = { total: totalBudget, used, remaining };
+      context.roleSpecialties = context.roleSpecialties.map((s) => ({
+        ...s,
+        canIncrement: remaining > 0 && (Number(s.rank) || 0) < roleRank,
+        canDecrement: (Number(s.rank) || 0) > 0,
+      }));
+    }
     context.effects = prepareActiveEffectCategories(
       this.document.effects.filter((effect) => !effect.getFlag('cyberpunk-blue', 'modId'))
     );
@@ -636,6 +649,9 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     this.element.querySelectorAll('[data-action="toggle-specialty-option"]').forEach((input) => {
       input.addEventListener('change', this._onToggleSpecialtyOption.bind(this));
     });
+    this.element.querySelectorAll('[data-action="specialty-rank-change"]').forEach((button) => {
+      button.addEventListener('click', this._onSpecialtyRankChange.bind(this));
+    });
     this.element.querySelectorAll('[data-action="add-weapon"]').forEach((button) => {
       button.addEventListener('click', this._onAddWeapon.bind(this));
     });
@@ -999,6 +1015,30 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       next.delete(optionId);
     }
     group.selectedOptionIds = [...next];
+    await this.document.update({ system });
+  }
+
+  async _onSpecialtyRankChange(event) {
+    event.preventDefault();
+    const specialtyIndex = Number.parseInt(event.currentTarget.dataset.specialtyIndex ?? '-1', 10);
+    const delta = Number.parseInt(event.currentTarget.dataset.delta ?? '0', 10);
+    if (Number.isNaN(specialtyIndex) || specialtyIndex < 0 || !Number.isFinite(delta) || delta === 0) {
+      return;
+    }
+    const system = this._cloneRoleSystem();
+    const specialty = system.specialties[specialtyIndex];
+    if (!specialty) return;
+
+    const roleRank = Math.max(Number(system.rank) || 0, 0);
+    const totalBudget = roleRank * 2;
+    const currentTotal = system.specialties.reduce((sum, s) => sum + (Number(s.rank) || 0), 0);
+    const currentRank = Number(specialty.rank) || 0;
+    const newRank = Math.max(0, Math.min(roleRank, currentRank + delta));
+
+    if (delta > 0 && currentTotal >= totalBudget) return;
+    if (newRank === currentRank) return;
+
+    specialty.rank = newRank;
     await this.document.update({ system });
   }
 
