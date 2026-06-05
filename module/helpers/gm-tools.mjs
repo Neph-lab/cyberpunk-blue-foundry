@@ -100,6 +100,67 @@ for (const token of tokens) {
     type: CONST.MACRO_TYPES.SCRIPT,
   },
   {
+    name: 'Adjust Improvement Points',
+    img: 'icons/svg/upgrade.svg',
+    command: `// Cyberpunk Blue - Adjust Improvement Points (GM only)
+if (!game.user.isGM) { ui.notifications.warn('Only the GM can adjust IP.'); return; }
+
+const playerChars = game.actors.filter(a => a.type === 'character' && a.hasPlayerOwner);
+if (!playerChars.length) { ui.notifications.warn('No player-owned characters found.'); return; }
+
+const selectedIds = new Set(canvas.tokens?.controlled.map(t => t.actor?.id).filter(Boolean) ?? []);
+
+const checkboxes = playerChars.map(a =>
+  \`<label style="display:flex;align-items:center;gap:0.5rem;padding:0.15rem 0;">
+    <input type="checkbox" name="a_\${a.id}" \${selectedIds.has(a.id) ? 'checked' : ''} />
+    <span><strong>\${a.name}</strong> <span style="font-size:0.8em;color:var(--color-text-light-6);">(IP \${a.system.ip ?? 0} / Total \${a.system.totIP ?? 0})</span></span>
+  </label>\`
+).join('');
+
+const result = await foundry.applications.api.DialogV2.wait({
+  window: { title: 'Adjust Improvement Points' },
+  content: \`
+    <div class="cyberpunk-blue" style="padding:0.5rem;display:flex;flex-direction:column;gap:0.6rem;">
+      <p style="margin:0;font-size:0.85em;color:var(--color-text-light-6);">Positive = grant IP. Negative = remove IP (also lowers Total IP).</p>
+      <label>Amount: <input type="number" name="amount" value="0" style="width:6rem;" /></label>
+      <fieldset style="border:1px solid var(--color-border-light-2);padding:0.4rem 0.6rem;border-radius:3px;">
+        <legend style="font-size:0.85em;">Characters</legend>
+        \${checkboxes}
+      </fieldset>
+    </div>
+  \`,
+  buttons: [
+    {
+      action: 'apply', label: 'Apply', icon: 'fas fa-check', default: true,
+      callback: (_e, btn) => ({
+        amount: Number(btn.form.elements['amount'].value) || 0,
+        actorIds: playerChars.filter(a => btn.form.elements[\`a_\${a.id}\`]?.checked).map(a => a.id),
+      }),
+    },
+    { action: 'cancel', label: 'Cancel', icon: 'fas fa-xmark', callback: () => null },
+  ],
+});
+
+if (!result || !result.actorIds.length) return;
+if (result.amount === 0) { ui.notifications.warn('Amount is 0 — nothing to do.'); return; }
+
+const lines = [];
+for (const id of result.actorIds) {
+  const actor = game.actors.get(id);
+  if (!actor) continue;
+  const prev = actor.system.ip ?? 0;
+  const prevTot = actor.system.totIP ?? 0;
+  const newIp = Math.max(0, prev + result.amount);
+  const newTot = Math.max(0, prevTot + result.amount);
+  await actor.update({ 'system.ip': newIp, 'system.totIP': newTot });
+  lines.push(\`<li>\${actor.name}: \${prev} → \${newIp} IP\${result.amount < 0 ? \` (Total: \${prevTot} → \${newTot})\` : ''}</li>\`);
+}
+
+const verb = result.amount > 0 ? \`+\${result.amount}\` : String(result.amount);
+ChatMessage.create({ content: \`<div class="cyberpunk-blue chat-card"><h3>IP Adjusted (\${verb})</h3><ul>\${lines.join('')}</ul></div>\` });`,
+    type: CONST.MACRO_TYPES.SCRIPT,
+  },
+  {
     name: 'Heal / Restore HP',
     img: 'icons/svg/heal.svg',
     command: `// Cyberpunk Blue - Heal Selected Tokens
@@ -172,6 +233,7 @@ export class CyberBlueMacroCreator extends ApplicationV2 {
   }
 
   async _createMacros() {
+    // ── World macros ──────────────────────────────────────────────────
     let created = 0;
     let updated = 0;
     for (const macroData of GM_MACROS) {
@@ -184,6 +246,30 @@ export class CyberBlueMacroCreator extends ApplicationV2 {
         created++;
       }
     }
+
+    // ── Compendium sync ───────────────────────────────────────────────
+    const pack = game.packs.get('cyberpunk-blue.macros');
+    if (pack) {
+      await pack.configure({ locked: false });
+      try {
+        await pack.getIndex();
+        for (const macroData of GM_MACROS) {
+          const existingEntry = pack.index.find((e) => e.name === macroData.name);
+          if (existingEntry) {
+            const doc = await pack.getDocument(existingEntry._id);
+            await doc.update({ command: macroData.command, img: macroData.img });
+          } else {
+            await Macro.create(
+              { ...macroData, ownership: { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER } },
+              { pack: 'cyberpunk-blue.macros' },
+            );
+          }
+        }
+      } finally {
+        await pack.configure({ locked: true });
+      }
+    }
+
     ui.notifications.info(`Cyberpunk Blue: Created ${created} macro(s), updated ${updated}.`);
   }
 }

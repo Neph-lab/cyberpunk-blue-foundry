@@ -156,6 +156,45 @@
         "CreateSkillMacro": "Create skill macro",
         "CreateWeaponMacro": "Create weapon macro"
       },
+      "IP": {
+        "Label": "IP",
+        "TotalLabel": "Total IP",
+        "UseButton": "Spend IP",
+        "WindowTitle": "Spend Improvement Points",
+        "Header": {
+          "Available": "IP Available",
+          "After": "After"
+        },
+        "Tabs": {
+          "Stats": "Main Attributes",
+          "Skills": "Skills",
+          "Components": "Components",
+          "Abilities": "Abilities",
+          "Roles": "Role"
+        },
+        "Confirm": "Confirm Selection",
+        "CurrentRank": "Rank",
+        "NotEnoughIP": "Not enough IP for this purchase.",
+        "LanguageNameRequired": "Please enter a language name.",
+        "AbilityAtMaxRank": "This ability is already at its maximum rank.",
+        "AbilityNotFound": "Could not find the ability source.",
+        "RoleNotFound": "Could not find the role source.",
+        "NewAbility": "New ability (Rank 1)",
+        "NewRole": "New role (Rank 1)",
+        "NewLanguage": "New Language",
+        "NewLanguagePlaceholder": "Language name…",
+        "Skills": {
+          "FreeComponentHint": "Choose a free linked Component to raise by +1:",
+          "ExpandHintExtra": "Choose a free linked Component, or take an extra Rank instead:",
+          "ExtraRank": "Additional Rank (no free Component)"
+        },
+        "Components": {
+          "ExpandHint": "Choose a free linked Skill or a second Component to raise by +1:"
+        },
+        "Roles": {
+          "LowRankWarning": "Note: only one Role with fewer than 4 Ranks can provide benefits at a time."
+        }
+      },
       "Roll": {
         "Standard": "Standard Skill Test",
         "Component": "Component Test",

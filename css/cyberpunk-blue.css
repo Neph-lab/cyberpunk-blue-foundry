@@ -557,7 +557,6 @@ section.chat-sidebar:not(.sidebar-popout),
   display: flex;
   flex-direction: row;
   min-width: 5.5rem;
-  margin-left:auto;
 }
 
 .cyberpunk-blue .header-money .stat-short {
@@ -4246,4 +4245,308 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 
 .cyberpunk-blue .cpb-be-delete:hover {
   background: #c0392b;
+}
+
+/* ── Improvement Points header block ──────────────────────────────────── */
+.cyberpunk-blue .header-progression {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-left: auto;
+}
+
+.cyberpunk-blue .header-ip {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 5.5rem;
+}
+
+.cyberpunk-blue .header-ip .stat-short {
+  color: var(--cpb-accent-strong);
+  background-color: var(--cpb-accent-strong-wash);
+  padding: 0.2rem 0.6rem 0.2rem 1rem;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  --c: 8px;
+  clip-path: polygon(var(--c) 0, 100% 0, 100% 100%, var(--c) 100%, 0 50%);
+}
+
+.cyberpunk-blue .header-ip .ip-values {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.cyberpunk-blue .header-ip input[type="number"] {
+  width: 3.5rem;
+  text-align: right;
+  border-color: var(--cpb-accent-strong-border);
+}
+
+.cyberpunk-blue .header-ip .ip-total {
+  font-size: 0.75rem;
+  color: var(--color-text-light-6);
+  white-space: nowrap;
+}
+
+.cyberpunk-blue .ip-use-btn {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* ── IP Spender Application ────────────────────────────────────────────── */
+.cyberpunk-blue.ip-spender .window-content {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.cyberpunk-blue.ip-spender .ip-spender-header {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border-light-2);
+  background: var(--cpb-bg-light, rgba(0,0,0,0.15));
+}
+
+.cyberpunk-blue.ip-spender .ip-header-values {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+}
+
+.cyberpunk-blue.ip-spender .ip-label {
+  font-weight: 700;
+  color: var(--cpb-accent-strong);
+  letter-spacing: 0.08em;
+}
+
+.cyberpunk-blue.ip-spender .ip-current,
+.cyberpunk-blue.ip-spender .ip-after {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.cyberpunk-blue.ip-spender .ip-after.is-negative {
+  color: var(--color-level-error);
+}
+
+.cyberpunk-blue.ip-spender .ip-cost-tag {
+  font-size: 0.85rem;
+  color: var(--color-text-light-6);
+}
+
+.cyberpunk-blue.ip-spender .ip-tab-nav {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--cpb-accent-strong);
+  background: none;
+}
+
+.cyberpunk-blue.ip-spender .ip-tab-btn {
+  flex: 1;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text-light-6);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.cyberpunk-blue.ip-spender .ip-tab-btn:hover {
+  background: var(--cpb-accent-strong-wash);
+  color: var(--color-text-light-primary);
+}
+
+.cyberpunk-blue.ip-spender .ip-tab-btn.active {
+  background: var(--cpb-accent-strong-wash);
+  color: var(--cpb-accent-strong);
+  border-bottom: 2px solid var(--cpb-accent-strong);
+  margin-bottom: -2px;
+}
+
+.cyberpunk-blue.ip-spender .ip-tab-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 0.75rem;
+}
+
+.cyberpunk-blue.ip-spender .ip-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.cyberpunk-blue.ip-spender .ip-tab.hidden {
+  display: none;
+}
+
+.cyberpunk-blue.ip-spender .ip-role-warning {
+  background: rgba(200,150,0,0.12);
+  border: 1px solid rgba(200,150,0,0.4);
+  border-radius: 3px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  color: var(--color-text-light-7);
+  margin-bottom: 0.5rem;
+}
+
+.cyberpunk-blue.ip-spender .ip-row {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr auto auto auto;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.4rem;
+  border-radius: 3px;
+  transition: background 0.1s;
+}
+
+.cyberpunk-blue.ip-spender .ip-row.is-selected {
+  background: var(--cpb-accent-strong-wash);
+  border-left: 3px solid var(--cpb-accent-strong);
+}
+
+.cyberpunk-blue.ip-spender .ip-row.is-locked {
+  opacity: 0.45;
+}
+
+.cyberpunk-blue.ip-spender .ip-row.is-at-cap {
+  opacity: 0.3;
+}
+
+.cyberpunk-blue.ip-spender .ip-row-icon {
+  width: 1.4rem;
+  height: 1.4rem;
+  filter: invert(1);
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
+.cyberpunk-blue.ip-spender .ip-row-img {
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 2px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.cyberpunk-blue.ip-spender .ip-row-name {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cyberpunk-blue.ip-spender .ip-row-stat-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--cpb-accent-strong);
+  background: var(--cpb-accent-strong-wash);
+  padding: 0 0.3rem;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.cyberpunk-blue.ip-spender .ip-row-rank {
+  font-size: 0.8rem;
+  color: var(--color-text-light-6);
+  white-space: nowrap;
+}
+
+.cyberpunk-blue.ip-spender .ip-row-cost {
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--color-text-light-7);
+}
+
+.cyberpunk-blue.ip-spender .ip-row.is-selected .ip-row-cost {
+  color: var(--cpb-accent-strong);
+}
+
+.cyberpunk-blue.ip-spender .ip-toggle-btn {
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  border-radius: 3px;
+}
+
+.cyberpunk-blue.ip-spender .ip-toggle-btn.is-active {
+  background: var(--cpb-accent-strong);
+  color: #fff;
+}
+
+.cyberpunk-blue.ip-spender .ip-expand-area {
+  margin: 0 0 0.4rem 2rem;
+  padding: 0.4rem 0.6rem;
+  border-left: 2px solid var(--cpb-accent-strong);
+  background: rgba(0,0,0,0.1);
+  border-radius: 0 3px 3px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cyberpunk-blue.ip-spender .ip-expand-hint {
+  font-size: 0.8rem;
+  color: var(--color-text-light-6);
+  margin: 0 0 0.25rem 0;
+}
+
+.cyberpunk-blue.ip-spender .ip-expand-option {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.15rem 0.3rem;
+  border-radius: 3px;
+}
+
+.cyberpunk-blue.ip-spender .ip-expand-option.is-selected {
+  background: var(--cpb-accent-strong-wash);
+}
+
+.cyberpunk-blue.ip-spender .ip-expand-option.is-locked {
+  opacity: 0.4;
+}
+
+.cyberpunk-blue.ip-spender .ip-expand-option-label {
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cyberpunk-blue.ip-spender .ip-language-input {
+  width: 100%;
+  margin-top: 0.15rem;
+}
+
+.cyberpunk-blue.ip-spender .ip-footer {
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid var(--color-border-light-2);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cyberpunk-blue.ip-spender .ip-confirm-btn {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.4rem 1.2rem;
 }

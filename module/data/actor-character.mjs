@@ -43,6 +43,9 @@ export default class CyberBlueCharacter extends CyberBlueActorBase {
       extraLanguage: new fields.StringField({ initial: '', blank: true }),
     });
 
+    schema.ip = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
+    schema.totIP = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
+
     return schema;
   }
 
@@ -58,6 +61,8 @@ export default class CyberBlueCharacter extends CyberBlueActorBase {
       skills: foundry.utils.deepClone(this.skills),
       components: foundry.utils.deepClone(this.components),
       roleState: foundry.utils.deepClone(this.roleState),
+      ip: this.ip,
+      totIP: this.totIP,
     };
   }
 }

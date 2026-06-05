@@ -43,7 +43,7 @@ export default class CyberBlueActorBase extends CyberBlueDataModel {
         hp: buildResourceField(40),
         armor: buildResourceField(0),
         psyche: buildBonusResourceField(60),
-        luck: buildResourceField(5),
+        luck: buildBonusResourceField(5),
         seriousWoundThreshold: buildValueField(20),
         deathSave: buildDerivedValueField(6),
       }),
@@ -78,7 +78,7 @@ export default class CyberBlueActorBase extends CyberBlueDataModel {
     this.resources.hp.max = (5 * this.stats.body.value) + 10;
     this.resources.armor.max = Math.max(this.resources.armor.max ?? 0, 0);
     this.resources.psyche.max = Math.max(60 + (this.resources.psyche.maxBonus ?? 0), 0);
-    this.resources.luck.max = 5;
+    this.resources.luck.max = Math.max(5 + (this.resources.luck.maxBonus ?? 0), 0);
     this.resources.seriousWoundThreshold.value = Math.floor(this.resources.hp.max / 2);
     // Death Save minimum is 1 (per rules: injuries reduce it but never below 1 while alive).
     this.resources.deathSave.value = Math.max(this.stats.body.value + (this.resources.deathSave.bonus ?? 0), 1);

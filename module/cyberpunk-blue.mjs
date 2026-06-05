@@ -1592,6 +1592,10 @@ Handlebars.registerHelper('or', function (...args) {
   return args.slice(0, -1).some(Boolean);
 });
 
+Handlebars.registerHelper('lt', function (left, right) {
+  return left < right;
+});
+
 // ── Language ability: prompt for language name when one is added to an actor ──
 Hooks.on('preCreateItem', (document, _data, options, _userId) => {
   // Only intercept embedded ability items named exactly 'Language'

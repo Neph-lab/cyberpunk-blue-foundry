@@ -45,42 +45,38 @@ export class IpSpenderApplication extends HandlebarsApplicationMixin(Application
 
     _openSpenders.set(actor.id, this);
 
-    this._actorUpdateHookId = Hooks.on('updateActor', (doc) => {
-      if (doc.id === this.actor.id) {
-        this.actor = doc;
+    this._actorUpdateHookId = Hooks.on('updateActor', (doc, changed) => {
+      if (doc.id !== this.actor.id) return;
+      this.actor = doc;
+      // Clear the pending selection only when the IP balance or progression
+      // fields change (e.g. after a Confirm write or GM adjustment).
+      const keys = Object.keys(foundry.utils.flattenObject(changed ?? {}));
+      const progressionChanged = keys.some((k) =>
+        k.startsWith('system.ip') || k.startsWith('system.totIP')
+        || k.startsWith('system.stats.') || k.startsWith('system.resources.luck')
+        || k.startsWith('system.skills.') || k.startsWith('system.components.')
+      );
+      if (progressionChanged) this._selection = null;
+      this.render({ force: false });
+    });
+    const _itemRefresh = (doc) => {
+      if (doc.parent?.id === this.actor.id) {
+        this.actor = game.actors.get(this.actor.id) ?? this.actor;
         this._selection = null;
         this.render({ force: false });
       }
-    });
-    this._itemHookIds = [
-      Hooks.on('updateItem', (doc) => {
-        if (doc.parent?.id === this.actor.id) {
-          this.actor = game.actors.get(this.actor.id) ?? this.actor;
-          this._selection = null;
-          this.render({ force: false });
-        }
-      }),
-      Hooks.on('createItem', (doc) => {
-        if (doc.parent?.id === this.actor.id) {
-          this.actor = game.actors.get(this.actor.id) ?? this.actor;
-          this._selection = null;
-          this.render({ force: false });
-        }
-      }),
-      Hooks.on('deleteItem', (doc) => {
-        if (doc.parent?.id === this.actor.id) {
-          this.actor = game.actors.get(this.actor.id) ?? this.actor;
-          this._selection = null;
-          this.render({ force: false });
-        }
-      }),
-    ];
+    };
+    this._itemHookIds = {
+      updateItem: Hooks.on('updateItem', _itemRefresh),
+      createItem: Hooks.on('createItem', _itemRefresh),
+      deleteItem: Hooks.on('deleteItem', _itemRefresh),
+    };
   }
 
   async close(options = {}) {
     _openSpenders.delete(this.actor.id);
     Hooks.off('updateActor', this._actorUpdateHookId);
-    for (const id of this._itemHookIds) Hooks.off('updateItem', id);
+    for (const [hookName, id] of Object.entries(this._itemHookIds)) Hooks.off(hookName, id);
     return super.close(options);
   }
 

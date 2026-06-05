@@ -9,6 +9,7 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/cyberpunk-blue/templates/character-creation/wizard.hbs',
     // Apps
     'systems/cyberpunk-blue/templates/apps/vehicle-hud.hbs',
+    'systems/cyberpunk-blue/templates/apps/ip-spender.hbs',
     // Dialogs
     'systems/cyberpunk-blue/templates/dialogs/vehicle-maneuver-picker.hbs',
     // Item partials

@@ -1065,6 +1065,26 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       highlightSkills: isCC && stepIdx === 6,
     };
 
+    // Post-CC read-only lock: players can't manually edit progression fields once CC is done.
+    // The IP spending window is the sanctioned route for advancement after CC.
+    const ccDone = actorData.type === 'character' && !isCC;
+    context.lockProgression = ccDone && !canManageRestricted;
+    if (context.lockProgression) {
+      context.charCreation.statsWritable = false;
+      context.charCreation.skillsWritable = false;
+    }
+
+    // IP (characters only)
+    if (actorData.type === 'character') {
+      context.ip = {
+        value: system.ip ?? 0,
+        total: system.totIP ?? 0,
+        canSpend: (system.ip ?? 0) > 0,
+      };
+    } else {
+      context.ip = null;
+    }
+
     context.isGM = game.user.isGM;
 
     return context;
@@ -1158,6 +1178,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
     this.element.querySelector('[data-action="begin-character-creation"]')?.addEventListener('click', this._onBeginCharacterCreation.bind(this));
     this.element.querySelector('[data-action="open-character-creation-wizard"]')?.addEventListener('click', this._onOpenCharacterCreationWizard.bind(this));
+    this.element.querySelector('[data-action="open-ip-spender"]')?.addEventListener('click', this._onOpenIpSpender.bind(this));
 
     this.element.querySelectorAll('[data-action="remove-critical-injury"]').forEach((button) => {
       button.addEventListener('click', this._onRemoveCriticalInjury.bind(this));
@@ -2118,6 +2139,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     } else {
       new CharacterCreationWizard(this.document).render(true);
     }
+  }
+
+  async _onOpenIpSpender(event) {
+    event.preventDefault();
+    const { IpSpenderApplication } = await import('../apps/ip-spender.mjs');
+    IpSpenderApplication.openForActor(this.document);
   }
 
   async _onEditProfileImage(event) {

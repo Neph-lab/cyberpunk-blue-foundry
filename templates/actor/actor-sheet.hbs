@@ -15,9 +15,23 @@
             </label>
           {{/each}}
         </div>
-        <div class="header-money">
-          <span class="stat-short">€$</span>
-          <input type="text" data-action="update-money" value="{{system.money}}" placeholder="0" title="Eurobucks — arithmetic OK (e.g. 500-50)" />
+        <div class="header-progression">
+          {{#if ip}}
+            <div class="header-ip">
+              <span class="stat-short">IP</span>
+              <div class="ip-values">
+                <input type="number" name="system.ip" value="{{ip.value}}" data-dtype="Number" {{#unless canManageRestricted}}readonly{{/unless}} title="Spendable IP" />
+                <span class="ip-total" title="Total IP earned: {{ip.total}}">/ {{ip.total}}</span>
+              </div>
+              <button type="button" class="ip-use-btn" data-action="open-ip-spender" {{#unless ip.canSpend}}disabled{{/unless}} title="{{localize "CYBER_BLUE.IP.UseButton"}}">
+                <i class="fas fa-arrow-up-right-dots"></i>
+              </button>
+            </div>
+          {{/if}}
+          <div class="header-money">
+            <span class="stat-short">€$</span>
+            <input type="text" data-action="update-money" value="{{system.money}}" placeholder="0" title="Eurobucks — arithmetic OK (e.g. 500-50)" />
+          </div>
         </div>
       </div>
     </div>
@@ -130,7 +144,7 @@
         <label class="sheet-panel stat-card move-card">
           <div class="cpb-divider--header"><span data-description="{{move.description}}" data-label="{{move.shortLabel}}" {{#if showDescriptionTooltips}}data-tooltip="{{move.description}}"{{/if}}>{{move.shortLabel}}</span></div>
           <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_MOVE.svg" alt="{{move.label}}" data-description="{{move.description}}" data-label="{{move.shortLabel}}" {{#if showDescriptionTooltips}}data-tooltip="{{move.description}}"{{/if}} />
-          <input type="number" name="system.stats.move.value" value="{{move.value}}" data-dtype="Number" />
+          <input type="number" name="system.stats.move.value" value="{{move.value}}" data-dtype="Number" {{#if lockProgression}}disabled{{/if}} />
         </label>
         
         <div class="sheet-panel stat-card psyche-card">
@@ -821,7 +835,7 @@
               {{#each components as |component|}}
                 <div class="component-row">
                   <span class="component-name" data-description="{{component.description}}" data-label="{{component.label}}" {{#if ../showDescriptionTooltips}}data-tooltip="{{component.description}}"{{/if}}>{{component.label}}</span>
-                  <input class="numeric-column" type="number" name="system.components.{{component.slug}}.rank" value="{{component.rank}}" data-dtype="Number" />
+                  <input class="numeric-column" type="number" name="system.components.{{component.slug}}.rank" value="{{component.rank}}" data-dtype="Number" {{#if @root.lockProgression}}disabled{{/if}} />
                   <span class="component-links">{{component.linkedSkills}}</span>
                   <button type="button" data-action="remove-component" data-component-slug="{{component.slug}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.RemoveComponent"}}">
                     <i class="fas fa-trash"></i>
