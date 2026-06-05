@@ -1,5 +1,4 @@
 node_modules/
-.sass-cache/
 .vscode/
 
 # LevelDB compendium files — populated at runtime by the system itself

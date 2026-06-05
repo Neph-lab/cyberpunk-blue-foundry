@@ -20,7 +20,6 @@
       "Bash(git stash *)",
       "Bash(awk -F'\"' '{print $2}')",
       "Bash(awk -F: '{print $3}')",
-      "PowerShell($scss = \"D:\\\\FoundryVTT\\\\Data\\\\systems\\\\cyberpunk-blue\\\\src\\\\scss\\\\cyberpunk-blue.scss\"; $css = \"D:\\\\FoundryVTT\\\\Data\\\\systems\\\\cyberpunk-blue\\\\css\\\\cyberpunk-blue.css\"; \"SCSS lines: $\\(\\(Get-Content $scss\\).Count\\)\"; \"CSS lines: $\\(\\(Get-Content $css\\).Count\\)\"; \"Last modified SCSS: $\\(\\(Get-Item $scss\\).LastWriteTime\\)\"; \"Last modified CSS: $\\(\\(Get-Item $css\\).LastWriteTime\\)\")",
       "Bash(xargs -d '\\\\n' git add)",
       "Bash(grep -E \"^# [A-Z][a-zA-Z]+$\" docs/Roles-source.md)",
       "Bash(grep -E \"^\\(Networker|Leader|Protean|Specialist|Sundry\\)$\" docs/Roles-source.md)",
@@ -43,7 +42,6 @@
       "Bash(python -c 'import json; d=json.load\\(open\\('\\\\''lang/en.json'\\\\'',encoding='\\\\''utf-8'\\\\''\\)\\); *)",
       "Bash(python -c \"import json; json.load\\(open\\('lang/en.json',encoding='utf-8'\\)\\); print\\('valid JSON'\\)\")",
       "Bash(npm run *)",
-      "Bash(npx sass *)",
       "Bash(echo \"EXIT:$?\")",
       "Bash(python -c \"import json; d=json.load\\(open\\('lang/en.json',encoding='utf-8'\\)\\); print\\('Cancel:', d['CYBER_BLUE']['Sheet']['Labels'].get\\('Cancel'\\)\\)\")",
       "Bash(git checkout *)",
@@ -107,7 +105,21 @@
       "Bash(python3 -c \"import json; d=json.load\\(open\\('lang/en.json'\\)\\); print\\(json.dumps\\(list\\(d['CYBER_BLUE']['Settings'].keys\\(\\)\\), indent=2\\)\\)\")",
       "Bash(python3 -c ' *)",
       "Bash(node -e ' *)",
-      "Bash(node -e \"const e=require\\('./lang/en.json'\\); const g=\\(p\\)=>p.split\\('.'\\).reduce\\(\\(o,k\\)=>o&&o[k],e\\); for\\(const k of ['CYBER_BLUE.Role.Specialist.Budget','CYBER_BLUE.Role.Specialist.PointsRemaining','CYBER_BLUE.Role.Specialist.RemoveRank','CYBER_BLUE.Role.Specialist.AddRank','CYBER_BLUE.Sheet.Labels.Rank','CYBER_BLUE.Role.Specialties']\\) console.log\\(k, '=>', JSON.stringify\\(g\\(k\\)\\)\\);\")"
+      "Bash(node -e \"const e=require\\('./lang/en.json'\\); const g=\\(p\\)=>p.split\\('.'\\).reduce\\(\\(o,k\\)=>o&&o[k],e\\); for\\(const k of ['CYBER_BLUE.Role.Specialist.Budget','CYBER_BLUE.Role.Specialist.PointsRemaining','CYBER_BLUE.Role.Specialist.RemoveRank','CYBER_BLUE.Role.Specialist.AddRank','CYBER_BLUE.Sheet.Labels.Rank','CYBER_BLUE.Role.Specialties']\\) console.log\\(k, '=>', JSON.stringify\\(g\\(k\\)\\)\\);\")",
+      "Bash(cd /d/FoundryVTT/Data/systems/cyberpunk-blue)",
+      "Bash(grep -rinE \"\\\\b\\(scss|sass|gulp\\)\\\\b\" package.json module/cyberpunk-blue.mjs)",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('.claude/settings.local.json','utf8'\\)\\); console.log\\('settings.local.json valid JSON ✓'\\)\")",
+      "Bash(grep -nE \"\\\\{\\\\s*\\\\}|\\\\{\\\\s*/\\\\*[^*]*\\\\*/\\\\s*\\\\}\" css/cyberpunk-blue.css)",
+      "Bash(grep -nzoE \"\\\\{[[:space:]]*\\(/\\\\*[^*]*\\\\*/\\)?[[:space:]]*\\\\}\" css/cyberpunk-blue.css)",
+      "Bash(grep -nE \"embedded-list,|embedded-entries|/\\\\* gap\" css/cyberpunk-blue.css)",
+      "Bash(sed -n '3300,3345p' css/cyberpunk-blue.css)",
+      "Bash(sed -i \"s#'./tmp/lib.mjs'#'./lib.mjs'#\" tmp/genplan2.mjs)",
+      "Bash(node tmp/genplan2.mjs)",
+      "Bash(grep -nE \"embedded-list,|/\\\\* gap\" css/cyberpunk-blue.css)",
+      "Bash(grep -nE \"specialty-summary-list \\\\{|role-grant-summary,|specialty-summary-list > \" css/cyberpunk-blue.css)",
+      "Bash(node tmp/equiv.mjs)",
+      "Bash(node -e \"const t=require\\('fs'\\).readFileSync\\('css/cyberpunk-blue.css','utf8'\\);const o=\\(t.match\\(/{/g\\)||[]\\).length,c=\\(t.match\\(/}/g\\)||[]\\).length;console.log\\('braces',o,'/',c,o===c?'OK':'MISMATCH'\\)\")",
+      "Bash(node tmp/dup.mjs)"
     ]
   }
 }
