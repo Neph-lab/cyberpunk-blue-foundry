@@ -1,0 +1,246 @@
+<div class="ip-spender-header">
+  <div class="ip-header-values">
+    <span class="ip-label">{{localize "CYBER_BLUE.IP.Header.Available"}}:</span>
+    <span class="ip-current">{{ip}}</span>
+    {{#if selection}}
+      <span class="ip-arrow">→</span>
+      <span class="ip-after {{#if (lt ipAfter 0)}}is-negative{{/if}}">{{ipAfter}}</span>
+      <span class="ip-cost-tag">(−{{pendingCost}} IP)</span>
+    {{/if}}
+  </div>
+</div>
+
+<nav class="ip-tab-nav">
+  <button type="button" class="ip-tab-btn {{#if (eq activeTab "stats")}}active{{/if}}" data-tab-id="stats">{{localize "CYBER_BLUE.IP.Tabs.Stats"}}</button>
+  <button type="button" class="ip-tab-btn {{#if (eq activeTab "skills")}}active{{/if}}" data-tab-id="skills">{{localize "CYBER_BLUE.IP.Tabs.Skills"}}</button>
+  <button type="button" class="ip-tab-btn {{#if (eq activeTab "components")}}active{{/if}}" data-tab-id="components">{{localize "CYBER_BLUE.IP.Tabs.Components"}}</button>
+  <button type="button" class="ip-tab-btn {{#if (eq activeTab "abilities")}}active{{/if}}" data-tab-id="abilities">{{localize "CYBER_BLUE.IP.Tabs.Abilities"}}</button>
+  <button type="button" class="ip-tab-btn {{#if (eq activeTab "roles")}}active{{/if}}" data-tab-id="roles">{{localize "CYBER_BLUE.IP.Tabs.Roles"}}</button>
+</nav>
+
+<div class="ip-tab-body">
+
+  {{!-- ── STATS TAB ──────────────────────────────────────────────────── --}}
+  <div class="ip-tab {{#unless (eq activeTab "stats")}}hidden{{/unless}}">
+    <div class="ip-rows">
+      {{#each statsRows as |row|}}
+        <div class="ip-row {{#if row.isSelected}}is-selected{{/if}} {{#if row.isDisabled}}is-locked{{/if}} {{#if row.atCap}}is-at-cap{{/if}}">
+          <img class="ip-row-icon" src="{{row.iconPath}}" alt="{{row.label}}" />
+          <span class="ip-row-name">{{row.label}}</span>
+          <span class="ip-row-rank">{{row.currentRank}} → {{row.newRank}}</span>
+          <span class="ip-row-cost">{{row.cost}} IP</span>
+          <button type="button"
+            class="ip-toggle-btn {{#if row.isSelected}}is-active{{/if}}"
+            data-action="ip-select"
+            data-tab="stats"
+            data-key="{{row.slug}}"
+            data-new-rank="{{row.newRank}}"
+            data-cost="{{row.cost}}"
+            {{#if row.isDisabled}}disabled{{/if}}>
+            <i class="fas {{#if row.isSelected}}fa-check{{else}}fa-plus{{/if}}"></i>
+          </button>
+        </div>
+      {{/each}}
+    </div>
+  </div>
+
+  {{!-- ── SKILLS TAB ──────────────────────────────────────────────────── --}}
+  <div class="ip-tab {{#unless (eq activeTab "skills")}}hidden{{/unless}}">
+    <div class="ip-rows">
+      {{#each skillsRows as |row|}}
+        <div class="ip-row {{#if row.isSelected}}is-selected{{/if}} {{#if row.isDisabled}}is-locked{{/if}} {{#if row.atCap}}is-at-cap{{/if}}">
+          <span class="ip-row-stat-tag">{{row.statLabel}}</span>
+          <span class="ip-row-name">{{row.label}}</span>
+          <span class="ip-row-rank">{{row.currentRank}} → {{row.newRank}}</span>
+          <span class="ip-row-cost">{{row.cost}} IP</span>
+          <button type="button"
+            class="ip-toggle-btn {{#if row.isSelected}}is-active{{/if}}"
+            data-action="ip-select"
+            data-tab="skills"
+            data-key="{{row.slug}}"
+            data-new-rank="{{row.newRank}}"
+            data-cost="{{row.cost}}"
+            {{#if row.isDisabled}}disabled{{/if}}>
+            <i class="fas {{#if row.isSelected}}fa-check{{else}}fa-plus{{/if}}"></i>
+          </button>
+        </div>
+        {{#if row.expandArea}}
+          <div class="ip-expand-area">
+            <p class="ip-expand-hint">{{row.expandArea.hint}}</p>
+            {{#each row.expandArea.options as |opt|}}
+              <div class="ip-expand-option {{#if opt.isSelected}}is-selected{{/if}} {{#if opt.isLocked}}is-locked{{/if}}">
+                <span class="ip-expand-option-label">
+                  {{opt.label}}
+                  {{#if opt.rankDisplay}}
+                    <span class="ip-row-rank">({{localize "CYBER_BLUE.IP.CurrentRank"}}: {{opt.rankDisplay}})</span>
+                  {{/if}}
+                </span>
+                <button type="button"
+                  class="ip-toggle-btn {{#if opt.isSelected}}is-active{{/if}}"
+                  data-action="ip-select-extra"
+                  data-extra-type="{{opt.type}}"
+                  data-extra-key="{{opt.slug}}"
+                  {{#if opt.isLocked}}disabled{{/if}}>
+                  <i class="fas {{#if opt.isSelected}}fa-check{{else}}fa-plus{{/if}}"></i>
+                </button>
+              </div>
+            {{/each}}
+          </div>
+        {{/if}}
+      {{/each}}
+    </div>
+  </div>
+
+  {{!-- ── COMPONENTS TAB ─────────────────────────────────────────────── --}}
+  <div class="ip-tab {{#unless (eq activeTab "components")}}hidden{{/unless}}">
+    {{#if componentsRows.length}}
+      <div class="ip-rows">
+        {{#each componentsRows as |row|}}
+          <div class="ip-row {{#if row.isSelected}}is-selected{{/if}} {{#if row.isDisabled}}is-locked{{/if}} {{#if row.atCap}}is-at-cap{{/if}}">
+            <span class="ip-row-stat-tag" style="grid-column:1"> </span>
+            <div style="display:flex;flex-direction:column;gap:0.05rem;overflow:hidden;">
+              <span class="ip-row-name">{{row.label}}</span>
+              <span style="font-size:0.7rem;color:var(--color-text-light-6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{row.linkedSkillsText}}</span>
+            </div>
+            <span class="ip-row-rank">{{row.currentRank}} → {{row.newRank}}</span>
+            <span class="ip-row-cost">{{row.cost}} IP</span>
+            <button type="button"
+              class="ip-toggle-btn {{#if row.isSelected}}is-active{{/if}}"
+              data-action="ip-select"
+              data-tab="components"
+              data-key="{{row.slug}}"
+              data-new-rank="{{row.newRank}}"
+              data-cost="{{row.cost}}"
+              {{#if row.isDisabled}}disabled{{/if}}>
+              <i class="fas {{#if row.isSelected}}fa-check{{else}}fa-plus{{/if}}"></i>
+            </button>
+          </div>
+          {{#if row.expandArea}}
+            <div class="ip-expand-area">
+              <p class="ip-expand-hint">{{row.expandArea.hint}}</p>
+              {{#each row.expandArea.options as |opt|}}
+                <div class="ip-expand-option {{#if opt.isSelected}}is-selected{{/if}}">
+                  <span class="ip-expand-option-label">
+                    {{opt.label}}
+                    <span class="ip-row-rank">({{localize "CYBER_BLUE.IP.CurrentRank"}}: {{opt.rankDisplay}})</span>
+                  </span>
+                  <button type="button"
+                    class="ip-toggle-btn {{#if opt.isSelected}}is-active{{/if}}"
+                    data-action="ip-select-extra"
+                    data-extra-type="{{opt.type}}"
+                    data-extra-key="{{opt.slug}}">
+                    <i class="fas {{#if opt.isSelected}}fa-check{{else}}fa-plus{{/if}}"></i>
+                  </button>
+                </div>
+              {{/each}}
+            </div>
+          {{/if}}
+        {{/each}}
+      </div>
+    {{else}}
+      <p class="hint">No active components yet. Raise a Skill with linked Components first.</p>
+    {{/if}}
+  </div>
+
+  {{!-- ── ABILITIES TAB ───────────────────────────────────────────────── --}}
+  <div class="ip-tab {{#unless (eq activeTab "abilities")}}hidden{{/unless}}">
+    <div class="ip-rows">
+      {{!-- Existing owned abilities --}}
+      {{#each abilitiesRows as |row|}}
+        <div class="ip-row {{#if row.isSelected}}is-selected{{/if}} {{#if row.isDisabled}}is-locked{{/if}} {{#if row.atCap}}is-at-cap{{/if}}">
+          <img class="ip-row-img" src="{{row.img}}" alt="{{row.name}}" />
+          <span class="ip-row-name">
+            {{row.name}}
+            {{#if row.isNew}}<em style="font-size:0.75rem;color:var(--color-text-light-6);"> — {{localize "CYBER_BLUE.IP.NewAbility"}}</em>{{/if}}
+          </span>
+          <span class="ip-row-rank">
+            {{row.currentRank}}
+            {{#if row.maxRank}}/ {{row.maxRank}}{{/if}}
+            → {{row.newRank}}
+          </span>
+          <span class="ip-row-cost">{{row.cost}} IP</span>
+          <button type="button"
+            class="ip-toggle-btn {{#if row.isSelected}}is-active{{/if}}"
+            data-action="ip-select"
+            data-tab="abilities"
+            data-key="{{row.id}}"
+            data-new-rank="{{row.newRank}}"
+            data-cost="{{row.cost}}"
+            {{#if row.isDisabled}}disabled{{/if}}>
+            <i class="fas {{#if row.isSelected}}fa-check{{else}}fa-plus{{/if}}"></i>
+          </button>
+        </div>
+      {{/each}}
+
+      {{!-- New Language row --}}
+      <div class="ip-row {{#if newLanguageRow.isSelected}}is-selected{{/if}} {{#if newLanguageRow.isDisabled}}is-locked{{/if}}">
+        <img class="ip-row-img" src="icons/svg/book.svg" alt="Language" />
+        <span class="ip-row-name">{{localize "CYBER_BLUE.IP.NewLanguage"}}</span>
+        <span class="ip-row-rank">0 → 1</span>
+        <span class="ip-row-cost">{{newLanguageRow.cost}} IP</span>
+        <button type="button"
+          class="ip-toggle-btn {{#if newLanguageRow.isSelected}}is-active{{/if}}"
+          data-action="ip-select"
+          data-tab="abilities"
+          data-key="new-language"
+          data-new-rank="1"
+          data-cost="{{newLanguageRow.cost}}"
+          {{#if newLanguageRow.isDisabled}}disabled{{/if}}>
+          <i class="fas {{#if newLanguageRow.isSelected}}fa-check{{else}}fa-plus{{/if}}"></i>
+        </button>
+      </div>
+      {{#if newLanguageRow.isSelected}}
+        <div class="ip-expand-area">
+          <input type="text"
+            data-action="ip-language-input"
+            class="ip-language-input"
+            placeholder="{{localize "CYBER_BLUE.IP.NewLanguagePlaceholder"}}"
+            value="{{newLanguageRow.pendingName}}" />
+        </div>
+      {{/if}}
+    </div>
+  </div>
+
+  {{!-- ── ROLES TAB ───────────────────────────────────────────────────── --}}
+  <div class="ip-tab {{#unless (eq activeTab "roles")}}hidden{{/unless}}">
+    {{#if showRoleWarning}}
+      <div class="ip-role-warning">
+        <i class="fas fa-triangle-exclamation"></i>
+        {{localize "CYBER_BLUE.IP.Roles.LowRankWarning"}}
+      </div>
+    {{/if}}
+    <div class="ip-rows">
+      {{#each rolesRows as |row|}}
+        <div class="ip-row {{#if row.isSelected}}is-selected{{/if}} {{#if row.isDisabled}}is-locked{{/if}} {{#if row.atCap}}is-at-cap{{/if}}">
+          <img class="ip-row-img" src="{{row.img}}" alt="{{row.name}}" />
+          <span class="ip-row-name">
+            {{row.name}}
+            {{#if row.isNew}}<em style="font-size:0.75rem;color:var(--color-text-light-6);"> — {{localize "CYBER_BLUE.IP.NewRole"}}</em>{{/if}}
+          </span>
+          <span class="ip-row-rank">{{row.currentRank}} → {{row.newRank}}</span>
+          <span class="ip-row-cost">{{row.cost}} IP</span>
+          <button type="button"
+            class="ip-toggle-btn {{#if row.isSelected}}is-active{{/if}}"
+            data-action="ip-select"
+            data-tab="roles"
+            data-key="{{row.id}}"
+            data-new-rank="{{row.newRank}}"
+            data-cost="{{row.cost}}"
+            {{#if row.isDisabled}}disabled{{/if}}>
+            <i class="fas {{#if row.isSelected}}fa-check{{else}}fa-plus{{/if}}"></i>
+          </button>
+        </div>
+      {{/each}}
+    </div>
+  </div>
+
+</div>
+
+<div class="ip-footer">
+  <button type="button"
+    data-action="ip-confirm"
+    class="ip-confirm-btn"
+    {{#unless canConfirm}}disabled{{/unless}}>
+    {{localize "CYBER_BLUE.IP.Confirm"}}
+  </button>
+</div>
