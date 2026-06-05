@@ -1799,20 +1799,11 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   opacity: 1;
 }
 
-.cyberpunk-blue .roleCategory {
-  color: var(--cpb-accent);
-  font-size: 1rem;
-  letter-spacing: 0.08em;
-  margin: 0 0 0.6rem;
-  text-transform: uppercase;
-}
-
 .cyberpunk-blue .role-config-block,
 .cyberpunk-blue .role-grant-groups,
 .cyberpunk-blue .role-reference-list,
 .cyberpunk-blue .role-grant-summary-list,
-.cyberpunk-blue .team-member-list,
-.cyberpunk-blue .specialty-summary-list {
+.cyberpunk-blue .team-member-list {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -1833,6 +1824,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   gap: var(--cpb-space-2);
   background: var(--cpb-accent-wash-soft);
   padding: var(--cpb-space-3);
+  padding-top: 0 !important;
   clip-path: var(--cpb-border-shape);
 }
 
@@ -1862,10 +1854,31 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 
 .cyberpunk-blue .role-grant-summary,
-.cyberpunk-blue .specialty-summary {
-  display: flex;
-  flex-direction: column;
+.cyberpunk-blue .specialty-summary-list {
+  columns: 3 600px;
   gap: 0.2rem;
+}
+
+.cyberpunk-blue .spcialty-summary-list > * {
+  break-inside: avoid;
+}
+
+.cyberpunk-blue .specialty-header {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cyberpunk-blue .specialty-name {
+  font-size: 1rem;
+  font-weight: var(--cpb-fw-bold);
+  color: var(--cpb-accent-warm);
+}
+
+.cyberpunk-blue .specialty-rank-controls {
+  display: flex;
+  gap: 0.25rem;
 }
 
 .cyberpunk-blue .role-overview-feature .protean-tactic-list {

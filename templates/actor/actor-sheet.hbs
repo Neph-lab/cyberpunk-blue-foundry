@@ -364,10 +364,10 @@
       {{/if}}
 
       {{#if enrichedRoleOverviewFeatures.length}}
-        <section class="sheet-panel role-overview-panel">
+        <section class="role-overview-panel">
           {{#each enrichedRoleOverviewFeatures as |feature|}}
-            <section class="role-overview-feature" data-item-id="{{feature.roleId}}">
-              <h4 class="roleCategory">{{feature.roleName}}</h4>
+            <section class="sheet-panel role-overview-feature" data-item-id="{{feature.roleId}}">
+              <div class="cpb-divider--header"><span>{{feature.roleName}}</span></div>
               {{#unless (eq feature.kind "protean")}}
                 {{#unless (eq feature.kind "specialist")}}
                   {{#if feature.enrichedAbilityOverview}}

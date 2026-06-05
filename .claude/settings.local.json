@@ -106,7 +106,8 @@
       "Bash(python3 -c \"import json; d=json.load\\(open\\('lang/en.json'\\)\\); s=d.get\\('CYBER_BLUE',{}\\).get\\('Settings',{}\\); [print\\(k,':', json.dumps\\(v, indent=2\\)\\) for k,v in list\\(s.items\\(\\)\\)[:3]]\")",
       "Bash(python3 -c \"import json; d=json.load\\(open\\('lang/en.json'\\)\\); print\\(json.dumps\\(list\\(d['CYBER_BLUE']['Settings'].keys\\(\\)\\), indent=2\\)\\)\")",
       "Bash(python3 -c ' *)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(node -e \"const e=require\\('./lang/en.json'\\); const g=\\(p\\)=>p.split\\('.'\\).reduce\\(\\(o,k\\)=>o&&o[k],e\\); for\\(const k of ['CYBER_BLUE.Role.Specialist.Budget','CYBER_BLUE.Role.Specialist.PointsRemaining','CYBER_BLUE.Role.Specialist.RemoveRank','CYBER_BLUE.Role.Specialist.AddRank','CYBER_BLUE.Sheet.Labels.Rank','CYBER_BLUE.Role.Specialties']\\) console.log\\(k, '=>', JSON.stringify\\(g\\(k\\)\\)\\);\")"
     ]
   }
 }
