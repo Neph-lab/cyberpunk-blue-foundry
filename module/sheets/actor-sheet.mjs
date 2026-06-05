@@ -821,8 +821,6 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         })
         .sort((left, right) => left.name.localeCompare(right.name)),
     };
-    context.otherResources = context.resources.filter((resource) => !['hp', 'armor', 'luck', 'psyche'].includes(resource.slug));
-
     context.enrichedDetails = {};
     for (const field of ['background', 'appearance', 'personality', 'style']) {
       context.enrichedDetails[field] = await foundry.applications.ux.TextEditor.implementation.enrichHTML(system.details[field], {

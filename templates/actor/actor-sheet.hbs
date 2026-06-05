@@ -631,21 +631,6 @@
         </section>
       {{/if}}
 
-      {{#if otherResources.length}}
-        <section class="resources-grid overview-resources">
-          {{#each otherResources as |resource|}}
-            <div class="sheet-panel resource-card">
-              <div class="resource-name">{{resource.label}}</div>
-              <div class="resource-fields">
-                <input type="number" name="system.resources.{{resource.slug}}.value" value="{{resource.value}}" data-dtype="Number" />
-                <span>/</span>
-                <input type="number" value="{{resource.max}}" disabled />
-              </div>
-            </div>
-          {{/each}}
-        </section>
-      {{/if}}
-
       <section class="traits-grid">
         <div class="sheet-panel traits-role-panel">
           <table class="embedded-table">
@@ -813,8 +798,7 @@
       </div>
 
       <section class="sheet-panel component-panel">
-        <div class="panel-header">
-          <h2>{{localize "CYBER_BLUE.Sheet.Labels.ActorComponents"}}</h2>
+        <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Sheet.Labels.ActorComponents"}}</span></div>
           <div class="component-add">
             <select data-component-select>
               {{#each availableComponents as |component|}}
@@ -825,7 +809,6 @@
               <i class="fas fa-plus"></i>
             </button>
           </div>
-        </div>
         {{#if components.length}}
           <div class="component-table">
             <div class="component-header component-row">
@@ -1195,7 +1178,7 @@
 
         {{!-- ── Computers ── --}}
         <section class="sheet-panel">
-          <h2>{{localize "CYBER_BLUE.Combat.NetrunnerComputers"}}</h2>
+          <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Combat.NetrunnerComputers"}}</span></div>
           {{#if netrunnerComputers.length}}
             <div class="netrunner-computers-list">
               {{#each netrunnerComputers as |comp|}}
@@ -1237,7 +1220,7 @@
         {{!-- ── Quickhacking ── --}}
         {{#if canQuickhack}}
           <section class="sheet-panel net-quickhack-panel">
-            <h2>{{localize "CYBER_BLUE.Netrunning.Breach"}}</h2>
+            <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Netrunning.Breach"}}</span></div>
             <div class="net-quickhack-row">
               <span class="net-qh-target">{{quickhackTarget}}</span>
               {{#if quickhackTargetBreached}}
@@ -1259,7 +1242,7 @@
 
         {{!-- ── On Disk executables ── --}}
         <section class="sheet-panel">
-          <h2>{{localize "CYBER_BLUE.Combat.ExecutablesOnDisk"}}</h2>
+          <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Combat.ExecutablesOnDisk"}}</span></div>
           {{#if executablesOnDisk.length}}
             <table class="netrunner-exe-table">
               <thead>
@@ -1341,7 +1324,7 @@
 
         {{!-- ── On Shards executables ── --}}
         <section class="sheet-panel">
-          <h2>{{localize "CYBER_BLUE.Combat.ExecutablesOnShards"}}</h2>
+          <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Combat.ExecutablesOnShards"}}</span></div>
           {{#if executablesOnShards.length}}
             <table class="netrunner-exe-table">
               <thead>

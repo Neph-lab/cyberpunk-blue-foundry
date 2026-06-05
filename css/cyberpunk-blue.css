@@ -620,7 +620,6 @@ section.chat-sidebar:not(.sidebar-popout),
   background: none;
 }
 
-.cyberpunk-blue .sheet-subtitle,
 .cyberpunk-blue .hint {
   color: var(--cpb-muted);
   font-size: var(--cpb-fs-sm);
@@ -648,11 +647,6 @@ section.chat-sidebar:not(.sidebar-popout),
   color: var(--cpb-accent-warm);
 }
 
-.cyberpunk-blue .sheet-tabs .item.active .cpb-tab-icon {
-  /* currentColor inherits from .item.active color (--cpb-accent-warm), so no
-     explicit override is needed — the mask-backed background tracks text color. */
-}
-
 .cyberpunk-blue .sheet-body {
   min-height: 0;
   overflow: auto;
@@ -663,7 +657,9 @@ section.chat-sidebar:not(.sidebar-popout),
 }
 
 .cyberpunk-blue .sheet-body .tab.active {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 /* Generic in-template icon. Drop a <span class="cpb-icon" style="--cpb-icon: url('/systems/...')"></span>
@@ -694,34 +690,13 @@ section.chat-sidebar:not(.sidebar-popout),
   vertical-align: -0.35rem;
 }
 
-.cyberpunk-blue .sheet-panel {
-  margin-top: 0.9rem;
-  padding: 1rem;
-}
-
-.cyberpunk-blue .sheet-panel h2 {
-  color: var(--cpb-muted);
-  font-size: 1.2rem;
-  text-align: center;
-  text-transform: uppercase;
+.cyberpunk-blue .sheet-panel:has(.cpb-divider--header) {
+  padding-top: 0 !important;
 }
 
 /* =====================================================
 SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 ================================================== */
-.cyberpunk-blue .stats-grid,
-.cyberpunk-blue .resources-grid {
-  display: grid;
-  gap: 0.85rem;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-}
-
-.cyberpunk-blue .overview-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: minmax(300px, 1.1fr) minmax(240px, 0.9fr);
-}
-
 .cyberpunk-blue .header-stat .stat-short {
   color: var(--cpb-accent-strong);
   font-size: 1.5rem;
@@ -730,42 +705,16 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   text-align: center;
 }
 
-.cyberpunk-blue .stat-label,
-.cyberpunk-blue .resource-name {
-  color: var(--cpb-muted);
-  font-size: 0.9rem;
-}
-
-.cyberpunk-blue .resource-fields {
-  align-items: center;
-  display: grid;
-  gap: 0.35rem;
-  grid-template-columns: 1fr auto 1fr;
-}
-
 .cyberpunk-blue .numeric-column,
 .cyberpunk-blue .embedded-rank,
 .cyberpunk-blue .skill-stat,
-.cyberpunk-blue .resource-fields input,
-.cyberpunk-blue .health-meta {
+.cyberpunk-blue .resource-fields input {
   text-align: center;
-}
-
-.cyberpunk-blue .combat-weapon-panel {
-  margin-top: 1rem;
 }
 
 /* ==================================================
    SHEET COMPONENTS: HEALTH SYSTEM
 ================================================== */
-
-.cyberpunk-blue .health-group {
-  align-self: start;
-}
-
-.cyberpunk-blue .health-meta {
-  margin-top: 0.35rem;
-}
 
 .cyberpunk-blue .health-effects-list {
   display: flex;
@@ -791,30 +740,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   width: 18px;
 }
 
-.cyberpunk-blue .health-effect.is-tagged {
-  color: var(--cpb-accent-strong);
-}
-
-.cyberpunk-blue .health-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
-
-.cyberpunk-blue .health-block {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  justify-content: flex-start;
-  min-height: 100%;
-  text-align: center;
-  padding-top: 0 !important;
-}
-
-.cyberpunk-blue .health-block > * {
-  z-index: 1;
-}
-
 .cyberpunk-blue .health-hp {
   min-width: 220px;
 }
@@ -830,32 +755,15 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   font-weight: 700;
 }
 
-.cyberpunk-blue .health-caption {
-  color: var(--cpb-muted);
-  font-size: 0.9rem;
-}
-
 /* ==================================================
    SHEET COMPONENTS: SKILLS & ABILITIES
 ================================================== */
-
-.cyberpunk-blue .skills-layout {
-  display: block;
-}
 
 .cyberpunk-blue .skill-table,
 .cyberpunk-blue .component-table,
 .cyberpunk-blue .embedded-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-}
-
-.cyberpunk-blue .component-entries,
-.cyberpunk-blue .embedded-entries {
-  display: flex;
-  flex-direction: column;
-  /* gap: 2px; */
 }
 
 .cyberpunk-blue .skill-table {
@@ -1003,7 +911,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   break-inside: avoid;
   display: flex;
   flex-direction: column;
-  gap: 2px;
 }
 
 .cyberpunk-blue .embedded-description {
@@ -1037,10 +944,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   border: 1px solid var(--cpb-border);
   font-size: 0.82rem;
   padding-inline: 0.6rem;
-}
-
-.cyberpunk-blue .component-panel {
-  margin-top: 1rem;
 }
 
 .cyberpunk-blue .component-add {
@@ -1110,30 +1013,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   height: 38px;
   object-fit: cover;
   width: 38px;
-}
-
-.cyberpunk-blue .state-chip,
-.cyberpunk-blue .item-type-chip {
-  border: 1px solid var(--cpb-border);
-  color: var(--cpb-muted);
-  display: inline-flex;
-  font-size: 0.78rem;
-  padding: 0.24rem 0.6rem;
-}
-
-.cyberpunk-blue .state-active {
-  border-color: var(--cpb-border);
-  color: var(--cpb-accent);
-}
-
-.cyberpunk-blue .state-disabled {
-  border-color: var(--cpb-warning);
-  color: var(--cpb-warning);
-}
-
-.cyberpunk-blue .state-always {
-  border-color: var(--cpb-border);
-  color: var(--cpb-accent-strong);
 }
 
 .cyberpunk-blue .embedded-controls button,
@@ -1229,15 +1108,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   gap: 1rem;
 }
 
-.cyberpunk-blue .foldout-panel summary {
-  color: var(--cpb-accent);
-  cursor: pointer;
-  font-weight: 700;
-  list-style: none;
-  margin-bottom: 0.75rem;
-  text-transform: uppercase;
-}
-
 .cyberpunk-blue .cyberware-detail-grid {
   display: grid;
   gap: 0.75rem;
@@ -1297,23 +1167,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   gap: 0.5rem;
   grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
   margin-top: 0.9rem;
-}
-
-.cyberpunk-blue .range-band {
-  align-items: center;
-  background: var(--cpb-panel);
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  padding: 0.45rem;
-}
-
-.cyberpunk-blue .range-band.is-blocked {
-  background: #000;
-}
-
-.cyberpunk-blue .range-band.is-blocked input {
-  background: #000;
 }
 
 .cyberpunk-blue .sheet-status {
@@ -1387,9 +1240,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 /* Each category is its own .sheet-panel inside the grid; the grid gap controls
    vertical rhythm, so drop the panel's default top margin. */
 .cyberpunk-blue .skill-category {
-  margin-top: 0 !important;
   margin-bottom: 1rem;
-  padding-top: 0 !important;
   break-inside: avoid;
 }
 
@@ -1399,12 +1250,8 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 
 .cyberpunk-blue .notes-grid {
   display: grid;
-  gap: var(--cpb-space-3);
+  gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
-}
-
-.cyberpunk-blue .notes-grid > .sheet-panel {
-  margin-top: 0.9rem;
 }
 
 .cyberpunk-blue .notes-grid .prosemirror {
@@ -1455,7 +1302,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  margin-bottom: 1rem;
 }
 
 .cyberpunk-blue .armor-inline-field .resource-fields,
@@ -1474,14 +1320,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   align-items: flex-start;
   display: flex;
   gap: 0.75rem;
-}
-
-.cyberpunk-blue .inventory-group {
-  padding-top: 0 !important;
-}
-
-.cyberpunk-blue .inventory-group + .inventory-group {
-  margin-top: 1rem;
 }
 
 /* Ammo pills row */
@@ -1700,12 +1538,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   padding: 0.35rem 0.1rem;
 }
 
-.cyberpunk-blue .numeric-value {
-  justify-content: center;
-  min-width: 30px;
-  text-align: center;
-}
-
 .cyberpunk-blue .manufacturer-display {
   gap: 0.45rem;
 }
@@ -1812,19 +1644,12 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 1rem;
-  margin-top: 1rem;
 }
 
 .cyberpunk-blue .role-overview-feature {
-  break-inside: avoid;
-  margin-bottom: var(--cpb-space-3);
   display: flex;
   flex-direction: column;
   gap: var(--cpb-space-2);
-  background: var(--cpb-accent-wash-soft);
-  padding: var(--cpb-space-3);
-  padding-top: 0 !important;
-  clip-path: var(--cpb-border-shape);
 }
 
 .cyberpunk-blue .role-overview-feature .role-mechanic-row {
@@ -1856,10 +1681,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .specialty-summary-list {
   columns: 3 600px;
   gap: 0.2rem;
-}
-
-.cyberpunk-blue .spcialty-summary-list > * {
-  break-inside: avoid;
 }
 
 .cyberpunk-blue .specialty-header {
@@ -1939,13 +1760,8 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   min-width: 180px;
 }
 
-.cyberpunk-blue .role-focus-table input[type="number"] {
-  width: 4rem;
-}
-
 @media (max-width: 900px) {
   .cyberpunk-blue .notes-grid,
-  .cyberpunk-blue .overview-grid,
   .cyberpunk-blue .header-stats {
     grid-template-columns: 1fr;
   }
@@ -1974,33 +1790,9 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   .cyberpunk-blue .mod-effect-row {
     grid-template-columns: 1fr;
   }
-
-  div.tab.active > section.traits-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .cyberpunk-blue .traits-role-panel,
-  .cyberpunk-blue .traits-role-panel .embedded-table {
-    width: 100%;
-  }
-
   .cyberpunk-blue .role-reference-row {
     grid-template-columns: 1fr;
   }
-}
-
-@keyframes chromatic-jitter {
-    0%,
-    100% {
-        box-shadow:
-            3px 0 0 rgba(240, 200, 0, 0.4),
-            -3px 0 0 rgba(0, 200, 240, 0.4);
-    }
-    50% {
-        box-shadow:
-            4px 1px 0 rgba(240, 200, 0, 0.4),
-            -4px -1px 0 rgba(0, 200, 240, 0.4);
-    }
 }
 
 /* Future Possibilities folding section */
@@ -2477,49 +2269,77 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 
 /* Computers list */
 .cyberpunk-blue .netrunner-computers-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
 }
 
 .cyberpunk-blue .netrunner-computer-card {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 4px 6px;
-  border: 1px solid var(--color-border-light-tertiary, #ccc);
-  border-radius: 4px;
-  background: var(--color-bg-option, rgba(0,0,0,0.03));
+  gap: .5rem;
+  padding: .5rem .35rem;
+  background: var(--cpb-accent-warm-border);
+  --c: var(--cpb-cut-lg);
+  --s: calc(var(--c) * 0.45);
+  clip-path: polygon(
+    var(--s) 0, calc(100% - var(--c)) 0,
+    100% var(--c), 100% 100%,
+    var(--c) 100%, 0 calc(100% - var(--c)),
+    0 var(--s), var(--s) var(--s)
+  );
+}
+
+.cyberpunk-blue .netrunner-computer-card::before {
+  content: "";
+  position: absolute;
+  inset: var(--cpb-stroke);
+  background: var(--cpb-panel);
+  clip-path: inherit;
+  z-index: 0;
+}
+
+.cyberpunk-blue .netrunner-computer-card < * {
+  position: relative;
+  z-index: 1;
 }
 
 .cyberpunk-blue .netrunner-computer-name {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  flex: 1;
+  gap: 0.35rem;
   font-weight: bold;
-  font-size: var(--font-size-13);
+  font-size: var(--cpb-fs-h3);
+  transform: uppercase;
 }
 
 .cyberpunk-blue .netrunner-computer-name img.item-img {
-  width: 20px;
-  height: 20px;
+  width: 10rem;
+  height: 8rem;
   object-fit: contain;
 }
 
 .cyberpunk-blue .netrunner-computer-stats {
   display: flex;
-  gap: 8px;
-  font-size: var(--font-size-12);
-  color: var(--color-text-light-secondary, #555);
+  gap: .5rem;
 }
 
 .cyberpunk-blue .netrunner-computer-programs {
-  margin: 2px 0 0 0;
-  padding: 0 0 0 16px;
-  font-size: var(--font-size-11);
-  color: var(--color-text-light-secondary, #666);
-  list-style: disc;
+  display: flex;
+  gap: .5rem;
+  list-style: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.cyberpunk-blue .netrunner-computer-programs li {
+  padding: 0.25rem 0.5rem;
+  background: var(--cpb-accent-warm-wash);
+  border: 1px solid var(--cpb-accent-warm-border);
+  white-space: nowrap;
+  border-radius: 3px;
 }
 
 .cyberpunk-blue .net-connection-row {
@@ -2722,17 +2542,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   margin-bottom: 0.25rem;
 }
 
-.cyberpunk-blue .crit-instant-death {
-  color: #000;
-  background: #8b0000;
-  color: #fff;
-  padding: 0.25rem 0.5rem;
-  border-radius: 3px;
-  font-size: var(--font-size-12);
-  font-weight: bold;
-  margin-bottom: 0.4rem;
-}
-
 .cyberpunk-blue .critical-injury-actions {
   margin-top: 0.4rem;
 }
@@ -2757,130 +2566,11 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 
 /* ─── Confirm Dialog: Crit block ─────────────────────────────────────────────── */
 
-.cyberpunk-blue .crit-confirm-block {
-  margin-top: 0.5rem;
-  border-top: 1px solid #8b0000;
-  padding-top: 0.5rem;
-}
-
 .cyberpunk-blue .crit-dice-note {
   color: #8b0000;
   font-weight: bold;
   font-size: var(--font-size-12);
   margin-bottom: 0.3rem;
-}
-
-.cyberpunk-blue .crit-location-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: var(--font-size-13);
-}
-
-.cyberpunk-blue .crit-location-row label {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  cursor: pointer;
-}
-
-/* ─── Actor Sheet: Critical Injuries Panel ────── */
-
-.cyberpunk-blue .critical-injuries-panel {
-  margin-top: 0.5rem;
-}
-
-.cyberpunk-blue .critical-injuries-panel .panel-header {
-  display: flex;
-  align-items: center;
-  border-bottom: 2px solid #8b0000;
-  padding-bottom: 0.2rem;
-  margin-bottom: 0.5rem;
-}
-
-.cyberpunk-blue .critical-injuries-panel .panel-header h2 {
-  color: #8b0000;
-  font-size: var(--font-size-14);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.cyberpunk-blue .critical-injuries-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.cyberpunk-blue .critical-injury-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.4rem 0.5rem;
-  border: 1px solid var(--cpb-border, #ccc);
-  border-radius: 4px;
-  background: var(--color-bg-option, #f5f5f5);
-}
-
-.cyberpunk-blue .critical-injury-item.is-mortal {
-  border-color: #8b0000;
-  background: #fff5f5;
-}
-
-.cyberpunk-blue .critical-injury-item .injury-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.cyberpunk-blue .critical-injury-item .injury-name {
-  font-weight: bold;
-  font-size: var(--font-size-13);
-  display: block;
-}
-
-.cyberpunk-blue .critical-injury-item .injury-mortal-badge {
-  display: inline-block;
-  font-size: var(--font-size-10);
-  font-weight: bold;
-  color: #8b0000;
-  border: 1px solid #8b0000;
-  border-radius: 3px;
-  padding: 0 4px;
-  margin-left: 0.4rem;
-  vertical-align: middle;
-}
-
-.cyberpunk-blue .critical-injury-item .injury-desc {
-  font-size: var(--font-size-11);
-  color: var(--color-text-dark-secondary, #555);
-  margin: 0.15rem 0 0;
-  line-height: 1.4;
-}
-
-.cyberpunk-blue .critical-injury-item .injury-remove {
-  flex-shrink: 0;
-  background: transparent;
-  border: 1px solid #8b0000;
-  color: #8b0000;
-  border-radius: 3px;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  cursor: pointer;
-  font-size: var(--font-size-11);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  align-self: center;
-}
-
-.cyberpunk-blue .critical-injury-item .injury-remove:hover {
-  background: #8b0000;
-  color: #fff;
 }
 
 /* ─── Health Effects: critical injury delete button ─────────────────────────── */
@@ -3062,11 +2752,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 
 /* ─── Martial Arts ────────────────────────────── */
-
-.cyberpunk-blue .martial-arts-panel .section-header {
-  font-size: var(--font-size-14);
-  margin: 0.3rem 0 0.4rem;
-}
 
 .cyberpunk-blue .ma-specials-grid {
   columns: 6 200px;
@@ -3493,10 +3178,9 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .sheet-panel {
   position: relative;
   isolation: isolate;
-  margin-top: 0.9rem;
   padding: 1rem;
   --c: var(--cpb-cut-lg);
-  background: var(--cpb-panel-border);
+  background: var(--cpb-panel);
   clip-path: polygon(
     0 0, calc(100% - var(--c)) 0, 100% var(--c),
     100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
@@ -3507,7 +3191,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   content: "";
   position: absolute;
   inset: var(--cpb-stroke);
-  background: var(--cpb-panel);
+  background: var(--cpb-accent-wash);
   clip-path: inherit;
   z-index: 0;
 }
@@ -3632,8 +3316,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .sheet-tabs .item.active::before { filter: brightness(0); }
 
 /* ── Stat & resource cards ────────────────────────────────── */
-.cyberpunk-blue .stat-card,
-.cyberpunk-blue .resource-card {
+.cyberpunk-blue .stat-card {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -3641,11 +3324,9 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   align-items: center;
   min-height: 100%;
   text-align: center;
-  padding-top: 0 !important;
 }
 
-.cyberpunk-blue .stat-card > *,
-.cyberpunk-blue .resource-card > * {
+.cyberpunk-blue .stat-card > * {
   z-index: 1;
 }
 
@@ -3672,13 +3353,12 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .derived-field > * { position: relative; z-index: 1; }
 
 /* ── State chips ──────────────────────────────────────────── */
-.cyberpunk-blue .state-chip,
-.cyberpunk-blue .item-type-chip {
+.cyberpunk-blue .state-chip {
   position: relative;
   isolation: isolate;
   --c: 4px;
   background: rgba(0, 240, 255, 0.40);
-  color: var(--cpb-muted);
+  color: var(--cpb-text);
   font-family: var(--cpb-font-mono);
   font-size: var(--cpb-fs-xs);
   letter-spacing: 0.08em;
@@ -3694,23 +3374,19 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   transition: background var(--cpb-dur) var(--cpb-ease),
               color var(--cpb-dur) var(--cpb-ease);
 }
-.cyberpunk-blue .state-chip::before,
-.cyberpunk-blue .item-type-chip::before {
+.cyberpunk-blue .state-chip::before {
   content: "";
   position: absolute;
   inset: 1px;
-  background: var(--cpb-panel-deep);
+  background: var(--cpb-accent-wash-soft);
   clip-path: inherit;
   z-index: 0;
 }
 
-.cyberpunk-blue .state-active {
-  background: var(--cpb-accent);
-  color: var(--cpb-bg-solid-top);
-  font-weight: 700;
-  border: 0;
+.cyberpunk-blue .state-chip > * {
+  position: relative;
+  z-index: 1;
 }
-.cyberpunk-blue .state-active::before { background: var(--cpb-accent); }
 
 .cyberpunk-blue .state-disabled {
   background: var(--cpb-warning);
@@ -3719,14 +3395,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   border: 0;
 }
 .cyberpunk-blue .state-disabled::before { background: var(--cpb-warning); }
-
-.cyberpunk-blue .state-always {
-  background: var(--cpb-accent-strong);
-  color: var(--cpb-bg-solid-top);
-  font-weight: 700;
-  border: 0;
-}
-.cyberpunk-blue .state-always::before { background: var(--cpb-accent-strong); }
 
 /* Component pill */
 .cyberpunk-blue .component-pill {
@@ -3781,33 +3449,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .mod-card.is-invalid { background: rgba(255, 35, 80, 0.42); }
 .cyberpunk-blue .mod-card.is-invalid::before { background: var(--cpb-panel-deep); }
 
-/* Range band */
-.cyberpunk-blue .range-band {
-  position: relative;
-  isolation: isolate;
-  --c: 4px;
-  background: rgba(141, 227, 255, 0.14);
-  border: 0;
-  clip-path: polygon(
-    var(--c) 0, calc(100% - var(--c)) 0,
-    100% var(--c), 100% calc(100% - var(--c)),
-    calc(100% - var(--c)) 100%, var(--c) 100%,
-    0 calc(100% - var(--c)), 0 var(--c)
-  );
-}
-.cyberpunk-blue .range-band::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--cpb-panel-deep);
-  clip-path: inherit;
-  z-index: 0;
-}
-.cyberpunk-blue .range-band > * { position: relative; z-index: 1; }
-.cyberpunk-blue .range-band.is-blocked { background: rgba(0, 0, 0, 0.8); }
-.cyberpunk-blue .range-band.is-blocked::before { background: rgba(0, 0, 0, 0.9); }
-.cyberpunk-blue .range-band.is-blocked input { background: transparent; color: #000; }
-
 /* ── Ammo pill ────────────────────────────────────────────── */
 .cyberpunk-blue .ammo-pill {
   position: relative;
@@ -3830,25 +3471,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 .cyberpunk-blue .ammo-pill > * { position: relative; z-index: 1; }
 
-/* ── Role overview feature block ─────────────────────────── */
-.cyberpunk-blue .role-overview-feature {
-  position: relative;
-  isolation: isolate;
-  --c: var(--cpb-cut-md);
-  background: rgba(141, 227, 255, 0.14);
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0, 100% var(--c),
-    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
-  );
-}
-.cyberpunk-blue .role-overview-feature::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--cpb-accent-wash-soft);
-  clip-path: inherit;
-  z-index: 0;
-}
 .cyberpunk-blue .role-overview-feature > * { position: relative; z-index: 1; }
 
 /* ── Netrunner component box ──────────────────────────────── */
@@ -3992,31 +3614,8 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 
 /* ── Critical injury UI ───────────────────────────────────── */
-.cyberpunk-blue .critical-injury-item {
-  position: relative;
-  isolation: isolate;
-  --c: var(--cpb-cut-sm);
-  background: rgba(139, 0, 0, 0.32);
-  border: 0;
-  border-radius: 0;
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0, 100% var(--c),
-    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
-  );
-}
-.cyberpunk-blue .critical-injury-item::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: rgba(0, 0, 0, 0.6);
-  clip-path: inherit;
-  z-index: 0;
-}
-.cyberpunk-blue .critical-injury-item > * { position: relative; z-index: 1; }
-.cyberpunk-blue .critical-injury-item.is-mortal { background: rgba(139, 0, 0, 0.6); }
 
 .cyberpunk-blue .remove-critical-injury,
-.cyberpunk-blue .critical-injury-item .injury-remove,
 .cyberpunk-blue .health-effect-delete {
   --btn-tint: #8b0000;
   background: rgba(139, 0, 0, 0.32);
@@ -4025,13 +3624,10 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   border-radius: 0;
 }
 .cyberpunk-blue .remove-critical-injury::before,
-.cyberpunk-blue .critical-injury-item .injury-remove::before,
 .cyberpunk-blue .health-effect-delete::before { background: rgba(0, 0, 0, 0.5); }
 .cyberpunk-blue .remove-critical-injury:hover,
-.cyberpunk-blue .critical-injury-item .injury-remove:hover,
 .cyberpunk-blue .health-effect-delete:hover { background: #8b0000; color: #fff; }
 .cyberpunk-blue .remove-critical-injury:hover::before,
-.cyberpunk-blue .critical-injury-item .injury-remove:hover::before,
 .cyberpunk-blue .health-effect-delete:hover::before { background: #8b0000; }
 
 /* ── Combat tracker panel ─────────────────────────────────── */
@@ -4215,11 +3811,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 .cyberpunk-blue .future-possibilities {
   border-radius: 0;
-}
-.cyberpunk-blue .netrunner-computer-card {
-  border-radius: 0;
-  border: 1px solid rgba(0, 240, 255, 0.25);
-  background: var(--cpb-panel-deep);
 }
 
 /* ── Vehicle tracker row chips ───────────────────────────────────────────── */
@@ -4619,12 +4210,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   margin: 0;
   color: #eee;
   font-weight: bold;
-}
-
-.vehicle-hud-body .vhud-reverse {
-  color: #ff8800;
-  font-size: var(--font-size-11, 11px);
-  margin-top: 0.3rem;
 }
 
 .vehicle-hud-body .vhud-muted {
