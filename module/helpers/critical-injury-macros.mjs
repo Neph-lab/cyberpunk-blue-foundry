@@ -677,6 +677,75 @@ ChatMessage.create({
 })();
 `;
 
+// ─── Adjust Improvement Points macro ──────────────────────────────────────────
+
+export const ADJUST_IMPROVEMENT_POINTS_MACRO = `
+(async () => {
+// ── Adjust Improvement Points ─────────────────────────────────────────────────
+// GM macro. Grant or remove IP across one or more player-owned characters.
+// Positive amount grants IP (raising both current and total). Negative amount
+// removes IP, lowering both current IP and total IP equally (total IP is only
+// a measure of overall power level). Pre-checks the characters of any selected
+// tokens.
+
+if (!game.user.isGM) { ui.notifications.warn('Only the GM can adjust IP.'); return; }
+
+const playerChars = game.actors.filter(a => a.type === 'character' && a.hasPlayerOwner);
+if (!playerChars.length) { ui.notifications.warn('No player-owned characters found.'); return; }
+
+const selectedIds = new Set((canvas.tokens?.controlled ?? []).map(t => t.actor?.id).filter(Boolean));
+
+const checkboxes = playerChars.map(a =>
+  \`<label style="display:flex;align-items:center;gap:0.5rem;padding:0.15rem 0;">
+    <input type="checkbox" name="a_\${a.id}" \${selectedIds.has(a.id) ? 'checked' : ''} />
+    <span><strong>\${foundry.utils.escapeHTML(a.name)}</strong> <span style="font-size:0.8em;color:var(--color-text-light-6);">(IP \${a.system.ip ?? 0} / Total \${a.system.totIP ?? 0})</span></span>
+  </label>\`
+).join('');
+
+const result = await foundry.applications.api.DialogV2.wait({
+  window: { title: 'Adjust Improvement Points' },
+  content: \`
+    <div class="cyberpunk-blue" style="padding:0.5rem;display:flex;flex-direction:column;gap:0.6rem;">
+      <p style="margin:0;font-size:0.85em;color:var(--color-text-light-6);">Positive = grant IP. Negative = remove IP (also lowers Total IP).</p>
+      <label>Amount: <input type="number" name="amount" value="0" style="width:6rem;" /></label>
+      <fieldset style="border:1px solid var(--color-border-light-2);padding:0.4rem 0.6rem;border-radius:3px;">
+        <legend style="font-size:0.85em;">Characters</legend>
+        \${checkboxes}
+      </fieldset>
+    </div>
+  \`,
+  buttons: [
+    {
+      action: 'apply', label: 'Apply', icon: 'fas fa-check', default: true,
+      callback: (_e, btn) => ({
+        amount: Number(btn.form.elements['amount'].value) || 0,
+        actorIds: playerChars.filter(a => btn.form.elements[\`a_\${a.id}\`]?.checked).map(a => a.id),
+      }),
+    },
+    { action: 'cancel', label: 'Cancel', icon: 'fas fa-xmark', callback: () => null },
+  ],
+});
+
+if (!result || !result.actorIds.length) return;
+if (result.amount === 0) { ui.notifications.warn('Amount is 0 — nothing to do.'); return; }
+
+const lines = [];
+for (const id of result.actorIds) {
+  const actor = game.actors.get(id);
+  if (!actor) continue;
+  const prev = actor.system.ip ?? 0;
+  const prevTot = actor.system.totIP ?? 0;
+  const newIp = Math.max(0, prev + result.amount);
+  const newTot = Math.max(0, prevTot + result.amount);
+  await actor.update({ 'system.ip': newIp, 'system.totIP': newTot });
+  lines.push(\`<li>\${foundry.utils.escapeHTML(actor.name)}: \${prev} → \${newIp} IP\${result.amount < 0 ? \` (Total: \${prevTot} → \${newTot})\` : ''}</li>\`);
+}
+
+const verb = result.amount > 0 ? \`+\${result.amount}\` : String(result.amount);
+ChatMessage.create({ content: \`<div class="cyberpunk-blue chat-card"><h3>IP Adjusted (\${verb})</h3><ul style="margin:.3rem 0 0 1rem;">\${lines.join('')}</ul></div>\` });
+})();
+`;
+
 // ─── Catalogue ────────────────────────────────────────────────────────────────
 
 export const MACRO_CATALOGUE = [
@@ -727,6 +796,13 @@ export const MACRO_CATALOGUE = [
     type: 'script',
     img: 'icons/svg/item-bag.svg',
     command: CLEAR_ROLE_GRANTED_ITEMS_MACRO,
+    _folder: 'GM Tools',
+  },
+  {
+    name: 'Adjust Improvement Points',
+    type: 'script',
+    img: 'icons/svg/upgrade.svg',
+    command: ADJUST_IMPROVEMENT_POINTS_MACRO,
     _folder: 'GM Tools',
   },
 ];
