@@ -65,36 +65,42 @@ export const PROGRAM_CATALOGUE = [
 
   prog({
     name: 'Deckkrash',
+    img: `systems/cyberpunk-blue/assets/items/programs/DeckKRASH.png`,
     cost: 'PR', category: 'attack',
     atk: 0, def: 10, rez: 5,
     description: 'Attack a netrunner with a connected cyberdeck. Deals no damage; instead unsafely disconnects the target.',
   }),
   prog({
     name: 'Hellbolt',
+    img: `systems/cyberpunk-blue/assets/items/programs/hellbolt.png`,
     cost: 'PR', category: 'attack',
     atk: 1, def: 14, rez: 5,
     description: 'Attack a netrunner. Deals 2d6 HP directly; a non-insulated cyberdeck starts a small fire. Target has 1 fewer NET action (non-cumulative) on their next turn.',
   }),
   prog({
     name: 'Nervescrub',
+    img: `systems/cyberpunk-blue/assets/items/programs/nervescrub.png`,
     cost: 'EX', category: 'attack',
     atk: 0, def: 10, rez: 5,
     description: 'Attack a netrunner. No damage. Target\'s RFLX and INT are each reduced by 1d6 (minimum 1) for 1 hour. Effect is non-stacking and psychosomatic.',
   }),
   prog({
     name: 'Poison Flatline',
+    img: `systems/cyberpunk-blue/assets/items/programs/poison-flatline.png`,
     cost: 'EX', category: 'attack',
     atk: 0, def: 12, rez: 10,
     description: 'Attack a netrunner. No damage. Deletes one random program from the target\'s cyberdeck.',
   }),
   prog({
     name: 'Speed-Slice',
+    img: `systems/cyberpunk-blue/assets/items/programs/speed-slice.png`,
     cost: 'PR', category: 'attack',
     act: 1, atk: 2, def: 10, rez: 5,
     description: 'Attack a program (as own action or as a NET action). Deals 2d6 damage. ACT 1. A single target can only be attacked once per turn per copy of this program.',
   }),
   prog({
     name: 'Superglue',
+    img: `systems/cyberpunk-blue/assets/items/programs/superglue.png`,
     cost: 'PR', category: 'attack',
     atk: 2, def: 14, rez: 10,
     description: 'Attack a netrunner. No damage. For 1d6 turns, or until closed, the target cannot move between nodes or safely disconnect. Must be closed and re-run to use again.',
@@ -119,6 +125,7 @@ export const PROGRAM_CATALOGUE = [
 
   prog({
     name: 'Asp',
+    img: `systems/cyberpunk-blue/assets/items/programs/asp.png`,
     cost: 'PR', category: 'black-ice',
     act: 1, atk: 7, def: 17, net: 0, per: 12, rez: 15,
     damageFormula: '',   // no HP damage (destroys a program instead)
@@ -126,6 +133,7 @@ export const PROGRAM_CATALOGUE = [
   }),
   prog({
     name: 'Dragon',
+    img: `systems/cyberpunk-blue/assets/items/programs/dragon.png`,
     cost: 'VEX', category: 'black-ice',
     act: 1, atk: 11, def: 21, net: 2, per: 15, rez: 30,
     damageFormula: '6d6',
@@ -133,6 +141,7 @@ export const PROGRAM_CATALOGUE = [
   }),
   prog({
     name: 'Giant',
+    img: `systems/cyberpunk-blue/assets/items/programs/giant.png`,
     cost: 'VEX', category: 'black-ice',
     act: 1, atk: 13, def: 19, net: 2, per: 14, rez: 25,
     damageFormula: '3d6',
@@ -140,6 +149,7 @@ export const PROGRAM_CATALOGUE = [
   }),
   prog({
     name: 'Hellhound',
+    img: `systems/cyberpunk-blue/assets/items/programs/hellhound.png`,
     cost: 'EX', category: 'black-ice',
     act: 1, atk: 11, def: 17, net: 1, per: 15, rez: 20,
     damageFormula: '3d6',
@@ -147,6 +157,7 @@ export const PROGRAM_CATALOGUE = [
   }),
   prog({
     name: 'Killer',
+    img: `systems/cyberpunk-blue/assets/items/programs/killer.png`,
     cost: 'EX', category: 'black-ice',
     act: 1, atk: 11, def: 17, net: 1, per: 12, rez: 20,
     damageFormula: '4d6',
@@ -154,6 +165,7 @@ export const PROGRAM_CATALOGUE = [
   }),
   prog({
     name: 'Kraken',
+    img: `systems/cyberpunk-blue/assets/items/programs/kraken.png`,
     cost: 'VEX', category: 'black-ice',
     act: 1, atk: 13, def: 19, net: 2, per: 14, rez: 30,
     damageFormula: '4d6',
@@ -161,6 +173,7 @@ export const PROGRAM_CATALOGUE = [
   }),
   prog({
     name: 'Liche',
+    img: `systems/cyberpunk-blue/assets/items/programs/lich.png`,
     cost: 'EX', category: 'black-ice',
     act: 1, atk: 11, def: 17, net: 1, per: 13, rez: 25,
     damageFormula: '',   // no HP damage (stat reduction only)
@@ -168,6 +181,7 @@ export const PROGRAM_CATALOGUE = [
   }),
   prog({
     name: 'Raven',
+    img: `systems/cyberpunk-blue/assets/items/programs/raven.png`,
     cost: 'CO', category: 'black-ice',
     act: 1, atk: 9, def: 17, net: 0, per: 14, rez: 15,
     damageFormula: '1d6',
@@ -175,6 +189,7 @@ export const PROGRAM_CATALOGUE = [
   }),
   prog({
     name: 'Sabertooth',
+    img: `systems/cyberpunk-blue/assets/items/programs/sabretooth.png`,
     cost: 'EX', category: 'black-ice',
     act: 1, atk: 12, def: 17, net: 3, per: 10, rez: 25,
     damageFormula: '6d6',
@@ -182,6 +197,7 @@ export const PROGRAM_CATALOGUE = [
   }),
   prog({
     name: 'Scorpion',
+    img: `systems/cyberpunk-blue/assets/items/programs/scorpion.png`,
     cost: 'PR', category: 'black-ice',
     act: 1, atk: 8, def: 17, net: 0, per: 8, rez: 15,
     damageFormula: '',   // no HP damage (MOVE reduction only)
@@ -189,6 +205,7 @@ export const PROGRAM_CATALOGUE = [
   }),
   prog({
     name: 'Skunk',
+    img: `systems/cyberpunk-blue/assets/items/programs/skunk.png`,
     cost: 'PR', category: 'black-ice',
     act: 1, atk: 5, def: 17, net: 1, per: 10, rez: 10,
     damageFormula: '',   // no HP damage (penalty aura only)
@@ -196,6 +213,7 @@ export const PROGRAM_CATALOGUE = [
   }),
   prog({
     name: 'Wisp',
+    img: `systems/cyberpunk-blue/assets/items/programs/wisp.png`,
     cost: 'CO', category: 'black-ice',
     act: 1, atk: 9, def: 19, net: 0, per: 9, rez: 15,
     damageFormula: '1d6',
@@ -213,6 +231,7 @@ export const PROGRAM_CATALOGUE = [
   }),
   prog({
     name: 'Flack',
+    img: `systems/cyberpunk-blue/assets/items/programs/flak.png`,
     cost: 'PR', category: 'defender',
     def: 10, rez: 7,
     description: 'Halves the ATK of all ICE against the user while Flack is rezzed. Only one copy can run on any given Architecture at a time.',
@@ -225,6 +244,7 @@ export const PROGRAM_CATALOGUE = [
   }),
   prog({
     name: 'Shield',
+    img: `systems/cyberpunk-blue/assets/items/programs/shield.png`,
     cost: 'CO', category: 'defender',
     def: 10, rez: 7,
     description: 'Intercepts the first non-Black ICE effect that would deal damage to the Netrunner or one of their programs, taking the damage instead. Deactivates if REZ > 0 after absorbing an effect.',
@@ -236,18 +256,21 @@ export const PROGRAM_CATALOGUE = [
 
   prog({
     name: 'Eraser',
+    img: `systems/cyberpunk-blue/assets/items/programs/eraser.png`,
     cost: 'EV', category: 'booster',
     act: 1, def: 12, rez: 7,
     description: '+2 to Cloak checks until the start of your next turn. Only one copy may benefit you at a time.',
   }),
   prog({
     name: 'See-Ya',
+    img: `systems/cyberpunk-blue/assets/items/programs/see-ya.png`,
     cost: 'EV', category: 'booster',
     act: 1, def: 12, rez: 7,
     description: '+2 to Pathfinder checks until the start of your next turn. Only one copy may benefit you at a time.',
   }),
   prog({
     name: 'Worm',
+    img: `systems/cyberpunk-blue/assets/items/programs/worm.png`,
     cost: 'CO', category: 'booster',
     act: 1, def: 12, rez: 7,
     description: '+2 to Breach checks until the start of your next turn. Only one copy may benefit you at a time.',
@@ -259,24 +282,28 @@ export const PROGRAM_CATALOGUE = [
 
   prog({
     name: 'Gremlin',
+    img: `systems/cyberpunk-blue/assets/items/programs/gremin.png`,
     cost: 'EX', category: 'daemon',
     act: 2, atk: 10, def: 15, net: 2, per: 13, rez: 15,
     description: 'A control program for automated systems (turrets, doors, etc.). Logic follows simple if/then rules defined when installed.',
   }),
   prog({
     name: 'Imp',
+    img: `systems/cyberpunk-blue/assets/items/programs/imp.png`,
     cost: 'VEX', category: 'daemon',
     act: 3, atk: 13, def: 18, net: 3, per: 15, rez: 20,
     description: 'A control program for automated systems (turrets, doors, etc.). Logic follows simple if/then rules defined when installed.',
   }),
   prog({
     name: 'Efreet',
+    img: `systems/cyberpunk-blue/assets/items/programs/efreet.png`,
     cost: 'LUX', category: 'daemon',
     act: 4, atk: 14, def: 19, net: 4, per: 16, rez: 25,
     description: 'A control program for automated systems (turrets, doors, etc.). Logic follows simple if/then rules defined when installed.',
   }),
   prog({
     name: 'Balron',
+    img: `systems/cyberpunk-blue/assets/items/programs/balron.png`,
     cost: 'SLX', category: 'daemon',
     act: 5, atk: 15, def: 20, net: 7, per: 18, rez: 30,
     description: 'A control program for automated systems (turrets, doors, etc.). Logic follows simple if/then rules defined when installed.',
