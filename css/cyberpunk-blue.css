@@ -455,7 +455,8 @@ section.chat-sidebar:not(.sidebar-popout),
 .cyberpunk-blue input[type=text],
 .cyberpunk-blue input[type=number] {
   border: 1px solid rgba(141, 227, 255, 0.2);
-  border-radius: var(--cpb-radius-input);
+  --c: var(--cpb-cut-sm);
+  clip-path: var(--cpb-shape--notch-tr);
   background: var(--cpb-panel-deeper);
   color: var(--cpb-text);
   font-size: var(--cpb-fs-body);
@@ -664,6 +665,13 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .skill-stat,
 .cyberpunk-blue .resource-fields input {
   text-align: center;
+}
+
+.cyberpunk-blue .resource-fields {
+  display: grid;
+  gap: 0.35rem;
+  grid-template-columns: 1fr min-content 1fr;
+  align-items: center;
 }
 
 /* ==================================================
@@ -1031,14 +1039,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
 
-.cyberpunk-blue .cyberware-group {
-  padding-top: 0 !important;
-}
-
-.cyberpunk-blue .cyberware-group .embedded-entry:not(:first-child) .cyberware-row {
-  margin-top: 0.9rem;
-}
-
 .cyberpunk-blue .cyberware-sheet {
   display: flex;
   flex-direction: column;
@@ -1057,7 +1057,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   min-width: 3rem;
 }
 
-.cyberpunk-blue .cyberware-group + .cyberware-group {
+.cyberpunk-blue .cyberware-group:first-child {
   margin-top: 1rem;
 }
 
@@ -1217,6 +1217,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 
 .cyberpunk-blue .quick-stats-row {
+  margin-top: 1rem;
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -1591,8 +1592,8 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 
 .cyberpunk-blue .role-grant-summary,
 .cyberpunk-blue .specialty-summary-list {
-  columns: 3 600px;
-  gap: 0.2rem;
+  columns: 3 450px;
+  gap: 1rem;
 }
 
 .cyberpunk-blue .specialty-summary-list > * {
@@ -2126,12 +2127,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   background: var(--cpb-accent-warm-border);
   --c: var(--cpb-cut-lg);
   --s: calc(var(--c) * 0.45);
-  clip-path: polygon(
-    var(--s) 0, calc(100% - var(--c)) 0,
-    100% var(--c), 100% 100%,
-    var(--c) 100%, 0 calc(100% - var(--c)),
-    0 var(--s), var(--s) var(--s)
-  );
+  clip-path: var(--cpb-shape--panel);
 }
 
 .cyberpunk-blue .netrunner-computer-card::before {
@@ -2143,7 +2139,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   z-index: 0;
 }
 
-.cyberpunk-blue .netrunner-computer-card < * {
+.cyberpunk-blue .netrunner-computer-card > * {
   position: relative;
   z-index: 1;
 }
@@ -2159,8 +2155,8 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 
 .cyberpunk-blue .netrunner-computer-name img.item-img {
-  width: 10rem;
-  height: 8rem;
+  max-width: 8rem;
+  max-height: 8rem;
   object-fit: contain;
 }
 
@@ -2534,13 +2530,9 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 /* ─── Martial Arts ────────────────────────────── */
 
 .cyberpunk-blue .ma-specials-grid {
-  columns: 6 200px;
-  column-gap: var(--cpb-space-4);
-  margin: var(--cpb-space-2) auto;
-}
-
-.cyberpunk-blue .ma-special-header {
-  margin-bottom: 0.2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
 }
 
 .cyberpunk-blue .ma-special-btn {
@@ -3070,10 +3062,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   text-align: center;
 }
 
-.cyberpunk-blue .stat-card > * {
-  z-index: 1;
-}
-
 /* Derived field (borders → chamfer) */
 .cyberpunk-blue .derived-field {
   position: relative;
@@ -3173,7 +3161,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   inset: 1px;
   background: var(--cpb-accent-wash-soft);
   clip-path: inherit;
-  z-index: 0;
 }
 
 /* ── Weapon block & mod card ──────────────────────────────── */
@@ -3274,15 +3261,8 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   isolation: isolate;
   --c: var(--cpb-cut-sm);
   background: rgba(0, 240, 255, 0.28);
-  border: 0;
-  border-radius: 0;
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0, 100% var(--c),
-    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
-  );
-  break-inside: avoid;
-  padding: 0.35rem 0.45rem;
-  margin-bottom: var(--cpb-space-4);
+  clip-path: var(--cpb-shape-tr-bl);
+  padding: var(--cpb-space-3) var(--cpb-space-4);
   display: flex;
   flex-direction: column;
   gap: var(--cpb-space-2);
@@ -3290,7 +3270,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .ma-special-entry::before {
   content: "";
   position: absolute;
-  inset: 1px;
+  inset: 2px;
   background: var(--cpb-accent-wash);
   clip-path: inherit;
   z-index: 0;
@@ -4302,10 +4282,15 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 
 /* ── IP Spender Application ────────────────────────────────────────────── */
 .cyberpunk-blue.ip-spender .window-content {
-  display: flex;
-  flex-direction: column;
   padding: 0;
   overflow: hidden;
+}
+
+.cyberpunk-blue.ip-spender .ip-spender-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
 }
 
 .cyberpunk-blue.ip-spender .ip-spender-header {

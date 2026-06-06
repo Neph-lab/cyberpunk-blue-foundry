@@ -157,8 +157,10 @@ export class IpSpenderApplication extends HandlebarsApplicationMixin(Application
 
       let expandArea = null;
       if (isSelected && data.components.length > 0) {
-        const activeLinkedComps = data.components.filter((cs) => system.components[cs]?.active);
-        const canTakeExtraRank = activeLinkedComps.some((cs) => (system.components[cs]?.rank ?? 0) > newRank);
+        // Show every linked Component — raising the skill activates them, so the
+        // free rank can land on any of them (not just ones already active).
+        const linkedComps = data.components;
+        const canTakeExtraRank = linkedComps.some((cs) => (system.components[cs]?.rank ?? 0) > newRank);
         const extraRankSelected = skillSel?.extras?.extraRank === true;
         const options = [];
         if (canTakeExtraRank) {
@@ -171,7 +173,7 @@ export class IpSpenderApplication extends HandlebarsApplicationMixin(Application
             isLocked: false,
           });
         }
-        for (const cs of activeLinkedComps) {
+        for (const cs of linkedComps) {
           options.push({
             type: 'freeComponent',
             slug: cs,
