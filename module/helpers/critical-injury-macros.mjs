@@ -824,22 +824,16 @@ const result = await foundry.applications.api.DialogV2.wait({
 if (!result) return;
 if (!result.actorIds.length) { ui.notifications.warn('Select at least one character to roll for.'); return; }
 
-// Drive secrecy through the core roll mode (rollSkill reads it). Restore after.
-const prevMode = game.settings.get('core', 'rollMode');
-try {
-  await game.settings.set('core', 'rollMode',
-    result.secret ? CONST.DICE_ROLL_MODES.PRIVATE : CONST.DICE_ROLL_MODES.PUBLIC);
-  for (const id of result.actorIds) {
-    const actor = game.actors.get(id);
-    if (!actor?.rollSkill) continue;
-    await actor.rollSkill({
-      skillSlug: result.skill,
-      componentSlug: result.component,
-      dv: result.dv > 0 ? result.dv : null,
-    });
-  }
-} finally {
-  await game.settings.set('core', 'rollMode', prevMode);
+const rollMode = result.secret ? CONST.DICE_ROLL_MODES.PRIVATE : CONST.DICE_ROLL_MODES.PUBLIC;
+for (const id of result.actorIds) {
+  const actor = game.actors.get(id);
+  if (!actor?.rollSkill) continue;
+  await actor.rollSkill({
+    skillSlug: result.skill,
+    componentSlug: result.component,
+    dv: result.dv > 0 ? result.dv : null,
+    rollMode,
+  });
 }
 })();
 `;

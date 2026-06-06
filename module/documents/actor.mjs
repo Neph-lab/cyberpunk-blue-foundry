@@ -540,7 +540,7 @@ export class CyberBlueActor extends Actor {
     };
   }
 
-  async rollSkill({ skillSlug, componentSlug = null, modifier = 0, dv = null } = {}) {
+  async rollSkill({ skillSlug, componentSlug = null, modifier = 0, dv = null, rollMode = null } = {}) {
     const context = this.getSkillRollContext(skillSlug, componentSlug);
     const terms = [context.statValue, context.usedRank];
 
@@ -589,7 +589,7 @@ export class CyberBlueActor extends Actor {
 
     await roll.toMessage({
       speaker: ChatMessage.getSpeaker({ actor: this }),
-      rollMode: game.settings.get('core', 'rollMode'),
+      rollMode: rollMode ?? game.settings.get('core', 'rollMode'),
       flavor,
     });
 
