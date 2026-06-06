@@ -751,50 +751,96 @@ ChatMessage.create({ content: \`<div class="cyberpunk-blue chat-card"><h3>IP Adj
 export const REQUEST_SKILL_CHECK_MACRO = `
 (async () => {
 // ── Request Skill Check ───────────────────────────────────────────────────────
-// GM macro. Posts a skill-check request to chat (optionally whispered to GM).
+// GM macro. Rolls a Skill (and, for skills that have Components, a required
+// Component) for one or more player characters. Each roll is made by that actor
+// via actor.rollSkill, so it uses the actor's own stat, ranks, Component, and
+// any active effects. "Secret roll" (default ON) whispers the results to the GM.
 
-const skillOptions = Object.entries(CONFIG.CYBER_BLUE.skills)
-  .map(([slug, data]) => \`<option value="\${slug}">\${data.label} (\${data.stat.toUpperCase()})</option>\`)
+const SKILLS = CONFIG.CYBER_BLUE.skills;
+const COMPONENTS = CONFIG.CYBER_BLUE.components;
+
+const playerChars = game.actors.filter(a => a.type === 'character' && a.hasPlayerOwner);
+if (!playerChars.length) { ui.notifications.warn('No player-owned characters found.'); return; }
+
+const selectedIds = new Set((canvas.tokens?.controlled ?? []).map(t => t.actor?.id).filter(Boolean));
+
+const skillOptions = Object.entries(SKILLS)
+  .sort((a, b) => a[1].label.localeCompare(b[1].label))
+  .map(([slug, d]) => \`<option value="\${slug}" \${slug === 'perception' ? 'selected' : ''}>\${d.label} (\${d.stat.toUpperCase()})</option>\`)
   .join('');
+
+// Markup for the Component picker — empty for skills without Components.
+const componentMarkup = (skillSlug) => {
+  const comps = SKILLS[skillSlug]?.components ?? [];
+  if (!comps.length) return '';
+  const opts = comps.map(cs => \`<option value="\${cs}">\${COMPONENTS[cs]?.label ?? cs}</option>\`).join('');
+  return \`<label>Component: <select name="component-select">\${opts}</select></label>\`;
+};
+
+const checkboxes = playerChars.map(a =>
+  \`<label style="display:flex;align-items:center;gap:0.5rem;padding:0.15rem 0;">
+    <input type="checkbox" name="a_\${a.id}" \${selectedIds.has(a.id) ? 'checked' : ''} />
+    <span>\${foundry.utils.escapeHTML(a.name)}</span>
+  </label>\`
+).join('');
 
 const result = await foundry.applications.api.DialogV2.wait({
   window: { title: 'Request Skill Check' },
   content: \`
-    <div class="cyberpunk-blue" style="padding:0.5rem; display:flex; flex-direction:column; gap:0.5rem;">
-      <label>Skill: <select id="skill-select">\${skillOptions}</select></label>
-      <label>DV: <input type="number" id="dv-input" value="15" min="1" style="width:5rem;" /></label>
-      <label style="display:flex;align-items:center;gap:0.5rem;"><input type="checkbox" id="secret-check" /> Secret roll</label>
+    <div class="cyberpunk-blue" style="padding:0.5rem;display:flex;flex-direction:column;gap:0.6rem;">
+      <label>Skill: <select name="skill-select">\${skillOptions}</select></label>
+      <div id="rsc-component-wrap">\${componentMarkup('perception')}</div>
+      <label>DV: <input type="number" name="dv-input" value="15" min="0" style="width:5rem;" /></label>
+      <label style="display:flex;align-items:center;gap:0.5rem;"><input type="checkbox" name="secret-check" checked /> Secret roll (GM only)</label>
+      <fieldset style="border:1px solid var(--color-border-light-2);padding:0.4rem 0.6rem;border-radius:3px;">
+        <legend style="font-size:0.85em;">Roll for</legend>
+        \${checkboxes}
+      </fieldset>
     </div>
   \`,
+  render: (event, dialog) => {
+    const root = dialog.element;
+    const skillSel = root.querySelector('[name="skill-select"]');
+    const wrap = root.querySelector('#rsc-component-wrap');
+    skillSel?.addEventListener('change', () => { wrap.innerHTML = componentMarkup(skillSel.value); });
+  },
   buttons: [
-    { action: 'request', label: 'Send Request', icon: 'fas fa-dice-d10', default: true,
-      callback: (e, btn) => ({
-        skill: btn.form.elements['skill-select'].value,
-        dv: Number(btn.form.elements['dv-input'].value),
-        secret: btn.form.elements['secret-check'].checked,
-      })
+    { action: 'roll', label: 'Roll', icon: 'fas fa-dice-d10', default: true,
+      callback: (e, btn) => {
+        const f = btn.form;
+        return {
+          skill: f.elements['skill-select'].value,
+          component: f.elements['component-select']?.value ?? null,
+          dv: Number(f.elements['dv-input'].value) || 0,
+          secret: f.elements['secret-check'].checked,
+          actorIds: playerChars.filter(a => f.elements[\`a_\${a.id}\`]?.checked).map(a => a.id),
+        };
+      }
     },
     { action: 'cancel', label: 'Cancel', icon: 'fas fa-xmark', callback: () => null },
   ],
 });
 
 if (!result) return;
-const skillData = CONFIG.CYBER_BLUE.skills[result.skill];
-const dvText = result.dv > 0 ? \` (DV \${result.dv})\` : '';
-const secretText = result.secret ? ' [SECRET]' : '';
+if (!result.actorIds.length) { ui.notifications.warn('Select at least one character to roll for.'); return; }
 
-// Whisper is controlled by the \`whisper\` array; do NOT pass a numeric \`type\`
-// (that is the document subtype in v13+ and a numeric value silently fails).
-await ChatMessage.create({
-  content: \`
-    <div class="cyberpunk-blue chat-card">
-      <h3>Skill Check Request\${secretText}</h3>
-      <p>Roll <strong>\${skillData.label}</strong> (\${skillData.stat.toUpperCase()})\${dvText}</p>
-      <p><em>Click your character's skill on your sheet to roll.</em></p>
-    </div>
-  \`,
-  whisper: result.secret ? ChatMessage.getWhisperRecipients('GM') : [],
-});
+// Drive secrecy through the core roll mode (rollSkill reads it). Restore after.
+const prevMode = game.settings.get('core', 'rollMode');
+try {
+  await game.settings.set('core', 'rollMode',
+    result.secret ? CONST.DICE_ROLL_MODES.PRIVATE : CONST.DICE_ROLL_MODES.PUBLIC);
+  for (const id of result.actorIds) {
+    const actor = game.actors.get(id);
+    if (!actor?.rollSkill) continue;
+    await actor.rollSkill({
+      skillSlug: result.skill,
+      componentSlug: result.component,
+      dv: result.dv > 0 ? result.dv : null,
+    });
+  }
+} finally {
+  await game.settings.set('core', 'rollMode', prevMode);
+}
 })();
 `;
 
