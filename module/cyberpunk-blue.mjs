@@ -20,7 +20,7 @@ import {
   syncActorCyberwareDisableEffects,
 } from './helpers/cyberware-disable.mjs';
 import { syncActorLeaderRoles, syncAllProteanFociAEs, syncAllRoleConditionAEs, normalizeRoleSystemData } from './helpers/roles.mjs';
-import { CyberBlueJsonImportDialog, CyberBlueMacroCreator, CyberBlueWeaponImportDialog, CyberBlueResyncStartingGear } from './helpers/gm-tools.mjs';
+import { CyberBlueJsonImportDialog, CyberBlueWeaponImportDialog, CyberBlueResyncStartingGear } from './helpers/gm-tools.mjs';
 import { CharacterCreationWizard } from './helpers/character-creation.mjs';
 import { initAudio, playUiSound } from './helpers/audio.mjs';
 import { initResidueMediaSync } from './helpers/media-effects.mjs';
@@ -258,15 +258,6 @@ Hooks.once('init', function () {
     hint: 'CYBER_BLUE.Settings.ImportItems.Hint',
     icon: 'fas fa-file-import',
     type: CyberBlueJsonImportDialog,
-    restricted: true,
-  });
-
-  game.settings.registerMenu('cyberpunk-blue', 'createMacrosMenu', {
-    name: 'CYBER_BLUE.Settings.CreateMacros.Name',
-    label: 'CYBER_BLUE.Settings.CreateMacros.Label',
-    hint: 'CYBER_BLUE.Settings.CreateMacros.Hint',
-    icon: 'fas fa-code',
-    type: CyberBlueMacroCreator,
     restricted: true,
   });
 

@@ -746,9 +746,178 @@ ChatMessage.create({ content: \`<div class="cyberpunk-blue chat-card"><h3>IP Adj
 })();
 `;
 
+// ─── Request Skill Check macro ────────────────────────────────────────────────
+
+export const REQUEST_SKILL_CHECK_MACRO = `
+(async () => {
+// ── Request Skill Check ───────────────────────────────────────────────────────
+// GM macro. Posts a skill-check request to chat (optionally whispered to GM).
+
+const skillOptions = Object.entries(CONFIG.CYBER_BLUE.skills)
+  .map(([slug, data]) => \`<option value="\${slug}">\${data.label} (\${data.stat.toUpperCase()})</option>\`)
+  .join('');
+
+const result = await foundry.applications.api.DialogV2.wait({
+  window: { title: 'Request Skill Check' },
+  content: \`
+    <div class="cyberpunk-blue" style="padding:0.5rem; display:flex; flex-direction:column; gap:0.5rem;">
+      <label>Skill: <select id="skill-select">\${skillOptions}</select></label>
+      <label>DV: <input type="number" id="dv-input" value="15" min="1" style="width:5rem;" /></label>
+      <label style="display:flex;align-items:center;gap:0.5rem;"><input type="checkbox" id="secret-check" /> Secret roll</label>
+    </div>
+  \`,
+  buttons: [
+    { action: 'request', label: 'Send Request', icon: 'fas fa-dice-d10', default: true,
+      callback: (e, btn) => ({
+        skill: btn.form.elements['skill-select'].value,
+        dv: Number(btn.form.elements['dv-input'].value),
+        secret: btn.form.elements['secret-check'].checked,
+      })
+    },
+    { action: 'cancel', label: 'Cancel', icon: 'fas fa-xmark', callback: () => null },
+  ],
+});
+
+if (!result) return;
+const skillData = CONFIG.CYBER_BLUE.skills[result.skill];
+const dvText = result.dv > 0 ? \` (DV \${result.dv})\` : '';
+const secretText = result.secret ? ' [SECRET]' : '';
+
+// Whisper is controlled by the \`whisper\` array; do NOT pass a numeric \`type\`
+// (that is the document subtype in v13+ and a numeric value silently fails).
+await ChatMessage.create({
+  content: \`
+    <div class="cyberpunk-blue chat-card">
+      <h3>Skill Check Request\${secretText}</h3>
+      <p>Roll <strong>\${skillData.label}</strong> (\${skillData.stat.toUpperCase()})\${dvText}</p>
+      <p><em>Click your character's skill on your sheet to roll.</em></p>
+    </div>
+  \`,
+  whisper: result.secret ? ChatMessage.getWhisperRecipients('GM') : [],
+});
+})();
+`;
+
+// ─── Apply Damage macro ───────────────────────────────────────────────────────
+
+export const APPLY_DAMAGE_MACRO = `
+(async () => {
+// ── Apply Damage ──────────────────────────────────────────────────────────────
+// GM macro. Applies damage to the selected tokens (optionally ignoring armor).
+
+const tokens = canvas.tokens.controlled;
+if (!tokens.length) {
+  ui.notifications.warn('Select one or more tokens first.');
+  return;
+}
+
+const result = await foundry.applications.api.DialogV2.wait({
+  window: { title: 'Apply Damage' },
+  content: \`
+    <div class="cyberpunk-blue" style="padding:0.5rem; display:flex; flex-direction:column; gap:0.5rem;">
+      <p>Apply to: <strong>\${tokens.map(t => t.name).join(', ')}</strong></p>
+      <label>Damage: <input type="number" id="dmg-input" value="0" min="0" style="width:5rem;" /></label>
+      <label style="display:flex;align-items:center;gap:0.5rem;"><input type="checkbox" id="ignore-armor" /> Ignore armor (SP)</label>
+    </div>
+  \`,
+  buttons: [
+    { action: 'apply', label: 'Apply', icon: 'fas fa-heart-crack', default: true,
+      callback: (e, btn) => ({
+        damage: Number(btn.form.elements['dmg-input'].value),
+        ignoreArmor: btn.form.elements['ignore-armor'].checked,
+      })
+    },
+    { action: 'cancel', label: 'Cancel', icon: 'fas fa-xmark', callback: () => null },
+  ],
+});
+
+if (!result || result.damage <= 0) return;
+
+for (const token of tokens) {
+  const actor = token.actor;
+  if (!actor?.applyDamage) continue;
+  const outcome = await actor.applyDamage(result.damage, { ignoreArmor: result.ignoreArmor });
+  const blocked = result.ignoreArmor ? 0 : outcome.armorBlocked;
+  const net = outcome.hpLoss;
+  ChatMessage.create({
+    content: \`
+      <div class="cyberpunk-blue chat-card">
+        <h3>Damage Applied: \${token.name}</h3>
+        <p>Raw: \${result.damage}\${blocked ? ' — SP blocked: ' + blocked : ''} — HP lost: <strong>\${net}</strong></p>
+      </div>
+    \`,
+  });
+}
+})();
+`;
+
+// ─── Heal / Restore HP macro ──────────────────────────────────────────────────
+
+export const HEAL_HP_MACRO = `
+(async () => {
+// ── Heal / Restore HP ─────────────────────────────────────────────────────────
+// GM macro. Restores HP to the selected tokens (capped at max HP).
+
+const tokens = canvas.tokens.controlled;
+if (!tokens.length) {
+  ui.notifications.warn('Select one or more tokens first.');
+  return;
+}
+
+const result = await foundry.applications.api.DialogV2.wait({
+  window: { title: 'Heal / Restore HP' },
+  content: \`
+    <div class="cyberpunk-blue" style="padding:0.5rem; display:flex; flex-direction:column; gap:0.5rem;">
+      <p>Heal: <strong>\${tokens.map(t => t.name).join(', ')}</strong></p>
+      <label>HP to restore: <input type="number" id="heal-input" value="0" min="0" style="width:5rem;" /></label>
+    </div>
+  \`,
+  buttons: [
+    { action: 'heal', label: 'Heal', icon: 'fas fa-heart', default: true,
+      callback: (e, btn) => ({ amount: Number(btn.form.elements['heal-input'].value) })
+    },
+    { action: 'cancel', label: 'Cancel', icon: 'fas fa-xmark', callback: () => null },
+  ],
+});
+
+if (!result || result.amount <= 0) return;
+
+for (const token of tokens) {
+  const actor = token.actor;
+  if (!actor) continue;
+  const current = actor.system.resources.hp.value ?? 0;
+  const max = actor.system.resources.hp.max ?? current;
+  const next = Math.min(current + result.amount, max);
+  await actor.update({ 'system.resources.hp.value': next });
+}
+ui.notifications.info(\`Restored \${result.amount} HP to \${tokens.length} token(s).\`);
+})();
+`;
+
 // ─── Catalogue ────────────────────────────────────────────────────────────────
 
 export const MACRO_CATALOGUE = [
+  {
+    name: 'Request Skill Check',
+    type: 'script',
+    img: 'icons/svg/d10-grey.svg',
+    command: REQUEST_SKILL_CHECK_MACRO,
+    _folder: 'GM Tools',
+  },
+  {
+    name: 'Apply Damage',
+    type: 'script',
+    img: 'icons/svg/sword.svg',
+    command: APPLY_DAMAGE_MACRO,
+    _folder: 'GM Tools',
+  },
+  {
+    name: 'Heal / Restore HP',
+    type: 'script',
+    img: 'icons/svg/heal.svg',
+    command: HEAL_HP_MACRO,
+    _folder: 'GM Tools',
+  },
   {
     name: 'Quick Fix',
     type: 'script',
