@@ -824,7 +824,8 @@ const result = await foundry.applications.api.DialogV2.wait({
 if (!result) return;
 if (!result.actorIds.length) { ui.notifications.warn('Select at least one character to roll for.'); return; }
 
-const rollMode = result.secret ? CONST.DICE_ROLL_MODES.PRIVATE : CONST.DICE_ROLL_MODES.PUBLIC;
+// v14 message visibility: 'gm' = whispered to GMs only, 'public' = everyone.
+const messageMode = result.secret ? 'gm' : 'public';
 for (const id of result.actorIds) {
   const actor = game.actors.get(id);
   if (!actor?.rollSkill) continue;
@@ -832,7 +833,7 @@ for (const id of result.actorIds) {
     skillSlug: result.skill,
     componentSlug: result.component,
     dv: result.dv > 0 ? result.dv : null,
-    rollMode,
+    messageMode,
   });
 }
 })();

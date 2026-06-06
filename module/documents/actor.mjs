@@ -540,7 +540,7 @@ export class CyberBlueActor extends Actor {
     };
   }
 
-  async rollSkill({ skillSlug, componentSlug = null, modifier = 0, dv = null, rollMode = null } = {}) {
+  async rollSkill({ skillSlug, componentSlug = null, modifier = 0, dv = null, messageMode = null } = {}) {
     const context = this.getSkillRollContext(skillSlug, componentSlug);
     const terms = [context.statValue, context.usedRank];
 
@@ -587,11 +587,12 @@ export class CyberBlueActor extends Actor {
       </div>
     `;
 
+    // v14: message visibility is `messageMode` (CONFIG.ChatMessage.modes), passed
+    // as toMessage's SECOND argument. When null it falls back to core.messageMode.
     await roll.toMessage({
       speaker: ChatMessage.getSpeaker({ actor: this }),
-      rollMode: rollMode ?? game.settings.get('core', 'rollMode'),
       flavor,
-    });
+    }, { messageMode });
 
     // Consume any one-use AEs (e.g. Guide Tarot "The Magician") now that
     // their changes have been included in this roll.
