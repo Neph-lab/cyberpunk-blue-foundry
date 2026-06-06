@@ -30,7 +30,15 @@ export default class CyberBlueProgram extends CyberBlueDataModel {
         }),
       }),
       programType: new fields.StringField({ required: true, blank: false, initial: 'antipersonnel' }),
-      executableId: new fields.StringField({ required: false, nullable: true, blank: true, initial: null }),
+      // Full UUID of the linked Program Executable item. Two link modes share
+      // this single field:
+      //   • Referenced (Mode A): a UUID pointing at an exe living elsewhere
+      //     (e.g. installed on a Netrunner's cyberdeck) — `Actor.x.Item.y`.
+      //   • Attached (Mode B): a UUID pointing at an exe embedded on THIS
+      //     program actor — resolves to an item whose parent is this actor.
+      // While the UUID resolves, all corresponding fields are kept in two-way
+      // sync between the actor and the executable (see netrunning.mjs).
+      executableUuid: new fields.StringField({ required: false, nullable: true, blank: true, initial: null }),
       description: new fields.HTMLField({ initial: '' }),
       notes: new fields.HTMLField({ initial: '' }),
     };

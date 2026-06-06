@@ -16,7 +16,7 @@ import {
   defrag,
   spawnProgramActor, despawnProgramActor,
   performQuickhackBreach, performQuickhackUpload,
-  resolveNetAttack, PROGRAM_ACTOR_FLAG,
+  resolveNetAttack,
   startEncryptDecryptTimer,
 } from '../helpers/netrunning.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack, resolveDoubleLockAttack } from '../helpers/combat-resolution.mjs';
@@ -3050,18 +3050,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       }
     }
 
-    // Bidirectional REZ sync: if REZ value is edited on the Netrunning tab,
-    // push the change through to the running Program Actor as well.
-    if (field === 'system.rez.value') {
-      const programActorId = exeDoc.getFlag('cyberpunk-blue', PROGRAM_ACTOR_FLAG);
-      if (programActorId) {
-        const programActor = game.actors.get(programActorId);
-        if (programActor) {
-          // Clamp to ≥ 0 — the updateActor hook takes it from here (sync + ##ERROR##)
-          await programActor.update({ 'system.resources.rez.value': Math.max(Number(value) || 0, 0) });
-        }
-      }
-    }
+    // Exe → Program Actor field sync (incl. REZ) is handled centrally by the
+    // updateItem hook (syncExecutableToProgramActors); no manual push needed.
   }
 
   /**

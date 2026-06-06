@@ -1002,6 +1002,19 @@
         "StandardDamage": "standard attack",
         "ProgramAttackLabel": "Attack",
         "ErrorStateMsg": "has been reduced to 0 REZ — it cannot move, act, or provide bonuses and is skipped in encounter order."
+      },
+      "Program": {
+        "AttachedLabel": "Attached",
+        "LinkedLabel": "Linked",
+        "Remove": "Remove link",
+        "BrokenLink": "Linked executable not found",
+        "UuidPlaceholder": "Paste a Program Executable UUID…",
+        "LinkBtn": "Link",
+        "DropHint": "…or drag a Program Executable onto this sheet to attach one.",
+        "OnlyExecutables": "Only Program Executable items can be linked to a Program actor.",
+        "InvalidUuid": "That UUID does not resolve to a Program Executable.",
+        "Attached": "Attached executable: {name}",
+        "Linked": "Linked to executable: {name}"
       }
     },
     "RegionBehavior": {

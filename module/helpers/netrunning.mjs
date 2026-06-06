@@ -485,8 +485,12 @@ export async function spawnProgramActor(actor, exeItem) {
       },
       resources: { rez: { value: sys.rez?.value ?? 0, max: sys.rez?.max ?? 0 } },
       programType:  sys.programType ?? 'antipersonnel',
-      executableId: exeItem.id,
-      description:  sys.notes ?? '',
+      // Referenced-mode link to the running exe on the netrunner's cyberdeck.
+      // The general two-way sync (updateActor/updateItem hooks) keeps the spawned
+      // actor and the source exe in lockstep from here on.
+      executableUuid: exeItem.uuid,
+      description:  sys.description ?? '',
+      notes:        sys.notes ?? '',
     },
     ownership,
     flags: {
@@ -1034,51 +1038,119 @@ async function _promptNetDv(targetName) {
   return promise;
 }
 
-/**
- * Sync the REZ value from a temporary Program Actor back to its source Executable item.
- * Returns false if the actor is not a temp program actor.
- */
-/**
- * Sync stat and REZ changes from a programExecutable item to its linked
- * Program Actor (if one exists and is live).  Called from the updateItem hook.
- *
- * @param {Item}   exeItem - The programExecutable that changed
- * @param {object} changes - The update delta (Foundry change object)
- */
-export async function syncExeStatsToActor(exeItem, changes) {
-  const programActorId = exeItem.getFlag('cyberpunk-blue', PROGRAM_ACTOR_FLAG);
-  if (!programActorId) return;
-  const programActor = game.actors.get(programActorId);
-  if (!programActor) return;
+// ─── Program Actor ↔ Executable link ─────────────────────────────────────────
+//
+// A Program Actor links to exactly one Program Executable item via
+// `system.executableUuid`. Two modes share that field: "referenced" (the exe
+// lives elsewhere, e.g. on a Netrunner's cyberdeck) and "attached" (the exe is
+// embedded on the program actor itself). While the UUID resolves, every
+// corresponding field is mirrored both ways.
+//
+// Updates pushed by the sync carry the `cyberblueProgramSync` option so the
+// hooks on the receiving side skip re-syncing (echo suppression / loop break).
 
+/**
+ * Field correspondence between a Program Actor and its Executable item.
+ * `actor` = dotted path on the Actor document; `exe` = dotted path on the Item.
+ * This single table drives both copy-on-link and the two-way live sync.
+ */
+export const PROGRAM_LINK_FIELDS = [
+  { actor: 'name',                       exe: 'name' },
+  { actor: 'img',                        exe: 'img' },
+  { actor: 'system.programType',         exe: 'system.programType' },
+  { actor: 'system.stats.act.value',     exe: 'system.act' },
+  { actor: 'system.stats.atk.value',     exe: 'system.atk' },
+  { actor: 'system.stats.def.value',     exe: 'system.def' },
+  { actor: 'system.stats.net.value',     exe: 'system.net' },
+  { actor: 'system.stats.per.value',     exe: 'system.per' },
+  { actor: 'system.resources.rez.value', exe: 'system.rez.value' },
+  { actor: 'system.resources.rez.max',   exe: 'system.rez.max' },
+  { actor: 'system.description',         exe: 'system.description' },
+  { actor: 'system.notes',               exe: 'system.notes' },
+];
+
+/**
+ * Resolve the Executable item a Program Actor is linked to (or null).
+ * @returns {Promise<Item|null>}
+ */
+export async function getLinkedExecutable(programActor) {
+  const uuid = programActor?.system?.executableUuid;
+  if (!uuid) return null;
+  const doc = await fromUuid(uuid).catch(() => null);
+  return doc?.type === 'programExecutable' ? doc : null;
+}
+
+/** True when the resolved executable is embedded on the program actor itself. */
+export function isExecutableAttached(programActor, exeItem) {
+  return Boolean(exeItem && exeItem.parent?.id === programActor.id);
+}
+
+/**
+ * Copy every corresponding field from an Executable into a Program Actor,
+ * replacing whatever is there. Used when a link is first established.
+ */
+export async function copyExecutableToProgram(programActor, exeItem) {
   const update = {};
-  const sys = changes.system ?? {};
-
-  // REZ value
-  if (sys.rez?.value !== undefined) update['system.resources.rez.value'] = sys.rez.value;
-  if (sys.rez?.max   !== undefined) update['system.resources.rez.max']   = sys.rez.max;
-
-  // Combat stats
-  for (const stat of ['act', 'atk', 'def', 'net', 'per']) {
-    if (sys[stat]?.value !== undefined) update[`system.stats.${stat}.value`] = sys[stat].value;
+  for (const { actor, exe } of PROGRAM_LINK_FIELDS) {
+    const value = foundry.utils.getProperty(exeItem, exe);
+    if (value !== undefined) foundry.utils.setProperty(update, actor, value);
   }
-
-  if (Object.keys(update).length > 0) {
-    await programActor.update(update);
+  if (Object.keys(update).length) {
+    await programActor.update(update, { cyberblueProgramSync: true });
   }
 }
 
-export async function syncRezToExecutable(programActor, newRezValue) {
-  const netrunnerActorId = programActor.getFlag('cyberpunk-blue', 'programActorFor');
-  const exeItemId        = programActor.getFlag('cyberpunk-blue', 'programExecutableId');
-  if (!netrunnerActorId || !exeItemId) return false;
+/**
+ * Push changed fields from a Program Actor to its linked Executable.
+ * Only the actor-side paths present in `changes` are mapped and forwarded.
+ * @param {Actor}  programActor
+ * @param {object} changes - the updateActor change delta
+ */
+export async function syncProgramActorToExecutable(programActor, changes) {
+  const exeItem = await getLinkedExecutable(programActor);
+  if (!exeItem) return;
 
-  const netrunnerActor = game.actors.get(netrunnerActorId);
-  const exeItem        = netrunnerActor?.items.get(exeItemId);
-  if (!exeItem || exeItem.type !== 'programExecutable') return false;
+  const update = {};
+  for (const { actor, exe } of PROGRAM_LINK_FIELDS) {
+    const value = foundry.utils.getProperty(changes, actor);
+    if (value !== undefined) foundry.utils.setProperty(update, exe, value);
+  }
+  if (Object.keys(update).length) {
+    await exeItem.update(update, { cyberblueProgramSync: true });
+  }
+}
 
-  await exeItem.update({ 'system.rez.value': Math.max(Number(newRezValue) || 0, 0) });
-  return true;
+/**
+ * Push changed fields from an Executable to every Program Actor linked to it.
+ * Attached mode: the exe's parent is the program actor. Referenced mode: search
+ * world program actors whose executableUuid matches.
+ * @param {Item}   exeItem
+ * @param {object} changes - the updateItem change delta
+ */
+export async function syncExecutableToProgramActors(exeItem, changes) {
+  const uuid = exeItem.uuid;
+  const targets = [];
+  if (exeItem.parent?.type === 'program'
+    && exeItem.parent.system?.executableUuid === uuid) {
+    targets.push(exeItem.parent);
+  }
+  for (const candidate of game.actors) {
+    if (candidate.type !== 'program') continue;
+    if (candidate.system?.executableUuid !== uuid) continue;
+    if (!targets.includes(candidate)) targets.push(candidate);
+  }
+  if (!targets.length) return;
+
+  const update = {};
+  for (const { actor, exe } of PROGRAM_LINK_FIELDS) {
+    const value = foundry.utils.getProperty(changes, exe);
+    if (value !== undefined) foundry.utils.setProperty(update, actor, value);
+  }
+  if (!Object.keys(update).length) return;
+
+  for (const programActor of targets) {
+    await programActor.update(update, { cyberblueProgramSync: true });
+  }
 }
 
 /**

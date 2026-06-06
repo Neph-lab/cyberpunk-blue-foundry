@@ -44,6 +44,34 @@
     </div>
   </header>
 
+  {{#if isGM}}
+    <div class="program-link-row">
+      {{#if link.valid}}
+        <span class="program-link-label">
+          <i class="fas {{#if link.attached}}fa-paperclip{{else}}fa-link{{/if}}"></i>
+          {{#if link.attached}}{{localize "CYBER_BLUE.Netrunning.Program.AttachedLabel"}}{{else}}{{localize "CYBER_BLUE.Netrunning.Program.LinkedLabel"}}{{/if}}:
+          <strong>{{link.name}}</strong>
+        </span>
+        <button type="button" data-action="remove-executable" title="{{localize "CYBER_BLUE.Netrunning.Program.Remove"}}">
+          <i class="fas fa-trash"></i>
+        </button>
+      {{else if link.hasUuid}}
+        <span class="program-link-broken" title="{{link.uuid}}">
+          <i class="fas fa-triangle-exclamation"></i> {{localize "CYBER_BLUE.Netrunning.Program.BrokenLink"}}
+        </span>
+        <button type="button" data-action="remove-executable" title="{{localize "CYBER_BLUE.Netrunning.Program.Remove"}}">
+          <i class="fas fa-trash"></i>
+        </button>
+      {{else}}
+        <input type="text" name="executableUuidInput" placeholder="{{localize "CYBER_BLUE.Netrunning.Program.UuidPlaceholder"}}" />
+        <button type="button" data-action="set-executable-uuid">
+          <i class="fas fa-link"></i> {{localize "CYBER_BLUE.Netrunning.Program.LinkBtn"}}
+        </button>
+        <span class="hint">{{localize "CYBER_BLUE.Netrunning.Program.DropHint"}}</span>
+      {{/if}}
+    </div>
+  {{/if}}
+
   <div class="program-type-row">
     {{#if isGM}}
       <label>
@@ -98,17 +126,6 @@
         {{/if}}
       </div>
     {{/unless}}
-
-    {{#if executable}}
-      <div class="sheet-panel program-executable-slot">
-        <div class="panel-header">
-          <h2>Attached Executable: {{executable.name}}</h2>
-          {{#if isGM}}
-            <button type="button" data-action="delete-executable" title="Remove"><i class="fas fa-trash"></i></button>
-          {{/if}}
-        </div>
-      </div>
-    {{/if}}
 
     {{#if isGM}}
       <div class="sheet-panel program-notes-panel">

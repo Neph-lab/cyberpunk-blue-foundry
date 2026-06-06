@@ -105,8 +105,8 @@ import {
   spawnProgramActor,
   despawnProgramActor,
   disconnectFromArchitecture,
-  syncRezToExecutable,
-  syncExeStatsToActor,
+  syncProgramActorToExecutable,
+  syncExecutableToProgramActors,
   applyErrorState,
   resolveNetTimers,
 } from './helpers/netrunning.mjs';
@@ -1193,8 +1193,8 @@ Hooks.on('deleteCombat', () => { try { clearTechChargeHighlights(); } catch { } 
 // connected, spawn or despawn its linked program actor accordingly.
 // Also sync stat changes to the live program actor, and keep the actor's token
 // image up-to-date when the actor's own image changes.
-Hooks.on('updateItem', async (item, change) => {
-  if (!game.user.isGM) return;
+Hooks.on('updateItem', async (item, change, options) => {
+  if (game.user !== game.users.activeGM) return;
   if (item.type !== 'programExecutable') return;
 
   const actor = item.parent;
@@ -1208,11 +1208,14 @@ Hooks.on('updateItem', async (item, change) => {
     }
   }
 
-  // ── Stats sync: exe → program actor ────────────────────────────────────────
-  // When REZ, ACT, ATK, DEF, NET, or PER changes on the exe, propagate to the
-  // live program actor (if one exists) so both always show the same numbers.
-  if (foundry.utils.hasProperty(change, 'system')) {
-    await syncExeStatsToActor(item, change);
+  // ── Field sync: exe → linked Program Actor(s) ──────────────────────────────
+  // Mirror any corresponding field change onto every Program Actor linked to
+  // this exe (attached or referenced). `cyberblueProgramSync` marks updates the
+  // sync itself made — skip those to avoid an echo loop.
+  if (!options?.cyberblueProgramSync
+    && (foundry.utils.hasProperty(change, 'system')
+      || change.name !== undefined || change.img !== undefined)) {
+    await syncExecutableToProgramActors(item, change);
   }
 });
 
@@ -1272,25 +1275,37 @@ Hooks.on('updateToken', async (tokenDoc, change) => {
   await disconnectFromArchitecture(actor, false);
 });
 
-// ─── Netrunning: REZ sync & ##ERROR## state ──────────────────────────────────
-// When a temporary Program Actor's REZ is updated, sync the value back to the
-// originating Executable item and apply the ##ERROR## state if REZ hits 0.
-Hooks.on('updateActor', async (actor, changes) => {
+// ─── Netrunning: Program Actor → Executable field sync & ##ERROR## state ──────
+// When a Program Actor with a linked executable changes, mirror the
+// corresponding fields onto its executable, and (for temp programs) apply the
+// ##ERROR## state when REZ hits 0. `cyberblueProgramSync` marks updates the sync
+// itself made — skip those to avoid an echo loop.
+Hooks.on('updateActor', async (actor, changes, options) => {
   if (game.user !== game.users.activeGM) return;
-  if (!actor.getFlag('cyberpunk-blue', 'isTemporaryProgramActor')) return;
-  if (!foundry.utils.hasProperty(changes, 'system.resources.rez.value')) return;
+  if (actor.type !== 'program') return;
+  if (!actor.system?.executableUuid) return;
 
-  let newRez = foundry.utils.getProperty(changes, 'system.resources.rez.value') ?? 0;
-
-  // Clamp: REZ must never be negative. Correct it and re-fire; the re-fire
-  // handles sync + ##ERROR## state (newRez will be 0 on the second pass).
-  if (newRez < 0) {
-    await actor.update({ 'system.resources.rez.value': 0 });
-    return;
+  // Clamp: REZ must never be negative. Correct it and let the re-fire handle
+  // sync + ##ERROR## state (newRez will be 0 on the second pass).
+  if (!options?.cyberblueProgramSync
+    && foundry.utils.hasProperty(changes, 'system.resources.rez.value')) {
+    const rez = foundry.utils.getProperty(changes, 'system.resources.rez.value') ?? 0;
+    if (rez < 0) {
+      await actor.update({ 'system.resources.rez.value': 0 });
+      return;
+    }
   }
 
-  await syncRezToExecutable(actor, newRez);
-  if (newRez <= 0) await applyErrorState(actor);
+  if (!options?.cyberblueProgramSync) {
+    await syncProgramActorToExecutable(actor, changes);
+  }
+
+  // ##ERROR## state when a temporary program's REZ reaches 0.
+  if (actor.getFlag('cyberpunk-blue', 'isTemporaryProgramActor')
+    && foundry.utils.hasProperty(changes, 'system.resources.rez.value')) {
+    const rez = foundry.utils.getProperty(changes, 'system.resources.rez.value') ?? 0;
+    if (rez <= 0) await applyErrorState(actor);
+  }
 });
 
 // ─── Netrunning: unsafe disconnect when Netrunner falls unconscious ──────────
