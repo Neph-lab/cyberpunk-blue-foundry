@@ -470,6 +470,38 @@ The five Martial Arts Components (`module/helpers/config.mjs` → `martialArts.c
 
 > Placeholder for now: `icons/svg/mystery-man.svg`. Swap each entry to `assets/icons/bk_<Name>.svg` once authored.
 
+### 20. Compendium Macros **(new)**
+
+The `cyberpunk-blue.macros` compendium is auto-seeded at GM login by `ensureMacroCatalogue()` (`module/cyberpunk-blue.mjs`); the entries live in `MACRO_CATALOGUE` (`module/helpers/critical-injury-macros.mjs`, each with a `name` / `img` / `_folder`). Every macro currently uses a **stock Foundry `icons/svg/*` image**. Macro images render as raw pictures in the Macro Directory / hotbar (NOT Pattern A masks), so custom art can be full-colour. Suggested filenames `assets/icons/mac_<Name>.svg`; point the catalogue entry's `img:` at the new path once authored.
+
+| Macro | Folder | Current stock icon | Suggested icon concept | SVG file |
+|-------|--------|--------------------|------------------------|----------|
+| Request Skill Check | GM Tools | `icons/svg/d10-grey.svg` | d10 + skill/brain | |
+| Apply Damage | GM Tools | `icons/svg/sword.svg` | Impact / blade burst | |
+| Heal / Restore HP | GM Tools | `icons/svg/heal.svg` | Heart + plus | |
+| Adjust Improvement Points | GM Tools | `icons/svg/upgrade.svg` | Up-arrow chevrons / IP chip | |
+| Advance Death State | GM Tools | `icons/svg/tombstone.svg` | Tombstone + clock/hourglass | |
+| Clear Role-Granted Items | GM Tools | `icons/svg/item-bag.svg` | Bag with slash / broom | |
+| Quick Fix | Medical | `icons/svg/heal.svg` | Bandage / quick cross | |
+| Treatment | Medical | `icons/svg/aura.svg` | Caduceus / sustained cross | |
+| Stabilize | Medical | `icons/svg/anchor.svg` | Heartbeat steadying / hand on chest | |
+| Natural Healing | Medical | `icons/svg/sun.svg` | Bed / rest moon-sun | |
+| Apply Table Effect | Combat Effects | `icons/svg/dice-target.svg` | Die hitting target | |
+| Remove Table Effects | Combat Effects | `icons/svg/cancel.svg` | Eraser / circle-slash | |
+
+### 21. Wound & Death-State Effects **(new)**
+
+System-managed ActiveEffects that mark the HP-down → death pipeline (see the "HP → wound → stabilization → death pipeline" section in `project_design_spec_status.md`). These are NOT `CONFIG.statusEffects` (except as noted) — they're created/synced from `module/documents/actor.mjs` and shown in the Overview health-effects list as raw `<img src="{{effect.icon}}">`. Each currently uses a stock or legacy icon. Suggested filenames `assets/icons/cond_<Name>.svg` (treat as condition-class art).
+
+| Effect | Flag (`cyberpunk-blue.*`) | Current icon | Shown where | Suggested icon concept | SVG file |
+|--------|---------------------------|--------------|-------------|------------------------|----------|
+| Seriously Wounded | `autoSeriousWound` | `assets/pummeled.svg` (legacy custom) | Health-effects list | Cracked / bruised torso | |
+| Mortally Wounded | `autoMortallyWounded` | `icons/svg/skull.svg` (stock) | Health-effects list | Flatline heartbeat / fading skull | |
+| Needs Stabilization | `needsStabilization` | `icons/svg/blood.svg` (stock) | Health-effects list | Blood drop + cross / bleeding wound | |
+| Dead — Death State N/10 | `dead` (carries `deathState`) | `icons/svg/tombstone.svg` (stock) | Token overlay (`statuses:['dead']`) + health-effects list | Tombstone (shares the `dead` condition art, §17) | |
+
+> The **Dead** effect overlaps the `dead` condition in §17 — author once and reuse. **Seriously Wounded** already ships custom art (`assets/pummeled.svg`); the other three are still on stock icons.
+
 ---
 
 ## Implementation Notes
@@ -483,7 +515,8 @@ The five Martial Arts Components (`module/helpers/config.mjs` → `martialArts.c
 4. **File naming**:
    - Sheet/section icons: `bk_PascalCase.svg`
    - Role icons: plain `PascalCase.svg`
-   - Status effect icons (new): `cond_PascalCase.svg`
+   - Status effect icons (new): `cond_PascalCase.svg` — also used for the wound/death-state effect AEs in §21
+   - Compendium macro icons (new): `mac_PascalCase.svg` — raw full-colour images, not Pattern A masks (§20)
    - Manufacturer logos: `Brand-Name.svg` (matched by `branding.mjs`)
 
 5. **`.cpb-frame` interaction**: elements styled with `.cpb-frame` use `::before` for the chamfer inner fill. Don't add Pattern A icons directly on a `.cpb-frame` element — put them on an inner element (label, heading) instead.
