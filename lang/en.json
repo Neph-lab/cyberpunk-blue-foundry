@@ -406,11 +406,6 @@
         "Label": "Import Items",
         "Hint": "Bulk-import item documents from a JSON file."
       },
-      "CreateMacros": {
-        "Name": "Create GM Macros",
-        "Label": "Create Macros",
-        "Hint": "Creates useful GM utility macros in your Macro Directory."
-      },
       "ImportWeapons": {
         "Name": "Import Weapons to Compendium",
         "Label": "Import Weapons",
