@@ -250,74 +250,73 @@ export const STABILIZE_MACRO = `
 (async () => {
 ${_MACRO_SHARED}
 // ── Stabilize ─────────────────────────────────────────────────────────────────
-// Target a wounded actor. Make a Medicine check.
-//   Dying (HP ≤ 0): DV 15. Success sets them to 1 HP and makes them Unconscious.
-//   Seriously Wounded (HP ≤ SWT) but not Dying: DV 13.
-//   Below max HP but not Seriously Wounded: DV 10.
-// A stabilized character can regain HP from Natural Healing.
+// Target a token that has the "Needs Stabilization" effect. The acting Actor
+// makes a Medicine check; success removes the effect so the target can benefit
+// from Natural Healing again.
+//   Mortally Wounded (HP ≤ 0): DV 15 — success sets them to 1 HP and Unconscious.
+//   Seriously Wounded (0 < HP < SWT): DV 13.
+//   Otherwise: DV 10.
+// The acting Actor must be the target itself or within 2m of it. The GM running
+// this macro succeeds automatically and needs no token nearby.
 
 const targets = [...game.user.targets];
-if (targets.length !== 1) { ui.notifications.warn('Target exactly one actor.'); return; }
-const targetActor = targets[0].actor;
+if (targets.length !== 1) { ui.notifications.warn('Target exactly one token.'); return; }
+const targetToken = targets[0];
+const targetActor = targetToken.actor;
 if (!targetActor) { ui.notifications.warn('No valid target actor.'); return; }
+
+const needsStab = targetActor.effects.find(e => e.getFlag('cyberpunk-blue', 'needsStabilization'));
+if (!needsStab) {
+  ui.notifications.warn(\`\${targetActor.name} does not need stabilization.\`);
+  return;
+}
 
 const hp = targetActor.system?.resources?.hp?.value ?? 0;
 const hpMax = targetActor.system?.resources?.hp?.max ?? 1;
 const swt = targetActor.system?.resources?.seriousWoundThreshold?.value ?? Math.floor(hpMax / 2);
+const isMortal = hp <= 0;
+const isSeriouslyWounded = hp > 0 && hp < swt;
 
-if (hp >= hpMax) {
-  ui.notifications.warn(\`\${targetActor.name} is at full HP and does not need stabilization.\`);
-  return;
-}
+let dv, situationLabel;
+if (isMortal) { dv = 15; situationLabel = 'Mortally Wounded (DV 15)'; }
+else if (isSeriouslyWounded) { dv = 13; situationLabel = 'Seriously Wounded (DV 13)'; }
+else { dv = 10; situationLabel = 'Wounded (DV 10)'; }
 
-// Check if already stabilized
-const alreadyStabilized = targetActor.getFlag('cyberpunk-blue', 'stabilized');
-if (alreadyStabilized) {
-  ui.notifications.warn(\`\${targetActor.name} is already stabilized.\`);
-  return;
-}
+const finishSuccess = async (byWhom) => {
+  await needsStab.delete();
+  let extra = '';
+  if (isMortal) {
+    // HP 1 reactively clears Mortally Wounded; apply the Unconscious condition.
+    await targetActor.update({ 'system.resources.hp.value': 1 });
+    await targetActor.toggleStatusEffect('unconscious', { active: true });
+    extra = ' Set to 1 HP and now Unconscious.';
+  }
+  ChatMessage.create({
+    content: \`<div class="cyberpunk-blue chat-card"><p><i class="fas fa-heartbeat"></i> <strong>\${targetActor.name}</strong> has been stabilized\${byWhom ? ' by ' + byWhom : ''}.\${extra} They can now benefit from Natural Healing.</p></div>\`,
+  });
+};
 
-const isDying = hp <= 0;
-const isSeriouslyWounded = hp <= swt;
-
-let dv;
-let situationLabel;
-if (isDying) {
-  dv = 15;
-  situationLabel = 'Dying (DV 15)';
-} else if (isSeriouslyWounded) {
-  dv = 13;
-  situationLabel = 'Seriously Wounded (DV 13)';
-} else {
-  dv = 10;
-  situationLabel = 'Wounded (DV 10)';
-}
+// GM auto-succeeds — no proximity, no roll.
+if (game.user.isGM) { await finishSuccess(null); return; }
 
 const treater = _getTreatingActor();
-if (!treater) { ui.notifications.warn('Could not identify treating character.'); return; }
+if (!treater) { ui.notifications.warn('Could not identify your character.'); return; }
+
+// Proximity: the treater must be the target, or have a token within 2m of it.
+if (treater.id !== targetActor.id) {
+  const treaterToken = treater.getActiveTokens?.()[0];
+  if (!treaterToken) { ui.notifications.warn(\`\${treater.name} has no token in this scene.\`); return; }
+  let dist = Infinity;
+  try { dist = canvas.grid.measurePath([treaterToken.center, targetToken.center]).distance; } catch (e) {}
+  if (dist > 2) {
+    ui.notifications.warn(\`\${treater.name} must be within 2m of \${targetActor.name} (currently ~\${Math.round(dist)}m).\`);
+    return;
+  }
+}
 
 const roll = await _rollMedicine(treater, dv, \`Stabilize \${targetActor.name} — \${situationLabel}\`);
-
-if (roll.total >= dv) {
-  const updates = {};
-  if (isDying) {
-    updates['system.resources.hp.value'] = 1;
-    // Apply Unconscious condition via Foundry's built-in system
-    await targetActor.toggleStatusEffect('unconscious', { active: true });
-    ChatMessage.create({
-      speaker: ChatMessage.getSpeaker({ actor: treater }),
-      content: \`<div class="cyberpunk-blue chat-card"><p><i class="fas fa-heartbeat"></i> <strong>\${targetActor.name}</strong> has been stabilized from Dying. Set to 1 HP and is now Unconscious.</p></div>\`,
-    });
-  } else {
-    ChatMessage.create({
-      speaker: ChatMessage.getSpeaker({ actor: treater }),
-      content: \`<div class="cyberpunk-blue chat-card"><p><i class="fas fa-heartbeat"></i> <strong>\${targetActor.name}</strong> has been stabilized and can now benefit from Natural Healing.</p></div>\`,
-    });
-  }
-  await targetActor.setFlag('cyberpunk-blue', 'stabilized', true);
-} else {
-  ui.notifications.warn(\`Stabilization failed (rolled \${roll.total} vs DV \${dv}).\`);
-}
+if (roll.total >= dv) { await finishSuccess(treater.name); }
+else { ui.notifications.warn(\`Stabilization failed (rolled \${roll.total} vs DV \${dv}).\`); }
 })();
 `;
 
@@ -327,69 +326,66 @@ export const NATURAL_HEALING_MACRO = `
 (async () => {
 ${_MACRO_SHARED}
 // ── Natural Healing ───────────────────────────────────────────────────────────
-// GM macro. Run once per day of rest.
-//   - Stabilized actors on the current scene regain HP equal to their BODY stat.
-//   - If a Medtech character has a token in the scene, they can distribute
-//     bonus healing equal to 2 × their Medtech rank to OTHER actors.
-//     Doing so means THEY do not rest and do not gain their own HP.
+// GM macro. Represents a full day of rest. For every player-owned character that
+// is stabilized (no "Needs Stabilization" effect):
+//   - They regain HP equal to their BODY (×2 with Enhanced Antibodies cyberware),
+//     plus any naturalHealingBonus effects (e.g. Antibiotics +2).
+//   - A Medtech may instead distribute 2 × their Medtech rank in bonus HP to
+//     OTHER characters; doing so means the Medtech does not rest.
+//   - The cyberpunk-blue.naturalHealing hook fires for each resting actor so
+//     per-rest abilities (e.g. Bandit "Tough" uses) reset.
 
 if (!game.user.isGM) { ui.notifications.warn('Natural Healing is a GM-only macro.'); return; }
 
-const scene = canvas?.scene;
-if (!scene) { ui.notifications.warn('No active scene.'); return; }
+const allPCs = game.actors.filter(a => a.type === 'character' && a.hasPlayerOwner);
+if (!allPCs.length) { ui.notifications.warn('No player-owned characters found.'); return; }
 
-// Find all actors with tokens on the current scene
-const sceneTokens = scene.tokens.contents;
-const sceneActors = sceneTokens
-  .map(t => t.actor)
-  .filter(a => a && (a.type === 'character' || a.type === 'npc'));
-
-if (!sceneActors.length) { ui.notifications.warn('No character actors have tokens in the current scene.'); return; }
-
-// Find actors who are stabilized (or have HP below max but are not at max and not dying)
-const healingCandidates = sceneActors.filter(a => {
-  const hp = a.system?.resources?.hp?.value ?? 0;
-  const hpMax = a.system?.resources?.hp?.max ?? 1;
-  if (hp >= hpMax) return false; // at full HP, no need to heal
-  if (hp <= 0) return false; // dying — must be stabilized first
-  const stabilized = a.getFlag('cyberpunk-blue', 'stabilized') ?? false;
-  return stabilized;
-});
-
-// Find Medtech actors in the scene
-const medtechActors = sceneActors.filter(a => _getMedtechRole(a) !== null);
-
-// Build base healing amounts: BODY per stabilized actor
-const healingMap = new Map();
-for (const actor of healingCandidates) {
-  const body = actor.system?.stats?.body?.value ?? 1;
-  healingMap.set(actor.id, { actor, baseHp: body, bonusHp: 0 });
-}
-
-if (!healingMap.size) {
-  ui.notifications.warn('No stabilized characters in the scene need healing.');
+const isStabilized = (a) => !a.effects.some(e => e.getFlag('cyberpunk-blue', 'needsStabilization'));
+const stabilized = allPCs.filter(isStabilized);
+if (!stabilized.length) {
+  ui.notifications.warn('No stabilized characters — they must be stabilized before they can rest and heal.');
   return;
 }
 
+// Per-actor base healing (BODY, ×2 with Enhanced Antibodies) plus additive
+// naturalHealingBonus from active effects.
+const baseHealFor = (a) => {
+  const body = a.system?.stats?.body?.value ?? 1;
+  const enhanced = a.items.some(i => i.type === 'cyberware' && i.system.installed !== false && i.name === 'Enhanced Antibodies');
+  const base = enhanced ? body * 2 : body;
+  let bonus = 0;
+  for (const e of a.effects) {
+    if (e.disabled) continue;
+    const b = e.getFlag('cyberpunk-blue', 'naturalHealingBonus');
+    if (typeof b === 'number') bonus += b;
+  }
+  return { base, bonus, enhanced };
+};
+
+// Healing candidates = stabilized AND below max HP.
+const healingMap = new Map();
+for (const a of stabilized) {
+  const hp = a.system?.resources?.hp?.value ?? 0;
+  const hpMax = a.system?.resources?.hp?.max ?? 1;
+  if (hp >= hpMax) continue;
+  const h = baseHealFor(a);
+  healingMap.set(a.id, { actor: a, base: h.base, bonus: h.bonus, enhanced: h.enhanced, medtechBonus: 0 });
+}
+
 // ── Medtech bonus healing dialog ──
-let medtechHealing = []; // { medtech, targets: [ {actor, hp} ] }
-let medtechResting = new Set(medtechActors.map(a => a.id)); // Medtechs who rest (get their own healing)
+const medtechActors = stabilized.filter(a => _getMedtechRole(a) !== null);
+let medtechResting = new Set(medtechActors.map(a => a.id));
 
 for (const medtech of medtechActors) {
-  const medtechRole = _getMedtechRole(medtech);
-  const medtechRank = medtechRole?.system?.rank ?? 0;
+  const medtechRank = _getMedtechRole(medtech)?.system?.rank ?? 0;
   if (medtechRank <= 0) continue;
   const bonusPool = medtechRank * 2;
 
-  // Potential recipients: stabilized actors OTHER than the medtech themselves
-  const recipients = healingCandidates.filter(a => a.id !== medtech.id);
+  const recipients = [...healingMap.values()].map(e => e.actor).filter(a => a.id !== medtech.id);
   if (!recipients.length) continue;
 
   const recipientOptions = recipients.map(a => {
-    const entry = healingMap.get(a.id);
-    const hpMax = a.system?.resources?.hp?.max ?? 1;
-    const hp = a.system?.resources?.hp?.value ?? 0;
-    const missing = hpMax - hp;
+    const missing = (a.system?.resources?.hp?.max ?? 1) - (a.system?.resources?.hp?.value ?? 0);
     return \`<label style="display:flex;gap:.4rem;align-items:center;">
       <span style="min-width:10rem;">\${a.name} (missing \${missing} HP)</span>
       <input type="number" min="0" max="\${Math.min(bonusPool, missing)}" value="0"
@@ -404,10 +400,7 @@ for (const medtech of medtechActors) {
         <div class="cyberpunk-blue" style="padding:.5rem;">
           <p><strong>\${medtech.name}</strong> (Medtech rank \${medtechRank}) can distribute up to <strong>\${bonusPool} bonus HP</strong> among other characters.</p>
           <p style="color:var(--color-level-warning,#e07000);">⚠ If \${medtech.name} distributes any healing, they will not rest and will not gain their own Natural Healing HP today.</p>
-          <div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.5rem;">
-            \${recipientOptions}
-          </div>
-          <p id="remaining-label" style="margin-top:.4rem;">Remaining: \${bonusPool}</p>
+          <div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.5rem;">\${recipientOptions}</div>
         </div>\`,
       buttons: [
         { action: 'apply', label: 'Apply Bonus Healing', default: true,
@@ -429,47 +422,59 @@ for (const medtech of medtechActors) {
   });
 
   if (choice && choice.length > 0) {
-    // Medtech is distributing — they do not rest
     medtechResting.delete(medtech.id);
     for (const { actorId, hp } of choice) {
-      if (healingMap.has(actorId)) {
-        healingMap.get(actorId).bonusHp += hp;
-      }
+      if (healingMap.has(actorId)) healingMap.get(actorId).medtechBonus += hp;
     }
   }
 }
 
+// Resting actors = all stabilized PCs except Medtechs who distributed instead.
+const restingActors = stabilized.filter(a => medtechResting.has(a.id) || !medtechActors.some(m => m.id === a.id));
+const isResting = (id) => restingActors.some(a => a.id === id);
+
 // ── Apply healing ──
 const lines = [];
-for (const { actor, baseHp, bonusHp } of healingMap.values()) {
-  // Only resting actors get base healing
-  const isResting = medtechResting.has(actor.id) || !medtechActors.some(m => m.id === actor.id);
-  const totalHp = (isResting ? baseHp : 0) + bonusHp;
+for (const { actor, base, bonus, enhanced, medtechBonus } of healingMap.values()) {
+  const selfHeal = isResting(actor.id) ? (base + bonus) : 0;
+  const totalHp = selfHeal + medtechBonus;
   if (totalHp <= 0) continue;
   const currentHp = actor.system?.resources?.hp?.value ?? 0;
   const hpMax = actor.system?.resources?.hp?.max ?? 1;
   const newHp = Math.min(currentHp + totalHp, hpMax);
   await actor.update({ 'system.resources.hp.value': newHp });
-  const gained = newHp - currentHp;
-  lines.push(\`<li><strong>\${actor.name}</strong>: +\${gained} HP (to \${newHp}/\${hpMax})\${bonusHp ? \` (\${baseHp} base + \${bonusHp} Medtech bonus)\` : ''}</li>\`);
+  const parts = [];
+  if (isResting(actor.id)) {
+    parts.push(\`\${base}\${enhanced ? ' (BODY×2)' : ''} base\`);
+    if (bonus) parts.push(\`\${bonus} drug\`);
+  }
+  if (medtechBonus) parts.push(\`\${medtechBonus} Medtech\`);
+  lines.push(\`<li><strong>\${actor.name}</strong>: +\${newHp - currentHp} HP (to \${newHp}/\${hpMax})\${parts.length ? ' — ' + parts.join(' + ') : ''}</li>\`);
 }
 
-// Non-resting Medtechs don't get base healing
 for (const medtech of medtechActors) {
   if (!medtechResting.has(medtech.id)) {
-    lines.push(\`<li><em>\${medtech.name}</em> distributed bonus healing and did not rest — no HP recovery.</li>\`);
+    lines.push(\`<li><em>\${medtech.name}</em> distributed bonus healing and did not rest.</li>\`);
   }
 }
 
-if (!lines.length) {
-  ui.notifications.info('Natural Healing: no HP was gained (nothing to heal).');
-  return;
+// Per-rest upkeep: decrement use-limited healing effects (e.g. Antibiotic, 7
+// uses) and fire the rest hook so role abilities reset.
+for (const actor of restingActors) {
+  for (const e of [...actor.effects]) {
+    const uses = e.getFlag('cyberpunk-blue', 'naturalHealingUses');
+    if (typeof uses === 'number') {
+      if (uses <= 1) await e.delete();
+      else await e.setFlag('cyberpunk-blue', 'naturalHealingUses', uses - 1);
+    }
+  }
+  Hooks.callAll('cyberpunk-blue.naturalHealing', actor);
 }
 
 ChatMessage.create({
   content: \`<div class="cyberpunk-blue chat-card">
     <h3><i class="fas fa-bed"></i> Natural Healing</h3>
-    <ul style="margin:.3rem 0 0 1rem;">\${lines.join('')}</ul>
+    \${lines.length ? \`<ul style="margin:.3rem 0 0 1rem;">\${lines.join('')}</ul>\` : '<p>Everyone rested; no HP needed restoring.</p>'}
   </div>\`,
 });
 })();

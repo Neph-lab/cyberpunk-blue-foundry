@@ -560,7 +560,8 @@ Hooks.once('init', function () {
 });
 
 const syncSeriousWoundEffect = (document, options = {}) => {
-  if (options?.cyberBlueSyncSeriousWound) {
+  // Skip echoes from either wound-AE sync writing its own effect.
+  if (options?.cyberBlueSyncSeriousWound || options?.cyberBlueSyncMortallyWounded) {
     return;
   }
 
@@ -576,7 +577,11 @@ const syncSeriousWoundEffect = (document, options = {}) => {
     return;
   }
 
-  return actor.syncSeriousWoundEffect(options);
+  // Keep both reactive wound markers (Seriously Wounded, Mortally Wounded) in sync.
+  return Promise.all([
+    actor.syncSeriousWoundEffect(options),
+    actor.syncMortallyWoundedEffect(options),
+  ]);
 };
 
 Hooks.on('createActor', syncSeriousWoundEffect);
@@ -587,6 +592,22 @@ Hooks.on('deleteItem', syncSeriousWoundEffect);
 Hooks.on('createActiveEffect', syncSeriousWoundEffect);
 Hooks.on('updateActiveEffect', syncSeriousWoundEffect);
 Hooks.on('deleteActiveEffect', syncSeriousWoundEffect);
+
+// ─── Natural Healing: per-rest role/ability resets ───────────────────────────
+// The Natural Healing macro calls Hooks.callAll('cyberpunk-blue.naturalHealing',
+// actor) for each actor who rests. Subscribers reset the per-rest state of any
+// ability that "refreshes on a full rest". Add new per-rest resets here.
+Hooks.on('cyberpunk-blue.naturalHealing', async (actor) => {
+  if (!game.user.isGM || !(actor instanceof CyberBlueActor)) return;
+
+  // Bandit "Tough": regains all uses after natural healing. Clearing the flag
+  // makes the sheet fall back to the computed maximum (1 + ⌊rank/3⌋).
+  const bandit = actor.items.find((i) => i.type === 'role' && i.name === 'Bandit');
+  if (bandit && (bandit.system.rank ?? 0) >= 1
+    && actor.getFlag('cyberpunk-blue', 'toughUsesRemaining') !== undefined) {
+    await actor.unsetFlag('cyberpunk-blue', 'toughUsesRemaining');
+  }
+});
 
 const syncCyberwarePsycheLossEffect = (document, options = {}) => {
   if (options?.cyberBlueSyncPsycheLoss) {

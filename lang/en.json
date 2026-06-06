@@ -398,6 +398,8 @@
       "Inactive": "Inactive Effects",
       "Ongoing": "Ongoing",
       "SeriouslyWounded": "Seriously Wounded",
+      "MortallyWounded": "Mortally Wounded",
+      "NeedsStabilization": "Needs Stabilization",
       "PsycheLoss": "PSYCHE Loss"
     },
     "Settings": {

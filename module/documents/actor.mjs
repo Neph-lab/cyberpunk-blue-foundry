@@ -7,6 +7,8 @@ import { reloadWeapon, toggleWeaponCharge, toggleWeaponRicochet } from '../helpe
 
 export class CyberBlueActor extends Actor {
   static SERIOUS_WOUND_FLAG = 'autoSeriousWound';
+  static MORTALLY_WOUNDED_FLAG = 'autoMortallyWounded';
+  static NEEDS_STABILIZATION_FLAG = 'needsStabilization';
 
   prepareDerivedData() {
     super.prepareDerivedData();
@@ -411,6 +413,12 @@ export class CyberBlueActor extends Actor {
       await Promise.all(updates);
     }
 
+    // Taking damage through the pipeline marks the actor as needing
+    // stabilization (blocks Natural Healing until a Stabilize check clears it).
+    if (hpLoss > 0 && (this.type === 'character' || this.type === 'npc')) {
+      await this.applyNeedsStabilization();
+    }
+
     return {
       totalDamage,
       armorId: activeArmor?.id ?? null,
@@ -725,5 +733,66 @@ export class CyberBlueActor extends Actor {
       ...options,
       cyberBlueSyncSeriousWound: true,
     });
+  }
+
+  // ── Needs Stabilization ─────────────────────────────────────────────────────
+  // Event-driven marker (applied by applyDamage). Blocks Natural Healing until a
+  // Stabilize check clears it. Has no mechanical changes of its own.
+  getNeedsStabilizationEffect() {
+    return this.effects.find((e) => e.getFlag('cyberpunk-blue', CyberBlueActor.NEEDS_STABILIZATION_FLAG));
+  }
+
+  isStabilized() {
+    return !this.getNeedsStabilizationEffect();
+  }
+
+  async applyNeedsStabilization(options = {}) {
+    if (this.getNeedsStabilizationEffect()) return; // already flagged
+    await this.createEmbeddedDocuments('ActiveEffect', [{
+      name: game.i18n.localize('CYBER_BLUE.Effect.NeedsStabilization'),
+      icon: 'icons/svg/blood.svg',
+      origin: this.uuid,
+      disabled: false,
+      transfer: false,
+      system: { changes: [] },
+      flags: { 'cyberpunk-blue': { [CyberBlueActor.NEEDS_STABILIZATION_FLAG]: true } },
+    }], options);
+  }
+
+  // ── Mortally Wounded ────────────────────────────────────────────────────────
+  // Reactive marker, present iff HP ≤ 0 (mirrors the Seriously Wounded sync).
+  getMortallyWoundedEffect() {
+    return this.effects.find((e) => e.getFlag('cyberpunk-blue', CyberBlueActor.MORTALLY_WOUNDED_FLAG));
+  }
+
+  shouldBeMortallyWounded() {
+    if (!(this.type === 'character' || this.type === 'npc')) return false;
+    return (this.system.resources?.hp?.value ?? 1) <= 0;
+  }
+
+  getMortallyWoundedEffectData() {
+    return {
+      name: game.i18n.localize('CYBER_BLUE.Effect.MortallyWounded'),
+      icon: 'icons/svg/skull.svg',
+      origin: this.uuid,
+      disabled: false,
+      transfer: false,
+      system: { changes: [] },
+      flags: { 'cyberpunk-blue': { [CyberBlueActor.MORTALLY_WOUNDED_FLAG]: true } },
+    };
+  }
+
+  async syncMortallyWoundedEffect(options = {}) {
+    const existing = this.getMortallyWoundedEffect();
+    if (!this.shouldBeMortallyWounded()) {
+      if (existing) await existing.delete({ ...options, cyberBlueSyncMortallyWounded: true });
+      return;
+    }
+    if (!existing) {
+      await this.createEmbeddedDocuments('ActiveEffect', [this.getMortallyWoundedEffectData()], {
+        ...options,
+        cyberBlueSyncMortallyWounded: true,
+      });
+    }
   }
 }

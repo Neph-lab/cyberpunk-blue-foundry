@@ -45,13 +45,13 @@ const ADD = 2;
  * @param {string} name — must match the `effectName` used in instruction steps
  * @param {Array<{key:string, value:string|number}>} changes — each uses ADD mode
  */
-function ae(name, changes) {
+function ae(name, changes, extraFlags = {}) {
   return {
     name,
     disabled: true,
     transfer: true,
     changes: changes.map(({ key, value }) => ({ key, mode: ADD, value: String(value) })),
-    flags: { 'cyberpunk-blue': { noGearStateSync: true } },
+    flags: { 'cyberpunk-blue': { noGearStateSync: true, ...extraFlags } },
   };
 }
 
@@ -148,7 +148,9 @@ export const DRUG_CATALOGUE = [
     secDv:       10,
     secondary:   'Full day of nausea; no natural healing for the day.',
     effects: [
-      ae('Antibiotics - Usage', [stat('body', -1)]),
+      // BODY −1 while active, and +2 to Natural Healing for the day (read by the
+      // Natural Healing macro via the naturalHealingBonus flag).
+      ae('Antibiotics - Usage', [stat('body', -1)], { naturalHealingBonus: 2 }),
     ],
     instructions: [
       // Step 0 — take the drug; enable BODY −1 AE; pause until drug wears off
