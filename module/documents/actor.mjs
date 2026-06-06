@@ -886,15 +886,20 @@ export class CyberBlueActor extends Actor {
     const total = this._computeDeathState({ base: this.getDeathSavePenalty() });
 
     // Create the Dead effect FIRST so isDead() is true — this stops the reactive
-    // Mortally Wounded sync from re-adding itself while HP is still ≤ 0.
+    // Mortally Wounded sync from re-adding itself while HP is still ≤ 0 (and in
+    // fact prompts that sync to remove the existing Mortally Wounded effect).
     await this.createEmbeddedDocuments('ActiveEffect', [this.getDeadEffectData(total)]);
 
     // Remove the wound/stabilization markers and the Unconscious condition.
+    // The Mortally Wounded sync may already be deleting its effect concurrently,
+    // so delete defensively (only ids that still exist, ignoring races).
     const toRemove = this.effects.filter((e) =>
       e.getFlag('cyberpunk-blue', CyberBlueActor.MORTALLY_WOUNDED_FLAG)
       || e.getFlag('cyberpunk-blue', CyberBlueActor.NEEDS_STABILIZATION_FLAG)
-    ).map((e) => e.id);
-    if (toRemove.length) await this.deleteEmbeddedDocuments('ActiveEffect', toRemove);
+    ).map((e) => e.id).filter((id) => this.effects.has(id));
+    if (toRemove.length) {
+      try { await this.deleteEmbeddedDocuments('ActiveEffect', toRemove); } catch (_e) { /* already gone */ }
+    }
     if (this.statuses?.has?.('unconscious')) await this.toggleStatusEffect('unconscious', { active: false });
 
     // Mark the combatant Defeated.
