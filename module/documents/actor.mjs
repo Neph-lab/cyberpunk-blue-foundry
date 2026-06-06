@@ -9,6 +9,8 @@ export class CyberBlueActor extends Actor {
   static SERIOUS_WOUND_FLAG = 'autoSeriousWound';
   static MORTALLY_WOUNDED_FLAG = 'autoMortallyWounded';
   static NEEDS_STABILIZATION_FLAG = 'needsStabilization';
+  static DEAD_FLAG = 'dead';
+  static DEATH_STATE_MAX = 10;
 
   prepareDerivedData() {
     super.prepareDerivedData();
@@ -415,8 +417,13 @@ export class CyberBlueActor extends Actor {
 
     // Taking damage through the pipeline marks the actor as needing
     // stabilization (blocks Natural Healing until a Stabilize check clears it).
-    if (hpLoss > 0 && (this.type === 'character' || this.type === 'npc')) {
-      await this.applyNeedsStabilization();
+    // A corpse instead accrues Death State (1 per 4 points of post-death damage).
+    if (this.type === 'character' || this.type === 'npc') {
+      if (this.isDead()) {
+        await this.recordPostDeathDamage(totalDamage);
+      } else if (hpLoss > 0) {
+        await this.applyNeedsStabilization();
+      }
     }
 
     return {
@@ -767,6 +774,7 @@ export class CyberBlueActor extends Actor {
 
   shouldBeMortallyWounded() {
     if (!(this.type === 'character' || this.type === 'npc')) return false;
+    if (this.isDead()) return false; // a corpse is past Mortally Wounded
     return (this.system.resources?.hp?.value ?? 1) <= 0;
   }
 
@@ -794,5 +802,132 @@ export class CyberBlueActor extends Actor {
         cyberBlueSyncMortallyWounded: true,
       });
     }
+  }
+
+  // ── Death (death-save loop, Dead condition, Death State) ─────────────────────
+  getDeadEffect() {
+    return this.effects.find((e) => e.getFlag('cyberpunk-blue', CyberBlueActor.DEAD_FLAG));
+  }
+
+  isDead() {
+    return !!this.getDeadEffect();
+  }
+
+  /** The penalty currently reducing this actor's Death Save below base BODY. */
+  getDeathSavePenalty() {
+    return Math.max(0, -(this.system.resources?.deathSave?.bonus ?? 0));
+  }
+
+  _computeDeathState(c = {}) {
+    const total = 1 + (c.base || 0) + Math.floor((c.damage || 0) / 4) + (c.crits || 0) + (c.gmExtra || 0);
+    return Math.min(CyberBlueActor.DEATH_STATE_MAX, total);
+  }
+
+  /**
+   * End-of-turn death save for a Mortally Wounded actor. 1d10 vs Death Save:
+   *  ≤ DS → holds on (repeat next turn);
+   *  > DS while conscious → falls Unconscious;
+   *  > DS while Unconscious → Dead.
+   * @returns {Promise<'stable'|'unconscious'|'dead'|null>}
+   */
+  async rollMortalDeathSave({ messageMode = null } = {}) {
+    if (!this.getMortallyWoundedEffect()) return null;
+    const ds = this.system.resources?.deathSave?.value ?? 1;
+    const roll = await (new Roll('1d10')).evaluate();
+    const survived = roll.total <= ds;
+    const wasUnconscious = this.statuses?.has?.('unconscious');
+
+    let outcome, line;
+    if (survived) {
+      outcome = 'stable';
+      line = game.i18n.format('CYBER_BLUE.Death.Holds', { roll: roll.total, ds });
+    } else if (!wasUnconscious) {
+      await this.toggleStatusEffect('unconscious', { active: true });
+      outcome = 'unconscious';
+      line = game.i18n.format('CYBER_BLUE.Death.Unconscious', { roll: roll.total, ds });
+    } else {
+      await this.applyDead();
+      outcome = 'dead';
+      line = game.i18n.format('CYBER_BLUE.Death.Dead', { roll: roll.total, ds });
+    }
+
+    await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: this }),
+      flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.format('CYBER_BLUE.Death.SaveTitle', { name: this.name })}</h3><p>${line}</p></div>`,
+    }, { messageMode });
+    return outcome;
+  }
+
+  getDeadEffectData(total) {
+    return {
+      name: game.i18n.format('CYBER_BLUE.Effect.DeadWithState', { state: total }),
+      icon: 'icons/svg/tombstone.svg',
+      origin: this.uuid,
+      statuses: ['dead'],
+      disabled: false,
+      transfer: false,
+      // Zero every stat except BODY (HP is a resource and is left untouched).
+      system: {
+        changes: ['rflx', 'int', 'tech', 'cool', 'move'].map((slug) => ({
+          key: `system.stats.${slug}.value`, type: 'override', value: '0',
+        })),
+      },
+      flags: {
+        'cyberpunk-blue': {
+          [CyberBlueActor.DEAD_FLAG]: true,
+          deathState: { base: this.getDeathSavePenalty(), damage: 0, crits: 0, gmExtra: 0, total },
+        },
+      },
+    };
+  }
+
+  async applyDead() {
+    if (this.isDead()) return;
+    const total = this._computeDeathState({ base: this.getDeathSavePenalty() });
+
+    // Create the Dead effect FIRST so isDead() is true — this stops the reactive
+    // Mortally Wounded sync from re-adding itself while HP is still ≤ 0.
+    await this.createEmbeddedDocuments('ActiveEffect', [this.getDeadEffectData(total)]);
+
+    // Remove the wound/stabilization markers and the Unconscious condition.
+    const toRemove = this.effects.filter((e) =>
+      e.getFlag('cyberpunk-blue', CyberBlueActor.MORTALLY_WOUNDED_FLAG)
+      || e.getFlag('cyberpunk-blue', CyberBlueActor.NEEDS_STABILIZATION_FLAG)
+    ).map((e) => e.id);
+    if (toRemove.length) await this.deleteEmbeddedDocuments('ActiveEffect', toRemove);
+    if (this.statuses?.has?.('unconscious')) await this.toggleStatusEffect('unconscious', { active: false });
+
+    // Mark the combatant Defeated.
+    const cb = game.combat?.combatants.find((c) => c.actorId === this.id);
+    if (cb && !cb.defeated) await cb.update({ defeated: true });
+  }
+
+  async _updateDeathState(mutate) {
+    const dead = this.getDeadEffect();
+    if (!dead) return;
+    const components = foundry.utils.deepClone(
+      dead.getFlag('cyberpunk-blue', 'deathState') ?? { base: 0, damage: 0, crits: 0, gmExtra: 0 },
+    );
+    mutate(components);
+    const total = this._computeDeathState(components);
+    await dead.update({
+      name: game.i18n.format('CYBER_BLUE.Effect.DeadWithState', { state: total }),
+      'flags.cyberpunk-blue.deathState': { ...components, total },
+    });
+  }
+
+  async recordPostDeathDamage(amount) {
+    const n = Number(amount) || 0;
+    if (n <= 0) return;
+    await this._updateDeathState((c) => { c.damage = (c.damage || 0) + n; });
+  }
+
+  async recordPostDeathCrit() {
+    await this._updateDeathState((c) => { c.crits = (c.crits || 0) + 1; });
+  }
+
+  /** GM control: advance Death State for time elapsed (1 per minute). */
+  async advanceDeathState(minutes = 1) {
+    await this._updateDeathState((c) => { c.gmExtra = (c.gmExtra || 0) + (Number(minutes) || 0); });
   }
 }

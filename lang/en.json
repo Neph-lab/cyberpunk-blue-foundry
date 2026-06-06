@@ -400,7 +400,14 @@
       "SeriouslyWounded": "Seriously Wounded",
       "MortallyWounded": "Mortally Wounded",
       "NeedsStabilization": "Needs Stabilization",
+      "DeadWithState": "Dead — Death State {state}/10",
       "PsycheLoss": "PSYCHE Loss"
+    },
+    "Death": {
+      "SaveTitle": "Death Save: {name}",
+      "Holds": "Rolled {roll} ≤ Death Save {ds} — holds on.",
+      "Unconscious": "Rolled {roll} > Death Save {ds} — falls Unconscious.",
+      "Dead": "Rolled {roll} > Death Save {ds} while Unconscious — <strong>Dead</strong>."
     },
     "Settings": {
       "ImportItems": {

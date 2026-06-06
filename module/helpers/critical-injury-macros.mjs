@@ -940,9 +940,53 @@ ui.notifications.info(\`Restored \${result.amount} HP to \${tokens.length} token
 })();
 `;
 
+// ─── Advance Death State macro ────────────────────────────────────────────────
+
+export const ADVANCE_DEATH_STATE_MACRO = `
+(async () => {
+// ── Advance Death State ───────────────────────────────────────────────────────
+// GM macro. Adds the per-minute Death State increase to the selected dead
+// token(s). (Base penalty, post-death damage and post-death critical injuries
+// are tracked automatically; this covers the GM-handled "1 per minute" part.)
+
+if (!game.user.isGM) { ui.notifications.warn('GM only.'); return; }
+
+const dead = canvas.tokens.controlled.map(t => t.actor).filter(a => a?.isDead?.());
+if (!dead.length) { ui.notifications.warn('Select one or more dead tokens.'); return; }
+
+const result = await foundry.applications.api.DialogV2.wait({
+  window: { title: 'Advance Death State' },
+  content: \`<div class="cyberpunk-blue" style="padding:0.5rem;">
+    <p>Add elapsed minutes (+1 Death State each) to: <strong>\${dead.map(a => a.name).join(', ')}</strong></p>
+    <label>Minutes: <input type="number" name="minutes" value="1" min="1" style="width:5rem;" /></label>
+  </div>\`,
+  buttons: [
+    { action: 'apply', label: 'Advance', icon: 'fas fa-hourglass-half', default: true,
+      callback: (_e, btn) => Math.max(1, Number(btn.form.elements['minutes'].value) || 1) },
+    { action: 'cancel', label: 'Cancel', icon: 'fas fa-xmark', callback: () => null },
+  ],
+});
+if (!result) return;
+
+for (const a of dead) await a.advanceDeathState(result);
+const lines = dead.map(a => {
+  const ds = a.getDeadEffect()?.getFlag('cyberpunk-blue', 'deathState')?.total ?? '?';
+  return \`<li><strong>\${a.name}</strong>: Death State \${ds}/10</li>\`;
+}).join('');
+ChatMessage.create({ content: \`<div class="cyberpunk-blue chat-card"><h3>Death State advanced (+\${result} min)</h3><ul style="margin:.3rem 0 0 1rem;">\${lines}</ul></div>\` });
+})();
+`;
+
 // ─── Catalogue ────────────────────────────────────────────────────────────────
 
 export const MACRO_CATALOGUE = [
+  {
+    name: 'Advance Death State',
+    type: 'script',
+    img: 'icons/svg/tombstone.svg',
+    command: ADVANCE_DEATH_STATE_MACRO,
+    _folder: 'GM Tools',
+  },
   {
     name: 'Request Skill Check',
     type: 'script',

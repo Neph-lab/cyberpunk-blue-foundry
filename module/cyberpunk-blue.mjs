@@ -609,6 +609,29 @@ Hooks.on('cyberpunk-blue.naturalHealing', async (actor) => {
   }
 });
 
+// ─── Death State: count Critical Injuries suffered after death ───────────────
+// Each Critical Injury AE created on an already-Dead actor adds +1 to its
+// Death State (capped at 10).
+Hooks.on('createActiveEffect', async (effect, options) => {
+  if (game.user !== game.users.activeGM) return;
+  if (!effect.getFlag?.('cyberpunk-blue', CRITICAL_INJURY_FLAG)) return;
+  const actor = effect.parent;
+  if (actor instanceof CyberBlueActor && actor.isDead()) {
+    await actor.recordPostDeathCrit();
+  }
+});
+
+// ─── Mortally Wounded: end-of-turn death save ────────────────────────────────
+// When a combatant's turn ends, the actor who just finished — if Mortally
+// Wounded — rolls 1d10 vs their Death Save (conscious→unconscious→Dead).
+Hooks.on('combatTurn', async (combat, updateData, updateOptions) => {
+  if (game.user !== game.users.activeGM) return;
+  const prevActor = combat.combatants.get(combat.previous?.combatantId)?.actor;
+  if (prevActor instanceof CyberBlueActor && prevActor.getMortallyWoundedEffect?.()) {
+    await prevActor.rollMortalDeathSave();
+  }
+});
+
 const syncCyberwarePsycheLossEffect = (document, options = {}) => {
   if (options?.cyberBlueSyncPsycheLoss) {
     return;
