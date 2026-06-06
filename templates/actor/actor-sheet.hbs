@@ -20,7 +20,7 @@
             <div class="header-ip">
               <span class="stat-short">IP</span>
               <div class="ip-values">
-                <input type="number" name="system.ip" value="{{ip.value}}" data-dtype="Number" {{#unless canManageRestricted}}readonly{{/unless}} title="Spendable IP" />
+                <span class="ip-current" title="Spendable IP">{{ip.value}}</span>
                 <span class="ip-total" title="Total IP earned: {{ip.total}}">/ {{ip.total}}</span>
               </div>
               <button type="button" class="ip-use-btn" data-action="open-ip-spender" {{#unless ip.canSpend}}disabled{{/unless}} title="{{localize "CYBER_BLUE.IP.UseButton"}}">

@@ -4261,10 +4261,11 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   gap: 0.2rem;
 }
 
-.cyberpunk-blue .header-ip input[type="number"] {
-  width: 3.5rem;
+.cyberpunk-blue .header-ip .ip-current {
+  min-width: 1.5rem;
   text-align: right;
-  border-color: var(--cpb-accent-strong-border);
+  font-weight: 700;
+  color: var(--cpb-accent-strong);
 }
 
 .cyberpunk-blue .header-ip .ip-total {
