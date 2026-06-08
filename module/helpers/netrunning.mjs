@@ -235,19 +235,9 @@ export async function connectToArchitecture(actor, apRegion, { forUserId } = {})
   // netrunner's own player-owner (so a GM clicking Jack In on a player's sheet
   // switches the PLAYER's view, not the GM's), and finally the acting user.
   const connectingUserId = forUserId ?? _actorOwnerUserId(actor) ?? game.user.id;
-
-  // Grant that user permission to view the architecture scene. Foundry never
-  // syncs a Scene to a client that has NONE permission on it (unless it is the
-  // active scene), so without this the scene — and the runner's token in it —
-  // never reaches the player's client and the scene-switch below silently
-  // no-ops. Track whether we actually elevated access so disconnect can revert.
-  let archViewGranted = false;
-  const connectingUser = game.users.get(connectingUserId);
-  if (connectingUser && !connectingUser.isGM
-    && archScene.getUserLevel(connectingUser) < CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER) {
-    await archScene.update({ [`ownership.${connectingUserId}`]: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER });
-    archViewGranted = true;
-  }
+  // Permission to view the architecture scene is granted further below, AFTER
+  // the runner's token has been created, so that the scene snapshot first sent
+  // to the player already contains their token (see comment at the grant site).
 
   // Add it to the scene navigation if not already there
   if (!archScene.navigation) {
@@ -322,6 +312,21 @@ export async function connectToArchitecture(actor, apRegion, { forUserId } = {})
     console.error('Cyberpunk Blue | createEmbeddedDocuments returned no token. Data was:', tokenData);
     ui.notifications.error(game.i18n.localize('CYBER_BLUE.Netrunning.TokenCreateFailed'));
     return;
+  }
+
+  // Grant the connecting user permission to view the architecture scene. Foundry
+  // never syncs a Scene to a client that has NONE permission on it (unless it is
+  // the active scene), so without this the scene never reaches the player's
+  // client and the scene-switch below silently no-ops. Doing this AFTER the
+  // token is created means the first scene snapshot Foundry pushes to the player
+  // already contains their token. Track whether we elevated access so disconnect
+  // can revert it.
+  let archViewGranted = false;
+  const connectingUser = game.users.get(connectingUserId);
+  if (connectingUser && !connectingUser.isGM
+    && archScene.getUserLevel(connectingUser) < CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER) {
+    await archScene.update({ [`ownership.${connectingUserId}`]: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER });
+    archViewGranted = true;
   }
 
   const deck = getPrimaryCyberdeck(actor);
