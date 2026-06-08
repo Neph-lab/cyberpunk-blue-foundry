@@ -230,9 +230,11 @@ export async function connectToArchitecture(actor, apRegion, { forUserId } = {})
     return;
   }
 
-  // The user whose view should move into the architecture: the delegating
-  // player when the GM acts on their behalf, otherwise the acting user.
-  const connectingUserId = forUserId ?? game.user.id;
+  // The user whose view should move into the architecture. Prefer an explicit
+  // delegating player (set when a player jacks in via the socket), then the
+  // netrunner's own player-owner (so a GM clicking Jack In on a player's sheet
+  // switches the PLAYER's view, not the GM's), and finally the acting user.
+  const connectingUserId = forUserId ?? _actorOwnerUserId(actor) ?? game.user.id;
 
   // Grant that user permission to view the architecture scene. Foundry never
   // syncs a Scene to a client that has NONE permission on it (unless it is the

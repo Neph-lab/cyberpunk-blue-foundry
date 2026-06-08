@@ -37,8 +37,17 @@ export function registerSocketHandlers() {
     // guards against acting on messages not addressed to this user.
     if (message.type === 'netSwitchScene') {
       if (message.targetUserId !== game.user.id) return;
-      const scene = game.scenes.get(message.sceneId);
+      // The GM may have just granted this user view permission on the target
+      // scene. That document arrives via a separate broadcast that can land
+      // AFTER this message, so the scene may not be in the collection yet.
+      // Poll briefly for it before giving up.
+      let scene = game.scenes.get(message.sceneId);
+      for (let i = 0; i < 20 && !scene; i++) {
+        await new Promise((r) => setTimeout(r, 250));
+        scene = game.scenes.get(message.sceneId);
+      }
       if (scene) await scene.view();
+      else console.warn(`Cyberpunk Blue | netSwitchScene: scene ${message.sceneId} never became available to ${game.user.name}`);
       return;
     }
 
