@@ -230,6 +230,23 @@ export async function connectToArchitecture(actor, apRegion, { forUserId } = {})
     return;
   }
 
+  // The user whose view should move into the architecture: the delegating
+  // player when the GM acts on their behalf, otherwise the acting user.
+  const connectingUserId = forUserId ?? game.user.id;
+
+  // Grant that user permission to view the architecture scene. Foundry never
+  // syncs a Scene to a client that has NONE permission on it (unless it is the
+  // active scene), so without this the scene — and the runner's token in it —
+  // never reaches the player's client and the scene-switch below silently
+  // no-ops. Track whether we actually elevated access so disconnect can revert.
+  let archViewGranted = false;
+  const connectingUser = game.users.get(connectingUserId);
+  if (connectingUser && !connectingUser.isGM
+    && archScene.getUserLevel(connectingUser) < CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER) {
+    await archScene.update({ [`ownership.${connectingUserId}`]: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER });
+    archViewGranted = true;
+  }
+
   // Add it to the scene navigation if not already there
   if (!archScene.navigation) {
     const maxOrder = Math.max(0, ...game.scenes.filter((s) => s.navigation).map((s) => s.navOrder ?? 0));
@@ -307,11 +324,14 @@ export async function connectToArchitecture(actor, apRegion, { forUserId } = {})
 
   const deck = getPrimaryCyberdeck(actor);
   await actor.setFlag('cyberpunk-blue', NET_CONNECTION_FLAG, {
-    apSceneId:   apRegion.parent?.id ?? canvas.scene?.id ?? '',
-    apRegionId:  apRegion.id,
-    archSceneId: archScene.id,
-    archTokenId: tokenDoc.id,
-    cyberdeckId: deck?.id ?? '',
+    apSceneId:    apRegion.parent?.id ?? canvas.scene?.id ?? '',
+    apRegionId:   apRegion.id,
+    archSceneId:  archScene.id,
+    archTokenId:  tokenDoc.id,
+    cyberdeckId:  deck?.id ?? '',
+    // Remember who we gave architecture-scene view access to, so the matching
+    // disconnect can revoke exactly that grant (and nobody else's).
+    archViewGrantedUserId: archViewGranted ? connectingUserId : null,
   });
 
   // Create a "Jacked In" Active Effect so all tokens across scenes show the
@@ -328,7 +348,6 @@ export async function connectToArchitecture(actor, apRegion, { forUserId } = {})
   // Switch the netrunner's active scene to the architecture.
   // If the GM is acting on behalf of a player, emit a socket message so that
   // the player's client (not the GM's) performs the scene switch.
-  const connectingUserId = forUserId ?? game.user.id;
   if (connectingUserId === game.user.id) {
     await archScene.view();
   } else {
@@ -399,6 +418,17 @@ export async function disconnectFromArchitecture(actor, safe = true, { forUserId
   } else {
     const { emitSceneSwitchForUser } = await import('./socket.mjs');
     if (apScene) emitSceneSwitchForUser(apScene.id, disconnectingUserId);
+  }
+
+  // Revoke the temporary architecture-scene view access granted on connect, so
+  // the player can no longer browse the (GM-secret) architecture once jacked
+  // out. Only revoke the exact user we elevated. Done after the scene-switch
+  // emit above so the player has already been moved back to the AP scene.
+  if (conn.archViewGrantedUserId && archScene) {
+    const grantedUser = game.users.get(conn.archViewGrantedUserId);
+    if (grantedUser && !grantedUser.isGM) {
+      await archScene.update({ [`ownership.${conn.archViewGrantedUserId}`]: CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE });
+    }
   }
 
   // Clear connection flag and remove "Jacked In" AE

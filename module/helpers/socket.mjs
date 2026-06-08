@@ -143,6 +143,8 @@ export function registerSocketHandlers() {
       }
       case 'netConnect': {
         // A player asked the GM to execute the architecture connection on their behalf.
+        // Guard against multi-GM double-execution (would create duplicate tokens).
+        if (game.user !== game.users.activeGM) return;
         const { actorUuid, apSceneId, apRegionId, userId } = message;
         const actor = await fromUuid(actorUuid);
         if (!actor) return;
