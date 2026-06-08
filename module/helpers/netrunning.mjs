@@ -21,6 +21,11 @@ import { playSfx } from './audio.mjs';
 
 const NET_CONNECTION_FLAG  = 'netConnection';
 const JACKED_IN_AE_FLAG    = 'jackedInEffect';
+
+// Default sight range (in scene distance units) given to a jacked-in netrunner's
+// architecture token when their prototype token has no vision enabled. Keeps
+// fog-of-war exploration: the runner reveals the architecture as they move.
+const NET_ARCH_SIGHT_RANGE = 10;
 export const PROGRAM_ACTOR_FLAG  = 'programActorId';
 
 function _actorOwnerUserId(actor) {
@@ -298,6 +303,13 @@ export async function connectToArchitecture(actor, apRegion, { forUserId } = {})
     displayBars: proto.displayBars ?? CONST.TOKEN_DISPLAY_MODES.OWNER,
     bar1:        { attribute: proto.bar1?.attribute ?? 'resources.hp' },
     bar2:        { attribute: proto.bar2?.attribute ?? '' },
+    // Architecture scenes use token vision + fog of war. A character's
+    // prototype token vision is tuned for physical maps (here, range 1), which
+    // would leave the jacked-in runner blind under the architecture fog. Always
+    // enable sight and guarantee at least the architecture exploration range,
+    // while honouring a deliberately larger prototype range. This keeps
+    // fog-of-war exploration: the runner reveals the architecture as they move.
+    sight: { enabled: true, range: Math.max(Number(proto.sight?.range) || 0, NET_ARCH_SIGHT_RANGE) },
   };
 
   let tokenDoc;
