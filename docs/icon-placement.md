@@ -107,27 +107,35 @@ All ~100 brand SVGs in `assets/logo/` are wired via `<img class="manufacturer-lo
 - `templates/item/item-sheet.hbs` (item header + child-mod rows)
 
 ### Item Sheet Tabs
-Pattern A `<span class="cpb-tab-icon">` inside each `<a class="item">`, across all tab navs in `templates/item/item-sheet.hbs` (drug, cyberware, generic weapon/gear/role) and the `templates/item/parts/item-program-executable.hbs` partial. Only the four tabs below have icons; `mods`, `effects`, `lifepath`, `abilities` remain text-only (see Needs Icons §1).
+Pattern A `<span class="cpb-tab-icon">` inside each `<a class="item">`, across all tab navs in `templates/item/item-sheet.hbs` (drug, cyberware, generic weapon/gear/role) and the `templates/item/parts/item-program-executable.hbs` partial. All tab labels below are now wired.
 
 | Tab | `data-tab` value | SVG file |
 |-----|-----------------|----------|
 | Description | `description` | `bk_Overview.svg` |
 | Details | `details` | `bk_Details.svg` |
 | Advanced | `advanced` | `bk_Advanced.svg` |
+| Modifications | `mods` | `bk_Mod.svg` |
+| Effects | `effects` | `bk_Effects.svg` |
+| Lifepath | `lifepath` | `bk_Lifepath.svg` |
+| Abilities | `abilities` | `bk_Abilities.svg` |
 | Notes | `notes` | `bk_Notes.svg` |
 
 ### Mook Sheet Tabs
-`templates/actor/mook-sheet.hbs` — Pattern A on the Notes tab. `basics` / `items` remain text-only (see Needs Icons §2).
+`templates/actor/mook-sheet.hbs` — all tabs wired (Pattern A).
 
 | Tab | `data-tab` value | SVG file |
 |-----|-----------------|----------|
+| Basics | `basics` | `bk_Overview.svg` |
+| Items | `items` | `bk_Inventory.svg` |
 | Notes | `notes` | `bk_Notes.svg` |
 
 ### Vehicle Sheet Tabs
-`templates/actor/vehicle-sheet.hbs` — Pattern A on the Notes tab. `general` / `stats` remain text-only (see Needs Icons §3).
+`templates/actor/vehicle-sheet.hbs` — all tabs wired (Pattern A).
 
 | Tab | `data-tab` value | SVG file |
 |-----|-----------------|----------|
+| General | `general` | `bk_Vehicle.svg` |
+| Stats | `stats` | `bk_VehicleStats.svg` |
 | Notes | `notes` | `bk_Notes.svg` |
 
 ### Six-Stat Block (header) — Overview
@@ -170,41 +178,15 @@ Icons in the catalogue below that already exist as files in `assets/icons/` but 
 
 ### 1. Item Sheet Tabs
 
-Description / Details / Advanced / Notes are wired (see Already-wired Icons → Item Sheet Tabs). The remaining tabs below still render text-only.
-
-**Template:** `templates/item/item-sheet.hbs` (multiple `<nav class="sheet-tabs">` blocks — weapon, mod, role, ammo, etc.)
-**Pattern:** A — insert `<span class="cpb-tab-icon" style="--cpb-icon: url('…')">…</span>` inside each `<a class="item">`.
-
-| Tab label | `data-tab` value | Suggested icon concept | SVG file |
-|-----------|-----------------|----------------------|------------|
-| Modifications | `mods` | Wrench + bolt | |
-| Effects | `effects` | Sparkle / waveform | |
-| Lifepath | `lifepath` | Chain / path arrow | |
-| Abilities | `abilities` | Star / burst | |
+> **Done** — all tabs (description/details/advanced/mods/effects/lifepath/abilities/notes) are wired. See Already-wired Icons → Item Sheet Tabs.
 
 ### 2. Mook Sheet Tabs
 
-**Template:** `templates/actor/mook-sheet.hbs`
-**Pattern:** A.
-
-> Notes is **done** — see Already-wired Icons → Mook Sheet Tabs.
-
-| Tab label | `data-tab` value | Suggested icon concept | SVG file |
-|-----------|-----------------|----------------------|-------|
-| Basics | `basics` | Person / ID card | |
-| Items | `items` | Bag / crate | |
+> **Done** — basics/items/notes all wired. See Already-wired Icons → Mook Sheet Tabs.
 
 ### 3. Vehicle Sheet Tabs **(new — Vehicles subsystem)**
 
-**Template:** `templates/actor/vehicle-sheet.hbs` lines ~48–51.
-**Pattern:** A.
-
-> Notes is **done** — see Already-wired Icons → Vehicle Sheet Tabs.
-
-| Tab label | `data-tab` value | Suggested icon concept | SVG file |
-|-----------|-----------------|----------------------|-----|
-| General | `general` | Vehicle silhouette / steering wheel | |
-| Stats | `stats` | Gauge / dashboard | |
+> **Done** — general/stats/notes all wired. See Already-wired Icons → Vehicle Sheet Tabs.
 
 ### 4. Vehicle-specific section/row icons **(new)**
 
@@ -215,7 +197,7 @@ For the in-vehicle UI (`templates/actor/vehicle-sheet.hbs`, `templates/apps/vehi
 | SDP (structural damage points) | `.cyberpunk-blue .vehicle-sdp-header` | Bent panel / shield | |
 | Seats panel header | `.cyberpunk-blue .vehicle-seats-header` | Seat / person | |
 | Subsystems panel header | `.cyberpunk-blue .vehicle-subsystems-header` | Gear / module | |
-| Vehicle mods panel header | `.cyberpunk-blue .vehicle-mods-header` | Wrench + bolt | |
+| Vehicle mods panel header | `.cyberpunk-blue .vehicle-mods-header` | Wrench + bolt | `bk_Mod.svg` |
 | Speed / movement readout | `.cyberpunk-blue .vehicle-speed-readout` | Chevron / speedometer | |
 | Maneuver picker entry | `.cyberpunk-blue .vehicle-maneuver` | Steering wheel / arrow-curve | |
 | Vehicle HUD condition strip | `.cyberpunk-blue .vehicle-hud-condition` | Per-condition (re-use status icons §17) | |
