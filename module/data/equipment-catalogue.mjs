@@ -590,12 +590,12 @@ export const EQUIPMENT_CATALOGUE = [
 
   gear({
     name: 'Bug Detector',
-    folder: 'Clandestine Gear', cost: 'EX',
+    folder: 'Clandestine Gear', imgPath: `${A_GEAR}/bug-detector.png`, cost: 'EX',
     description: 'Creates and detects resonance in microphones within 2m.',
   }),
   gear({
     name: 'Caltrops',
-    folder: 'Clandestine Gear', cost: 'EV',
+    folder: 'Clandestine Gear', imgPath: `${A_GEAR}/caltrops.png`, cost: 'EV',
     description: 'Covers 2m². Any creature moving through must make a DV15 RFLX+Athletics check or take 1d6 damage per 2m of movement through the area. Shoes have SP 1 against this; army boots have SP 5. DV10 INT+Perception to detect.',
     // Deployed as an "affliction explosion" placement that drops a persistent
     // movement-hazard Region (see createHazardRegion / CyberBlueHazardRegionBehavior).
@@ -663,7 +663,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Glow Stick',
-    folder: 'Miscellaneous', cost: 'CH',
+    folder: 'Miscellaneous', imgPath: `${A_GEAR}/glow-stick.png`, cost: 'CH',
     description: '4m radius illumination, lasts up to 10 hours. Single use.',
   }),
   gear({

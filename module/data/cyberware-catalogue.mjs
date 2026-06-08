@@ -333,6 +333,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Amplified Hearing',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/hearing-amplifier.png`,
     folder: 'Cyberaudio',
     cyberwareType: 'cyberaudio', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 15,
@@ -498,6 +499,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Projectile Launch System',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/projectile-launch-system.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 2,
     cost: 'VEX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -750,6 +752,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Light Tattoo',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/light-tattoo.png`,
     folder: 'Fashionware',
     cyberwareType: 'fashionware', integration: 'standalone',
     cost: 'CO', facilities: 'mall', installationCost: 'CO', installationDv: 12,
@@ -820,6 +823,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Skin-Weave',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/skin-weave.png`,
     folder: 'External Cyberware',
     cyberwareType: 'external', integration: 'standalone',
     isArmor: true, maxSp: 7,
@@ -839,6 +843,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Subdermal Pocket',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/skin-pocket.png`,
     folder: 'External Cyberware',
     cyberwareType: 'external', integration: 'standalone',
     cost: 'CO', facilities: 'clinic', installationCost: 'PR', installationDv: 17,

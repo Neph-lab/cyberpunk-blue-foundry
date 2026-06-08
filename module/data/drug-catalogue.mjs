@@ -262,7 +262,7 @@ export const DRUG_CATALOGUE = [
   // ── PDGF Injection ──────────────────────────────────────────────────────────
   // Complex primary (1d6 HP restore). No addiction.
   drug({
-    name:      'PDGF Injection',
+    name:      'PDGF Injection', img: `systems/cyberpunk-blue/assets/items/drugs/pdgf-injection.png`,
     cost:      'CO',
     duration:  '4 hours',
     primary:   'Instantly regain 1d6 HP. Additional doses within 24 hours leave the user merely hungry, thirsty, and lightly anaemic.',
@@ -299,7 +299,7 @@ export const DRUG_CATALOGUE = [
   // ── Smash ───────────────────────────────────────────────────────────────────
   // Clean AE: +2 to 5 social skills. Addiction AE: −2 to those same skills.
   drug({
-    name:      'Smash',
+    name:      'Smash', img: `systems/cyberpunk-blue/assets/items/drugs/smash.png`,
     cost:      'CH',
     duration:  '4 hours',
     primary:   'Euphoria and confidence; +2 to Acting, Contortionist, Human Perception, Influence, and Performance.',
