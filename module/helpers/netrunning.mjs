@@ -299,6 +299,10 @@ export async function connectToArchitecture(actor, apRegion, { forUserId } = {})
     height:      proto.height ?? 1,
     disposition: proto.disposition ?? CONST.TOKEN_DISPOSITIONS.FRIENDLY,
     texture:     { src: proto.texture?.src ?? actor.img ?? '' },
+    // Match the character's own rotation behaviour. Architecture scenes are
+    // gridless, where tokens rotate to face movement by default; inherit the
+    // prototype's lock so a portrait token stays upright if it does normally.
+    lockRotation: proto.lockRotation ?? false,
     displayName: proto.displayName ?? CONST.TOKEN_DISPLAY_MODES.OWNER,
     displayBars: proto.displayBars ?? CONST.TOKEN_DISPLAY_MODES.OWNER,
     bar1:        { attribute: proto.bar1?.attribute ?? 'resources.hp' },
