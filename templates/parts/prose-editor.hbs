@@ -1,0 +1,21 @@
+{{!--
+  Gated, toggled ProseMirror editor.
+
+  Displays the enriched HTML read-only, with an edit (pencil) button in the top-right
+  that opens the rich-text editor in place. Saving from the editor toolbar collapses it
+  back to the enriched view and writes the field.
+
+  When `editable` is falsy the element is rendered `disabled`: the pencil is hidden
+  (see CSS) and the field is excluded from form submission, so a non-editor viewing the
+  sheet can never overwrite the stored value.
+
+  Params:
+    name      - the document field path (e.g. "system.description")
+    value     - the raw (un-enriched) source string for that field
+    uuid      - the owning document's UUID (for content links and drops)
+    enriched  - the enriched HTML to display while the editor is inactive
+    editable  - truthy if the current user may edit this field
+--}}
+<prose-mirror name="{{name}}" value="{{value}}" document-uuid="{{uuid}}" toggled{{#unless editable}} disabled{{/unless}} compact>
+  {{{enriched}}}
+</prose-mirror>

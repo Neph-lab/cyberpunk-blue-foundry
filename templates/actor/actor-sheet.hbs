@@ -1389,43 +1389,19 @@
       <section class="notes-grid">
         <div class="sheet-panel note-panel">
           <h2>{{localize "CYBER_BLUE.Sheet.Labels.Background"}}</h2>
-          {{#if charCreation.notesWritable}}
-            <prose-mirror name="system.details.background" value="{{system.details.background}}" document-uuid="{{actor.uuid}}" compact>
-              {{{enrichedDetails.background}}}
-            </prose-mirror>
-          {{else}}
-            <div class="enriched-html">{{{enrichedDetails.background}}}</div>
-          {{/if}}
+          {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.details.background" value=system.details.background uuid=actor.uuid enriched=enrichedDetails.background editable=charCreation.notesWritable}}
         </div>
         <div class="sheet-panel note-panel">
           <h2>{{localize "CYBER_BLUE.Sheet.Labels.Appearance"}}</h2>
-          {{#if charCreation.notesWritable}}
-            <prose-mirror name="system.details.appearance" value="{{system.details.appearance}}" document-uuid="{{actor.uuid}}" compact>
-              {{{enrichedDetails.appearance}}}
-            </prose-mirror>
-          {{else}}
-            <div class="enriched-html">{{{enrichedDetails.appearance}}}</div>
-          {{/if}}
+          {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.details.appearance" value=system.details.appearance uuid=actor.uuid enriched=enrichedDetails.appearance editable=charCreation.notesWritable}}
         </div>
         <div class="sheet-panel note-panel">
           <h2>{{localize "CYBER_BLUE.Sheet.Labels.Personality"}}</h2>
-          {{#if charCreation.notesWritable}}
-            <prose-mirror name="system.details.personality" value="{{system.details.personality}}" document-uuid="{{actor.uuid}}" compact>
-              {{{enrichedDetails.personality}}}
-            </prose-mirror>
-          {{else}}
-            <div class="enriched-html">{{{enrichedDetails.personality}}}</div>
-          {{/if}}
+          {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.details.personality" value=system.details.personality uuid=actor.uuid enriched=enrichedDetails.personality editable=charCreation.notesWritable}}
         </div>
         <div class="sheet-panel note-panel">
           <h2>{{localize "CYBER_BLUE.Sheet.Labels.Style"}}</h2>
-          {{#if charCreation.notesWritable}}
-            <prose-mirror name="system.details.style" value="{{system.details.style}}" document-uuid="{{actor.uuid}}" compact>
-              {{{enrichedDetails.style}}}
-            </prose-mirror>
-          {{else}}
-            <div class="enriched-html">{{{enrichedDetails.style}}}</div>
-          {{/if}}
+          {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.details.style" value=system.details.style uuid=actor.uuid enriched=enrichedDetails.style editable=charCreation.notesWritable}}
         </div>
       </section>
     </div>

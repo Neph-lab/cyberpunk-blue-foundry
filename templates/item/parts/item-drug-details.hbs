@@ -3,7 +3,7 @@
 <section class="sheet-panel drug-details-panel">
   <div class="panel-header"><span>{{localize "CYBER_BLUE.Drug.PrimaryEffect"}}</span></div>
   <div class="editor-container">
-    {{editor system.primaryEffect target="system.primaryEffect" button=false editable=editable}}
+    {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.primaryEffect" value=system.primaryEffect uuid=item.uuid enriched=enrichedDrugPrimary editable=editable}}
   </div>
 
   <div class="item-meta-row">
@@ -19,12 +19,12 @@
 
   <div class="panel-header"><span>{{localize "CYBER_BLUE.Drug.SecondaryEffect"}}</span></div>
   <div class="editor-container">
-    {{editor system.secondaryEffect target="system.secondaryEffect" button=false editable=editable}}
+    {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.secondaryEffect" value=system.secondaryEffect uuid=item.uuid enriched=enrichedDrugSecondary editable=editable}}
   </div>
 
   <div class="panel-header"><span>{{localize "CYBER_BLUE.Drug.AddictionPenalty"}}</span></div>
   <div class="editor-container">
-    {{editor system.addictionPenalty target="system.addictionPenalty" button=false editable=editable}}
+    {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.addictionPenalty" value=system.addictionPenalty uuid=item.uuid enriched=enrichedDrugAddiction editable=editable}}
   </div>
 </section>
 {{/if}}

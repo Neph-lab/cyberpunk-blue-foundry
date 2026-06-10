@@ -18,26 +18,14 @@
       </section>
     {{/if}}
     <section class="sheet-panel">
-      {{#if canEditAsOwner}}
-        <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
-          {{{enrichedDescription}}}
-        </prose-mirror>
-      {{else}}
-        <div class="editor"><div class="editor-content">{{{enrichedDescription}}}</div></div>
-      {{/if}}
+      {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.description" value=system.description uuid=item.uuid enriched=enrichedDescription editable=canEditAsOwner}}
     </section>
   </div>
 
   {{#if showProgramExecutableNotesTab}}
     <div class="tab" data-group="primary" data-tab="notes">
       <section class="sheet-panel">
-        {{#if canEditAsOwner}}
-          <prose-mirror name="system.notes" value="{{system.notes}}" document-uuid="{{item.uuid}}" compact>
-            {{{enrichedNotes}}}
-          </prose-mirror>
-        {{else}}
-          <div class="editor"><div class="editor-content">{{{enrichedNotes}}}</div></div>
-        {{/if}}
+        {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.notes" value=system.notes uuid=item.uuid enriched=enrichedNotes editable=canEditAsOwner}}
       </section>
     </div>
   {{/if}}

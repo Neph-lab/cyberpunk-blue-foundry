@@ -12,6 +12,8 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/cyberpunk-blue/templates/apps/ip-spender.hbs',
     // Dialogs
     'systems/cyberpunk-blue/templates/dialogs/vehicle-maneuver-picker.hbs',
+    // Shared partials
+    'systems/cyberpunk-blue/templates/parts/prose-editor.hbs',
     // Item partials
     'systems/cyberpunk-blue/templates/item/parts/item-effects.hbs',
     'systems/cyberpunk-blue/templates/item/parts/item-combat.hbs',

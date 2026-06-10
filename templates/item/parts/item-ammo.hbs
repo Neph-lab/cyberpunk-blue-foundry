@@ -1,11 +1,5 @@
 <section class="sheet-body ammo-sheet-body">
   <section class="sheet-panel">
-    {{#if canEditAsOwner}}
-      <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
-        {{{enrichedDescription}}}
-      </prose-mirror>
-    {{else}}
-      <div class="editor"><div class="editor-content">{{{enrichedDescription}}}</div></div>
-    {{/if}}
+    {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.description" value=system.description uuid=item.uuid enriched=enrichedDescription editable=canEditAsOwner}}
   </section>
 </section>

@@ -470,9 +470,32 @@ section.chat-sidebar:not(.sidebar-popout),
   text-align: left;
 }
 
-.cyberpunk-blue .prosemirror, .cyberpunk-blue prose-mirror {
+/* Only the active (open) editor gets a resize handle and scroll region.
+   While toggled-inactive, a prose-mirror just shows the enriched HTML. */
+.cyberpunk-blue .prosemirror.active, .cyberpunk-blue prose-mirror.active {
   resize: vertical;
   overflow-y: scroll;
+}
+
+/* Non-editors see a disabled prose-mirror: hide its edit (pencil) button so the
+   field reads as plain enriched text. */
+.cyberpunk-blue prose-mirror[disabled] > button.toggle {
+  display: none;
+}
+
+/* While toggled-inactive, an editor just displays enriched HTML. Core locks the
+   box to --min-height (150px) and absolutely-positions .editor-content, so the
+   content can neither shrink the box when short nor grow it when long. Restore
+   normal flow so the read-only view sizes to exactly its content (with a small
+   floor so an empty field stays clickable). */
+.cyberpunk-blue prose-mirror.inactive {
+  --min-height: 0px;
+  min-height: 1.5em;
+}
+.cyberpunk-blue prose-mirror.inactive > .editor-content {
+  position: static;
+  inset: auto;
+  overflow: visible;
 }
 
 /* ==================================================
@@ -1172,7 +1195,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
 }
 
-.cyberpunk-blue .notes-grid .prosemirror {
+.cyberpunk-blue .notes-grid .prosemirror.active {
   min-height: 400px;
 }
 

@@ -49,13 +49,7 @@
   <section class="sheet-body">
     <div class="tab active" data-group="primary" data-tab="basics">
       <section class="sheet-panel">
-        {{#if isGM}}
-          <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{actor.uuid}}" compact>
-            {{{enrichedDescription}}}
-          </prose-mirror>
-        {{else}}
-          <div class="editor"><div class="editor-content">{{{enrichedDescription}}}</div></div>
-        {{/if}}
+        {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.description" value=system.description uuid=actor.uuid enriched=enrichedDescription editable=isGM}}
       </section>
 
       <section class="sheet-panel">
@@ -199,9 +193,7 @@
     {{#if isGM}}
       <div class="tab" data-group="primary" data-tab="notes">
         <section class="sheet-panel">
-          <prose-mirror name="system.notes" value="{{system.notes}}" document-uuid="{{actor.uuid}}" compact>
-            {{{enrichedNotes}}}
-          </prose-mirror>
+          {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.notes" value=system.notes uuid=actor.uuid enriched=enrichedNotes editable=isGM}}
         </section>
       </div>
     {{/if}}

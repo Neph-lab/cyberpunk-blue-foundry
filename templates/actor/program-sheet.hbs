@@ -117,22 +117,14 @@
     {{#unless canAttack}}
       <div class="sheet-panel">
         <h2>Description</h2>
-        {{#if isGM}}
-          <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{actor.uuid}}" compact>
-            {{{enrichedDescription}}}
-          </prose-mirror>
-        {{else}}
-          <div class="enriched-html">{{{enrichedDescription}}}</div>
-        {{/if}}
+        {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.description" value=system.description uuid=actor.uuid enriched=enrichedDescription editable=isGM}}
       </div>
     {{/unless}}
 
     {{#if isGM}}
       <div class="sheet-panel program-notes-panel">
         <h2>Notes (GM only)</h2>
-        <prose-mirror name="system.notes" value="{{system.notes}}" document-uuid="{{actor.uuid}}" compact>
-          {{{enrichedNotes}}}
-        </prose-mirror>
+        {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.notes" value=system.notes uuid=actor.uuid enriched=enrichedNotes editable=isGM}}
       </div>
     {{/if}}
   </section>

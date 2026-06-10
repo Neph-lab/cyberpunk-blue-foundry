@@ -345,13 +345,7 @@
   {{#if isAbility}}
     <section class="sheet-body ability-single-sheet">
       <section class="sheet-panel">
-        {{#if editable}}
-          <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
-            {{{enrichedDescription}}}
-          </prose-mirror>
-        {{else}}
-          <div class="enriched-html">{{{enrichedDescription}}}</div>
-        {{/if}}
+        {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.description" value=system.description uuid=item.uuid enriched=enrichedDescription editable=editable}}
       </section>
 
       {{#if canManageRestricted}}
@@ -378,13 +372,7 @@
     <section class="sheet-body">
       <div class="tab active" data-group="primary" data-tab="description">
         <section class="sheet-panel">
-          {{#if canEditAsOwner}}
-            <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
-              {{{enrichedDescription}}}
-            </prose-mirror>
-          {{else}}
-            <div class="enriched-html">{{{enrichedDescription}}}</div>
-          {{/if}}
+          {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.description" value=system.description uuid=item.uuid enriched=enrichedDescription editable=canEditAsOwner}}
         </section>
       </div>
       <div class="tab" data-group="primary" data-tab="details">
@@ -392,13 +380,7 @@
       </div>
       <div class="tab" data-group="primary" data-tab="notes">
         <section class="sheet-panel">
-          {{#if canEditAsOwner}}
-            <prose-mirror name="system.notes" value="{{system.notes}}" document-uuid="{{item.uuid}}" compact>
-              {{{enrichedNotes}}}
-            </prose-mirror>
-          {{else}}
-            <div class="enriched-html">{{{enrichedNotes}}}</div>
-          {{/if}}
+          {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.notes" value=system.notes uuid=item.uuid enriched=enrichedNotes editable=canEditAsOwner}}
         </section>
       </div>
       {{#if showAdvancedTab}}
@@ -438,13 +420,7 @@
             {{/if}}
 
             <section class="sheet-panel">
-              {{#if canEditAsOwner}}
-                <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
-                  {{{enrichedDescription}}}
-                </prose-mirror>
-              {{else}}
-                <div class="enriched-html">{{{enrichedDescription}}}</div>
-              {{/if}}
+              {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.description" value=system.description uuid=item.uuid enriched=enrichedDescription editable=canEditAsOwner}}
             </section>
 
           </div>
@@ -536,13 +512,7 @@
         {{#if showCyberwareNotesTab}}
           <div class="tab" data-group="primary" data-tab="notes">
             <section class="sheet-panel">
-              {{#if canEditAsOwner}}
-                <prose-mirror name="system.notes" value="{{system.notes}}" document-uuid="{{item.uuid}}" compact>
-                  {{{enrichedNotes}}}
-                </prose-mirror>
-              {{else}}
-                <div class="enriched-html">{{{enrichedNotes}}}</div>
-              {{/if}}
+              {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.notes" value=system.notes uuid=item.uuid enriched=enrichedNotes editable=canEditAsOwner}}
             </section>
           </div>
         {{/if}}
@@ -580,17 +550,9 @@
           <section class="sheet-panel">
             {{#if isRole}}
               <img src="{{item.img}}" alt="{{item.name}}" class="role-description-img" style="float: left; width: 450px; max-width: 100%; margin: 0 1em 0.5em 0;" />
-              {{#if roleShowRestrictedEditing}}
-                <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
-                  {{{enrichedDescription}}}
-                </prose-mirror>
-              {{else}}
-                <div class="enriched-html">{{{enrichedDescription}}}</div>
-              {{/if}}
+              {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.description" value=system.description uuid=item.uuid enriched=enrichedDescription editable=roleShowRestrictedEditing}}
             {{else}}
-              <prose-mirror name="system.description" value="{{system.description}}" document-uuid="{{item.uuid}}" compact>
-                {{{enrichedDescription}}}
-              </prose-mirror>
+              {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.description" value=system.description uuid=item.uuid enriched=enrichedDescription editable=editable}}
             {{/if}}
           </section>
           {{#if isGear}}
@@ -617,23 +579,11 @@
           <div class="tab" data-group="primary" data-tab="lifepath">
             <div class="lifepath-layout">
               <section class="sheet-panel">
-                {{#if roleShowRestrictedEditing}}
-                  <prose-mirror name="system.lifepathLinks" value="{{system.lifepathLinks}}" document-uuid="{{item.uuid}}" compact>
-                    {{{enrichedLifepathLinks}}}
-                  </prose-mirror>
-                {{else}}
-                  <div class="enriched-html">{{{enrichedLifepathLinks}}}</div>
-                {{/if}}
+                {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.lifepathLinks" value=system.lifepathLinks uuid=item.uuid enriched=enrichedLifepathLinks editable=roleShowRestrictedEditing}}
               </section>
 
               <section class="sheet-panel">
-                {{#if roleShowRestrictedEditing}}
-                  <prose-mirror name="system.lifepathQuestions" value="{{system.lifepathQuestions}}" document-uuid="{{item.uuid}}" compact>
-                    {{{enrichedLifepathQuestions}}}
-                  </prose-mirror>
-                {{else}}
-                  <div class="enriched-html">{{{enrichedLifepathQuestions}}}</div>
-                {{/if}}
+                {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.lifepathQuestions" value=system.lifepathQuestions uuid=item.uuid enriched=enrichedLifepathQuestions editable=roleShowRestrictedEditing}}
               </section>
             </div>
             <section class="sheet-panel">
@@ -730,13 +680,7 @@
               {{else}}
                 <h4 class="roleCategory">{{roleCategoryData.categoryLabel}}</h4>
               {{/if}}
-              {{#if roleShowRestrictedEditing}}
-                <prose-mirror name="system.abilityOverview" value="{{system.abilityOverview}}" document-uuid="{{item.uuid}}" compact>
-                  {{{enrichedAbilityOverview}}}
-                </prose-mirror>
-              {{else}}
-                <div class="enriched-html">{{{enrichedAbilityOverview}}}</div>
-              {{/if}}
+              {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.abilityOverview" value=system.abilityOverview uuid=item.uuid enriched=enrichedAbilityOverview editable=roleShowRestrictedEditing}}
             </section>
 
             {{#if (eq roleCategoryData.category "leader")}}
@@ -996,9 +940,7 @@
                             <span>{{localize "CYBER_BLUE.Sheet.Labels.UnlockRank"}}</span>
                             <input type="number" name="system.specialties.{{@../index}}.unlockSections.{{@index}}.unlockRank" value="{{section.unlockRank}}" data-dtype="Number" />
                           </label>
-                          <prose-mirror name="system.specialties.{{@../index}}.unlockSections.{{@index}}.content" value="{{section.content}}" document-uuid="{{@root.item.uuid}}" compact>
-                            {{section.content}}
-                          </prose-mirror>
+                          {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name=(concat "system.specialties." @../index ".unlockSections." @index ".content") value=section.content uuid=@root.item.uuid enriched=section.content editable=true}}
                         </section>
                       {{/each}}
                       <div class="panel-header panel-actions">
@@ -1080,9 +1022,7 @@
                       <input type="number" name="system.abilitySections.{{section.index}}.unlockRank" value="{{section.unlockRank}}" data-dtype="Number" />
                     </label>
                   </div>
-                  <prose-mirror name="system.abilitySections.{{section.index}}.content" value="{{section.content}}" document-uuid="{{@root.item.uuid}}" compact>
-                    {{{section.enrichedContent}}}
-                  </prose-mirror>
+                  {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name=(concat "system.abilitySections." section.index ".content") value=section.content uuid=@root.item.uuid enriched=section.enrichedContent editable=true}}
                 {{else}}
                   <div class="enriched-html">{{{section.enrichedContent}}}</div>
                 {{/if}}
@@ -1116,13 +1056,7 @@
           {{#if showRoleNotesTab}}
             <div class="tab" data-group="primary" data-tab="notes">
               <section class="sheet-panel">
-                {{#if canEditAsOwner}}
-                  <prose-mirror name="system.notes" value="{{system.notes}}" document-uuid="{{item.uuid}}" compact>
-                    {{{enrichedNotes}}}
-                  </prose-mirror>
-                {{else}}
-                  <div class="enriched-html">{{{enrichedNotes}}}</div>
-                {{/if}}
+                {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.notes" value=system.notes uuid=item.uuid enriched=enrichedNotes editable=canEditAsOwner}}
               </section>
             </div>
           {{/if}}
@@ -1158,13 +1092,7 @@
           {{#if showGearNotesTab}}
             <div class="tab" data-group="primary" data-tab="notes">
               <section class="sheet-panel">
-                {{#if canEditAsOwner}}
-                  <prose-mirror name="system.notes" value="{{system.notes}}" document-uuid="{{item.uuid}}" compact>
-                    {{{enrichedNotes}}}
-                  </prose-mirror>
-                {{else}}
-                  <div class="enriched-html">{{{enrichedNotes}}}</div>
-                {{/if}}
+                {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.notes" value=system.notes uuid=item.uuid enriched=enrichedNotes editable=canEditAsOwner}}
               </section>
             </div>
           {{/if}}
