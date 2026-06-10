@@ -3196,6 +3196,57 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   clip-path: inherit;
 }
 
+/* ── Mook skill list ──────────────────────────────────────── */
+.cyberpunk-blue .mook-skill-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.15rem 0.2rem;
+}
+.cyberpunk-blue .mook-skill-row .roll-button {
+  flex: 0 0 auto;
+}
+.cyberpunk-blue .mook-skill-row .skill-label {
+  flex: 0 1 auto;
+}
+.cyberpunk-blue .mook-skill-row .skill-stat {
+  flex: 0 0 auto;
+  min-width: 2.5rem;
+  text-align: center;
+  color: var(--cpb-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.cyberpunk-blue .mook-skill-row .component-pill-list {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+.cyberpunk-blue .mook-skill-row.skill-unlisted .skill-label {
+  opacity: 0.6;
+  font-style: italic;
+}
+.cyberpunk-blue .mook-pill-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+.cyberpunk-blue .mook-skill-row .pill-remove,
+.cyberpunk-blue .mook-skill-row .skill-remove {
+  flex: 0 0 auto;
+  background: none;
+  border: 0;
+  color: var(--cpb-text);
+  opacity: 0.55;
+  padding: 0.1rem 0.25rem;
+  cursor: pointer;
+}
+.cyberpunk-blue .mook-skill-row .pill-remove:hover,
+.cyberpunk-blue .mook-skill-row .skill-remove:hover {
+  opacity: 1;
+  color: var(--cpb-accent);
+}
+
 /* ── Weapon block & mod card ──────────────────────────────── */
 .cyberpunk-blue .weapon-block,
 .cyberpunk-blue .mod-card {

@@ -65,39 +65,16 @@
             <div class="add-row">
               <select data-skill-select>
                 <option value="">— add skill —</option>
-                {{#each allSkills as |sk|}}
+                {{#each availableSkills as |sk|}}
                   <option value="{{sk.slug}}">{{sk.label}}</option>
                 {{/each}}
               </select>
               <button type="button" data-action="add-skill" title="Add Skill">
                 <i class="fas fa-plus"></i>
               </button>
-            </div>
-          {{/if}}
-        </div>
-        <div class="skill-list">
-          {{#each system.skills as |skill i|}}
-            <div class="skill-row">
-              <span class="skill-label">{{skill.label}}</span>
-              <input type="number" name="system.skills.{{i}}.rank" value="{{skill.rank}}" data-dtype="Number" min="0" />
-              {{#if ../isGM}}
-                <button type="button" data-action="remove-skill" data-skill-index="{{i}}" title="Remove">
-                  <i class="fas fa-times"></i>
-                </button>
-              {{/if}}
-            </div>
-          {{/each}}
-        </div>
-      </section>
-
-      <section class="sheet-panel">
-        <div class="panel-header">
-          <h2>Components</h2>
-          {{#if isGM}}
-            <div class="add-row">
               <select data-component-select>
                 <option value="">— add component —</option>
-                {{#each allComponents as |comp|}}
+                {{#each availableComponents as |comp|}}
                   <option value="{{comp.slug}}">{{comp.label}}</option>
                 {{/each}}
               </select>
@@ -108,16 +85,37 @@
           {{/if}}
         </div>
         <div class="skill-list">
-          {{#each system.components as |comp i|}}
-            <div class="skill-row">
-              <span class="skill-label">{{comp.label}}</span>
-              <input type="number" name="system.components.{{i}}.rank" value="{{comp.rank}}" data-dtype="Number" min="0" />
-              {{#if ../isGM}}
-                <button type="button" data-action="remove-component" data-component-index="{{i}}" title="Remove">
-                  <i class="fas fa-times"></i>
-                </button>
+          {{#each skillRows as |row|}}
+            <div class="mook-skill-row{{#unless row.listed}} skill-unlisted{{/unless}}">
+              <button type="button" class="roll-button" data-action="roll-skill" data-skill-slug="{{row.slug}}" title="Roll {{row.label}}">
+                <i class="fas fa-dice-d10"></i>
+              </button>
+              <span class="skill-label">{{row.label}}</span>
+              <span class="skill-stat">{{row.statLabel}}</span>
+              <div class="component-pill-list">
+                {{#each row.components as |component|}}
+                  <span class="mook-pill-group">
+                    <button type="button" class="component-pill" data-action="roll-skill" data-skill-slug="{{row.slug}}" data-component-slug="{{component.slug}}" title="Roll {{component.label}}">
+                      {{component.label}}
+                    </button>
+                    {{#if @root.isGM}}
+                      <button type="button" class="pill-remove" data-action="remove-component" data-component-slug="{{component.slug}}" title="Remove {{component.label}}">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    {{/if}}
+                  </span>
+                {{/each}}
+              </div>
+              {{#if @root.isGM}}
+                {{#if row.listed}}
+                  <button type="button" class="skill-remove" data-action="remove-skill" data-skill-slug="{{row.slug}}" title="Remove Skill">
+                    <i class="fas fa-times"></i>
+                  </button>
+                {{/if}}
               {{/if}}
             </div>
+          {{else}}
+            <p class="hint">No skills or components added to this mook yet.</p>
           {{/each}}
         </div>
       </section>

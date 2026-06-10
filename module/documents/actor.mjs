@@ -480,22 +480,35 @@ export class CyberBlueActor extends Actor {
   }
 
   getSkillRollContext(skillSlug, componentSlug = null) {
-    // Mooks: all skill checks use combatNumber as a flat bonus (no separate stat + rank).
+    // Mooks: skill checks use the Combat Number in place of stat + skill rank.
+    // CN is used at full value when every required piece is "listed" (trained):
+    //   • a plain skill check → the skill itself is listed;
+    //   • a skill+component check → both the skill AND the chosen component are listed.
+    // Otherwise (anything not fully listed, including a bare stat check) floor(CN/2)
+    // is used. Roll-adjusting AE bonuses still apply on top, exactly as for characters.
     if (this.type === 'mook') {
       const combatNumber = this.system.combatNumber ?? 10;
       const skillDef = this.getSkillDefinition(skillSlug);
       const componentDef = componentSlug ? this.getComponentDefinition(componentSlug) : null;
-      const componentRank = componentSlug
-        ? (this.system.components?.find?.((c) => c.slug === componentSlug)?.rank ?? 0)
-        : null;
+
+      const skillListed = !!this.system.skills?.[skillSlug]?.active;
+      const componentListed = componentSlug
+        ? !!this.system.components?.[componentSlug]?.active
+        : true;
+      const statValue = (skillListed && componentListed)
+        ? combatNumber
+        : Math.floor(combatNumber / 2);
+
       return {
         skillLabel: skillDef?.label ?? skillSlug,
         skillRank: 0,
+        skillBonus: this.system.skills?.[skillSlug]?.bonus ?? 0,
         statShortLabel: 'CN',
-        statValue: combatNumber,
+        statValue,
         statRollMod: 0,
         componentLabel: componentDef?.label ?? componentSlug ?? null,
-        componentRank,
+        componentRank: componentSlug ? (this.system.components?.[componentSlug]?.rank ?? 0) : null,
+        componentBonus: componentSlug ? (this.system.components?.[componentSlug]?.bonus ?? 0) : 0,
         usedRank: 0,
       };
     }

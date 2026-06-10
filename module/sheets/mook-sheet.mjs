@@ -40,18 +40,50 @@ export class CyberBlueMookSheet extends HandlebarsApplicationMixin(ActorSheetV2)
     const { system } = actorData;
     const isGM = game.user.isGM;
 
-    const allSkills = Object.entries(CONFIG.CYBER_BLUE.skills ?? {})
+    const listedSkills = system.skills ?? {};
+    const listedComponents = system.components ?? {};
+
+    // "Add" dropdowns offer only the not-yet-listed skills/components.
+    const availableSkills = Object.entries(CONFIG.CYBER_BLUE.skills ?? {})
+      .filter(([slug]) => !listedSkills[slug]?.active)
       .map(([slug, data]) => ({ slug, label: data.label }))
       .sort((a, b) => a.label.localeCompare(b.label));
-    const allComponents = Object.entries(CONFIG.CYBER_BLUE.components ?? {})
+    const availableComponents = Object.entries(CONFIG.CYBER_BLUE.components ?? {})
+      .filter(([slug]) => !listedComponents[slug]?.active)
       .map(([slug, data]) => ({ slug, label: data.label }))
       .sort((a, b) => a.label.localeCompare(b.label));
+
+    const listedComponentSlugs = new Set(
+      Object.entries(listedComponents).filter(([, v]) => v?.active).map(([slug]) => slug)
+    );
+
+    // Build display rows. A skill appears when it is listed itself, or when any of
+    // its linked components is listed (so a listed component always has a home as a
+    // roll pill under its parent skill).
+    const skillRows = [];
+    for (const [slug, def] of Object.entries(CONFIG.CYBER_BLUE.skills ?? {})) {
+      const isListed = !!listedSkills[slug]?.active;
+      const linkedListed = (def.components ?? []).filter((c) => listedComponentSlugs.has(c));
+      if (!isListed && linkedListed.length === 0) continue;
+      skillRows.push({
+        slug,
+        label: def.label,
+        listed: isListed,
+        statLabel: CONFIG.CYBER_BLUE.stats[def.stat]?.shortLabel ?? (def.stat ?? '').toUpperCase(),
+        components: linkedListed.map((c) => ({
+          slug: c,
+          label: CONFIG.CYBER_BLUE.components[c]?.label ?? c,
+        })),
+      });
+    }
+    skillRows.sort((a, b) => a.label.localeCompare(b.label));
 
     context.actor = actorData;
     context.system = system;
     context.isGM = isGM;
-    context.allSkills = allSkills;
-    context.allComponents = allComponents;
+    context.skillRows = skillRows;
+    context.availableSkills = availableSkills;
+    context.availableComponents = availableComponents;
     context.enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(system.description, {
       secrets: this.document.isOwner,
       async: true,
@@ -102,11 +134,11 @@ export class CyberBlueMookSheet extends HandlebarsApplicationMixin(ActorSheetV2)
     // Only include MA components the mook actually has; damage is based on BODY.
     const bodyValue = system.stats?.body?.value ?? 5;
     const maDamage = getMartialArtsDamage(bodyValue);
-    context.martialArtsAttacks = (system.components ?? [])
-      .filter((c) => MA_COMPONENTS.includes(c.slug))
-      .map((c) => ({
-        slug: c.slug,
-        label: CONFIG.CYBER_BLUE.components?.[c.slug]?.label ?? c.slug,
+    context.martialArtsAttacks = MA_COMPONENTS
+      .filter((slug) => listedComponents[slug]?.active)
+      .map((slug) => ({
+        slug,
+        label: CONFIG.CYBER_BLUE.components?.[slug]?.label ?? slug,
         damage: maDamage,
       }));
 
@@ -141,6 +173,9 @@ export class CyberBlueMookSheet extends HandlebarsApplicationMixin(ActorSheetV2)
     this.element.querySelectorAll('[data-action="remove-component"]').forEach((btn) =>
       btn.addEventListener('click', this._onRemoveComponent.bind(this))
     );
+    this.element.querySelectorAll('[data-action="roll-skill"]').forEach((btn) =>
+      btn.addEventListener('click', this._onRollSkill.bind(this))
+    );
     this.element.querySelectorAll('[data-action="edit-item"]').forEach((btn) =>
       btn.addEventListener('click', this._onEditItem.bind(this))
     );
@@ -169,42 +204,37 @@ export class CyberBlueMookSheet extends HandlebarsApplicationMixin(ActorSheetV2)
     event.preventDefault();
     const select = this.element.querySelector('[data-skill-select]');
     const slug = select?.value;
-    if (!slug) return;
-    const skills = foundry.utils.deepClone(this.document.system.toObject?.()?.skills ?? this.document.system.skills ?? []);
-    if (skills.some((s) => s.slug === slug)) return;
-    const label = CONFIG.CYBER_BLUE.skills[slug]?.label ?? slug;
-    skills.push({ slug, label, rank: 0 });
-    await this.document.update({ 'system.skills': skills });
+    if (!slug || !CONFIG.CYBER_BLUE.skills[slug]) return;
+    await this.document.update({ [`system.skills.${slug}.active`]: true });
   }
 
   async _onRemoveSkill(event) {
     event.preventDefault();
-    const index = Number.parseInt(event.currentTarget.dataset.skillIndex ?? '-1', 10);
-    if (Number.isNaN(index) || index < 0) return;
-    const skills = foundry.utils.deepClone(this.document.system.toObject?.()?.skills ?? this.document.system.skills ?? []);
-    skills.splice(index, 1);
-    await this.document.update({ 'system.skills': skills });
+    const slug = event.currentTarget.dataset.skillSlug;
+    if (!slug || !CONFIG.CYBER_BLUE.skills[slug]) return;
+    await this.document.update({ [`system.skills.${slug}.active`]: false });
   }
 
   async _onAddComponent(event) {
     event.preventDefault();
     const select = this.element.querySelector('[data-component-select]');
     const slug = select?.value;
-    if (!slug) return;
-    const components = foundry.utils.deepClone(this.document.system.toObject?.()?.components ?? this.document.system.components ?? []);
-    if (components.some((c) => c.slug === slug)) return;
-    const label = CONFIG.CYBER_BLUE.components[slug]?.label ?? slug;
-    components.push({ slug, label, rank: 0 });
-    await this.document.update({ 'system.components': components });
+    if (!slug || !CONFIG.CYBER_BLUE.components[slug]) return;
+    await this.document.update({ [`system.components.${slug}.active`]: true });
   }
 
   async _onRemoveComponent(event) {
     event.preventDefault();
-    const index = Number.parseInt(event.currentTarget.dataset.componentIndex ?? '-1', 10);
-    if (Number.isNaN(index) || index < 0) return;
-    const components = foundry.utils.deepClone(this.document.system.toObject?.()?.components ?? this.document.system.components ?? []);
-    components.splice(index, 1);
-    await this.document.update({ 'system.components': components });
+    const slug = event.currentTarget.dataset.componentSlug;
+    if (!slug || !CONFIG.CYBER_BLUE.components[slug]) return;
+    await this.document.update({ [`system.components.${slug}.active`]: false });
+  }
+
+  async _onRollSkill(event) {
+    event.preventDefault();
+    const { skillSlug, componentSlug } = event.currentTarget.dataset;
+    if (!skillSlug) return;
+    await this.document.rollSkill({ skillSlug, componentSlug: componentSlug || null });
   }
 
   async _onEditItem(event) {
