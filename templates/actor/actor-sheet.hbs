@@ -141,12 +141,18 @@
           </div>
         </div>
         
+        {{!-- NPCs surface MOVE inside the main stats grid instead, so the
+              header move-card would be a duplicate. Critically, two inputs both
+              named system.stats.move.value submit as an array and fail
+              NumberField validation, breaking all value edits on the NPC sheet. --}}
+        {{#unless isNPC}}
         <label class="sheet-panel stat-card move-card">
           <div class="cpb-divider--header"><span data-description="{{move.description}}" data-label="{{move.shortLabel}}" {{#if showDescriptionTooltips}}data-tooltip="{{move.description}}"{{/if}}>{{move.shortLabel}}</span></div>
           <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_MOVE.svg" alt="{{move.label}}" data-description="{{move.description}}" data-label="{{move.shortLabel}}" {{#if showDescriptionTooltips}}data-tooltip="{{move.description}}"{{/if}} />
           <input type="number" name="system.stats.move.value" value="{{move.value}}" data-dtype="Number" {{#if lockProgression}}disabled{{/if}} />
         </label>
-        
+        {{/unless}}
+
         <div class="sheet-panel stat-card psyche-card">
           <div class="cpb-divider--header"><span data-description="{{psyche.description}}" data-label="{{psyche.label}}" {{#if showDescriptionTooltips}}data-tooltip="{{psyche.description}}"{{/if}}>{{psyche.label}}</span></div>
           <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_PSYCHE.svg" alt="{{psyche.label}}" data-description="{{psyche.description}}" data-label="{{psyche.label}}" {{#if showDescriptionTooltips}}data-tooltip="{{psyche.description}}"{{/if}} />
