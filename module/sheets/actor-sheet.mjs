@@ -1551,10 +1551,30 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     const label = game.i18n.localize(labelKey);
     await this.document.createEmbeddedDocuments('Item', [
       {
-        name: `New ${label}`,
+        name: this._uniqueItemName(`New ${label}`, type),
         type,
       },
     ]);
+  }
+
+  // Cyberware (and potentially other gated types) reject a second item that
+  // shares an existing item's name — see validateCyberwareConfiguration's
+  // DuplicateInstall guard. Default-named blanks ("New Cyberware") would collide,
+  // so suffix a counter to keep freshly-created items distinct and creatable.
+  _uniqueItemName(baseName, type) {
+    const existing = new Set(
+      this.document.items
+        .filter((item) => item.type === type)
+        .map((item) => item.name)
+    );
+    if (!existing.has(baseName)) {
+      return baseName;
+    }
+    let counter = 2;
+    while (existing.has(`${baseName} (${counter})`)) {
+      counter += 1;
+    }
+    return `${baseName} (${counter})`;
   }
 
   _getItemFromEvent(event) {
