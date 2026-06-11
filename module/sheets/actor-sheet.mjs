@@ -379,6 +379,23 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       });
       context.unconnectedCyberware = unconnected;
     }
+    // Owned-but-uninstalled cyberware. Catalogue cyberware is created with
+    // installed:false ("owned, not yet surgically fitted"); the installed
+    // sections above filter those out, so without this list a freshly-dropped
+    // item would exist but render nowhere. Surface them with an Install action.
+    context.uninstalledCyberware = cyberwareItems
+      .filter((item) => !item.system.installed)
+      .map((item) => ({
+        ...item,
+        ...getInstructionContext(item),
+        manufacturerLogo: manufacturerLogoMap.get(item.system.manufacturer) ?? null,
+        integrationLabel: game.i18n.localize(
+          CONFIG.CYBER_BLUE.cyberware.integrations
+            ?.find((entry) => entry.value === item.system.integration)?.label
+          ?? item.system.integration,
+        ),
+        description: cyberwareDescriptionMap.get(item.id) ?? '',
+      }));
     const gearDocs = embeddedItemDocuments.filter((item) => item.type === 'gear');
     const inventoryItems = gearDocs.map((itemDoc) => {
       const item = embeddedItems.find((entry) => entry.id === itemDoc.id);
@@ -1141,6 +1158,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     });
     this.element.querySelectorAll('[data-action="remove-platform"]').forEach((button) => {
       button.addEventListener('click', this._onRemovePlatform.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="install-cyberware"]').forEach((button) => {
+      button.addEventListener('click', this._onInstallCyberware.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="uninstall-cyberware"]').forEach((button) => {
+      button.addEventListener('click', this._onUninstallCyberware.bind(this));
     });
     this.element.querySelectorAll('[data-action="set-gear-state"]').forEach((button) => {
       button.addEventListener('click', this._onSetGearState.bind(this));
@@ -1940,6 +1963,29 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     }
 
     await item.update({ 'system.parentCyberwareId': null });
+  }
+
+  // Flip an owned-but-uninstalled cyberware item to installed so it moves into
+  // the appropriate installed section. Mirrors the role-grant behaviour, which
+  // sets installed:true because granted gear is "already surgically fitted".
+  async _onInstallCyberware(event) {
+    event.preventDefault();
+    const item = this._getItemFromEvent(event);
+    if (!item || item.type !== 'cyberware') {
+      return;
+    }
+
+    await item.update({ 'system.installed': true });
+  }
+
+  async _onUninstallCyberware(event) {
+    event.preventDefault();
+    const item = this._getItemFromEvent(event);
+    if (!item || item.type !== 'cyberware') {
+      return;
+    }
+
+    await item.update({ 'system.installed': false });
   }
 
   async _onSetGearState(event) {

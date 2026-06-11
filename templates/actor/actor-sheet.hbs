@@ -903,6 +903,7 @@
                           {{/if}}
                           {{#if item.canMoveUp}}<button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>{{/if}}
                           {{#if item.canMoveDown}}<button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>{{/if}}
+                          <button type="button" data-action="uninstall-cyberware" title="{{localize "CYBER_BLUE.Sheet.Buttons.Uninstall"}}"><i class="fas fa-circle-up"></i></button>
                           <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>
                           <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}"><i class="fas fa-trash"></i></button>
                         </div>
@@ -969,6 +970,7 @@
                         <button type="button" data-action="assign-platform" title="{{localize "CYBER_BLUE.Sheet.Buttons.AssignPlatform"}}" {{#unless item.hasEligiblePlatforms}}disabled{{/unless}}><i class="fas fa-link"></i></button>
                         {{#if item.canMoveUp}}<button type="button" data-action="move-item" data-direction="up" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveUp"}}"><i class="fas fa-arrow-up"></i></button>{{/if}}
                         {{#if item.canMoveDown}}<button type="button" data-action="move-item" data-direction="down" title="{{localize "CYBER_BLUE.Sheet.Buttons.MoveDown"}}"><i class="fas fa-arrow-down"></i></button>{{/if}}
+                        <button type="button" data-action="uninstall-cyberware" title="{{localize "CYBER_BLUE.Sheet.Buttons.Uninstall"}}"><i class="fas fa-circle-up"></i></button>
                         <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>
                         <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}"><i class="fas fa-trash"></i></button>
                       </div>
@@ -984,6 +986,56 @@
             <p class="hint">{{localize "CYBER_BLUE.Cyberware.NoUnconnected"}}</p>
           {{/if}}
         </section>
+
+        {{#if uninstalledCyberware.length}}
+          <section class="cyberware-group sheet-panel">
+            <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Cyberware.Owned"}}</span></div>
+            <div class="embedded-list">
+              <div class="embedded-header embedded-row cyberware-row">
+                <span>Cyberware</span>
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Integration"}}</span>
+                <span class="numeric-column"></span>
+                <span></span>
+                <span></span>
+                <span>Controls</span>
+              </div>
+              <div class="embedded-entries">
+                {{#each uninstalledCyberware as |item|}}
+                  <div class="embedded-entry" data-item-id="{{item.id}}">
+                    <div class="embedded-row cyberware-row">
+                      <button type="button" class="item-name-link embedded-name">
+                        <img src="{{item.img}}" alt="{{item.name}}" />
+                        <span class="embedded-name-text">
+                          <span>{{item.name}}</span>
+                          {{#if item.system.manufacturer}}
+                            <span class="manufacturer-summary">
+                              {{#if item.manufacturerLogo}}
+                                <img class="manufacturer-logo" src="{{item.manufacturerLogo}}" alt="{{item.system.manufacturer}}" />
+                              {{/if}}
+                              <span>{{item.system.manufacturer}}</span>
+                            </span>
+                          {{/if}}
+                        </span>
+                      </button>
+                      <div class="embedded-summary">{{item.integrationLabel}}</div>
+                      <span class="embedded-rank numeric-column"></span>
+                      <div class="embedded-summary"></div>
+                      <div class="instruction-cell"></div>
+                      <div class="embedded-controls">
+                        <button type="button" data-action="install-cyberware" title="{{localize "CYBER_BLUE.Sheet.Buttons.Install"}}"><i class="fas fa-circle-down"></i></button>
+                        <button type="button" data-action="edit-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Edit"}}"><i class="fas fa-pen"></i></button>
+                        <button type="button" data-action="delete-item" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}"><i class="fas fa-trash"></i></button>
+                      </div>
+                    </div>
+                    {{#if item.description}}
+                      <div class="embedded-description">{{{item.description}}}</div>
+                    {{/if}}
+                  </div>
+                {{/each}}
+              </div>
+            </div>
+          </section>
+        {{/if}}
     </div>
 
     <div class="tab" data-group="primary" data-tab="inventory">
