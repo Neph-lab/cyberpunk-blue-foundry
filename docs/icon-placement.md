@@ -249,7 +249,14 @@ Blue resources (per `base-actor.mjs` `resources` schema):
 | Active Effects section header | `.cyberpunk-blue .health-effects h3` | Status dot / pulse wave |
 | Critical Injury row modifier | `.cyberpunk-blue .health-effect.is-critical-injury` | Broken bone / cross |
 
-> Individual AE rows already use the item's own `img`; no system icon needed there.
+> Individual AE rows use the **source item's** `img`. This is derived in
+> `CyberBlueActiveEffect.prepareDerivedData()` (`module/documents/active-effect.mjs`):
+> any effect whose parent is an Item with a real picture (not the `item-bag.svg`
+> placeholder) shows that picture — automatically picking up art added later
+> (e.g. via the `wire-images` skill). It is derived only (never written to
+> `_source`). Conditions / wound-state effects (parent is an Actor) and
+> affliction source templates (`isAfflictionEffect`, applied to targets by an
+> attack) are deliberately excluded and keep their authored icons.
 
 ### 8. Skill Section
 

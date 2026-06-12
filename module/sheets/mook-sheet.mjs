@@ -5,6 +5,7 @@ const { Tabs } = foundry.applications.ux;
 import { getWeaponTypeDefinition } from '../helpers/combat.mjs';
 import { getMartialArtsDamage, MA_COMPONENTS, resolveMartialArtsAttack } from '../helpers/martial-arts.mjs';
 import { resolveWeaponAttack } from '../helpers/combat-resolution.mjs';
+import { buildActorEffectGroups, attachEffectsPanelListeners } from '../helpers/effects.mjs';
 
 export class CyberBlueMookSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
@@ -81,6 +82,7 @@ export class CyberBlueMookSheet extends HandlebarsApplicationMixin(ActorSheetV2)
     context.actor = actorData;
     context.system = system;
     context.isGM = isGM;
+    context.effects = buildActorEffectGroups(this.document);
     context.skillRows = skillRows;
     context.availableSkills = availableSkills;
     context.availableComponents = availableComponents;
@@ -198,6 +200,8 @@ export class CyberBlueMookSheet extends HandlebarsApplicationMixin(ActorSheetV2)
     this.element.querySelectorAll('[data-action="mook-ma-attack"]').forEach((btn) =>
       btn.addEventListener('click', this._onMookMaAttack.bind(this))
     );
+
+    attachEffectsPanelListeners(this.element, this.document);
   }
 
   async _onAddSkill(event) {

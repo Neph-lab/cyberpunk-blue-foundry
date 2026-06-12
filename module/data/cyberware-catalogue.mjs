@@ -40,8 +40,11 @@ const aeFlag  = (name, flagKey, flagVal = true) => ({
 const stat    = (slug, val) => ({ key: `system.stats.${slug}.value`,    mode: 2, value: String(val) });
 const statOvr = (slug, val) => ({ key: `system.stats.${slug}.value`,    mode: 5, value: String(val) });
 const statMod = (slug, val) => ({ key: `system.stats.${slug}.rollMod`,  mode: 2, value: String(val) });
-const skill   = (slug, val) => ({ key: `system.skills.${slug}.rank`,    mode: 2, value: String(val) });
-const comp    = (slug, val) => ({ key: `system.components.${slug}.rank`, mode: 2, value: String(val) });
+// Skill/component AEs target `.bonus` (a check bonus), never `.rank`. Modifying
+// `.rank` corrupts the player-set rank and stacks if the AE is applied more than
+// once; `.bonus` adds to the roll only. See module/data/actor-character.mjs.
+const skill   = (slug, val) => ({ key: `system.skills.${slug}.bonus`,    mode: 2, value: String(val) });
+const comp    = (slug, val) => ({ key: `system.components.${slug}.bonus`, mode: 2, value: String(val) });
 
 // ── Instruction step helpers ───────────────────────────────────────────────
 const S = {

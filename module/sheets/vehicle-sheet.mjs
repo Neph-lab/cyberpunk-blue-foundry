@@ -3,6 +3,7 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { Tabs } = foundry.applications.ux;
 
 import { CyberBlueVehicleBlueprintEditor } from '../apps/vehicle-blueprint-editor.mjs';
+import { buildActorEffectGroups, attachEffectsPanelListeners } from '../helpers/effects.mjs';
 
 export class CyberBlueVehicleSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
@@ -88,6 +89,8 @@ export class CyberBlueVehicleSheet extends HandlebarsApplicationMixin(ActorSheet
         )
       : '';
 
+    context.effects = buildActorEffectGroups(this.document);
+
     return context;
   }
 
@@ -111,6 +114,8 @@ export class CyberBlueVehicleSheet extends HandlebarsApplicationMixin(ActorSheet
       ?.addEventListener('click', this._onPostSpeedChat.bind(this));
     this.element.querySelector('[data-edit="img"]')
       ?.addEventListener('click', this._onEditProfileImage.bind(this));
+
+    attachEffectsPanelListeners(this.element, this.document);
   }
 
   /** Post a chat message showing the vehicle's max speed in real-world units. */

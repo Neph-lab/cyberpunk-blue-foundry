@@ -1576,6 +1576,10 @@ Hooks.once('ready', async () => {
   const cyberwareItems = allItems.filter((item) => item instanceof CyberBlueItem && item.type === 'cyberware');
   const gearItems = allItems.filter((item) => item instanceof CyberBlueItem && item.type === 'gear');
 
+  // Repair worlds that accumulated duplicate catalogue effects on items before
+  // the compendium-sync append-bug was fixed (collapses them to one each).
+  await cleanupDuplicateItemEffects();
+
   for (const item of cyberwareItems) {
     await item.syncCyberwarePsycheLossEffect({ cyberBlueSyncPsycheLoss: true });
     await item.syncCyberwareOperationalEffects({ cyberBlueSyncOperationalEffects: true });
@@ -2725,6 +2729,87 @@ function _isSystemGeneratedEffect(effect) {
     || effect.getFlag?.('cyberpunk-blue', 'skillChipFloor') != null);
 }
 
+/**
+ * Replace an item's catalogue-sourced (non-system-generated) Active Effects with
+ * a fresh copy of the catalogue definition.
+ *
+ * IMPORTANT: this uses delete + create rather than a parent `update({effects})`.
+ * Passing an effects array to `Item.updateDocuments` APPENDS to the embedded
+ * collection (the entries have no `_id`, so Foundry treats them as new) instead
+ * of replacing it — which silently accumulated hundreds of duplicate effects,
+ * one per GM login. System-generated effects (Psyche Loss, operational-state,
+ * Skill Chip floor) are preserved.
+ *
+ * The pack must already be unlocked by the caller.
+ */
+async function _replaceItemCatalogueEffects(doc, catEffects) {
+  const stale = doc.effects.contents
+    .filter((e) => !_isSystemGeneratedEffect(e))
+    .map((e) => e.id);
+  if (stale.length) {
+    await doc.deleteEmbeddedDocuments('ActiveEffect', stale);
+  }
+  if (catEffects.length) {
+    await doc.createEmbeddedDocuments('ActiveEffect', foundry.utils.deepClone(catEffects));
+  }
+}
+
+/**
+ * One-time repair: collapse duplicate catalogue Active Effects on world and
+ * actor-owned items down to a single instance per effect name. Existing worlds
+ * accumulated these before the sync append-bug (see _replaceItemCatalogueEffects)
+ * was fixed; dragging a corrupted compendium item onto an actor copied the whole
+ * pile at once. When both a stale `.rank`/`.value` variant and the corrected
+ * `.bonus`/`.rollMod` variant share a name, the correct-channel one is kept.
+ * System-generated effects are never touched.
+ */
+async function cleanupDuplicateItemEffects() {
+  if (!game.user.isGM) return;
+
+  const seen = new Set();
+  const items = [
+    ...game.items.contents,
+    ...game.actors.contents.flatMap((actor) => actor.items.contents),
+  ].filter((item) => {
+    if (seen.has(item.uuid)) return false;
+    seen.add(item.uuid);
+    return true;
+  });
+
+  const usesRollChannel = (effect) =>
+    (effect.changes ?? []).some((c) => /\.(bonus|rollMod)$/.test(c.key ?? ''));
+
+  let removed = 0;
+  for (const item of items) {
+    if (!['cyberware', 'gear', 'drug'].includes(item.type)) continue;
+
+    const byName = new Map();
+    for (const effect of item.effects.contents) {
+      if (_isSystemGeneratedEffect(effect)) continue;
+      const group = byName.get(effect.name) ?? [];
+      group.push(effect);
+      byName.set(effect.name, group);
+    }
+
+    const toDelete = [];
+    for (const group of byName.values()) {
+      if (group.length <= 1) continue;
+      // Keep one — prefer the effect that targets the correct roll channel.
+      group.sort((a, b) => (usesRollChannel(b) ? 1 : 0) - (usesRollChannel(a) ? 1 : 0));
+      toDelete.push(...group.slice(1).map((e) => e.id));
+    }
+
+    if (toDelete.length) {
+      await item.deleteEmbeddedDocuments('ActiveEffect', toDelete);
+      removed += toDelete.length;
+    }
+  }
+
+  if (removed) {
+    console.log(`Cyberpunk Blue | Removed ${removed} duplicate item Active Effect(s).`);
+  }
+}
+
 async function _syncCyberwareEntries(catalogue) {
   const PACK_ID = 'cyberpunk-blue.cyberware';
   const pack = game.packs.get(PACK_ID);
@@ -2738,6 +2823,7 @@ async function _syncCyberwareEntries(catalogue) {
   );
 
   const updates = [];
+  const effectsToReplace = [];
   for (const entry of pack.index) {
     if (entry.type !== 'cyberware') continue;
     const def = byName.get(entry.name);
@@ -2785,11 +2871,9 @@ async function _syncCyberwareEntries(catalogue) {
       needsUpdate = true;
     }
     if (effectsChanged) {
-      // Replace all catalogue-sourced effects with the current catalogue definition.
-      // System-generated effects (Psyche Loss etc.) are added at runtime and won't
-      // appear on compendium items, so a full replace is safe here.
-      update.effects = catEffects;
-      needsUpdate = true;
+      // Replace (not append) the catalogue-sourced effects — see
+      // _replaceItemCatalogueEffects for why a plain update would duplicate them.
+      effectsToReplace.push({ doc, catEffects });
     }
     if (def.img && doc.img !== def.img) {
       update.img = def.img;
@@ -2806,15 +2890,17 @@ async function _syncCyberwareEntries(catalogue) {
     if (needsUpdate) updates.push(update);
   }
 
-  if (updates.length === 0) return;
+  if (updates.length === 0 && effectsToReplace.length === 0) return;
 
   await pack.configure({ locked: false });
   try {
-    await Item.updateDocuments(updates, { pack: PACK_ID });
+    if (updates.length) await Item.updateDocuments(updates, { pack: PACK_ID });
+    for (const { doc, catEffects } of effectsToReplace) {
+      await _replaceItemCatalogueEffects(doc, catEffects);
+    }
     const weaponCount  = updates.filter((u) => 'system.isWeapon' in u).length;
-    const effectsCount = updates.filter((u) => 'effects' in u).length;
     const imgCount     = updates.filter((u) => 'img' in u).length;
-    console.log(`Cyberpunk Blue | Synced ${weaponCount} weapon, ${effectsCount} effects, ${imgCount} image updates in cyberware pack.`);
+    console.log(`Cyberpunk Blue | Synced ${weaponCount} weapon, ${effectsToReplace.length} effects, ${imgCount} image updates in cyberware pack.`);
   } finally {
     await pack.configure({ locked: true });
   }
@@ -2838,6 +2924,7 @@ async function _syncDrugEntries(catalogue) {
   );
 
   const updates = [];
+  const effectsToReplace = [];
   for (const entry of pack.index) {
     if (entry.type !== 'drug') continue;
     const def = byName.get(entry.name);
@@ -2863,8 +2950,7 @@ async function _syncDrugEntries(catalogue) {
     const update = { _id: doc.id };
     let needsUpdate = false;
     if (effectsChanged) {
-      update.effects = catEffects;
-      needsUpdate = true;
+      effectsToReplace.push({ doc, catEffects });
     }
     if (instrChanged) {
       update['system.instructions'] = def.system.instructions ?? [];
@@ -2883,15 +2969,17 @@ async function _syncDrugEntries(catalogue) {
     if (needsUpdate) updates.push(update);
   }
 
-  if (updates.length === 0) return;
+  if (updates.length === 0 && effectsToReplace.length === 0) return;
 
   await pack.configure({ locked: false });
   try {
-    await Item.updateDocuments(updates, { pack: PACK_ID });
-    const effectsCount = updates.filter((u) => 'effects' in u).length;
+    if (updates.length) await Item.updateDocuments(updates, { pack: PACK_ID });
+    for (const { doc, catEffects } of effectsToReplace) {
+      await _replaceItemCatalogueEffects(doc, catEffects);
+    }
     const instrCount   = updates.filter((u) => 'system.instructions' in u).length;
     const imgCount     = updates.filter((u) => 'img' in u).length;
-    console.log(`Cyberpunk Blue | Synced ${instrCount} instruction, ${effectsCount} effects, ${imgCount} image updates in drugs pack.`);
+    console.log(`Cyberpunk Blue | Synced ${instrCount} instruction, ${effectsToReplace.length} effects, ${imgCount} image updates in drugs pack.`);
   } finally {
     await pack.configure({ locked: true });
   }
@@ -2916,6 +3004,7 @@ async function _syncGearEntries(catalogue) {
   );
 
   const updates = [];
+  const effectsToReplace = [];
   for (const entry of pack.index) {
     if (entry.type !== 'gear') continue;
     const def = byName.get(entry.name);
@@ -2953,8 +3042,7 @@ async function _syncGearEntries(catalogue) {
       needsUpdate = true;
     }
     if (effectsChanged) {
-      update.effects = catEffects;
-      needsUpdate = true;
+      effectsToReplace.push({ doc, catEffects });
     }
     if (def.img && doc.img !== def.img) {
       update.img = def.img;
@@ -2963,15 +3051,17 @@ async function _syncGearEntries(catalogue) {
     if (needsUpdate) updates.push(update);
   }
 
-  if (updates.length === 0) return;
+  if (updates.length === 0 && effectsToReplace.length === 0) return;
 
   await pack.configure({ locked: false });
   try {
-    await Item.updateDocuments(updates, { pack: PACK_ID });
+    if (updates.length) await Item.updateDocuments(updates, { pack: PACK_ID });
+    for (const { doc, catEffects } of effectsToReplace) {
+      await _replaceItemCatalogueEffects(doc, catEffects);
+    }
     const weaponCount  = updates.filter((u) => 'system.isWeapon' in u).length;
-    const effectsCount = updates.filter((u) => 'effects' in u).length;
     const imgCount     = updates.filter((u) => 'img' in u).length;
-    console.log(`Cyberpunk Blue | Synced ${weaponCount} weapon, ${effectsCount} effects, ${imgCount} image updates in gear pack.`);
+    console.log(`Cyberpunk Blue | Synced ${weaponCount} weapon, ${effectsToReplace.length} effects, ${imgCount} image updates in gear pack.`);
   } finally {
     await pack.configure({ locked: true });
   }

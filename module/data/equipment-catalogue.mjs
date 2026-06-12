@@ -52,8 +52,10 @@ const reminder = (name)         => ({ name, disabled: false, transfer: true, cha
 const stat    = (slug, val) => ({ key: `system.stats.${slug}.value`,    mode: 2, value: String(val) });
 const statOvr = (slug, val) => ({ key: `system.stats.${slug}.value`,    mode: 5, value: String(val) });
 const statMod = (slug, val) => ({ key: `system.stats.${slug}.rollMod`,  mode: 2, value: String(val) });
-const skill   = (slug, val) => ({ key: `system.skills.${slug}.rank`,    mode: 2, value: String(val) });
-const comp    = (slug, val) => ({ key: `system.components.${slug}.rank`, mode: 2, value: String(val) });
+// Skill/component AEs target `.bonus` (a check bonus), never `.rank` — modifying
+// `.rank` corrupts the player-set rank. See module/data/actor-character.mjs.
+const skill   = (slug, val) => ({ key: `system.skills.${slug}.bonus`,    mode: 2, value: String(val) });
+const comp    = (slug, val) => ({ key: `system.components.${slug}.bonus`, mode: 2, value: String(val) });
 
 // ── Instruction step helpers ───────────────────────────────────────────────
 const S = {

@@ -55,9 +55,13 @@ function ae(name, changes, extraFlags = {}) {
   };
 }
 
-// Common AE change builders
-const stat  = (slug, val) => ({ key: `system.stats.${slug}.value`,  value: val });
-const skill = (slug, val) => ({ key: `system.skills.${slug}.rank`,  value: val });
+// Common AE change builders.
+// Drugs are temporary, so they modify the roll channels (`stat.rollMod`,
+// `skill.bonus`) rather than the base `.value`/`.rank` — that keeps the
+// player-set stat/skill numbers intact and avoids corrupting derived values
+// (e.g. HP from BODY) for the drug's duration.
+const stat  = (slug, val) => ({ key: `system.stats.${slug}.rollMod`, value: val });
+const skill = (slug, val) => ({ key: `system.skills.${slug}.bonus`,  value: val });
 
 // ─── Step helpers ─────────────────────────────────────────────────────────────
 

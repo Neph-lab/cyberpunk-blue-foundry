@@ -6,6 +6,7 @@ import {
   isExecutableAttached,
   copyExecutableToProgram,
 } from '../helpers/netrunning.mjs';
+import { buildActorEffectGroups, attachEffectsPanelListeners } from '../helpers/effects.mjs';
 
 const PROGRAM_TYPES = [
   { value: 'antipersonnel', label: 'Anti-Personnel' },
@@ -74,6 +75,7 @@ export class CyberBlueProgramSheet extends HandlebarsApplicationMixin(ActorSheet
     context.actor = actorData;
     context.system = system;
     context.isGM = isGM;
+    context.effects = buildActorEffectGroups(this.document);
     context.programTypes = PROGRAM_TYPES;
     context.enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(system.description, {
       secrets: this.document.isOwner,
@@ -108,6 +110,8 @@ export class CyberBlueProgramSheet extends HandlebarsApplicationMixin(ActorSheet
       ?.addEventListener('click', this._onEditProfileImage.bind(this));
     this.element.querySelector('[data-action="program-attack"]')
       ?.addEventListener('click', this._onProgramAttack.bind(this));
+
+    attachEffectsPanelListeners(this.element, this.document);
   }
 
   /**

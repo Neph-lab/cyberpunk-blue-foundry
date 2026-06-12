@@ -35,8 +35,8 @@ const addMove = (val) => ({ key: 'system.stats.move.value', type: 'add', value: 
 /** Modify Death Save bonus (Death Save = BODY + bonus; minimum 1 per rules). */
 const addDeathSave = (val) => ({ key: 'system.resources.deathSave.bonus', type: 'add', value: String(val) });
 
-/** Modify a single skill rank. */
-const addSkill = (skill, val) => ({ key: `system.skills.${skill}.rank`, type: 'add', value: String(val) });
+/** Apply a check modifier to a single skill (never touches the base rank). */
+const addSkill = (skill, val) => ({ key: `system.skills.${skill}.bonus`, type: 'add', value: String(val) });
 
 /** Apply a modifier to every primary stat (all checks). */
 const addAll = (val) => ['body', 'rflx', 'int', 'tech', 'cool'].map((s) => add(s, val));

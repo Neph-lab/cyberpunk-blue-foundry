@@ -67,39 +67,7 @@
   <section class="sheet-body">
     <div class="tab active" data-group="primary" data-tab="overview">
       <section class="quick-stats-row {{#if charCreation.highlightSecondary}}char-creation-highlight{{/if}}">
-        <div class="stat-card sheet-panel health-effects">
-          <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Sheet.Labels.HealthEffects"}}</span></div>
-          <div class="health-effects-list">
-            {{#if health.effects.length}}
-              {{#each health.effects as |effect|}}
-                <div class="health-effect-row {{#if effect.isCriticalInjury}}is-critical-injury{{/if}} {{#if effect.mortal}}is-mortal{{/if}}">
-                  <button type="button" class="health-effect" data-action="open-health-effect" data-effect-id="{{effect.id}}" title="{{#if effect.canEdit}}Open and edit effect{{else}}Open effect{{/if}}">
-                    <img src="{{effect.icon}}" alt="{{effect.name}}" />
-                    <span>{{effect.name}}</span>
-                    {{#if effect.duration}}
-                      <span class="effect-duration">{{effect.duration}}</span>
-                    {{/if}}
-                    {{#if effect.mortal}}
-                      <span class="effect-mortal-badge" title="{{localize 'CYBER_BLUE.CriticalInjury.MortalWound'}}"><i class="fas fa-heart-pulse"></i></span>
-                    {{/if}}
-                  </button>
-                  {{#if (and @root.isGM effect.isCriticalInjury)}}
-                    <button type="button" class="health-effect-delete" data-action="remove-critical-injury" data-effect-id="{{effect.id}}" title="{{localize 'CYBER_BLUE.CriticalInjury.Remove'}}">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  {{/if}}
-                  {{#if (and @root.isGM effect.isAffliction)}}
-                    <button type="button" class="health-effect-delete" data-action="remove-affliction" data-effect-id="{{effect.id}}" title="{{localize 'CYBER_BLUE.Combat.AfflictionRemove'}}">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  {{/if}}
-                </div>
-              {{/each}}
-            {{else}}
-              <p class="hint">No direct health effects on this character.</p>
-            {{/if}}
-          </div>
-        </div>
+        {{> "systems/cyberpunk-blue/templates/actor/parts/effects-panel.hbs"}}
 
         <div class="stat-card sheet-panel health-hp">
           <div class="cpb-divider--header"><span data-description="{{health.hp.description}}" data-label="HP" {{#if showDescriptionTooltips}}data-tooltip="{{health.hp.description}}"{{/if}}>Hit Points (HP)</span></div>

@@ -156,7 +156,14 @@
       "Bash(npm ls *)",
       "Bash(grep -nE \"prose-mirror|\\\\.prosemirror|\\\\.editor[ .{,:]\" \"C:/Program Files/Foundry Virtual Tabletop/resources/app/public/css/foundry2.css\")",
       "WebFetch(domain:foundryvtt.com)",
-      "Bash(git commit -m 'chore: bump verified compatibility to Foundry 14.364 *)"
+      "Bash(git commit -m 'chore: bump verified compatibility to Foundry 14.364 *)",
+      "Bash(grep -v \"//\")",
+      "Bash(grep -oE \"system\\\\.\\(skills|components|stats\\)\\\\.\\\\\\\\\\\\$\\\\{?[a-zA-Z]*\\\\}?\\\\.\\(rank|bonus|value|rollMod\\)|system\\\\.\\(skills|components|stats\\)\\\\.[a-zA-Z]+\\\\.\\(rank|bonus|value|rollMod\\)\")",
+      "Bash(grep -rn \"skills\\\\.[a-zA-Z\\\\${}]*\\\\.rank\\\\|components\\\\.[a-zA-Z\\\\${}]*\\\\.rank\" module/)",
+      "Bash(grep -rn \"stats\\\\.[a-zA-Z\\\\${}]*\\\\.value\" module/helpers/ module/data/mod-catalogue.mjs module/data/ability-catalogue.mjs)",
+      "Bash(awk 'NR>=1')",
+      "Bash(node --check module/helpers/effects.mjs)",
+      "Bash(node --check module/documents/active-effect.mjs)"
     ]
   }
 }

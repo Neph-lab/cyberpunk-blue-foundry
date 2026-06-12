@@ -1,0 +1,34 @@
+{{!-- Shared actor "Effects" panel. Expects `effects` (from buildActorEffectGroups)
+      and @root.isGM in context. Lists every Active Effect applied to the actor,
+      grouping same-named effects under an expandable header. --}}
+<div class="stat-card sheet-panel effects-panel">
+  <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Sheet.Labels.Effects"}}</span></div>
+  {{#if effects.hasEffects}}
+    <div class="effects-grid">
+      {{#each effects.groups as |group|}}
+        {{#if group.expandable}}
+          <details class="effect-group{{#if group.isError}} is-error{{/if}}">
+            <summary class="effect-cell effect-group-summary">
+              {{#if group.isError}}
+                <span class="cpb-icon effect-icon" style="--cpb-icon: url('{{group.iconCss}}')" role="img" aria-label="{{group.name}}"></span>
+              {{else}}
+                <img class="effect-icon" src="{{group.icon}}" alt="{{group.name}}" />
+              {{/if}}
+              <span class="effect-name">{{group.name}}</span>
+              <span class="effect-count">×{{group.count}}</span>
+            </summary>
+            <div class="effect-group-members">
+              {{#each group.members as |member|}}
+                {{> "systems/cyberpunk-blue/templates/actor/parts/effect-cell.hbs" effect=member}}
+              {{/each}}
+            </div>
+          </details>
+        {{else}}
+          {{> "systems/cyberpunk-blue/templates/actor/parts/effect-cell.hbs" effect=group.members.[0]}}
+        {{/if}}
+      {{/each}}
+    </div>
+  {{else}}
+    <p class="hint">{{localize "CYBER_BLUE.Sheet.Labels.NoEffects"}}</p>
+  {{/if}}
+</div>

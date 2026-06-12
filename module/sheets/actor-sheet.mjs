@@ -23,8 +23,7 @@ import { resolveWeaponAttack, resolveAutofireAttack, resolveDoubleLockAttack } f
 import { refreshAllRicochetLines } from '../helpers/ricochet-canvas.mjs';
 import { reloadWeapon, toggleWeaponCharge, toggleWeaponRicochet } from '../helpers/weapon-actions.mjs';
 import { playUiSound } from '../helpers/audio.mjs';
-import { CRITICAL_INJURY_FLAG } from '../helpers/critical-injury.mjs';
-import { AFFLICTION_EFFECT_FLAG } from '../helpers/affliction-attack.mjs';
+import { buildActorEffectGroups } from '../helpers/effects.mjs';
 import { startInstructions, advanceInstructions, getInstructionContext } from '../helpers/instructions.mjs';
 import { CharacterCreationWizard, CC_STEPS_LIST } from '../helpers/character-creation.mjs';
 import {
@@ -819,25 +818,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       deathSave: system.resources.deathSave.value,
       deathSaveDescription: _hid.deathSave ?? '',
       stoppingPowerDescription: _hid.stoppingPower ?? '',
-      effects: this.document.effects.contents
-        .filter((effect) => !effect.disabled)
-        .map((effect) => {
-          const critFlag = effect.getFlag('cyberpunk-blue', CRITICAL_INJURY_FLAG);
-          const afflictionFlag = effect.getFlag('cyberpunk-blue', AFFLICTION_EFFECT_FLAG);
-          return {
-            id: effect.id,
-            uuid: effect.uuid,
-            name: effect.name,
-            icon: effect.img || effect.icon,
-            duration: effect.duration?.label || game.i18n.localize('CYBER_BLUE.Effect.Ongoing'),
-            canEdit: game.user.role >= CONST.USER_ROLES.TRUSTED,
-            isCriticalInjury: !!critFlag,
-            mortal: critFlag?.mortal ?? false,
-            isAffliction: !!afflictionFlag,
-          };
-        })
-        .sort((left, right) => left.name.localeCompare(right.name)),
     };
+    context.effects = buildActorEffectGroups(this.document);
     context.enrichedDetails = {};
     for (const field of ['background', 'appearance', 'personality', 'style']) {
       context.enrichedDetails[field] = await foundry.applications.ux.TextEditor.implementation.enrichHTML(system.details[field], {
@@ -1918,12 +1900,10 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
   async _onOpenHealthEffect(event) {
     event.preventDefault();
-    const effectId = event.currentTarget.dataset.effectId;
-    if (!effectId) {
-      return;
-    }
-
-    const effect = this.document.effects.get(effectId);
+    // UUID-based lookup so effects transferred from owned items (cyberware,
+    // gear, drugs) resolve too — not just the actor's own effects.
+    const uuid = event.currentTarget.dataset.effectUuid;
+    const effect = uuid ? await fromUuid(uuid) : null;
     if (!effect) {
       return;
     }

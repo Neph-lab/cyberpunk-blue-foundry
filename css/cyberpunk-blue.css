@@ -701,37 +701,135 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
    SHEET COMPONENTS: HEALTH SYSTEM
 ================================================== */
 
-.cyberpunk-blue .health-effects-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  margin-top: 0.65rem;
-}
-
-.cyberpunk-blue .health-effect {
-  align-items: center;
-  background: transparent;
-  border: 1px solid transparent;
-  display: grid;
-  gap: 0.45rem;
-  grid-template-columns: 20px minmax(0, 1fr) auto;
-  justify-items: start;
-  padding: 0.2rem 0.3rem;
-  text-align: left;
-}
-
-.cyberpunk-blue .health-effect img {
-  height: 18px;
-  width: 18px;
-}
-
 .cyberpunk-blue .health-hp {
   min-width: 220px;
 }
 
-.cyberpunk-blue .health-effects {
+/* ── Effects panel (all Active Effects applied to the actor) ───────────────── */
+.cyberpunk-blue .effects-panel {
   grid-column: span 2;
   text-align: left;
+}
+
+.cyberpunk-blue .effects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  align-items: start;
+}
+
+.cyberpunk-blue .effect-cell {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  display: flex;
+  gap: 2px;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+}
+
+/* The open button carries the icon + label and fills the cell. */
+.cyberpunk-blue .effect-open {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: grid;
+  flex: 1;
+  gap: 0.4rem;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  justify-items: start;
+  min-width: 0;
+  padding: 0.15rem 0.3rem;
+  text-align: left;
+}
+
+.cyberpunk-blue .effect-open:hover {
+  border-color: var(--cpb-frame-border, rgba(255, 255, 255, 0.25));
+}
+
+.cyberpunk-blue .effect-icon {
+  height: 18px;
+  width: 18px;
+}
+
+.cyberpunk-blue .effect-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cyberpunk-blue .effect-duration {
+  font-size: var(--font-size-10, 0.7rem);
+  opacity: 0.7;
+}
+
+/* Same-named effects collapse under an expandable header. */
+.cyberpunk-blue .effect-group {
+  grid-column: 1 / -1;
+}
+
+.cyberpunk-blue .effect-group > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.cyberpunk-blue .effect-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.cyberpunk-blue .effect-group-summary {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.15rem 0.3rem;
+}
+
+.cyberpunk-blue .effect-group-summary::before {
+  content: "\25B8"; /* ▸ collapsed */
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.cyberpunk-blue .effect-group[open] > .effect-group-summary::before {
+  content: "\25BE"; /* ▾ expanded */
+}
+
+.cyberpunk-blue .effect-group-summary .effect-icon {
+  flex: 0 0 auto;
+}
+
+.cyberpunk-blue .effect-group-summary .effect-name {
+  flex: 1 1 auto;
+}
+
+.cyberpunk-blue .effect-count {
+  font-size: var(--font-size-10, 0.7rem);
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+.cyberpunk-blue .effect-group-members {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.2rem;
+  padding: 0.15rem 0 0.15rem 0.85rem;
+}
+
+/* Critical-condition effects (low HP / low PSYCHE / Critical Injury): icon + text in error red.
+   The <button> resets `color`, so the text colour must be set on the button/label
+   explicitly rather than relying on inheritance from the cell. */
+.cyberpunk-blue .effect-cell.is-error,
+.cyberpunk-blue .effect-cell.is-error .effect-open,
+.cyberpunk-blue .effect-cell.is-error .effect-name,
+.cyberpunk-blue .effect-cell.is-error .effect-icon,
+.cyberpunk-blue .effect-group.is-error > .effect-group-summary,
+.cyberpunk-blue .effect-group.is-error > .effect-group-summary .effect-name,
+.cyberpunk-blue .effect-group.is-error > .effect-group-summary .effect-icon {
+  color: var(--cpb-error); /* masked .cpb-icon tracks currentColor */
 }
 
 .cyberpunk-blue .health-value {
@@ -1715,7 +1813,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
     grid-template-columns: 1fr;
   }
 
-  .cyberpunk-blue .health-effects {
+  .cyberpunk-blue .effects-panel {
     grid-column: auto;
   }
 
@@ -2470,23 +2568,11 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 
 /* ─── Health Effects: critical injury delete button ─────────────────────────── */
 
-.cyberpunk-blue .health-effect-row {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin-bottom: 2px;
-}
-
-.cyberpunk-blue .health-effect-row .health-effect {
-  flex: 1;
-  min-width: 0;
-}
-
-.cyberpunk-blue .health-effect-row.is-critical-injury .health-effect {
+.cyberpunk-blue .effect-cell.is-critical-injury .effect-open {
   border-color: #8b000044;
 }
 
-.cyberpunk-blue .health-effect-row.is-mortal .health-effect {
+.cyberpunk-blue .effect-cell.is-mortal .effect-open {
   border-color: #8b0000;
 }
 

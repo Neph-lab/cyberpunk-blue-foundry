@@ -1,0 +1,32 @@
+{{!-- A single applied Active Effect. Expects `effect` in context and @root.isGM. --}}
+<div class="effect-cell effect-row
+    {{~#if effect.isError}} is-error{{/if~}}
+    {{~#if effect.isCriticalInjury}} is-critical-injury{{/if~}}
+    {{~#if effect.mortal}} is-mortal{{/if}}">
+  <button type="button" class="effect-open" data-action="open-health-effect"
+      data-effect-uuid="{{effect.uuid}}"
+      title="{{#if effect.canEdit}}{{localize 'CYBER_BLUE.Sheet.Labels.OpenEditEffect'}}{{else}}{{localize 'CYBER_BLUE.Sheet.Labels.OpenEffect'}}{{/if}}">
+    {{#if effect.isError}}
+      <span class="cpb-icon effect-icon" style="--cpb-icon: url('{{effect.iconCss}}')" role="img" aria-label="{{effect.name}}"></span>
+    {{else}}
+      <img class="effect-icon" src="{{effect.icon}}" alt="{{effect.name}}" />
+    {{/if}}
+    <span class="effect-name">{{effect.name}}</span>
+    {{#if effect.duration}}
+      <span class="effect-duration">{{effect.duration}}</span>
+    {{/if}}
+    {{#if effect.mortal}}
+      <span class="effect-mortal-badge" title="{{localize 'CYBER_BLUE.CriticalInjury.MortalWound'}}"><i class="fas fa-heart-pulse"></i></span>
+    {{/if}}
+  </button>
+  {{#if (and @root.isGM effect.isCriticalInjury)}}
+    <button type="button" class="health-effect-delete" data-action="remove-critical-injury" data-effect-id="{{effect.id}}" title="{{localize 'CYBER_BLUE.CriticalInjury.Remove'}}">
+      <i class="fas fa-trash"></i>
+    </button>
+  {{/if}}
+  {{#if (and @root.isGM effect.isAffliction)}}
+    <button type="button" class="health-effect-delete" data-action="remove-affliction" data-effect-id="{{effect.id}}" title="{{localize 'CYBER_BLUE.Combat.AfflictionRemove'}}">
+      <i class="fas fa-trash"></i>
+    </button>
+  {{/if}}
+</div>
