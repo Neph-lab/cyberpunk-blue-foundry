@@ -707,22 +707,20 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 
 /* ── Effects panel (all Active Effects applied to the actor) ───────────────── */
 .cyberpunk-blue .effects-panel {
-  grid-column: span 2;
+  grid-column: span 3;
   text-align: left;
 }
 
 .cyberpunk-blue .effects-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 0.25rem;
-  margin-top: 0.5rem;
   align-items: start;
+  width: 100%;
 }
 
 .cyberpunk-blue .effect-cell {
   align-items: center;
-  background: transparent;
-  border: 1px solid transparent;
   display: flex;
   gap: 2px;
   min-width: 0;
@@ -744,6 +742,15 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   min-width: 0;
   padding: 0.15rem 0.3rem;
   text-align: left;
+  clip-path: none;
+}
+
+.cyberpunk-blue .effect-open::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: none;
+  clip-path: inherit;
 }
 
 .cyberpunk-blue .effect-open:hover {
@@ -764,6 +771,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .effect-duration {
   font-size: var(--font-size-10, 0.7rem);
   opacity: 0.7;
+  display: none;
 }
 
 /* Same-named effects collapse under an expandable header. */
@@ -1811,10 +1819,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   .cyberpunk-blue .component-row,
   .cyberpunk-blue .embedded-row {
     grid-template-columns: 1fr;
-  }
-
-  .cyberpunk-blue .effects-panel {
-    grid-column: auto;
   }
 
   .cyberpunk-blue .ability-header,

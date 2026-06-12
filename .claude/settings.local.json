@@ -163,7 +163,8 @@
       "Bash(grep -rn \"stats\\\\.[a-zA-Z\\\\${}]*\\\\.value\" module/helpers/ module/data/mod-catalogue.mjs module/data/ability-catalogue.mjs)",
       "Bash(awk 'NR>=1')",
       "Bash(node --check module/helpers/effects.mjs)",
-      "Bash(node --check module/documents/active-effect.mjs)"
+      "Bash(node --check module/documents/active-effect.mjs)",
+      "Bash(git push *)"
     ]
   }
 }
