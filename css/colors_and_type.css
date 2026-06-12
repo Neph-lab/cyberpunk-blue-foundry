@@ -72,12 +72,6 @@
   --cpb-tracking-h2: 0.08em;
   --cpb-tracking-stat: 0.12em;
 
-  /* ---- Shape — chamfered clip-path vocabulary.
-     Radius aliases kept for legacy rules; new code uses --cpb-cut-*. ---- */
-  --cpb-radius-input: 2px;
-  --cpb-radius-card: 2px;
-  --cpb-radius-panel: 3px;
-
   /* Chamfer scale — diagonal corner cut sizes (xs=chips, sm=buttons/inputs,
      md=cards/counters, lg=top-level panels). */
   --cpb-cut-xs: 4px;
@@ -101,9 +95,17 @@
   --cpb-space-6: 1.4rem;
 
   /* ---- Shapes — clip-path polygons for panels and controls. ---- */
-  --cpb-border-shape: polygon(0 0, 24% 0, calc(24% + 10px) 10px, calc(76% - 10px) 10px, 76% 0, 100% 0, 100% 100%, 62% 100%, calc(62% - 9px) calc(100% - 9px), calc(38% + 9px) calc(100% - 9px), 38% 100%, 0 100%);
-  --cpb-control-shape: polygon(0 0, 11% 0, 11% 100%, 0 100%, 0 76%, 3% 69%, 3% 31%, 0 24%, 0 0, 89% 0, 89% 100%, 100% 100%, 100% 76%, 97% 69%, 97% 31%, 100% 24%, 100% 0);
-  
+  --cpb-shape--tr-bl: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, var(--c) 100%, 0 calc(100% - var(--c)));
+  --cpb-shape--tl-br: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+  --cpb-shape--hex: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c));
+  --cpb-shape--card: polygon(var(--c) 0, calc(100% - var(--c)) 0,     100% var(--c), 100% 100%, 0 100%, 0 var(--c)); /* Chamfer tl tr, flat bottom */
+  --cpb-shape--panel: polygon(var(--s) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%,var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--s), var(--s) var(--s)); /* chamfer tr bl, step tl */
+  --cpb-shape--notch-tr: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, 0 100%);
+  --cpb-shape--tag-left:  polygon(var(--c) 0, 100% 0, 100% 100%, var(--c) 100%, 0 50%);
+  --cpb-shape--tag-right: polygon(0 0, calc(100% - var(--c)) 0, 100% 50%, calc(100% - var(--c)) 100%, 0 100%);
+  --cpb-shape--arrow-right: polygon(0 0, calc(100% - var(--c)) 0, 100% 50%, calc(100% - var(--c)) 100%, 0 100%); /* Chevron */
+  --cpb-shape--check: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, 0 100%); /* Chamfer tr, for checkboxes */
+
   /* ---- Motion ---- */
   --cpb-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   --cpb-dur: 0.18s;
