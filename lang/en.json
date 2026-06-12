@@ -545,6 +545,13 @@
       }
     },
     "Combat": {
+      "ExcellentQuality": "Excellent Quality",
+      "SmartWeapon": "Smart Weapon",
+      "RecoilMod": "Recoil mod",
+      "BeginnerFriendly": "Beginner-Friendly",
+      "Calibrated": "Calibrated",
+      "Charged": "Charged",
+      "PrecisionAttack": "Precision Attack",
       "NoTarget": "No target selected.",
       "Attack": "Attack",
       "DV": "Difficulty Value (DV)",

@@ -2221,7 +2221,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .netrunner-comp-name {
   text-transform: uppercase;
   font-size: var(--cpb-fs-h3);
-  color: var(--cpb-accent-strong);
+  color: var(--cpb-accent-warm);
 }
 
 .cyberpunk-blue .netrunner-comp-mod {
@@ -3054,6 +3054,31 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .roll-button:hover::after,
 .cyberpunk-blue .roll-button:focus::after { background: var(--cpb-bg-solid-top); }
 
+/* ── Unified roll-button content: bk_d10 icon + signed modifier ────────────── */
+.cyberpunk-blue .cpb-roll-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+.cyberpunk-blue .cpb-roll-d10 {
+  width: 1.05em;
+  height: 1.05em;
+  flex: 0 0 auto;
+  background-color: currentColor; /* tints the d10 to the button's text colour */
+  -webkit-mask: url('/systems/cyberpunk-blue/assets/icons/bk_d10.svg') center / contain no-repeat;
+          mask: url('/systems/cyberpunk-blue/assets/icons/bk_d10.svg') center / contain no-repeat;
+}
+.cyberpunk-blue .cpb-roll-mod {
+  font-family: var(--cpb-font-mono);
+  font-weight: 700;
+}
+.cyberpunk-blue .cpb-roll-label {
+  font-family: var(--cpb-font-mono);
+  letter-spacing: 0.04em;
+}
+
 /* ── Sheet panel ──────────────────────────────────────────── */
 .cyberpunk-blue .sheet-panel {
   position: relative;
@@ -3416,7 +3441,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   position: relative;
   isolation: isolate;
   --c: var(--cpb-cut-sm);
-  background: var(--cpb-accent-strong-border);
+  background: var(--cpb-accent-warm-border);
   border: 0;
   border-radius: 0;
   clip-path: polygon(
@@ -3430,7 +3455,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   content: "";
   position: absolute;
   inset: 1px;
-  background: var(--cpb-accent-strong-wash);
+  background: var(--cpb-accent-warm-wash);
   clip-path: inherit;
   z-index: 0;
 }
@@ -3438,9 +3463,9 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 
 /* Netrunner use button */
 .cyberpunk-blue .netrunner-use-btn {
-  --btn-tint: var(--cpb-accent-strong);
-  background: var(--cpb-accent-strong-border);
-  color: var(--cpb-accent-strong);
+  --btn-tint: var(--cpb-accent-warm);
+  background: var(--cpb-accent-warm-border);
+  color: var(--cpb-accent-warm);
   border: 0;
   border-radius: 0;
   width: 100%;
@@ -3449,8 +3474,8 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   font-size: var(--cpb-fs-body);
   cursor: pointer;
 }
-.cyberpunk-blue .netrunner-use-btn::before { background: var(--cpb-accent-strong-wash); }
-.cyberpunk-blue .netrunner-use-btn:hover { color: var(--cpb-bg-solid-top); background: var(--cpb-accent-strong); }
+.cyberpunk-blue .netrunner-use-btn::before { background: var(--cpb-accent-warm-wash); }
+.cyberpunk-blue .netrunner-use-btn:hover { color: var(--cpb-bg-solid-top); background: var(--cpb-accent-warm); }
 
 /* ── Martial arts special entry ───────────────────────────── */
 .cyberpunk-blue .ma-special-entry {

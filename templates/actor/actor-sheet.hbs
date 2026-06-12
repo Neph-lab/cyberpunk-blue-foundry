@@ -109,17 +109,16 @@
           </div>
         </div>
         
-        {{!-- NPCs surface MOVE inside the main stats grid instead, so the
-              header move-card would be a duplicate. Critically, two inputs both
-              named system.stats.move.value submit as an array and fail
-              NumberField validation, breaking all value edits on the NPC sheet. --}}
-        {{#unless isNPC}}
+        {{!-- MOVE lives here in the quick-stats for BOTH characters and NPCs.
+              It must appear in exactly ONE place: two inputs both named
+              system.stats.move.value submit as an array and fail NumberField
+              validation. NPCs therefore do NOT also list MOVE in the header
+              six-stat block (see actor-sheet.mjs). --}}
         <label class="sheet-panel stat-card move-card">
           <div class="cpb-divider--header"><span data-description="{{move.description}}" data-label="{{move.shortLabel}}" {{#if showDescriptionTooltips}}data-tooltip="{{move.description}}"{{/if}}>{{move.shortLabel}}</span></div>
           <img class="stat-icon-sm" src="systems/cyberpunk-blue/assets/icons/bk_MOVE.svg" alt="{{move.label}}" data-description="{{move.description}}" data-label="{{move.shortLabel}}" {{#if showDescriptionTooltips}}data-tooltip="{{move.description}}"{{/if}} />
           <input type="number" name="system.stats.move.value" value="{{move.value}}" data-dtype="Number" {{#if lockProgression}}disabled{{/if}} />
         </label>
-        {{/unless}}
 
         <div class="sheet-panel stat-card psyche-card">
           <div class="cpb-divider--header"><span data-description="{{psyche.description}}" data-label="{{psyche.label}}" {{#if showDescriptionTooltips}}data-tooltip="{{psyche.description}}"{{/if}}>{{psyche.label}}</span></div>
@@ -187,12 +186,15 @@
                     {{/if}}
                   </td>
                   <td class="numeric-column">
-                    <button type="button" data-action="weapon-attack" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.attackTooltip}}" {{#if weapon.attackDisabled}}disabled{{/if}} {{#if weapon.jammed}}disabled{{/if}}>
-                      {{#if weapon.isAffliction}}<i class="fas fa-biohazard"></i> {{localize "CYBER_BLUE.Combat.AfflictionAttackLabel"}}{{else}}{{localize "CYBER_BLUE.Combat.Attack"}}{{/if}} ({{weapon.attackLabel}}){{#if weapon.rofExhausted}} ✗{{/if}}{{#if weapon.jammed}} <i class="fas fa-exclamation-triangle"></i>{{/if}}
+                    <button type="button" class="roll-button cpb-roll-btn cpb-roll-btn--labeled" data-action="weapon-attack" data-weapon-index="{{weapon.weaponIndex}}" data-tooltip="{{weapon.attackTooltip}}" {{#if weapon.attackDisabled}}disabled{{/if}} {{#if weapon.jammed}}disabled{{/if}}>
+                      <span class="cpb-roll-label">{{#if weapon.isAffliction}}<i class="fas fa-biohazard"></i> {{localize "CYBER_BLUE.Combat.AfflictionAttackLabel"}}{{else}}{{localize "CYBER_BLUE.Combat.Attack"}}{{/if}}</span>
+                      {{> "systems/cyberpunk-blue/templates/parts/roll-button-content.hbs" mod=weapon.attackLabel}}
+                      {{#if weapon.rofExhausted}} ✗{{/if}}{{#if weapon.jammed}} <i class="fas fa-exclamation-triangle"></i>{{/if}}
                     </button>
                     {{#if weapon.hasAutofire}}
-                      <button type="button" data-action="weapon-autofire" data-weapon-index="{{weapon.weaponIndex}}" title="{{weapon.autofireTooltip}}" {{#unless weapon.autofireAmmoOk}}disabled{{/unless}} {{#if weapon.attackDisabled}}disabled{{/if}}>
-                        {{localize "CYBER_BLUE.Combat.Autofire"}} ({{weapon.autofireLabel}})
+                      <button type="button" class="roll-button cpb-roll-btn cpb-roll-btn--labeled" data-action="weapon-autofire" data-weapon-index="{{weapon.weaponIndex}}" data-tooltip="{{weapon.autofireTooltip}}" {{#unless weapon.autofireAmmoOk}}disabled{{/unless}} {{#if weapon.attackDisabled}}disabled{{/if}}>
+                        <span class="cpb-roll-label">{{localize "CYBER_BLUE.Combat.Autofire"}}</span>
+                        {{> "systems/cyberpunk-blue/templates/parts/roll-button-content.hbs" mod=weapon.autofireLabel}}
                       </button>
                     {{/if}}
                     {{#if weapon.hasDoubleLock}}
@@ -304,12 +306,13 @@
                   </td>
                   <td class="numeric-column">
                     <button type="button"
+                      class="roll-button cpb-roll-btn"
                       data-action="ma-attack"
                       data-ma-index="{{ma.maIndex}}"
                       data-component-slug="{{ma.componentSlug}}"
-                      title="{{ma.attackTooltip}}"
+                      data-tooltip="{{ma.attackTooltip}}"
                       {{#if ma.attackDisabled}}disabled{{/if}}>
-                      {{ma.attackLabel}}
+                      {{> "systems/cyberpunk-blue/templates/parts/roll-button-content.hbs" mod=ma.attackLabel}}
                     </button>
                   </td>
                   <td class="numeric-column target-vitals-cell">
@@ -761,16 +764,17 @@
               </div>
               {{#each group.skills as |skill|}}
                 <div class="skill-row" data-skill-row data-skill-slug="{{skill.slug}}">
-                  <button type="button" class="roll-button" data-action="roll-skill" data-skill-slug="{{skill.slug}}">
-                    {{localize "CYBER_BLUE.Sheet.Labels.Roll"}}
+                  <button type="button" class="roll-button cpb-roll-btn" data-action="roll-skill" data-skill-slug="{{skill.slug}}" data-tooltip="{{skill.roll.tooltip}}">
+                    {{> "systems/cyberpunk-blue/templates/parts/roll-button-content.hbs" mod=skill.roll.mod}}
                   </button>
                   <span class="skill-name" data-description="{{skill.description}}" data-label="{{skill.label}}" {{#if @root.showDescriptionTooltips}}data-tooltip="{{skill.description}}"{{/if}}>{{skill.label}}</span>
                   <span class="skill-stat numeric-column">{{skill.statLabel}}</span>
                   <input class="numeric-column" type="number" name="system.skills.{{skill.slug}}.rank" value="{{skill.rank}}" data-dtype="Number" {{#unless ../../charCreation.skillsWritable}}disabled{{/unless}} />
                   <div class="component-pill-list">
                     {{#each skill.components as |component|}}
-                      <button type="button" class="component-pill" data-action="roll-skill" data-skill-slug="{{skill.slug}}" data-component-slug="{{component.slug}}">
-                        {{component.label}} ({{component.rank}})
+                      <button type="button" class="roll-button cpb-roll-btn cpb-roll-btn--labeled" data-action="roll-skill" data-skill-slug="{{skill.slug}}" data-component-slug="{{component.slug}}" data-tooltip="{{component.roll.tooltip}}">
+                        <span class="cpb-roll-label">{{component.label}}</span>
+                        {{> "systems/cyberpunk-blue/templates/parts/roll-button-content.hbs" mod=component.roll.mod}}
                       </button>
                     {{/each}}
                   </div>
@@ -1168,14 +1172,15 @@
               <div class="netrunner-comp-uses">
                 {{#each comp.uses as |use|}}
                   <button type="button"
-                    class="netrunner-use-btn"
+                    class="roll-button cpb-roll-btn cpb-roll-btn--labeled"
                     data-action="netrunner-component-roll"
                     data-component-slug="{{use.componentSlug}}"
                     data-use-slug="{{use.slug}}"
                     data-use-label="{{use.label}}"
                     data-modifier="{{use.modifier}}"
-                    title="Roll 1d10 {{use.modLabel}}">
-                    {{use.label}}
+                    data-tooltip="{{use.tooltip}}">
+                    <span class="cpb-roll-label">{{use.label}}</span>
+                    {{> "systems/cyberpunk-blue/templates/parts/roll-button-content.hbs" mod=use.modLabel}}
                   </button>
                 {{/each}}
                 {{!-- Defrag lives in the Quickhacking component box --}}
@@ -1311,8 +1316,8 @@
                     {{#if @root.diskColVis.showAtk}}
                       <td>
                         {{#if exe.system.atk}}
-                          <button type="button" class="exe-roll-btn" data-action="executable-roll-atk" data-item-id="{{exe.id}}" title="Roll 1d10+ATK">
-                            {{exe.system.atk}} <i class="fas fa-dice-d10"></i>
+                          <button type="button" class="roll-button cpb-roll-btn" data-action="executable-roll-atk" data-item-id="{{exe.id}}" data-tooltip="{{exe.atkRoll.tooltip}}">
+                            {{> "systems/cyberpunk-blue/templates/parts/roll-button-content.hbs" mod=exe.atkRoll.mod}}
                           </button>
                         {{/if}}
                       </td>
@@ -1322,8 +1327,8 @@
                     {{#if @root.diskColVis.showPer}}
                       <td>
                         {{#if exe.system.per}}
-                          <button type="button" class="exe-roll-btn" data-action="executable-roll-per" data-item-id="{{exe.id}}" title="Roll 1d10+PER">
-                            {{exe.system.per}} <i class="fas fa-dice-d10"></i>
+                          <button type="button" class="roll-button cpb-roll-btn" data-action="executable-roll-per" data-item-id="{{exe.id}}" data-tooltip="{{exe.perRoll.tooltip}}">
+                            {{> "systems/cyberpunk-blue/templates/parts/roll-button-content.hbs" mod=exe.perRoll.mod}}
                           </button>
                         {{/if}}
                       </td>

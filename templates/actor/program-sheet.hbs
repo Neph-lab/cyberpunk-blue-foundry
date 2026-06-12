@@ -14,7 +14,7 @@
           <span class="stat-short">ATK</span>
           <div class="stat-with-roll">
             <input type="number" name="system.stats.atk.value" value="{{system.stats.atk.value}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
-            <button type="button" data-action="roll-atk" title="Roll ATK"><i class="fas fa-dice-d10"></i></button>
+            <button type="button" class="roll-button cpb-roll-btn" data-action="roll-atk" data-tooltip="{{atkRoll.tooltip}}">{{> "systems/cyberpunk-blue/templates/parts/roll-button-content.hbs" mod=atkRoll.mod}}</button>
           </div>
         </label>
         <label class="header-stat" title="Defense">
@@ -29,7 +29,7 @@
           <span class="stat-short">PER</span>
           <div class="stat-with-roll">
             <input type="number" name="system.stats.per.value" value="{{system.stats.per.value}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
-            <button type="button" data-action="roll-per" title="Roll PER"><i class="fas fa-dice-d10"></i></button>
+            <button type="button" class="roll-button cpb-roll-btn" data-action="roll-per" data-tooltip="{{perRoll.tooltip}}">{{> "systems/cyberpunk-blue/templates/parts/roll-button-content.hbs" mod=perRoll.mod}}</button>
           </div>
         </label>
         <div class="header-stat" title="Rez (digital HP)">

@@ -81,16 +81,17 @@
         <div class="skill-list">
           {{#each skillRows as |row|}}
             <div class="mook-skill-row{{#unless row.listed}} skill-unlisted{{/unless}}">
-              <button type="button" class="roll-button" data-action="roll-skill" data-skill-slug="{{row.slug}}" title="Roll {{row.label}}">
-                <i class="fas fa-dice-d10"></i>
+              <button type="button" class="roll-button cpb-roll-btn" data-action="roll-skill" data-skill-slug="{{row.slug}}" data-tooltip="{{row.roll.tooltip}}">
+                {{> "systems/cyberpunk-blue/templates/parts/roll-button-content.hbs" mod=row.roll.mod}}
               </button>
               <span class="skill-label">{{row.label}}</span>
               <span class="skill-stat">{{row.statLabel}}</span>
               <div class="component-pill-list">
                 {{#each row.components as |component|}}
                   <span class="mook-pill-group">
-                    <button type="button" class="component-pill" data-action="roll-skill" data-skill-slug="{{row.slug}}" data-component-slug="{{component.slug}}" title="Roll {{component.label}}">
-                      {{component.label}}
+                    <button type="button" class="roll-button cpb-roll-btn cpb-roll-btn--labeled" data-action="roll-skill" data-skill-slug="{{row.slug}}" data-component-slug="{{component.slug}}" data-tooltip="{{component.roll.tooltip}}">
+                      <span class="cpb-roll-label">{{component.label}}</span>
+                      {{> "systems/cyberpunk-blue/templates/parts/roll-button-content.hbs" mod=component.roll.mod}}
                     </button>
                     {{#if @root.isGM}}
                       <button type="button" class="pill-remove" data-action="remove-component" data-component-slug="{{component.slug}}" title="Remove {{component.label}}">
@@ -136,8 +137,8 @@
                   <td style="text-align:center;">{{#if w.usesMagazine}}{{w.ammoCurrent}}/{{w.ammoMax}}{{else}}—{{/if}}</td>
                   <td style="text-align:right;">
                     {{#if ../isGM}}
-                      <button type="button" data-action="mook-weapon-attack" data-item-id="{{w.itemId}}" data-weapon-index="{{w.weaponIndex}}" title="Roll Attack">
-                        <i class="fas fa-dice-d10"></i>
+                      <button type="button" class="roll-button cpb-roll-btn" data-action="mook-weapon-attack" data-item-id="{{w.itemId}}" data-weapon-index="{{w.weaponIndex}}" data-tooltip="{{w.roll.tooltip}}">
+                        {{> "systems/cyberpunk-blue/templates/parts/roll-button-content.hbs" mod=w.roll.mod}}
                       </button>
                     {{/if}}
                   </td>
@@ -157,8 +158,8 @@
                 <span class="skill-label">{{ma.label}}</span>
                 <span style="flex:0 0 auto;min-width:3rem;text-align:center;">{{ma.damage}}</span>
                 {{#if ../isGM}}
-                  <button type="button" data-action="mook-ma-attack" data-component-slug="{{ma.slug}}" title="Roll Attack">
-                    <i class="fas fa-dice-d10"></i>
+                  <button type="button" class="roll-button cpb-roll-btn" data-action="mook-ma-attack" data-component-slug="{{ma.slug}}" data-tooltip="{{ma.roll.tooltip}}">
+                    {{> "systems/cyberpunk-blue/templates/parts/roll-button-content.hbs" mod=ma.roll.mod}}
                   </button>
                 {{/if}}
               </div>

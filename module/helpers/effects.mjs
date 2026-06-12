@@ -145,7 +145,11 @@ export function buildActorEffectGroups(actor) {
       count: group.members.length,
       expandable: group.members.length > 1,
     }))
-    .sort((left, right) => left.name.localeCompare(right.name));
+    // Single effects first (alphabetical), then the grouped/expandable ones.
+    .sort((left, right) =>
+      (left.expandable === right.expandable)
+        ? left.name.localeCompare(right.name)
+        : (left.expandable ? 1 : -1));
 
   return { groups: list, hasEffects: list.length > 0 };
 }

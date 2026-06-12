@@ -16,6 +16,7 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/cyberpunk-blue/templates/parts/prose-editor.hbs',
     'systems/cyberpunk-blue/templates/actor/parts/effects-panel.hbs',
     'systems/cyberpunk-blue/templates/actor/parts/effect-cell.hbs',
+    'systems/cyberpunk-blue/templates/parts/roll-button-content.hbs',
     // Item partials
     'systems/cyberpunk-blue/templates/item/parts/item-effects.hbs',
     'systems/cyberpunk-blue/templates/item/parts/item-combat.hbs',

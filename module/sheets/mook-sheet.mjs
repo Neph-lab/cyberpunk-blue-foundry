@@ -6,6 +6,7 @@ import { getWeaponTypeDefinition } from '../helpers/combat.mjs';
 import { getMartialArtsDamage, MA_COMPONENTS, resolveMartialArtsAttack } from '../helpers/martial-arts.mjs';
 import { resolveWeaponAttack } from '../helpers/combat-resolution.mjs';
 import { buildActorEffectGroups, attachEffectsPanelListeners } from '../helpers/effects.mjs';
+import { getSkillCheckPreview, getWeaponAttackPreview } from '../helpers/roll-preview.mjs';
 
 export class CyberBlueMookSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
@@ -71,9 +72,11 @@ export class CyberBlueMookSheet extends HandlebarsApplicationMixin(ActorSheetV2)
         label: def.label,
         listed: isListed,
         statLabel: CONFIG.CYBER_BLUE.stats[def.stat]?.shortLabel ?? (def.stat ?? '').toUpperCase(),
+        roll: getSkillCheckPreview(this.document, slug),
         components: linkedListed.map((c) => ({
           slug: c,
           label: CONFIG.CYBER_BLUE.components[c]?.label ?? c,
+          roll: getSkillCheckPreview(this.document, slug, c),
         })),
       });
     }
@@ -127,6 +130,7 @@ export class CyberBlueMookSheet extends HandlebarsApplicationMixin(ActorSheetV2)
           usesMagazine: !!(def.usesMagazine),
           ammoCurrent: w.ammoCurrent ?? 0,
           ammoMax: w.ammoMax ?? 0,
+          roll: getWeaponAttackPreview(this.document, item, w, i),
         });
       }
     }
@@ -142,6 +146,7 @@ export class CyberBlueMookSheet extends HandlebarsApplicationMixin(ActorSheetV2)
         slug,
         label: CONFIG.CYBER_BLUE.components?.[slug]?.label ?? slug,
         damage: maDamage,
+        roll: getSkillCheckPreview(this.document, 'martialArts', slug),
       }));
 
     return context;

@@ -22,6 +22,7 @@ import {
   CRITICAL_HEAD_INJURY_TABLE,
 } from './critical-injury.mjs';
 import { recordCombatAttack } from './combat-tracker.mjs';
+import { getSkillCheckPreview } from './roll-preview.mjs';
 import {
   applyDamageWithPermission,
   rollCriticalInjuryWithPermission,
@@ -899,8 +900,7 @@ export function buildMartialArtsContext(actor, rofState) {
   // One attack entry per active component (or a generic entry if none)
   const components = activeComponents.length > 0 ? activeComponents : [null];
   components.forEach((compSlug, idx) => {
-    const rollCtx = actor.getSkillRollContext('martialArts', compSlug);
-    const total = rollCtx.statValue + rollCtx.usedRank + (rollCtx.statRollMod ?? 0);
+    const roll = getSkillCheckPreview(actor, 'martialArts', compSlug);
     const compLabel = compSlug
       ? (CONFIG.CYBER_BLUE.components?.[compSlug]?.label ?? compSlug) : null;
     const maKey = `ma-${idx}`;
@@ -914,8 +914,9 @@ export function buildMartialArtsContext(actor, rofState) {
     martialArtsAttacks.push({
       componentSlug: compSlug,
       componentLabel: compLabel,
-      attackLabel: `${total >= 0 ? '+' : ''}${total}`,
-      attackTooltip: `BODY ${rollCtx.statValue} + Martial Arts${compSlug ? ` (${compLabel})` : ''} ${rollCtx.usedRank}${rollCtx.statRollMod ? ` + bonus ${rollCtx.statRollMod}` : ''}`,
+      attackLabel: roll.mod,
+      attackTooltip: roll.tooltip,
+      roll,
       damage,
       rateOfFire: 2,
       attacksUsed: sameAttack ? rofState.count : 0,

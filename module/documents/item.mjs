@@ -9,6 +9,7 @@ import { getGearStateUpdateData, normalizeGearState } from '../helpers/gear.mjs'
 import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
 import { applyFirstRoleSetup, normalizeRoleSystemData } from '../helpers/roles.mjs';
 import { isNetConnected } from '../helpers/netrunning.mjs';
+import { CyberBlueActiveEffect } from './active-effect.mjs';
 
 function preserveRoleArrayIds(next, current) {
   if (!next || !current || typeof next !== 'object' || typeof current !== 'object') {
@@ -44,6 +45,21 @@ export class CyberBlueItem extends Item {
     // NOTE: first-role setup (applyFirstRoleSetup) is handled exclusively in
     // CyberBlueActor.createEmbeddedDocuments so we avoid double-calling it.
     // Do NOT call applyFirstRoleSetup here.
+
+    // Stamp the item's picture onto any effects it was created with (e.g. a
+    // cyberware/gear item dragged from a compendium brings its effects along).
+    if (game.user.id === userId) {
+      await this.syncEffectImages();
+    }
+  }
+
+  async _onUpdate(changed, options, userId) {
+    await super._onUpdate(changed, options, userId);
+    // When the item's picture changes (incl. newly wired-up art), propagate it
+    // to its effects' stored icons.
+    if (game.user.id === userId && 'img' in changed && !options?.cyberBlueSyncEffectImages) {
+      await this.syncEffectImages();
+    }
   }
 
   async _preCreate(data, options, user) {
@@ -376,6 +392,32 @@ export class CyberBlueItem extends Item {
       ...options,
       cyberBlueSyncOperationalEffects: true,
     });
+  }
+
+  /**
+   * Stamp this item's picture onto its own Active Effects, so each effect's
+   * stored icon is the item's image (see CyberBlueActiveEffect). Skips affliction
+   * source templates and only touches effects whose stored icon differs, so it is
+   * idempotent. Compendium items are handled by the catalogue sync, not here.
+   */
+  async syncEffectImages(options = {}) {
+    if (this.pack) return;
+    const img = this.img;
+    if (!img || CyberBlueActiveEffect.PLACEHOLDER_IMAGES.has(img)) return;
+
+    const updates = [];
+    for (const effect of this.effects.contents) {
+      if (effect.getFlag('cyberpunk-blue', 'isAfflictionEffect')) continue;
+      if (effect._source.img === img) continue;
+      updates.push({ _id: effect.id, img });
+    }
+
+    if (updates.length) {
+      await this.updateEmbeddedDocuments('ActiveEffect', updates, {
+        ...options,
+        cyberBlueSyncEffectImages: true,
+      });
+    }
   }
 
   /**

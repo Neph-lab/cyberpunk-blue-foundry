@@ -1580,6 +1580,9 @@ Hooks.once('ready', async () => {
   // the compendium-sync append-bug was fixed (collapses them to one each).
   await cleanupDuplicateItemEffects();
 
+  // Repair drug Duration values that grew comma-separated from a duplicate input.
+  await repairDuplicatedDrugDurations();
+
   for (const item of cyberwareItems) {
     await item.syncCyberwarePsycheLossEffect({ cyberBlueSyncPsycheLoss: true });
     await item.syncCyberwareOperationalEffects({ cyberBlueSyncOperationalEffects: true });
@@ -1590,6 +1593,12 @@ Hooks.once('ready', async () => {
     if (item.name === 'Skill Chip') {
       await item.syncSkillChipEffect({ cyberBlueSyncSkillChip: true });
     }
+  }
+
+  // Stamp each item's picture onto its own effects so the stored icons match
+  // the source item (covers existing worlds + any item type with effects).
+  for (const item of allItems) {
+    if (item instanceof CyberBlueItem) await item.syncEffectImages();
   }
 
   for (const actor of game.actors.contents) {
@@ -2750,7 +2759,105 @@ async function _replaceItemCatalogueEffects(doc, catEffects) {
     await doc.deleteEmbeddedDocuments('ActiveEffect', stale);
   }
   if (catEffects.length) {
-    await doc.createEmbeddedDocuments('ActiveEffect', foundry.utils.deepClone(catEffects));
+    const effects = foundry.utils.deepClone(catEffects);
+    _stampItemImageOnEffectData(doc, effects);
+    await doc.createEmbeddedDocuments('ActiveEffect', effects);
+  }
+}
+
+/**
+ * Stamp a compendium item's picture onto effect create-data in place (mirrors
+ * CyberBlueItem.syncEffectImages for pack documents, whose hooks can't run while
+ * the pack is locked). Skips affliction source templates and placeholder images.
+ */
+function _stampItemImageOnEffectData(doc, effects) {
+  const img = doc.img;
+  if (!img || CyberBlueActiveEffect.PLACEHOLDER_IMAGES.has(img)) return;
+  for (const effect of effects) {
+    if (effect.flags?.['cyberpunk-blue']?.isAfflictionEffect) continue;
+    effect.img = img;
+  }
+}
+
+/**
+ * Re-stamp the item picture onto an existing compendium item's effects (used
+ * when only the image changed, so effects weren't replaced). Pack unlocked.
+ */
+async function _bakeCompendiumEffectImages(doc) {
+  const img = doc.img;
+  if (!img || CyberBlueActiveEffect.PLACEHOLDER_IMAGES.has(img)) return;
+  const updates = [];
+  for (const effect of doc.effects.contents) {
+    if (effect.getFlag?.('cyberpunk-blue', 'isAfflictionEffect')) continue;
+    if (effect._source.img === img) continue;
+    updates.push({ _id: effect.id, img });
+  }
+  if (updates.length) await doc.updateEmbeddedDocuments('ActiveEffect', updates);
+}
+
+/**
+ * One-time repair for drug Duration strings that grew into a repeated
+ * comma-separated list (e.g. "24 hours,24 hours,24 hours") from the duplicate
+ * `system.duration` input. Only collapses when every comma-separated part is
+ * identical, so a legitimately comma-containing duration is never altered.
+ */
+async function repairDuplicatedDrugDurations() {
+  if (!game.user.isGM) return;
+
+  const seen = new Set();
+  const items = [
+    ...game.items.contents,
+    ...game.actors.contents.flatMap((actor) => actor.items.contents),
+  ].filter((item) => {
+    if (seen.has(item.uuid)) return false;
+    seen.add(item.uuid);
+    return true;
+  });
+
+  let repaired = 0;
+  for (const item of items) {
+    if (item.type !== 'drug') continue;
+    const duration = item.system?.duration ?? '';
+    if (!duration.includes(',')) continue;
+    const parts = duration.split(',').map((part) => part.trim());
+    if (parts.length > 1 && parts.every((part) => part === parts[0])) {
+      await item.update({ 'system.duration': parts[0] });
+      repaired += 1;
+    }
+  }
+
+  if (repaired) console.log(`Cyberpunk Blue | Repaired ${repaired} duplicated drug Duration value(s).`);
+}
+
+/**
+ * Stamp every catalogue item's picture onto its effects across the gear,
+ * cyberware, and drug packs. Idempotent — only writes effects whose stored icon
+ * differs — so it's a no-op once the packs are in sync.
+ */
+async function bakeCompendiumEffectImages() {
+  if (!game.user.isGM) return;
+
+  for (const packId of ['cyberpunk-blue.cyberware', 'cyberpunk-blue.gear', 'cyberpunk-blue.drugs']) {
+    const pack = game.packs.get(packId);
+    if (!pack) continue;
+
+    const docs = await pack.getDocuments();
+    const needBake = docs.filter((doc) => {
+      const img = doc.img;
+      if (!img || CyberBlueActiveEffect.PLACEHOLDER_IMAGES.has(img)) return false;
+      return doc.effects.some(
+        (e) => !e.getFlag?.('cyberpunk-blue', 'isAfflictionEffect') && e._source.img !== img,
+      );
+    });
+    if (!needBake.length) continue;
+
+    await pack.configure({ locked: false });
+    try {
+      for (const doc of needBake) await _bakeCompendiumEffectImages(doc);
+      console.log(`Cyberpunk Blue | Stamped item images on effects for ${needBake.length} ${packId} item(s).`);
+    } finally {
+      await pack.configure({ locked: true });
+    }
   }
 }
 
@@ -3182,6 +3289,9 @@ async function ensureEquipmentCatalogue() {
 
     // Sync damageFormula (and future fields) on already-populated program entries
     await _syncProgramEntries(PROGRAM_CATALOGUE);
+
+    // Stamp each item's picture onto its effects' stored icons in the packs.
+    await bakeCompendiumEffectImages();
 
     // Add armor items that may have been missing in earlier versions
     await _ensureArmorInGearPack(gearItems);

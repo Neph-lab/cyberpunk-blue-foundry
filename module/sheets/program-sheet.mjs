@@ -7,6 +7,7 @@ import {
   copyExecutableToProgram,
 } from '../helpers/netrunning.mjs';
 import { buildActorEffectGroups, attachEffectsPanelListeners } from '../helpers/effects.mjs';
+import { getStatCheckPreview } from '../helpers/roll-preview.mjs';
 
 const PROGRAM_TYPES = [
   { value: 'antipersonnel', label: 'Anti-Personnel' },
@@ -76,6 +77,8 @@ export class CyberBlueProgramSheet extends HandlebarsApplicationMixin(ActorSheet
     context.system = system;
     context.isGM = isGM;
     context.effects = buildActorEffectGroups(this.document);
+    context.atkRoll = getStatCheckPreview(this.document, 'atk', 'ATK');
+    context.perRoll = getStatCheckPreview(this.document, 'per', 'PER');
     context.programTypes = PROGRAM_TYPES;
     context.enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(system.description, {
       secrets: this.document.isOwner,

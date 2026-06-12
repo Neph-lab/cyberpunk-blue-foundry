@@ -24,6 +24,7 @@ import { refreshAllRicochetLines } from '../helpers/ricochet-canvas.mjs';
 import { reloadWeapon, toggleWeaponCharge, toggleWeaponRicochet } from '../helpers/weapon-actions.mjs';
 import { playUiSound } from '../helpers/audio.mjs';
 import { buildActorEffectGroups } from '../helpers/effects.mjs';
+import { getSkillCheckPreview, getWeaponAttackPreview, signedModifier } from '../helpers/roll-preview.mjs';
 import { startInstructions, advanceInstructions, getInstructionContext } from '../helpers/instructions.mjs';
 import { CharacterCreationWizard, CC_STEPS_LIST } from '../helpers/character-creation.mjs';
 import {
@@ -152,7 +153,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     context.isNPC = actorData.type === 'npc';
     context.itemTypes = CONFIG.CYBER_BLUE.itemTypes;
     context.showDescriptionTooltips = game.settings.get('cyberpunk-blue', 'descriptionTooltips');
-    const moveEntry = { slug: 'move', ...CONFIG.CYBER_BLUE.stats.move, value: system.stats.move.value, iconPath: 'systems/cyberpunk-blue/assets/icons/bk_MOVE.svg' };
+    // MOVE is shown in the quick-stats move-card (for both characters and NPCs),
+    // never in the header six-stat block — a second system.stats.move.value input
+    // would submit as an array and break NumberField validation.
     context.stats = Object.entries(CONFIG.CYBER_BLUE.stats)
       .filter(([slug]) => slug !== 'move')
       .map(([slug, data]) => ({
@@ -161,9 +164,6 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         value: system.stats[slug].value,
         iconPath: `systems/cyberpunk-blue/assets/icons/bk_${slug.toUpperCase()}.svg`,
       }));
-    if (context.isNPC) {
-      context.stats = [...context.stats, moveEntry];
-    }
     context.move = {
       slug: 'move',
       ...CONFIG.CYBER_BLUE.stats.move,
@@ -205,12 +205,14 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       statSlug: data.stat,
       statLabel: CONFIG.CYBER_BLUE.stats[data.stat]?.shortLabel ?? data.stat.toUpperCase(),
       rank: system.skills[slug].rank,
+      roll: getSkillCheckPreview(this.document, slug),
       components: data.components
         .filter((componentSlug) => system.components[componentSlug].active)
         .map((componentSlug) => ({
           slug: componentSlug,
           label: CONFIG.CYBER_BLUE.components[componentSlug].label,
           rank: system.components[componentSlug].rank,
+          roll: getSkillCheckPreview(this.document, slug, componentSlug),
         })),
     }));
     context.skills = skillEntries;
@@ -459,6 +461,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       const autofireRank = this.document.system.skills?.autofire?.rank ?? 0;
       const autofireUsedRank = Math.min(rollContext.usedRank, autofireRank);
       const autofireTotal = rollContext.statValue + autofireUsedRank + (rollContext.statRollMod ?? 0);
+      // Unified roll-button preview: stat + weapon-skill rank + AEs + always-on
+      // weapon bonuses (quality, recoil mods, calibration, charge, …). Situational
+      // modifiers (range, visibility, target vitals, autofire recoil) are added at
+      // roll time and intentionally excluded here.
+      const attackRoll = getWeaponAttackPreview(this.document, itemDoc, weapon, weaponIndex);
+      const autofireRoll = getWeaponAttackPreview(this.document, itemDoc, weapon, weaponIndex, { rankCap: autofireRank });
       const rateOfFire = Math.max(Number(weapon.rateOfFire) || 1, 1);
       const effectiveWeapons = itemDoc.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(itemDoc);
 
@@ -481,8 +489,10 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         weaponIndex,
         itemName: itemDoc.name,
         name: effectiveWeapons.length > 1 ? `${itemDoc.name} - ${definition.label}` : itemDoc.name,
-        attackLabel: `${total >= 0 ? '+' : ''}${total}`,
-        attackTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + ${rollContext.skillLabel} ${rollContext.usedRank}${rollContext.statRollMod ? ` + bonus ${rollContext.statRollMod}` : ''}`,
+        attackLabel: attackRoll.mod,
+        attackTooltip: attackRoll.tooltip,
+        attackRoll,
+        autofireRoll,
         damage: weapon.damage ?? definition.damage,
         concealable: weapon.concealable ?? definition.concealable,
         modDots,
@@ -532,8 +542,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           const moved = (turnState?.movementUsed ?? 0) > 0;
           return moved;
         })(),
-        autofireLabel: `${autofireTotal >= 0 ? '+' : ''}${autofireTotal}`,
-        autofireTooltip: `${rollContext.statShortLabel} ${rollContext.statValue} + min(${rollContext.skillLabel} ${rollContext.usedRank}, Autofire ${autofireRank})`,
+        autofireLabel: autofireRoll.mod,
+        autofireTooltip: autofireRoll.tooltip,
         skillSlug,
         skillOptions: definition.skillOptions.map((slug) => ({
           value: slug,
@@ -860,14 +870,22 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
       context.netrunnerComponents = NETRUNNER_COMPONENTS_ORDER.map((slug) => {
         const componentRank = system.components?.[slug]?.rank ?? 0;
-        const modifier = intVal + networkerRank + Math.min(netrunningSkillRank, componentRank);
+        const usedRank = Math.min(netrunningSkillRank, componentRank);
+        const modifier = intVal + networkerRank + usedRank;
         const modLabel = (modifier >= 0 ? '+' : '') + modifier;
+        // Breakdown tooltip mirroring the unified roll buttons.
+        const tooltip = [
+          `INT +${intVal}`,
+          `Netrunner +${networkerRank}`,
+          `${CONFIG.CYBER_BLUE.components[slug]?.label ?? slug} +${usedRank}`,
+        ].join('<br>');
         // Embed componentSlug + modifier into each use so the template doesn't need ../
         const uses = (NETRUNNER_COMPONENT_USES[slug] ?? []).map((u) => ({
           ...u,
           componentSlug: slug,
           modifier,
           modLabel,
+          tooltip,
         }));
         return {
           slug,
@@ -875,6 +893,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           rank: componentRank,
           modifier,
           modLabel,
+          tooltip,
           uses,
         };
       });
@@ -974,6 +993,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         const cid = exe.system.installedOnId;
         const valid = cid && computerIdSet.has(cid);
         const entry = { ...exe };
+        entry.atkRoll = { mod: signedModifier(exe.system.atk ?? 0), tooltip: `ATK ${signedModifier(exe.system.atk ?? 0)}` };
+        entry.perRoll = { mod: signedModifier(exe.system.per ?? 0), tooltip: `PER ${signedModifier(exe.system.per ?? 0)}` };
         if (valid) {
           entry.computerName = computerById.get(cid)?.name ?? '?';
           executablesOnDisk.push(entry);

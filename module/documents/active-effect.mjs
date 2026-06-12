@@ -27,36 +27,39 @@ export class CyberBlueActiveEffect extends ActiveEffect {
     'icons/svg/mystery-man.svg',
   ]);
 
-  prepareDerivedData() {
-    super.prepareDerivedData();
-    this._applyParentItemImage();
+  /**
+   * True when this effect should borrow its parent Item's picture as its own
+   * icon: it belongs to an Item that has a real image (not a placeholder), and
+   * it is not an affliction source template (those are applied to targets by an
+   * attack and keep their authored icon). Conditions and other actor-owned
+   * effects have an Actor parent and are excluded automatically.
+   *
+   * @returns {string|null} the image to use, or null to leave the icon as-is.
+   */
+  getInheritedItemImage() {
+    const item = this.parent;
+    if (!(item instanceof Item)) return null;
+    if (this.getFlag('cyberpunk-blue', 'isAfflictionEffect')) return null;
+    const img = item.img;
+    if (!img || CyberBlueActiveEffect.PLACEHOLDER_IMAGES.has(img)) return null;
+    return img;
   }
 
   /**
-   * When this effect belongs to an Item that has a picture of its own (cyberware,
-   * gear, a drug, …), display the item's image as the effect's icon — including
-   * art added later (e.g. via the wire-images skill), since this re-derives on
-   * every data prep and reads the item's *current* image.
-   *
-   * Derived only — never written to `_source`, so:
-   *   • effects copied via `toObject()` (e.g. attack-applied afflictions) keep
-   *     their authored icon;
-   *   • the stored icon is preserved if the item image is later cleared.
-   *
-   * Deliberately untouched (per docs/icon-placement.md):
-   *   • Conditions / wound-state effects and any other actor-owned effect — its
-   *     parent is an Actor, not an Item, so the guard below skips it.
-   *   • Affliction source templates — these are applied to a target by an attack
-   *     (someone else's effect), so they keep their authored icon.
+   * Persist the parent Item's picture onto the effect document itself on
+   * creation, so every consumer (Effects panel, token HUD, the effect's own
+   * config sheet, exports) reads the same stored image. Item-image *changes*
+   * after creation are propagated by CyberBlueItem (see syncEffectImages).
+   * Compendium effects are baked by the catalogue sync while the pack is
+   * unlocked, so this skips them.
    */
-  _applyParentItemImage() {
-    const item = this.parent;
-    if (!(item instanceof Item)) return;
-    if (this.getFlag('cyberpunk-blue', 'isAfflictionEffect')) return;
-
-    const img = item.img;
-    if (!img || CyberBlueActiveEffect.PLACEHOLDER_IMAGES.has(img)) return;
-
-    this.img = img;
+  async _onCreate(data, options, userId) {
+    super._onCreate(data, options, userId);
+    if (game.user.id !== userId) return;
+    if (this.parent?.pack) return;
+    const img = this.getInheritedItemImage();
+    if (img && this._source.img !== img) {
+      await this.update({ img });
+    }
   }
 }
