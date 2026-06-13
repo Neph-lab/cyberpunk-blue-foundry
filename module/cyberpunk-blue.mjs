@@ -1583,6 +1583,10 @@ Hooks.once('ready', async () => {
   // Repair drug Duration values that grew comma-separated from a duplicate input.
   await repairDuplicatedDrugDurations();
 
+  // Backfill description text onto system effects created before descriptions
+  // were added (PSYCHE states, wound/death markers, critical injuries, …).
+  await backfillEffectDescriptions();
+
   for (const item of cyberwareItems) {
     await item.syncCyberwarePsycheLossEffect({ cyberBlueSyncPsycheLoss: true });
     await item.syncCyberwareOperationalEffects({ cyberBlueSyncOperationalEffects: true });
@@ -2793,6 +2797,49 @@ async function _bakeCompendiumEffectImages(doc) {
     updates.push({ _id: effect.id, img });
   }
   if (updates.length) await doc.updateEmbeddedDocuments('ActiveEffect', updates);
+}
+
+/**
+ * Backfill the `description` and `img` fields on system-generated effects that
+ * already exist in a world (created before descriptions/white icons were added).
+ * Mirrors CyberBlueActiveEffect._preCreate for existing documents: fills only an
+ * empty description, and sets the mapped white sheet-icon where it differs.
+ * Covers actor-owned effects (PSYCHE states, wound/death markers, critical
+ * injuries) plus item-owned effects (cyberware PSYCHE Loss).
+ */
+async function backfillEffectDescriptions() {
+  if (!game.user.isGM) return;
+
+  let updated = 0;
+  const applyTo = async (doc) => {
+    const updates = [];
+    for (const effect of doc.effects.contents) {
+      const update = { _id: effect.id };
+      let changed = false;
+
+      if (!effect._source.description) {
+        const description = CyberBlueActiveEffect.resolveAutoDescription(effect);
+        if (description) { update.description = description; changed = true; }
+      }
+
+      const icon = CyberBlueActiveEffect.resolveAutoIcon(effect);
+      if (icon && effect._source.img !== icon) { update.img = icon; changed = true; }
+
+      if (changed) updates.push(update);
+    }
+    if (updates.length) {
+      await doc.updateEmbeddedDocuments('ActiveEffect', updates);
+      updated += updates.length;
+    }
+  };
+
+  for (const actor of game.actors.contents) {
+    await applyTo(actor);
+    for (const item of actor.items.contents) await applyTo(item);
+  }
+  for (const item of game.items.contents) await applyTo(item);
+
+  if (updated) console.log(`Cyberpunk Blue | Backfilled descriptions on ${updated} effect(s).`);
 }
 
 /**

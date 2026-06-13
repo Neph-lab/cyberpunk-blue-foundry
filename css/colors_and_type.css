@@ -80,8 +80,8 @@
   --cpb-cut-lg: 16px;
 
   /* Frame stroke — uniform 1px hairline; 1.5px only on largest panels. */
-  --cpb-stroke: 1px;
-  --cpb-stroke-thick: 1.5px;
+  --cpb-stroke: 2px;
+  --cpb-stroke-thick: 3px;
 
   /* HUD side-stripe on buttons — 3px coloured bar on interior left. */
   --cpb-stripe: 3px;

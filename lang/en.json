@@ -407,7 +407,12 @@
       "MortallyWounded": "Mortally Wounded",
       "NeedsStabilization": "Needs Stabilization",
       "DeadWithState": "Dead — Death State {state}/10",
-      "PsycheLoss": "PSYCHE Loss"
+      "PsycheLoss": "PSYCHE Loss",
+      "SeriouslyWoundedDesc": "<p>Your Hit Points are below the Serious Wound threshold (half your maximum HP). You take −2 to every stat-based check until you heal back above the threshold. A Pain Editor suppresses this penalty.</p>",
+      "MortallyWoundedDesc": "<p>Your Hit Points have dropped to 0 or below. At the end of each of your turns you roll 1d10 against your Death Save — fail while conscious and you fall Unconscious; fail while Unconscious and you die.</p>",
+      "NeedsStabilizationDesc": "<p>You are bleeding out. Natural Healing cannot restore HP until a successful Stabilize check clears this condition.</p>",
+      "DeadDesc": "<p>The character is dead. Every stat except BODY is reduced to 0. The Death State (shown as N/10) rises with further damage and any Critical Injuries suffered after death.</p>",
+      "PsycheLossDesc": "<p>The PSYCHE cost of having this cyberware installed. It permanently lowers your maximum PSYCHE while the implant remains.</p>"
     },
     "Death": {
       "SaveTitle": "Death Save: {name}",
@@ -841,7 +846,13 @@
       "Disassociation": "Disassociation",
       "DisruptedMind": "Disrupted Mind",
       "BeginningCyberpsychosis": "Beginning Cyberpsychosis",
-      "FullCyberpsychosis": "Full Cyberpsychosis"
+      "FullCyberpsychosis": "Full Cyberpsychosis",
+      "DisassociationDesc": "You've started to spiral and exhibit at least one symptom below strongly and are likely showing signs of more.",
+      "DisruptedMindDesc": "You are on the verge of a full breakdown and suffer at least three symptoms intensely and milder signs of several more. Others should worry about you.",
+      "BeginningCyberpsychosisDesc": "Cyberpsychosis or a similar condition. You suffer at least five symptoms strongly, and possibly all from the list to some degree. You have trouble seeing others as real people with their own feelings and value.",
+      "FullCyberpsychosisDesc": "Full cyberpsychosis. The GM takes over your character and will portray them as violent and uncontrollable. The character is only handed back if they regain a positive PSYCHE score. This is made difficult because of how unlikely they are to accept therapy.",
+      "SymptomsLabel": "Possible symptoms:",
+      "SymptomsHtml": "<ul><li>Grandiose sense of self</li><li>Self-hatred</li><li>Manipulative behavior</li><li>Visual hallucinations</li><li>Auditory hallucinations</li><li>Lack of remorse or guilt</li><li>Impulsivity</li><li>Aggression</li><li>Failure to accept responsibility</li><li>Ruthlessness</li><li>Excessive need for adrenaline or a sensory rush</li></ul>"
     },
     "Ability": {
       "Language": {

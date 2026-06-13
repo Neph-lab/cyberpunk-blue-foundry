@@ -14,6 +14,33 @@
  *     Set CONFIG.ActiveEffect.documentClass = CyberBlueActiveEffect in the
  *     'init' hook so Foundry uses this class for all ActiveEffect documents.
  */
+/** PSYCHE-state flag id → description i18n key. */
+const PSYCHE_STATE_DESC_KEYS = Object.freeze({
+  'disassociation': 'CYBER_BLUE.PsycheState.DisassociationDesc',
+  'disrupted-mind': 'CYBER_BLUE.PsycheState.DisruptedMindDesc',
+  'beginning-cyberpsychosis': 'CYBER_BLUE.PsycheState.BeginningCyberpsychosisDesc',
+  'full-cyberpsychosis': 'CYBER_BLUE.PsycheState.FullCyberpsychosisDesc',
+});
+
+/** cyberpunk-blue flag (truthy) → description i18n key, for flat system effects. */
+const AUTO_EFFECT_DESC_KEYS = Object.freeze({
+  autoSeriousWound: 'CYBER_BLUE.Effect.SeriouslyWoundedDesc',
+  autoMortallyWounded: 'CYBER_BLUE.Effect.MortallyWoundedDesc',
+  dead: 'CYBER_BLUE.Effect.DeadDesc',
+  needsStabilization: 'CYBER_BLUE.Effect.NeedsStabilizationDesc',
+  autoPsycheLoss: 'CYBER_BLUE.Effect.PsycheLossDesc',
+});
+
+// Icons for system effects. White (wt_) copies of the sheet icons are used
+// because the effect image renders as a raw <img> on the dark UI and can't be
+// recoloured with the Pattern-A CSS mask (see docs/icon-placement.md).
+const PSYCHE_STATE_ICON = 'systems/cyberpunk-blue/assets/icons/wt_PSYCHE.svg';
+const AUTO_EFFECT_ICONS = Object.freeze({
+  autoSeriousWound: 'systems/cyberpunk-blue/assets/icons/wt_SWT.svg',
+  autoMortallyWounded: 'systems/cyberpunk-blue/assets/icons/wt_SWT.svg',
+  dead: 'systems/cyberpunk-blue/assets/icons/wt_Death_Save.svg',
+});
+
 export class CyberBlueActiveEffect extends ActiveEffect {
   /** Flag key that marks an AE as self-deleting after the next roll. */
   static ONE_USE_FLAG = 'oneUse';
@@ -43,6 +70,78 @@ export class CyberBlueActiveEffect extends ActiveEffect {
     const img = item.img;
     if (!img || CyberBlueActiveEffect.PLACEHOLDER_IMAGES.has(img)) return null;
     return img;
+  }
+
+  /**
+   * Resolve the descriptive text a system-generated effect should carry in its
+   * `description` field, from its `cyberpunk-blue` flags. Returns localized HTML
+   * (or null when the effect has no known auto-description). Sources:
+   *   • Critical injuries — the `descKey` already stored on the effect.
+   *   • PSYCHE states — per-state paragraph + the shared symptom list.
+   *   • Wound/death/stabilization/PSYCHE-loss markers — fixed description keys.
+   */
+  static resolveAutoDescription(effect) {
+    const cb = effect?.flags?.['cyberpunk-blue'] ?? {};
+
+    if (cb.criticalInjury?.descKey) {
+      return game.i18n.localize(cb.criticalInjury.descKey);
+    }
+
+    const psycheKey = cb.psycheState?.id ? PSYCHE_STATE_DESC_KEYS[cb.psycheState.id] : null;
+    if (psycheKey) {
+      const paragraph = game.i18n.localize(psycheKey);
+      const label = game.i18n.localize('CYBER_BLUE.PsycheState.SymptomsLabel');
+      const symptoms = game.i18n.localize('CYBER_BLUE.PsycheState.SymptomsHtml');
+      return `<p>${paragraph}</p><p><strong>${label}</strong></p>${symptoms}`;
+    }
+
+    for (const [flag, key] of Object.entries(AUTO_EFFECT_DESC_KEYS)) {
+      const value = cb[flag];
+      if (value !== undefined && value !== null && value !== false) {
+        return game.i18n.localize(key);
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Resolve the icon a system effect should use, from its `cyberpunk-blue` flags
+   * (white sheet-icon copies). Returns null for effects with no mapped icon, so
+   * their existing image is left alone.
+   */
+  static resolveAutoIcon(effect) {
+    const cb = effect?.flags?.['cyberpunk-blue'] ?? {};
+    if (cb.psycheState?.id) return PSYCHE_STATE_ICON;
+    for (const [flag, icon] of Object.entries(AUTO_EFFECT_ICONS)) {
+      const value = cb[flag];
+      if (value !== undefined && value !== null && value !== false) return icon;
+    }
+    return null;
+  }
+
+  /**
+   * Stamp the system description onto the effect at creation, so it lives in the
+   * document's own `description` field (visible in the effect's config sheet and
+   * anywhere descriptions are shown). Only fills an empty description, so an
+   * item- or hand-authored description is never overwritten. Applies to every
+   * creation site that carries the relevant flag — no per-call wiring needed.
+   */
+  async _preCreate(data, options, user) {
+    const allowed = await super._preCreate(data, options, user);
+    if (allowed === false) return false;
+
+    if (!this.description) {
+      const description = CyberBlueActiveEffect.resolveAutoDescription(this);
+      if (description) this.updateSource({ description });
+    }
+
+    // System effects set a deprecated `icon:` that v14 ignores (defaulting to
+    // aura.svg); stamp the correct white sheet-icon onto `img` instead.
+    const icon = CyberBlueActiveEffect.resolveAutoIcon(this);
+    if (icon && this.img !== icon) this.updateSource({ img: icon });
+
+    return allowed;
   }
 
   /**

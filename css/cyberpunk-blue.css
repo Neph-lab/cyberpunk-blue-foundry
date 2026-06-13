@@ -701,10 +701,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
    SHEET COMPONENTS: HEALTH SYSTEM
 ================================================== */
 
-.cyberpunk-blue .health-hp {
-  min-width: 220px;
-}
-
 /* ── Effects panel (all Active Effects applied to the actor) ───────────────── */
 .cyberpunk-blue .effects-panel {
   grid-column: span 3;
@@ -3085,7 +3081,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   isolation: isolate;
   padding: 1rem;
   --c: var(--cpb-cut-lg);
-  background: var(--cpb-panel);
+  background: var(--cpb-accent-wash);
   clip-path: polygon(
     0 0, calc(100% - var(--c)) 0, 100% var(--c),
     100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
