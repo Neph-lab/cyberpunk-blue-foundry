@@ -4754,3 +4754,113 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   letter-spacing: 0.05em;
   padding: 0.4rem 1.2rem;
 }
+
+/* ── NET Combat tab ─────────────────────────────────────────────────────────── */
+.net-combat-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.net-combat-section {
+  padding: 0.5rem 0.6rem;
+}
+.net-combat-section > h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.net-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.8rem;
+  margin-bottom: 0.4rem;
+}
+.net-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+.net-radio input { margin: 0; }
+.net-option {
+  border: 1px solid var(--cpb-border, rgba(0, 0, 0, 0.15));
+  border-radius: 4px;
+  padding: 0.35rem 0.45rem;
+  margin-bottom: 0.35rem;
+}
+.net-option.is-on {
+  border-color: var(--cpb-accent, #2b8fd5);
+  background: rgba(43, 143, 213, 0.06);
+}
+.net-option-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.net-option-head input { margin: 0; }
+.net-stop-running {
+  margin-top: 0.2rem;
+  font-weight: 600;
+}
+.net-field-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
+.net-field-row > span { min-width: 7rem; }
+.net-field-row.net-field-wide > span { min-width: 8rem; }
+.net-field-row input[type="number"] { width: 4rem; }
+.net-affliction-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.2rem 0.8rem;
+  margin-top: 0.3rem;
+}
+.net-affliction-grid .net-field-wide { grid-column: 1 / -1; }
+.net-defense-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.net-booster-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.4rem;
+}
+.net-booster-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.net-booster-row select { flex: 1; }
+.net-booster-row input[type="number"] { width: 3.5rem; }
+.net-booster-add,
+.net-booster-remove {
+  cursor: pointer;
+}
+/* Defense notes block in chat */
+.cyberpunk-blue.chat-card .net-defense-notes {
+  margin-top: 0.3rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  padding-top: 0.3rem;
+}
+/* Support program rows on the Netrunner tab */
+.net-support-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+}
+.net-support-img {
+  width: 24px;
+  height: 24px;
+  border: none;
+  object-fit: contain;
+}
+.net-support-name { flex: 1; }

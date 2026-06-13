@@ -6,6 +6,8 @@ import { getBrandLogoPath } from '../helpers/branding.mjs';
 import { applyWeaponTypeDefaults, buildWeaponUpdate, createWeaponData, getWeaponTypeDefinition } from '../helpers/combat.mjs';
 import { parsePsycheLossFormula } from '../helpers/cyberware.mjs';
 import { PROGRAM_ACTOR_FLAG } from '../helpers/netrunning.mjs';
+import { buildNetCombatContext } from '../helpers/net-program-combat.mjs';
+import { attachNetCombatListeners } from '../helpers/net-combat-ui.mjs';
 import { GEAR_STATES, getGearStateUpdateData, normalizeGearState } from '../helpers/gear.mjs';
 import {
   createWeaponChangeData,
@@ -346,6 +348,15 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       && (!(context.isAbility || context.isGear) || canManageRestricted);
     context.showProgramExecutableNotesTab = context.isProgramExecutable && (this.document.isOwner || game.user.isGM);
 
+    // NET Combat tab (shared with the Program actor sheet). Hidden for
+    // non-combatant programs (ATK & DEF < 1, or Quickhack).
+    if (context.isProgramExecutable) {
+      const netTab = buildNetCombatContext(this.document);
+      netTab.isGM = game.user.isGM;
+      context.netTab = netTab;
+      context.showNetCombatTab = !netTab.isNonCombatant && (this.document.isOwner || game.user.isGM);
+    }
+
     // GM-visible linked Program Actor for programExecutable items
     if (context.isProgramExecutable && game.user.isGM) {
       const linkedActorId = this.document.getFlag('cyberpunk-blue', PROGRAM_ACTOR_FLAG);
@@ -572,6 +583,11 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       },
     });
     tabs.bind(this.element);
+    }
+
+    // NET Combat booster-table listeners (programExecutable only).
+    if (this.document.type === 'programExecutable') {
+      attachNetCombatListeners(this.element, this.document);
     }
 
     this.element.querySelectorAll('.effect-control').forEach((button) => {

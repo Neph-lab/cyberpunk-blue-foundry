@@ -8,6 +8,10 @@ import {
 } from '../helpers/netrunning.mjs';
 import { buildActorEffectGroups, attachEffectsPanelListeners } from '../helpers/effects.mjs';
 import { getStatCheckPreview } from '../helpers/roll-preview.mjs';
+import {
+  buildNetCombatContext, isNonCombatant, getNetCombat, progAtk,
+} from '../helpers/net-program-combat.mjs';
+import { attachNetCombatListeners } from '../helpers/net-combat-ui.mjs';
 
 const PROGRAM_TYPES = [
   { value: 'antipersonnel', label: 'Anti-Personnel' },
@@ -45,6 +49,9 @@ export class CyberBlueProgramSheet extends HandlebarsApplicationMixin(ActorSheet
     },
   };
 
+  /** Persisted active tab between re-renders. */
+  tabGroups = { primary: 'details' };
+
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     const actorData = this.document.toPlainObject();
@@ -76,6 +83,18 @@ export class CyberBlueProgramSheet extends HandlebarsApplicationMixin(ActorSheet
     context.actor = actorData;
     context.system = system;
     context.isGM = isGM;
+
+    // NET Combat tab context (shared builder; identical on actor & exe).
+    const netTab = buildNetCombatContext(this.document);
+    netTab.isGM = isGM;
+    netTab.attackMod = progAtk(this.document);
+    context.netTab = netTab;
+    // GM Attack button shows only for a combatant attacker program in Attack mode.
+    context.showProgramAttackButton = isGM
+      && !netTab.isNonCombatant
+      && getNetCombat(this.document)?.attack?.mode === 'attack'
+      && !inErrorState;
+
     context.effects = buildActorEffectGroups(this.document);
     context.atkRoll = getStatCheckPreview(this.document, 'atk', 'ATK');
     context.perRoll = getStatCheckPreview(this.document, 'per', 'PER');
@@ -100,6 +119,21 @@ export class CyberBlueProgramSheet extends HandlebarsApplicationMixin(ActorSheet
 
   async _onRender(context, options) {
     await super._onRender(context, options);
+
+    // Tab navigation (Details / NET Combat).
+    const tabNav = this.element.querySelector('.sheet-tabs');
+    if (tabNav) {
+      const tabs = new foundry.applications.ux.Tabs({
+        navSelector: '.sheet-tabs',
+        contentSelector: '.sheet-body',
+        initial: this.tabGroups.primary ?? 'details',
+        callback: (_event, _tabs, active) => { this.tabGroups.primary = active; },
+      });
+      tabs.bind(this.element);
+    }
+
+    // NET Combat booster table listeners.
+    attachNetCombatListeners(this.element, this.document);
 
     this.element.querySelector('[data-action="roll-atk"]')
       ?.addEventListener('click', () => this._rollStat('atk'));
@@ -172,11 +206,18 @@ export class CyberBlueProgramSheet extends HandlebarsApplicationMixin(ActorSheet
       return;
     }
 
-    // Determine damage formula from button data-attribute (set in template)
-    const damageFormula = event.currentTarget.dataset.damage || '1d6';
+    // Attack mode: drive damage / affliction / effectText from the program's
+    // own NET Combat config. The affliction template AE lives on this actor;
+    // stopRunningAfter targets the linked executable.
+    const attackCfg = getNetCombat(actor)?.attack ?? null;
+    const sourceExe = await getLinkedExecutable(actor);
     const label = `${actor.name} ${game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.ProgramAttackLabel')}`;
 
-    await resolveNetAttack(actor, targetToken.actor, atk, label, damageFormula);
+    await resolveNetAttack(actor, targetToken.actor, atk, label, '', {
+      effectsConfig: attackCfg,
+      effectsSourceDoc: actor,
+      sourceExe,
+    });
   }
 
   /**

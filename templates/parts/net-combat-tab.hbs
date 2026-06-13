@@ -1,0 +1,233 @@
+{{!--
+  Shared NET Combat tab. Included by BOTH the Program actor sheet and the Program
+  Executable item sheet with the context built by
+  net-program-combat.mjs#buildNetCombatContext (passed as the partial argument).
+  All field paths are `system.netCombat.*` and save via each sheet's submitOnChange.
+  Booster rows are edited via custom handlers (data-* attrs, no name).
+--}}
+<div class="net-combat-tab">
+
+  {{#unless isGM}}
+    <p class="hint">{{localize "CYBER_BLUE.Netrunning.NetCombat.GmOnlyHint"}}</p>
+  {{/unless}}
+
+  {{!-- ───────────────────────── Attack ───────────────────────── --}}
+  <section class="sheet-panel net-combat-section">
+    <h3><i class="fas fa-bolt"></i> {{localize "CYBER_BLUE.Netrunning.NetCombat.AttackSection"}}</h3>
+
+    <div class="net-radio-group">
+      {{#each attackModes as |opt|}}
+        <label class="net-radio">
+          <input type="radio" name="system.netCombat.attack.mode" value="{{opt.value}}"
+            {{#if (eq opt.value ../netCombat.attack.mode)}}checked{{/if}} {{#unless ../isGM}}disabled{{/unless}} />
+          <span>{{opt.label}}</span>
+        </label>
+      {{/each}}
+    </div>
+
+    {{#unless (eq netCombat.attack.mode "none")}}
+      {{#if (eq netCombat.attack.mode "support")}}
+        <label class="net-field-row">
+          <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.SupportModifier"}}</span>
+          <input type="number" name="system.netCombat.attack.supportModifier"
+            value="{{netCombat.attack.supportModifier}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+        </label>
+        <p class="hint">{{localize "CYBER_BLUE.Netrunning.NetCombat.SupportHint"}}</p>
+      {{/if}}
+
+      {{!-- Damage --}}
+      <div class="net-option {{#if netCombat.attack.damage.enabled}}is-on{{/if}}">
+        <label class="net-option-head">
+          <input type="checkbox" name="system.netCombat.attack.damage.enabled"
+            {{checked netCombat.attack.damage.enabled}} {{#unless isGM}}disabled{{/unless}} />
+          <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.Damage"}}</span>
+        </label>
+        {{#if netCombat.attack.damage.enabled}}
+          <label class="net-field-row">
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.DamageFormula"}}</span>
+            <input type="text" name="system.netCombat.attack.damage.formula"
+              value="{{netCombat.attack.damage.formula}}" placeholder="2d6" {{#unless isGM}}disabled{{/unless}} />
+          </label>
+        {{/if}}
+      </div>
+
+      {{!-- Affliction --}}
+      <div class="net-option {{#if netCombat.attack.affliction.enabled}}is-on{{/if}}">
+        <label class="net-option-head">
+          <input type="checkbox" name="system.netCombat.attack.affliction.enabled"
+            {{checked netCombat.attack.affliction.enabled}} {{#unless isGM}}disabled{{/unless}} />
+          <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.Affliction"}}</span>
+        </label>
+        {{#if netCombat.attack.affliction.enabled}}
+          <div class="net-affliction-grid">
+            <label class="net-field-row">
+              <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.AfflictionPrimary"}}</span>
+              <select name="system.netCombat.attack.affliction.primary" {{#unless isGM}}disabled{{/unless}}>
+                {{#each statOptions as |o|}}<option value="{{o.value}}" {{#if (eq o.value ../netCombat.attack.affliction.primary)}}selected{{/if}}>{{o.label}}</option>{{/each}}
+              </select>
+            </label>
+            <label class="net-field-row">
+              <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.AfflictionSkill"}}</span>
+              <select name="system.netCombat.attack.affliction.skill" {{#unless isGM}}disabled{{/unless}}>
+                <option value="">—</option>
+                {{#each skillOptions as |o|}}<option value="{{o.value}}" {{#if (eq o.value ../netCombat.attack.affliction.skill)}}selected{{/if}}>{{o.label}}</option>{{/each}}
+              </select>
+            </label>
+            {{#if hasComponentOptions}}
+              <label class="net-field-row">
+                <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.AfflictionComponent"}}</span>
+                <select name="system.netCombat.attack.affliction.component" {{#unless isGM}}disabled{{/unless}}>
+                  <option value="">—</option>
+                  {{#each componentOptions as |o|}}<option value="{{o.value}}" {{#if (eq o.value ../netCombat.attack.affliction.component)}}selected{{/if}}>{{o.label}}</option>{{/each}}
+                </select>
+              </label>
+            {{/if}}
+            <label class="net-field-row">
+              <span>{{localize "CYBER_BLUE.Combat.DV"}}</span>
+              <input type="number" name="system.netCombat.attack.affliction.dv"
+                value="{{netCombat.attack.affliction.dv}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+            </label>
+            <label class="net-field-row net-field-wide">
+              <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.AfflictionTemplate"}}</span>
+              <select name="system.netCombat.attack.affliction.effectId" {{#unless isGM}}disabled{{/unless}}>
+                <option value="">—</option>
+                {{#each disabledEffects as |e|}}<option value="{{e.id}}" {{#if (eq e.id ../netCombat.attack.affliction.effectId)}}selected{{/if}}>{{e.name}}</option>{{/each}}
+              </select>
+            </label>
+          </div>
+          {{#unless disabledEffects.length}}
+            <p class="hint">{{localize "CYBER_BLUE.Netrunning.NetCombat.NoTemplateHint"}}</p>
+          {{/unless}}
+        {{/if}}
+      </div>
+
+      {{!-- Effect text --}}
+      <div class="net-option {{#if netCombat.attack.effectText.enabled}}is-on{{/if}}">
+        <label class="net-option-head">
+          <input type="checkbox" name="system.netCombat.attack.effectText.enabled"
+            {{checked netCombat.attack.effectText.enabled}} {{#unless isGM}}disabled{{/unless}} />
+          <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.EffectText"}}</span>
+        </label>
+        {{#if netCombat.attack.effectText.enabled}}
+          <textarea name="system.netCombat.attack.effectText.text" rows="2"
+            placeholder="{{localize "CYBER_BLUE.Netrunning.NetCombat.EffectTextPlaceholder"}}" {{#unless isGM}}disabled{{/unless}}>{{netCombat.attack.effectText.text}}</textarea>
+        {{/if}}
+      </div>
+
+      {{#if attackHasEffects}}
+        <label class="net-option-head net-stop-running">
+          <input type="checkbox" name="system.netCombat.attack.stopRunningAfter"
+            {{checked netCombat.attack.stopRunningAfter}} {{#unless isGM}}disabled{{/unless}} />
+          <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.StopRunningAfter"}}</span>
+        </label>
+      {{/if}}
+    {{/unless}}
+  </section>
+
+  {{!-- ───────────────────────── Defense ───────────────────────── --}}
+  <section class="sheet-panel net-combat-section">
+    <h3><i class="fas fa-shield-halved"></i> {{localize "CYBER_BLUE.Netrunning.NetCombat.DefenseSection"}}</h3>
+
+    <div class="net-radio-group">
+      {{#each defenseModes as |opt|}}
+        <label class="net-radio">
+          <input type="radio" name="system.netCombat.defense.mode" value="{{opt.value}}"
+            {{#if (eq opt.value ../netCombat.defense.mode)}}checked{{/if}} {{#unless ../isGM}}disabled{{/unless}} />
+          <span>{{opt.label}}</span>
+        </label>
+      {{/each}}
+    </div>
+
+    {{#unless (eq netCombat.defense.mode "standard")}}
+      <div class="net-defense-options">
+        <label class="net-option-head">
+          <input type="checkbox" name="system.netCombat.defense.ablate" {{checked netCombat.defense.ablate}} {{#unless isGM}}disabled{{/unless}} />
+          <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.Ablate"}}</span>
+        </label>
+        <label class="net-option-head">
+          <input type="checkbox" name="system.netCombat.defense.cool" {{checked netCombat.defense.cool}} {{#unless isGM}}disabled{{/unless}} />
+          <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.Cool"}}</span>
+        </label>
+
+        <div class="net-option {{#if netCombat.defense.reduce.enabled}}is-on{{/if}}">
+          <label class="net-option-head">
+            <input type="checkbox" name="system.netCombat.defense.reduce.enabled" {{checked netCombat.defense.reduce.enabled}} {{#unless isGM}}disabled{{/unless}} />
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.Reduce"}}</span>
+          </label>
+          {{#if netCombat.defense.reduce.enabled}}
+            <input type="text" name="system.netCombat.defense.reduce.formula" value="{{netCombat.defense.reduce.formula}}" placeholder="1d6" {{#unless isGM}}disabled{{/unless}} />
+          {{/if}}
+        </div>
+
+        <div class="net-option {{#if netCombat.defense.strengthen.enabled}}is-on{{/if}}">
+          <label class="net-option-head">
+            <input type="checkbox" name="system.netCombat.defense.strengthen.enabled" {{checked netCombat.defense.strengthen.enabled}} {{#unless isGM}}disabled{{/unless}} />
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.Strengthen"}}</span>
+          </label>
+          {{#if netCombat.defense.strengthen.enabled}}
+            <input type="number" name="system.netCombat.defense.strengthen.amount" value="{{netCombat.defense.strengthen.amount}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+          {{/if}}
+        </div>
+
+        <div class="net-option {{#if netCombat.defense.block.enabled}}is-on{{/if}}">
+          <label class="net-option-head">
+            <input type="checkbox" name="system.netCombat.defense.block.enabled" {{checked netCombat.defense.block.enabled}} {{#unless isGM}}disabled{{/unless}} />
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.Block"}}</span>
+          </label>
+          {{#if netCombat.defense.block.enabled}}
+            <input type="number" name="system.netCombat.defense.block.amount" value="{{netCombat.defense.block.amount}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+          {{/if}}
+        </div>
+
+        <label class="net-option-head">
+          <input type="checkbox" name="system.netCombat.defense.memHandler" {{checked netCombat.defense.memHandler}} {{#unless isGM}}disabled{{/unless}} />
+          <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.MemHandler"}}</span>
+        </label>
+        <label class="net-option-head">
+          <input type="checkbox" name="system.netCombat.defense.junkData" {{checked netCombat.defense.junkData}} {{#unless isGM}}disabled{{/unless}} />
+          <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.JunkData"}}</span>
+        </label>
+
+        <label class="net-field-row net-field-wide">
+          <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.DefenseEffectText"}}</span>
+          <input type="text" name="system.netCombat.defense.effectText" value="{{netCombat.defense.effectText}}" {{#unless isGM}}disabled{{/unless}} />
+        </label>
+      </div>
+    {{/unless}}
+  </section>
+
+  {{!-- ───────────────────────── Booster ───────────────────────── --}}
+  {{#if caps.booster}}
+    <section class="sheet-panel net-combat-section net-booster-section">
+      <h3><i class="fas fa-arrow-up-right-dots"></i> {{localize "CYBER_BLUE.Netrunning.NetCombat.BoosterSection"}}</h3>
+      <p class="hint">{{localize "CYBER_BLUE.Netrunning.NetCombat.BoosterHint"}}</p>
+
+      <div class="net-booster-table">
+        {{#each boosts as |b|}}
+          <div class="net-booster-row" data-index="{{b.index}}">
+            <select data-boost-field="component" {{#unless ../isGM}}disabled{{/unless}}>
+              <option value="">—</option>
+              {{#each ../boosterComponents as |c|}}<option value="{{c.value}}" {{#if (eq c.value b.component)}}selected{{/if}}>{{c.label}}</option>{{/each}}
+            </select>
+            <select data-boost-field="use" {{#unless ../isGM}}disabled{{/unless}}>
+              <option value="">—</option>
+              {{#each b.useOptions as |u|}}<option value="{{u.slug}}" {{#if (eq u.slug b.use)}}selected{{/if}}>{{u.label}}</option>{{/each}}
+            </select>
+            <input type="number" data-boost-field="value" value="{{b.value}}" data-dtype="Number" {{#unless ../isGM}}disabled{{/unless}} />
+            {{#if ../isGM}}
+              <button type="button" class="net-booster-remove" data-action="net-booster-remove" data-index="{{b.index}}" title="{{localize "CYBER_BLUE.Netrunning.NetCombat.RemoveBoost"}}">
+                <i class="fas fa-times"></i>
+              </button>
+            {{/if}}
+          </div>
+        {{/each}}
+      </div>
+
+      {{#if isGM}}
+        <button type="button" class="net-booster-add" data-action="net-booster-add">
+          <i class="fas fa-plus"></i> {{localize "CYBER_BLUE.Netrunning.NetCombat.AddBoost"}}
+        </button>
+      {{/if}}
+    </section>
+  {{/if}}
+</div>

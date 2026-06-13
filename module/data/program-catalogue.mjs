@@ -29,31 +29,57 @@ const FOLDER = {
 
 const h = (text) => `<p>${text}</p>`;
 
-function prog({ name, cost, category, img = '', act = 0, atk = 0, def = 0, net = 0, per = 0, rez = 0, ram = 0, damageFormula = '', description }) {
+// Map the display category to the program's mechanical `programType` (which
+// drives the NET Combat capability gating). 'attack' covers Anti-Personnel and
+// Anti-Program; it defaults to anti-personnel and can be overridden per entry.
+const CATEGORY_TYPE = {
+  'attack':    'antipersonnel',
+  'black-ice': 'blackice',
+  'defender':  'defender',
+  'booster':   'booster',
+  'daemon':    'daemon',
+  'quickhack': 'quickhack',
+  'malware':   'malware',
+};
+const ATTACKER_TYPES = ['antipersonnel', 'antiprogram', 'ice', 'blackice', 'daemon'];
+
+/** Build a partial netCombat block; missing fields fall back to schema initials. */
+export function progNetCombat(programType, damageFormula) {
+  if (ATTACKER_TYPES.includes(programType) && (damageFormula ?? '').trim()) {
+    return { attack: { mode: 'attack', damage: { enabled: true, formula: damageFormula.trim() } } };
+  }
+  return null;
+}
+
+function prog({ name, cost, category, img = '', act = 0, atk = 0, def = 0, net = 0, per = 0, rez = 0, ram = 0, damageFormula = '', programType, description }) {
+  const type = programType ?? CATEGORY_TYPE[category] ?? 'antipersonnel';
+  const netCombat = progNetCombat(type, damageFormula);
+  const system = {
+    manufacturer: '',
+    cost: COST[cost] ?? cost,
+    note: '',
+    category,
+    programType: type,
+    act,
+    atk,
+    def,
+    net,
+    per,
+    rez: { value: rez, max: rez },
+    ram,
+    running: false,
+    installedOnId: null,
+    damageFormula,
+    description: h(description),
+    notes: '',
+  };
+  if (netCombat) system.netCombat = netCombat;
   return {
     _folder: FOLDER[category] ?? category,
     name,
     type: 'programExecutable',
     img,
-    system: {
-      manufacturer: '',
-      cost: COST[cost] ?? cost,
-      note: '',
-      category,
-      programType: 'antipersonnel',
-      act,
-      atk,
-      def,
-      net,
-      per,
-      rez: { value: rez, max: rez },
-      ram,
-      running: false,
-      installedOnId: null,
-      damageFormula,
-      description: h(description),
-      notes: '',
-    },
+    system,
   };
 }
 

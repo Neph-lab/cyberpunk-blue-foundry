@@ -1,4 +1,5 @@
 import CyberBlueItemBase from "./base-item.mjs";
+import CyberBlueProgram from "./actor-program.mjs";
 
 export default class CyberBlueProgramExecutable extends CyberBlueItemBase {
   static defineSchema() {
@@ -28,6 +29,10 @@ export default class CyberBlueProgramExecutable extends CyberBlueItemBase {
     // (Black ICE node-entry attacks). Leave blank to use the ATK-based default.
     schema.damageFormula = new fields.StringField({ required: true, blank: true, initial: '' });
     schema.notes = new fields.HTMLField({ initial: '' });
+    // NET Combat configuration — identical sub-schema to the Program actor
+    // (actor-program.mjs); the whole-object sync copies `system.netCombat`
+    // between the two documents.
+    schema.netCombat = CyberBlueProgram.defineNetCombatSchema();
 
     return schema;
   }

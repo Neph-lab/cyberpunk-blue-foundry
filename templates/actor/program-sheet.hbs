@@ -87,47 +87,51 @@
     {{/if}}
   </div>
 
+  <nav class="sheet-tabs tabs" data-group="primary">
+    <a class="item" data-tab="details"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Overview.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</a>
+    {{#unless netTab.isNonCombatant}}
+      <a class="item" data-tab="netcombat"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Netrunning.svg')"></span>{{localize "CYBER_BLUE.Netrunning.NetCombat.TabLabel"}}</a>
+    {{/unless}}
+  </nav>
+
   <section class="sheet-body program-body">
 
-    {{!-- ##ERROR## banner --}}
-    {{#if inErrorState}}
-      <div class="sheet-panel program-error-banner">
-        <i class="fas fa-triangle-exclamation"></i>
-        <strong>##ERROR##</strong> — REZ 0. Cannot move, act, or provide bonuses. Skipped in encounter order.
-      </div>
-    {{/if}}
-
-    {{!-- Attack panel (GM only, temp programs with ATK > 0) --}}
-    {{#if canAttack}}
-      <div class="sheet-panel program-attack-panel">
-        <h2>{{localize "CYBER_BLUE.Netrunning.NetCombat.AttackPanel"}}</h2>
-        <p class="hint">{{localize "CYBER_BLUE.Netrunning.NetCombat.AttackHint"}}</p>
-        <div class="program-attack-row">
-          <button type="button" class="net-action-btn" data-action="program-attack" data-damage="1d6">
-            <i class="fas fa-bolt"></i> 1d6 {{localize "CYBER_BLUE.Netrunning.NetCombat.StandardDamage"}}
-          </button>
+    <div class="tab active" data-group="primary" data-tab="details">
+      {{!-- ##ERROR## banner --}}
+      {{#if inErrorState}}
+        <div class="sheet-panel program-error-banner">
+          <i class="fas fa-triangle-exclamation"></i>
+          <strong>##ERROR##</strong> — REZ 0. Cannot move, act, or provide bonuses. Skipped in encounter order.
         </div>
-        {{#if enrichedDescription}}
-          <div class="program-attack-function enriched-html">{{{enrichedDescription}}}</div>
-        {{/if}}
-      </div>
-    {{/if}}
+      {{/if}}
 
-    {{!-- Description (non-GM or non-temp programs show it normally) --}}
-    {{#unless canAttack}}
       <div class="sheet-panel">
         <h2>Description</h2>
         {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.description" value=system.description uuid=actor.uuid enriched=enrichedDescription editable=isGM}}
       </div>
-    {{/unless}}
 
-    {{#if isGM}}
-      <div class="sheet-panel program-notes-panel">
-        <h2>Notes (GM only)</h2>
-        {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.notes" value=system.notes uuid=actor.uuid enriched=enrichedNotes editable=isGM}}
+      {{#if isGM}}
+        <div class="sheet-panel program-notes-panel">
+          <h2>Notes (GM only)</h2>
+          {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.notes" value=system.notes uuid=actor.uuid enriched=enrichedNotes editable=isGM}}
+        </div>
+      {{/if}}
+
+      {{> "systems/cyberpunk-blue/templates/actor/parts/effects-panel.hbs"}}
+    </div>
+
+    {{#unless netTab.isNonCombatant}}
+      <div class="tab" data-group="primary" data-tab="netcombat">
+        {{#if showProgramAttackButton}}
+          <div class="sheet-panel program-attack-panel">
+            <p class="hint">{{localize "CYBER_BLUE.Netrunning.NetCombat.AttackHint"}}</p>
+            <button type="button" class="net-action-btn" data-action="program-attack">
+              <i class="fas fa-bolt"></i> {{localize "CYBER_BLUE.Netrunning.NetCombat.AttackBtn"}} ({{netTab.attackMod}})
+            </button>
+          </div>
+        {{/if}}
+        {{> "systems/cyberpunk-blue/templates/parts/net-combat-tab.hbs" netTab}}
       </div>
-    {{/if}}
-
-    {{> "systems/cyberpunk-blue/templates/actor/parts/effects-panel.hbs"}}
+    {{/unless}}
   </section>
 </form>

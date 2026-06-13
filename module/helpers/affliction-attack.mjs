@@ -63,20 +63,26 @@ function getDvForRange(definition, distanceMeters, rangeTableOverride = null) {
 export async function rollAfflictionDefense(targetActor, weapon, resistBonus = 0) {
   const statSlug = weapon.afflictionPrimary || 'body';
   const skillSlug = weapon.afflictionSkill || '';
+  // Optional skill sub-component (e.g. a Netrunning/Tech component). NET Combat
+  // afflictions may specify one; weapon afflictions leave it blank.
+  const componentSlug = weapon.afflictionComponent || '';
   const statValue = targetActor.system?.stats?.[statSlug]?.value ?? 0;
   const statRollMod = targetActor.system?.stats?.[statSlug]?.rollMod ?? 0;
   const skillRank = skillSlug ? (targetActor.system?.skills?.[skillSlug]?.rank ?? 0) : 0;
   const skillBonus = skillSlug ? (targetActor.system?.skills?.[skillSlug]?.bonus ?? 0) : 0;
+  const componentRank = componentSlug ? (targetActor.system?.components?.[componentSlug]?.rank ?? 0) : 0;
 
-  const flatBonus = statValue + skillRank + (statRollMod ?? 0) + skillBonus + resistBonus;
+  const flatBonus = statValue + skillRank + (statRollMod ?? 0) + skillBonus + componentRank + resistBonus;
   const formula = `1d10 + ${flatBonus}`;
   const roll = await new Roll(formula).evaluate();
 
   const statLabel = CONFIG.CYBER_BLUE.stats?.[statSlug]?.shortLabel ?? statSlug.toUpperCase();
   const skillLabel = skillSlug ? (CONFIG.CYBER_BLUE.skills?.[skillSlug]?.label ?? skillSlug) : null;
+  const componentLabel = componentSlug ? (CONFIG.CYBER_BLUE.components?.[componentSlug]?.label ?? componentSlug) : null;
   const bonusParts = [
     `${statLabel} ${statValue}`,
     skillLabel ? `${skillLabel} ${skillRank}` : null,
+    componentLabel && componentRank ? `${componentLabel} ${componentRank}` : null,
     statRollMod ? `Mod ${statRollMod}` : null,
     skillBonus ? `Bonus ${skillBonus}` : null,
     resistBonus ? `+${resistBonus} (${game.i18n.localize('CYBER_BLUE.Combat.AfflictionOuterZone')})` : null,

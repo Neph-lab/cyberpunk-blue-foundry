@@ -544,7 +544,13 @@ export async function spawnProgramActor(actor, exeItem) {
       executableUuid: exeItem.uuid,
       description:  sys.description ?? '',
       notes:        sys.notes ?? '',
+      // Copy the exe's NET Combat config so the spawned actor can attack/defend
+      // immediately (the two-way sync keeps it current afterwards).
+      netCombat:    foundry.utils.deepClone(sys.netCombat ?? {}),
     },
+    // Copy the exe's Active Effects (preserving _id) so affliction templates
+    // referenced by netCombat.attack.affliction.effectId resolve on this actor.
+    effects: exeItem.effects.map((e) => e.toObject()),
     ownership,
     flags: {
       'cyberpunk-blue': {
@@ -990,12 +996,38 @@ export async function startEncryptDecryptTimer(actor, opLabel) {
  * @param {Actor}  targetActor    - Target (program actor, character, NPC, or mook)
  * @param {number} atkModifier    - Flat modifier added to 1d10 attack roll
  * @param {string} attackerLabel  - Display label for the attacker action (e.g. "Zap", "Sword")
- * @param {string} damageFormula  - Damage roll formula (e.g. "1d6", "2d6+1")
- * @param {string} [dvOverride]   - If set, skip the DV dialog and use this value directly
- * @returns {Promise<{hit: boolean, roll: Roll, damage: Roll|null}|null>}
- *   null if the action was cancelled.
+ * @param {string} damageFormula  - Legacy flat damage roll formula (used only when
+ *                                   `opts.effectsConfig` is absent, e.g. Zap "1d6").
+ * @param {object|number} [opts]   - Options (a bare number is treated as the legacy
+ *                                   positional `dvOverride`):
+ *   @param {number}      [opts.dvOverride]       Skip the DV dialog, use this value.
+ *   @param {object}      [opts.effectsConfig]    `system.netCombat.attack` — when present,
+ *                                                on-hit damage/affliction/effectText come from here.
+ *   @param {Actor|Item}  [opts.effectsSourceDoc] Document owning the affliction template AE
+ *                                                (program actor for Attack, exe for Support).
+ *   @param {Item}        [opts.sourceExe]        Executable to set not-running when
+ *                                                `effectsConfig.stopRunningAfter`.
+ *   @param {number}      [opts.boostContext]     Booster modifier added to the attack roll.
+ * @returns {Promise<{hit: boolean, roll: Roll, damage: number}|null>}
+ *   null if the action was cancelled / refused.
  */
-export async function resolveNetAttack(attackerActor, targetActor, atkModifier, attackerLabel, damageFormula, dvOverride = null) {
+export async function resolveNetAttack(attackerActor, targetActor, atkModifier, attackerLabel, damageFormula, opts = {}) {
+  if (typeof opts === 'number' || opts === null) opts = { dvOverride: opts };
+  const {
+    dvOverride = null, effectsConfig = null, effectsSourceDoc = null,
+    sourceExe = null, boostContext = 0,
+  } = opts;
+
+  const npc = await import('./net-program-combat.mjs');
+
+  // Inert / non-combatant attacker guard (programs only confer benefit when
+  // running, in combat, and not in ##ERROR##).
+  if (attackerActor?.type === 'program'
+    && (npc.isNonCombatant(attackerActor) || npc.programActorInError(attackerActor))) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.AttackerInert'));
+    return null;
+  }
+
   if (attackerActor?.type === 'program' && attackerActor?.system?.programType === 'blackice') {
     playSfx('black-ICE-attack');
   } else {
@@ -1015,31 +1047,68 @@ export async function resolveNetAttack(attackerActor, targetActor, atkModifier, 
     dv = result;
   }
 
-  // Attack roll
-  const formula = atkModifier >= 0 ? `1d10+${atkModifier}` : `1d10${atkModifier}`;
+  // Attack roll (+ booster boost)
+  const totalMod = (Number(atkModifier) || 0) + (Number(boostContext) || 0);
+  const formula = totalMod >= 0 ? `1d10+${totalMod}` : `1d10${totalMod}`;
   const roll = await new Roll(formula).evaluate();
   const hit = roll.total >= dv;
 
-  // Damage
-  let damage = null;
+  const resolution = { damage: 0, affliction: null };
+  let effectText = '';
+  let defNotes = [];
   if (hit) {
-    damage = await new Roll(damageFormula).evaluate();
-    const isProgram = targetActor.type === 'program';
-    if (isProgram) {
-      const curRez = Number(targetActor.system.resources?.rez?.value) || 0;
-      await targetActor.update({ 'system.resources.rez.value': Math.max(curRez - damage.total, 0) });
-    } else {
-      await targetActor.applyDamage(damage.total, { ignoreArmor: true });
+    // Build the incoming damage / affliction either from the program's
+    // configured NET Combat effects, or the legacy flat damage formula.
+    if (effectsConfig) {
+      const built = await npc.buildAttackResolution(effectsSourceDoc ?? attackerActor, effectsConfig);
+      resolution.damage = built.damage;
+      resolution.affliction = built.affliction;
+      effectText = built.effectText;
+    } else if (damageFormula) {
+      const dmgRoll = await new Roll(damageFormula).evaluate();
+      resolution.damage = dmgRoll.total;
+    }
+
+    // Defensive interjection (Defender / personnel / program), random order.
+    const defenders = await npc.gatherDefenders(targetActor);
+    const result = await npc.applyDefensePipeline(resolution, defenders);
+    defNotes = result.notes;
+
+    // Apply final damage (program → REZ, character/NPC → HP, armour ignored).
+    if (resolution.damage > 0) {
+      if (targetActor.type === 'program') {
+        const curRez = npc.progRez(targetActor);
+        await targetActor.update({ 'system.resources.rez.value': Math.max(curRez - resolution.damage, 0) });
+      } else {
+        await targetActor.applyDamage(resolution.damage, { ignoreArmor: true });
+      }
+    }
+
+    // Affliction (if not Cooled away) — rolls the target's defence + applies AE.
+    if (resolution.affliction) {
+      await npc.applyAfflictionFromConfig(resolution.affliction, targetActor);
+    }
+
+    // Post-resolution defender effects (MemHandler / JunkData).
+    await npc.runDefensePostEffects(result.postEffects);
+
+    // Attacker self-disables after a configured attack.
+    if (effectsConfig?.stopRunningAfter && sourceExe?.system?.running) {
+      await sourceExe.update({ 'system.running': false });
     }
   }
 
-  // Chat
+  // Headline chat
   const dvLabel = targetActor.type === 'program'
     ? game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.DefLabel', { dv })
     : game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.DvLabel', { dv });
   const hitStr  = hit ? game.i18n.localize('CYBER_BLUE.Combat.Hit') : game.i18n.localize('CYBER_BLUE.Combat.Miss');
-  const dmgStr  = damage
-    ? ` — ${damage.total} ${targetActor.type === 'program' ? 'REZ' : 'HP'}`
+  const dmgStr  = (hit && resolution.damage > 0)
+    ? ` — ${resolution.damage} ${targetActor.type === 'program' ? 'REZ' : 'HP'}`
+    : '';
+  const effectLine = (hit && effectText) ? `<p><em>${effectText}</em></p>` : '';
+  const defLine = (hit && defNotes.length)
+    ? `<div class="net-defense-notes"><p><i class="fas fa-shield-halved"></i> ${game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.DefenseHeader')}</p>${defNotes.map((n) => `<p>${n}</p>`).join('')}</div>`
     : '';
 
   await roll.toMessage({
@@ -1048,11 +1117,12 @@ export async function resolveNetAttack(attackerActor, targetActor, atkModifier, 
       <h3><i class="fas fa-bolt"></i> ${attackerLabel}: ${targetActor.name}</h3>
       <p>${game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.RollVs', { formula, dvLabel })}</p>
       <p><strong>${hitStr}</strong>${dmgStr}</p>
+      ${effectLine}${defLine}
     </div>`,
     rollMode: game.settings.get('core', 'rollMode'),
   });
 
-  return { hit, roll, damage };
+  return { hit, roll, damage: resolution.damage };
 }
 
 /**
@@ -1120,7 +1190,26 @@ export const PROGRAM_LINK_FIELDS = [
   { actor: 'system.resources.rez.max',   exe: 'system.rez.max' },
   { actor: 'system.description',         exe: 'system.description' },
   { actor: 'system.notes',               exe: 'system.notes' },
+  // NET Combat config is synced as a whole sub-object (see _netCombatPayload):
+  // the leaf-by-leaf delta approach can't faithfully carry the booster array or
+  // a multi-field toggle, so we copy the entire current `system.netCombat` from
+  // the source document whenever the change touches it.
+  { actor: 'system.netCombat',           exe: 'system.netCombat', whole: true },
 ];
+
+/**
+ * Build the whole-object payload for a `netCombat` sync from a source document
+ * (Program actor OR Executable item — the path is identical on both). The
+ * affliction template AE `_id` is document-local (AEs aren't synced and their
+ * ids differ between copies), so it is stripped from the payload, leaving the
+ * receiving document's own `effectId` intact through Foundry's recursive merge.
+ */
+function _netCombatPayload(srcDoc) {
+  const nc = srcDoc?.system?.toObject?.().netCombat;
+  if (!nc) return null;
+  if (nc.attack?.affliction) delete nc.attack.affliction.effectId;
+  return nc;
+}
 
 /**
  * Resolve the Executable item a Program Actor is linked to (or null).
@@ -1144,7 +1233,12 @@ export function isExecutableAttached(programActor, exeItem) {
  */
 export async function copyExecutableToProgram(programActor, exeItem) {
   const update = {};
-  for (const { actor, exe } of PROGRAM_LINK_FIELDS) {
+  for (const { actor, exe, whole } of PROGRAM_LINK_FIELDS) {
+    if (whole) {
+      const payload = _netCombatPayload(exeItem);
+      if (payload) foundry.utils.setProperty(update, actor, payload);
+      continue;
+    }
     const value = foundry.utils.getProperty(exeItem, exe);
     if (value !== undefined) foundry.utils.setProperty(update, actor, value);
   }
@@ -1164,7 +1258,15 @@ export async function syncProgramActorToExecutable(programActor, changes) {
   if (!exeItem) return;
 
   const update = {};
-  for (const { actor, exe } of PROGRAM_LINK_FIELDS) {
+  for (const { actor, exe, whole } of PROGRAM_LINK_FIELDS) {
+    if (whole) {
+      // The delta only needs to *touch* the path; copy the full current value.
+      if (foundry.utils.getProperty(changes, actor) !== undefined) {
+        const payload = _netCombatPayload(programActor);
+        if (payload) foundry.utils.setProperty(update, exe, payload);
+      }
+      continue;
+    }
     const value = foundry.utils.getProperty(changes, actor);
     if (value !== undefined) foundry.utils.setProperty(update, exe, value);
   }
@@ -1195,7 +1297,14 @@ export async function syncExecutableToProgramActors(exeItem, changes) {
   if (!targets.length) return;
 
   const update = {};
-  for (const { actor, exe } of PROGRAM_LINK_FIELDS) {
+  for (const { actor, exe, whole } of PROGRAM_LINK_FIELDS) {
+    if (whole) {
+      if (foundry.utils.getProperty(changes, exe) !== undefined) {
+        const payload = _netCombatPayload(exeItem);
+        if (payload) foundry.utils.setProperty(update, actor, payload);
+      }
+      continue;
+    }
     const value = foundry.utils.getProperty(changes, exe);
     if (value !== undefined) foundry.utils.setProperty(update, actor, value);
   }

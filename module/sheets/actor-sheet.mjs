@@ -18,7 +18,9 @@ import {
   performQuickhackBreach, performQuickhackUpload,
   resolveNetAttack,
   startEncryptDecryptTimer,
+  getLinkedExecutable,
 } from '../helpers/netrunning.mjs';
+import { getNetCombat, isInert, getBoost } from '../helpers/net-program-combat.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack, resolveDoubleLockAttack } from '../helpers/combat-resolution.mjs';
 import { refreshAllRicochetLines } from '../helpers/ricochet-canvas.mjs';
 import { reloadWeapon, toggleWeaponCharge, toggleWeaponRicochet } from '../helpers/weapon-actions.mjs';
@@ -946,6 +948,25 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           return a.name.localeCompare(b.name);
         });
 
+      // ── Support programs (NET Combat "Support attack" executables) ─────────
+      // Running, non-inert executables on the active cyberdeck whose NET Combat
+      // attack mode is "support" get an ATK button on this tab; the runner
+      // spends a NET action and attacks via the Cracker component.
+      const activeDeckId = getNetConnection(this.document)?.cyberdeckId
+        || getPrimaryCyberdeck(this.document)?.id || null;
+      context.supportPrograms = activeDeckId
+        ? allExecutables
+          .filter((exe) => exe.system.installedOnId === activeDeckId
+            && getNetCombat(exe)?.attack?.mode === 'support'
+            && !isInert(exe))
+          .map((exe) => ({
+            id: exe.id,
+            name: exe.name,
+            img: exe.img,
+            supportModifier: getNetCombat(exe)?.attack?.supportModifier ?? 0,
+          }))
+        : [];
+
       // ── Net connection context ────────────────────────────────────────────
       context.netConnected = isNetConnected(this.document);
       context.canConnect   = false;
@@ -1284,6 +1305,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     });
     this.element.querySelectorAll('[data-action="net-quickhack-upload"]').forEach((button) => {
       button.addEventListener('click', this._onQuickhackUpload.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="support-program-attack"]').forEach((button) => {
+      button.addEventListener('click', this._onSupportProgramAttack.bind(this));
     });
 
     // ── Role-specific mechanics ────────────────────────────────────────────
@@ -2214,6 +2238,18 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
   // ── Netrunner tab handlers ────────────────────────────────────────────────
 
+  /**
+   * Booster boost contributed by running Booster programs on the active
+   * cyberdeck for a given component/use. Cracker uses the generic
+   * attack/defend slugs.
+   */
+  _netBoost(componentSlug, useSlug) {
+    const deckId = getNetConnection(this.document)?.cyberdeckId
+      || getPrimaryCyberdeck(this.document)?.id || null;
+    if (!deckId) return 0;
+    return getBoost(this.document, deckId, componentSlug, useSlug);
+  }
+
   async _onNetrunnerComponentRoll(event) {
     event.preventDefault();
     const componentSlug = event.currentTarget.dataset.componentSlug;
@@ -2227,8 +2263,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       return this._onNetZap(modifier);
     }
 
+    // Booster boost for this component/use (Cracker → generic "defend").
+    const boostUse = componentSlug === 'cracker' ? 'defend' : useSlug;
+    const totalMod = modifier + this._netBoost(componentSlug, boostUse);
+
     const componentLabel = CONFIG.CYBER_BLUE.components[componentSlug]?.label ?? componentSlug;
-    const formula = modifier >= 0 ? `1d10+${modifier}` : `1d10${modifier}`;
+    const formula = totalMod >= 0 ? `1d10+${totalMod}` : `1d10${totalMod}`;
     const roll = await new Roll(formula).evaluate();
     const flavor = `<div class="cyberpunk-blue chat-card"><h3>${componentLabel}: ${useLabel}</h3></div>`;
     await roll.toMessage({
@@ -2263,7 +2303,57 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     }
 
     const label = game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.ZapLabel');
-    const result = await resolveNetAttack(actor, targetToken.actor, modifier, label, '1d6');
+    const result = await resolveNetAttack(actor, targetToken.actor, modifier, label, '1d6', {
+      boostContext: this._netBoost('cracker', 'attack'),
+    });
+    if (!result) return;
+
+    const combatant = game.combat?.combatants.find((c) => c.actor?.id === actor.id);
+    if (combatant) await consumeNetAction(combatant);
+  }
+
+  /**
+   * Support-attack: the runner triggers a "Support attack" program's effects via
+   * the Cracker component (like Zap) + the program's support modifier and
+   * Booster Cracker/attack boost. On-hit effects come from the executable.
+   */
+  async _onSupportProgramAttack(event) {
+    event.preventDefault();
+    const actor = this.document;
+
+    if (!isNetConnected(actor)) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.NotConnected'));
+      return;
+    }
+    const exeId = event.currentTarget.dataset.exeId;
+    const exe = actor.items.get(exeId);
+    if (!exe || isInert(exe)) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.SupportUnavailable'));
+      return;
+    }
+    const targetToken = [...(game.user?.targets ?? [])][0];
+    if (!targetToken?.actor) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.NoTarget'));
+      return;
+    }
+
+    // Cracker modifier (same math as Zap): INT + Netrunner rank + min(netrunning, cracker).
+    const sys = actor.system;
+    const networkerRole = actor.items.find((i) => i.type === 'role' && i.name === 'Netrunner' && (Number(i.system.rank) || 0) >= 1);
+    const networkerRank = Number(networkerRole?.system?.rank) || 0;
+    const intVal = Number(sys.stats?.int?.value) || 0;
+    const crackerRank = Number(sys.components?.cracker?.rank) || 0;
+    const netrunningRank = Number(sys.skills?.netrunning?.rank) || 0;
+    const crackerMod = intVal + networkerRank + Math.min(netrunningRank, crackerRank);
+    const supportMod = Number(getNetCombat(exe)?.attack?.supportModifier) || 0;
+
+    const label = game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.SupportAttackLabel', { name: exe.name });
+    const result = await resolveNetAttack(actor, targetToken.actor, crackerMod + supportMod, label, '', {
+      effectsConfig: getNetCombat(exe)?.attack ?? null,
+      effectsSourceDoc: exe,
+      sourceExe: exe,
+      boostContext: this._netBoost('cracker', 'attack'),
+    });
     if (!result) return;
 
     const combatant = game.combat?.combatants.find((c) => c.actor?.id === actor.id);

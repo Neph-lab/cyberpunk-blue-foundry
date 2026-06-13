@@ -41,7 +41,68 @@ export default class CyberBlueProgram extends CyberBlueDataModel {
       executableUuid: new fields.StringField({ required: false, nullable: true, blank: true, initial: null }),
       description: new fields.HTMLField({ initial: '' }),
       notes: new fields.HTMLField({ initial: '' }),
+      // NET Combat configuration. Identical shape on the Program Executable item
+      // (item-program-executable.mjs); kept in lockstep by the whole-object sync
+      // in netrunning.mjs. See net-program-combat.mjs for the resolution logic.
+      netCombat: CyberBlueProgram.defineNetCombatSchema(),
     };
+  }
+
+  /**
+   * Shared NET Combat sub-schema. Defined once here and re-used verbatim by the
+   * Program Executable item so the two documents stay byte-for-byte compatible
+   * and the whole-object sync can copy `system.netCombat` between them.
+   */
+  static defineNetCombatSchema() {
+    const fields = foundry.data.fields;
+    const int = (initial = 0) => new fields.NumberField({ required: true, nullable: false, integer: true, initial });
+    const str = (initial = '') => new fields.StringField({ required: true, blank: true, initial });
+    const bool = (initial = false) => new fields.BooleanField({ initial });
+
+    return new fields.SchemaField({
+      attack: new fields.SchemaField({
+        // 'none' | 'attack' | 'support'
+        mode: new fields.StringField({ required: true, blank: false, initial: 'none' }),
+        supportModifier: int(0),
+        stopRunningAfter: bool(false),
+        damage: new fields.SchemaField({
+          enabled: bool(false),
+          formula: str(''),
+        }),
+        affliction: new fields.SchemaField({
+          enabled: bool(false),
+          primary: new fields.StringField({ required: true, blank: false, initial: 'body' }),
+          skill: str(''),
+          component: str(''),
+          dv: int(13),
+          // Document-local AE _id (NOT synced — see netrunning.mjs).
+          effectId: str(''),
+        }),
+        effectText: new fields.SchemaField({
+          enabled: bool(false),
+          text: str(''),
+        }),
+      }),
+      defense: new fields.SchemaField({
+        // 'standard' | 'defender' | 'personnel' | 'program'
+        mode: new fields.StringField({ required: true, blank: false, initial: 'standard' }),
+        ablate: bool(false),
+        cool: bool(false),
+        reduce: new fields.SchemaField({ enabled: bool(false), formula: str('') }),
+        strengthen: new fields.SchemaField({ enabled: bool(false), amount: int(0) }),
+        block: new fields.SchemaField({ enabled: bool(false), amount: int(0) }),
+        memHandler: bool(false),
+        junkData: bool(false),
+        effectText: str(''),
+      }),
+      booster: new fields.SchemaField({
+        boosts: new fields.ArrayField(new fields.SchemaField({
+          component: str(''),
+          use: str(''),
+          value: int(0),
+        })),
+      }),
+    });
   }
 
   prepareDerivedData() {

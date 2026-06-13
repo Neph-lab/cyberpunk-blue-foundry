@@ -18,6 +18,7 @@
  */
 
 import { getNetConnection, resolveNetAttack } from './netrunning.mjs';
+import { getNetCombat } from './net-program-combat.mjs';
 import { attachTokenToVehicle, detachTokenFromVehicle } from './vehicle-movement.mjs';
 import { DRIVER_TOKEN_FLAG } from './vehicle-combat.mjs';
 import { VIS } from './visibility.mjs';
@@ -156,16 +157,25 @@ export class CyberBlueNetNodeBehavior extends foundry.data.regionBehaviors.Regio
       const atk = Number(iceActor.system.stats?.atk?.value) || 0;
       const atkLabel = `${iceActor.name} ${game.i18n.localize('CYBER_BLUE.Netrunning.BlackIceAutoAttack')}`;
 
-      // Damage formula: use the program's damageFormula field if set, otherwise
-      // approximate from ATK modifier (ceil(atk/2))d6 — e.g. ATK 4 → 2d6, ATK 6 → 3d6.
-      // The GM can set an exact formula via the damageFormula field on the item.
-      const customFormula = iceActor.system.damageFormula;
-      const atkVal = atk;
-      const damageFormula = customFormula?.trim()
-        ? customFormula.trim()
-        : `${Math.max(1, Math.ceil(atkVal / 2))}d6`;
+      // Prefer the program's configured NET Combat Attack effects (damage /
+      // affliction / effectText). Fall back to the legacy damageFormula field,
+      // or an ATK-derived (ceil(atk/2))d6 approximation, when unconfigured.
+      const attackCfg = getNetCombat(iceActor)?.attack ?? null;
+      const hasEffects = attackCfg?.mode === 'attack'
+        && (attackCfg.damage?.enabled || attackCfg.affliction?.enabled || attackCfg.effectText?.enabled);
 
-      await resolveNetAttack(iceActor, netrunnerActor, atk, atkLabel, damageFormula);
+      if (hasEffects) {
+        await resolveNetAttack(iceActor, netrunnerActor, atk, atkLabel, '', {
+          effectsConfig: attackCfg,
+          effectsSourceDoc: iceActor,
+        });
+      } else {
+        const customFormula = iceActor.system.damageFormula;
+        const damageFormula = customFormula?.trim()
+          ? customFormula.trim()
+          : `${Math.max(1, Math.ceil(atk / 2))}d6`;
+        await resolveNetAttack(iceActor, netrunnerActor, atk, atkLabel, damageFormula);
+      }
     }
   }
 }

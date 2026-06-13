@@ -1285,6 +1285,22 @@
           </section>
         {{/if}}
 
+        {{!-- ── Support programs (NET Combat) ── --}}
+        {{#if supportPrograms.length}}
+          <section class="sheet-panel net-support-panel">
+            <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Netrunning.NetCombat.SupportProgramsHeader"}}</span></div>
+            {{#each supportPrograms as |sp|}}
+              <div class="net-support-row">
+                <img class="net-support-img" src="{{sp.img}}" alt="{{sp.name}}" />
+                <span class="net-support-name">{{sp.name}}</span>
+                <button type="button" class="net-action-btn" data-action="support-program-attack" data-exe-id="{{sp.id}}">
+                  <i class="fas fa-bolt"></i> {{localize "CYBER_BLUE.Netrunning.NetCombat.AttackBtn"}}{{#if sp.supportModifier}} ({{numberFormat sp.supportModifier sign=true}}){{/if}}
+                </button>
+              </div>
+            {{/each}}
+          </section>
+        {{/if}}
+
         {{!-- ── On Disk executables ── --}}
         <section class="sheet-panel">
           <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Combat.ExecutablesOnDisk"}}</span></div>

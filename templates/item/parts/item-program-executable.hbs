@@ -1,5 +1,8 @@
 <nav class="sheet-tabs tabs" data-group="primary">
   <a class="item" data-tab="description"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Overview.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</a>
+  {{#if showNetCombatTab}}
+    <a class="item" data-tab="netcombat"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Netrunning.svg')"></span>{{localize "CYBER_BLUE.Netrunning.NetCombat.TabLabel"}}</a>
+  {{/if}}
   {{#if showProgramExecutableNotesTab}}
     <a class="item" data-tab="notes"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Notes.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Notes"}}</a>
   {{/if}}
@@ -21,6 +24,12 @@
       {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.description" value=system.description uuid=item.uuid enriched=enrichedDescription editable=canEditAsOwner}}
     </section>
   </div>
+
+  {{#if showNetCombatTab}}
+    <div class="tab" data-group="primary" data-tab="netcombat">
+      {{> "systems/cyberpunk-blue/templates/parts/net-combat-tab.hbs" netTab}}
+    </div>
+  {{/if}}
 
   {{#if showProgramExecutableNotesTab}}
     <div class="tab" data-group="primary" data-tab="notes">

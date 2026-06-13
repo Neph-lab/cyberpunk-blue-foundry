@@ -110,6 +110,7 @@ import {
   applyErrorState,
   resolveNetTimers,
 } from './helpers/netrunning.mjs';
+import { isNonCombatant as isProgramNonCombatant } from './helpers/net-program-combat.mjs';
 
 Hooks.once('init', function () {
   game.cyberpunkblue = {
@@ -1264,6 +1265,19 @@ Hooks.on('deleteItem', async (item) => {
   if (!actor) return;
   // despawnProgramActor will no-op if there's no linked actor
   await despawnProgramActor(actor, item, { skipRunningUpdate: true });
+});
+
+// ─── Netrunning: keep non-combatant programs out of initiative ───────────────
+// A program with ATK & DEF both < 1, or a Quickhack, can never act or defend, so
+// it must never be added to the combat tracker.
+Hooks.on('preCreateCombatant', (combatant) => {
+  const actor = combatant.actor;
+  if (actor?.type !== 'program') return true;
+  if (isProgramNonCombatant(actor)) {
+    ui.notifications?.info(game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.NonCombatantExcluded'));
+    return false;
+  }
+  return true;
 });
 
 // ─── Netrunning: unsafe disconnect when token leaves AP region ────────────────
@@ -3249,11 +3263,28 @@ async function _syncProgramEntries(catalogue) {
     const formulaChanged = (doc.system?.damageFormula ?? '') !== newFormula;
     const imgChanged = def.img && doc.img !== def.img;
 
-    if (!formulaChanged && !imgChanged) continue;
+    // Correct the mechanical programType (older packs stamped everything as
+    // anti-personnel) so NET Combat capability gating works.
+    const newType = def.system?.programType;
+    const typeChanged = newType && (doc.system?.programType !== newType);
+
+    // Seed netCombat for damage-dealing programs that haven't been configured
+    // yet (don't clobber a GM's existing Attack-mode config).
+    const defNet = def.system?.netCombat ?? null;
+    const docMode = doc.system?.netCombat?.attack?.mode ?? 'none';
+    const netNeedsSeed = Boolean(defNet) && docMode === 'none';
+
+    if (!formulaChanged && !imgChanged && !typeChanged && !netNeedsSeed) continue;
 
     const update = { _id: doc.id };
     if (formulaChanged) update['system.damageFormula'] = newFormula;
     if (imgChanged)     update.img = def.img;
+    if (typeChanged)    update['system.programType'] = newType;
+    if (netNeedsSeed) {
+      update['system.netCombat.attack.mode'] = 'attack';
+      update['system.netCombat.attack.damage.enabled'] = true;
+      update['system.netCombat.attack.damage.formula'] = defNet.attack?.damage?.formula ?? newFormula;
+    }
     updates.push(update);
   }
 
