@@ -51,9 +51,12 @@ export function progNetCombat(programType, damageFormula) {
   return null;
 }
 
-function prog({ name, cost, category, img = '', act = 0, atk = 0, def = 0, net = 0, per = 0, rez = 0, ram = 0, damageFormula = '', programType, description }) {
+function prog({ name, cost, category, img = '', act = 0, atk = 0, def = 0, net = 0, per = 0, rez = 0, ram = 0, damageFormula = '', programType, description, netCombat: netCombatOverride = null, effects = null }) {
   const type = programType ?? CATEGORY_TYPE[category] ?? 'antipersonnel';
-  const netCombat = progNetCombat(type, damageFormula);
+  // An explicit `netCombat` block (for programs with riders/defense/boosts beyond
+  // a plain damage formula) takes precedence; otherwise auto-generate the simple
+  // damage-only config from `damageFormula`.
+  const netCombat = netCombatOverride ?? progNetCombat(type, damageFormula);
   const system = {
     manufacturer: '',
     cost: COST[cost] ?? cost,
@@ -74,13 +77,15 @@ function prog({ name, cost, category, img = '', act = 0, atk = 0, def = 0, net =
     notes: '',
   };
   if (netCombat) system.netCombat = netCombat;
-  return {
+  const data = {
     _folder: FOLDER[category] ?? category,
     name,
     type: 'programExecutable',
     img,
     system,
   };
+  if (effects) data.effects = effects;
+  return data;
 }
 
 export const PROGRAM_CATALOGUE = [
@@ -94,13 +99,20 @@ export const PROGRAM_CATALOGUE = [
     img: `systems/cyberpunk-blue/assets/items/programs/DeckKRASH.png`,
     cost: 'PR', category: 'attack',
     atk: 0, def: 10, rez: 5,
+    netCombat: { attack: { mode: 'attack', forceDisconnect: { enabled: true } } },
     description: 'Attack a netrunner with a connected cyberdeck. Deals no damage; instead unsafely disconnects the target.',
   }),
   prog({
     name: 'Hellbolt',
     img: `systems/cyberpunk-blue/assets/items/programs/hellbolt.png`,
     cost: 'PR', category: 'attack',
-    atk: 1, def: 14, rez: 5,
+    atk: 1, def: 14, rez: 5, damageFormula: '2d6',
+    netCombat: { attack: {
+      mode: 'attack',
+      damage: { enabled: true, formula: '2d6' },
+      applyCondition: { enabled: true, conditionId: 'burning-embers' },
+      netActionPenalty: { enabled: true, amount: 1, floor: 0, duration: 'nextTurn' },
+    } },
     description: 'Attack a netrunner. Deals 2d6 HP directly; a non-insulated cyberdeck starts a small fire. Target has 1 fewer NET action (non-cumulative) on their next turn.',
   }),
   prog({
@@ -108,6 +120,10 @@ export const PROGRAM_CATALOGUE = [
     img: `systems/cyberpunk-blue/assets/items/programs/nervescrub.png`,
     cost: 'EX', category: 'attack',
     atk: 0, def: 10, rez: 5,
+    netCombat: { attack: {
+      mode: 'attack',
+      statPenalty: { enabled: true, stats: ['rflx', 'int'], formula: '1d6', floor: 1, durationLabel: '1 hour' },
+    } },
     description: 'Attack a netrunner. No damage. Target\'s RFLX and INT are each reduced by 1d6 (minimum 1) for 1 hour. Effect is non-stacking and psychosomatic.',
   }),
   prog({
@@ -115,13 +131,17 @@ export const PROGRAM_CATALOGUE = [
     img: `systems/cyberpunk-blue/assets/items/programs/poison-flatline.png`,
     cost: 'EX', category: 'attack',
     atk: 0, def: 12, rez: 10,
+    netCombat: { attack: {
+      mode: 'attack',
+      programStrike: { enabled: true, action: 'delete', count: 1, filter: 'any' },
+    } },
     description: 'Attack a netrunner. No damage. Deletes one random program from the target\'s cyberdeck.',
   }),
   prog({
     name: 'Speed-Slice',
     img: `systems/cyberpunk-blue/assets/items/programs/speed-slice.png`,
-    cost: 'PR', category: 'attack',
-    act: 1, atk: 2, def: 10, rez: 5,
+    cost: 'PR', category: 'attack', programType: 'antiprogram',
+    act: 1, atk: 2, def: 10, rez: 5, damageFormula: '2d6',
     description: 'Attack a program (as own action or as a NET action). Deals 2d6 damage. ACT 1. A single target can only be attacked once per turn per copy of this program.',
   }),
   prog({
@@ -129,19 +149,29 @@ export const PROGRAM_CATALOGUE = [
     img: `systems/cyberpunk-blue/assets/items/programs/superglue.png`,
     cost: 'PR', category: 'attack',
     atk: 2, def: 14, rez: 10,
+    netCombat: { attack: {
+      mode: 'attack',
+      nodeLock: { enabled: true, turns: '1d6', duration: 'turns' },
+    } },
     description: 'Attack a netrunner. No damage. For 1d6 turns, or until closed, the target cannot move between nodes or safely disconnect. Must be closed and re-run to use again.',
   }),
   prog({
     name: 'Sword',
     img: `systems/cyberpunk-blue/assets/items/programs/Sword program.png`,
-    cost: 'CO', category: 'attack',
-    atk: 2, def: 10, rez: 5,
+    cost: 'CO', category: 'attack', programType: 'antiprogram',
+    atk: 2, def: 10, rez: 5, damageFormula: '2d6',
+    netCombat: { attack: { mode: 'attack', damage: { enabled: true, formula: '2d6', bonusFormula: '1d6', vsType: 'blackice' } } },
     description: 'Attack a program. Deals 2d6 damage (+1d6 extra against Black ICE).',
   }),
   prog({
     name: 'Vrizzbolt',
     cost: 'CO', category: 'attack',
-    atk: 2, def: 10, rez: 5,
+    atk: 2, def: 10, rez: 5, damageFormula: '1d6',
+    netCombat: { attack: {
+      mode: 'attack',
+      damage: { enabled: true, formula: '1d6' },
+      netActionPenalty: { enabled: true, amount: 1, floor: 2, duration: 'nextTurn' },
+    } },
     description: 'Attack a netrunner. Deals 1d6 HP directly to the brain. Target\'s NET actions on their next turn are reduced by 1 (minimum 2).',
   }),
 
@@ -155,6 +185,10 @@ export const PROGRAM_CATALOGUE = [
     cost: 'PR', category: 'black-ice',
     act: 1, atk: 7, def: 17, net: 0, per: 12, rez: 15,
     damageFormula: '',   // no HP damage (destroys a program instead)
+    netCombat: { attack: {
+      mode: 'attack',
+      programStrike: { enabled: true, action: 'delete', count: 1, filter: 'any' },
+    } },
     description: 'Destroys a single program installed on the enemy\'s system.',
   }),
   prog({
@@ -163,6 +197,7 @@ export const PROGRAM_CATALOGUE = [
     cost: 'VEX', category: 'black-ice',
     act: 1, atk: 11, def: 21, net: 2, per: 15, rez: 30,
     damageFormula: '6d6',
+    netCombat: { attack: { mode: 'attack', damage: { enabled: true, formula: '6d6' }, deleteOnKill: true } },
     description: 'Deals 6d6 damage to a program. If the program\'s REZ reaches 0, the program is deleted rather than merely derezzed.',
   }),
   prog({
@@ -171,6 +206,7 @@ export const PROGRAM_CATALOGUE = [
     cost: 'VEX', category: 'black-ice',
     act: 1, atk: 13, def: 19, net: 2, per: 14, rez: 25,
     damageFormula: '3d6',
+    netCombat: { attack: { mode: 'attack', damage: { enabled: true, formula: '3d6' }, forceDisconnect: { enabled: true, oncePerSource: true } } },
     description: 'Deals 3d6 HP directly to a netrunner and unsafely disconnects them. This disconnect effect can only happen once per Giant.',
   }),
   prog({
@@ -179,6 +215,11 @@ export const PROGRAM_CATALOGUE = [
     cost: 'EX', category: 'black-ice',
     act: 1, atk: 11, def: 17, net: 1, per: 15, rez: 20,
     damageFormula: '3d6',
+    netCombat: { attack: {
+      mode: 'attack',
+      damage: { enabled: true, formula: '3d6' },
+      applyCondition: { enabled: true, conditionId: 'burning-embers' },
+    } },
     description: 'Deals 3d6 HP directly to a netrunner. The runner\'s non-insulated cyberdeck and clothes catch Fire (Mild).',
   }),
   prog({
@@ -187,6 +228,7 @@ export const PROGRAM_CATALOGUE = [
     cost: 'EX', category: 'black-ice',
     act: 1, atk: 11, def: 17, net: 1, per: 12, rez: 20,
     damageFormula: '4d6',
+    netCombat: { attack: { mode: 'attack', damage: { enabled: true, formula: '4d6' }, deleteOnKill: true } },
     description: 'Deals 4d6 damage to a program. If the program\'s REZ reaches 0, it is deleted rather than merely derezzed.',
   }),
   prog({
@@ -195,6 +237,11 @@ export const PROGRAM_CATALOGUE = [
     cost: 'VEX', category: 'black-ice',
     act: 1, atk: 13, def: 19, net: 2, per: 14, rez: 30,
     damageFormula: '4d6',
+    netCombat: { attack: {
+      mode: 'attack',
+      damage: { enabled: true, formula: '4d6' },
+      nodeLock: { enabled: true, duration: 'endNextTurn' },
+    } },
     description: 'Deals 4d6 HP directly to a netrunner. Until the end of their next turn, the target cannot connect to a different node or safely disconnect.',
   }),
   prog({
@@ -203,6 +250,10 @@ export const PROGRAM_CATALOGUE = [
     cost: 'EX', category: 'black-ice',
     act: 1, atk: 11, def: 17, net: 1, per: 13, rez: 25,
     damageFormula: '',   // no HP damage (stat reduction only)
+    netCombat: { attack: {
+      mode: 'attack',
+      statPenalty: { enabled: true, stats: ['rflx', 'tech', 'int'], formula: '1d6', floor: 1, durationLabel: '1 hour' },
+    } },
     description: 'Target netrunner\'s RFLX, TECH, and INT are each reduced by 1d6 (minimum 1) for 1 hour. Effect is non-stacking and psychosomatic.',
   }),
   prog({
@@ -211,6 +262,11 @@ export const PROGRAM_CATALOGUE = [
     cost: 'CO', category: 'black-ice',
     act: 1, atk: 9, def: 17, net: 0, per: 14, rez: 15,
     damageFormula: '1d6',
+    netCombat: { attack: {
+      mode: 'attack',
+      damage: { enabled: true, formula: '1d6' },
+      programStrike: { enabled: true, action: 'derez', count: 1, filter: 'defender' },
+    } },
     description: 'Derezzes a random Defender program from a target netrunner, then deals 1d6 HP directly.',
   }),
   prog({
@@ -227,6 +283,10 @@ export const PROGRAM_CATALOGUE = [
     cost: 'PR', category: 'black-ice',
     act: 1, atk: 8, def: 17, net: 0, per: 8, rez: 15,
     damageFormula: '',   // no HP damage (MOVE reduction only)
+    netCombat: { attack: {
+      mode: 'attack',
+      statPenalty: { enabled: true, stats: ['move'], formula: '1d6', floor: 1, durationLabel: '1 hour' },
+    } },
     description: 'Target netrunner\'s MOVE is reduced by 1d6 (minimum 1) for 1 hour. Effect is non-stacking and psychosomatic.',
   }),
   prog({
@@ -235,6 +295,19 @@ export const PROGRAM_CATALOGUE = [
     cost: 'PR', category: 'black-ice',
     act: 1, atk: 5, def: 17, net: 1, per: 10, rez: 10,
     damageFormula: '',   // no HP damage (penalty aura only)
+    netCombat: { aura: { enabled: true, target: 'enemiesDetected', effectId: 'skunkAuraSlideC0' } },
+    effects: [{
+      _id: 'skunkAuraSlideC0',
+      name: 'Skunk: Slide & Cloak −2',
+      icon: 'icons/svg/daze.svg',
+      disabled: true,
+      transfer: false,
+      changes: [
+        { key: 'system.components.cloak.bonus', mode: 2, value: '-2' },
+        { key: 'system.components.slide.bonus', mode: 2, value: '-2' },
+      ],
+      flags: { 'cyberpunk-blue': {} },
+    }],
     description: 'While rezzed: any detected target runner makes all Slide and Cloak checks at −2. Follows one runner; penalties from multiple Skunks stack.',
   }),
   prog({
@@ -243,6 +316,11 @@ export const PROGRAM_CATALOGUE = [
     cost: 'CO', category: 'black-ice',
     act: 1, atk: 9, def: 19, net: 0, per: 9, rez: 15,
     damageFormula: '1d6',
+    netCombat: { attack: {
+      mode: 'attack',
+      damage: { enabled: true, formula: '1d6' },
+      netActionPenalty: { enabled: true, amount: 1, floor: 2, duration: 'untilDisconnect' },
+    } },
     description: 'Deals 1d6 HP directly to a target netrunner. Reduces their NET actions by 1 (minimum 2) until they disconnect.',
   }),
 
@@ -253,6 +331,7 @@ export const PROGRAM_CATALOGUE = [
     img: `systems/cyberpunk-blue/assets/items/programs/Armor program.png`,
     cost: 'CO', category: 'defender',
     def: 12, rez: 5,
+    netCombat: { defense: { mode: 'personnel', ablate: true } },
     description: 'Damage dealt to the netrunner from an attack is lowered by Armor\'s current REZ. If the netrunner still takes damage, Armor loses 1 REZ. Only one copy protects against any single attack.',
   }),
   prog({
@@ -260,12 +339,23 @@ export const PROGRAM_CATALOGUE = [
     img: `systems/cyberpunk-blue/assets/items/programs/flak.png`,
     cost: 'PR', category: 'defender',
     def: 10, rez: 7,
+    netCombat: { aura: { enabled: true, target: 'self', effectId: 'flackHalveIceAtk' } },
+    effects: [{
+      _id: 'flackHalveIceAtk',
+      name: 'Flack: ICE ATK halved',
+      icon: 'icons/svg/shield.svg',
+      disabled: true,
+      transfer: false,
+      changes: [],
+      flags: { 'cyberpunk-blue': { netHalveIceAtk: true } },
+    }],
     description: 'Halves the ATK of all ICE against the user while Flack is rezzed. Only one copy can run on any given Architecture at a time.',
   }),
   prog({
     name: 'Restore',
     cost: 'PR', category: 'defender',
     def: 14, rez: 7,
+    netCombat: { defense: { mode: 'program', restore: { enabled: true, dv: 7 } } },
     description: 'When a program in the same node as Restore would be maliciously deleted: roll 1d10 and reduce Restore to 0 REZ. On a result of 7 or higher, the program is closed instead of deleted.',
   }),
   prog({
@@ -273,6 +363,7 @@ export const PROGRAM_CATALOGUE = [
     img: `systems/cyberpunk-blue/assets/items/programs/shield.png`,
     cost: 'CO', category: 'defender',
     def: 10, rez: 7,
+    netCombat: { defense: { mode: 'personnel', intercept: { enabled: true, exceptBlackIce: true } } },
     description: 'Intercepts the first non-Black ICE effect that would deal damage to the Netrunner or one of their programs, taking the damage instead. Deactivates if REZ > 0 after absorbing an effect.',
   }),
 
@@ -285,6 +376,7 @@ export const PROGRAM_CATALOGUE = [
     img: `systems/cyberpunk-blue/assets/items/programs/eraser.png`,
     cost: 'EV', category: 'booster',
     act: 1, def: 12, rez: 7,
+    netCombat: { booster: { boosts: [{ component: 'ghost', use: 'cloak', value: 2, nonStacking: true }] } },
     description: '+2 to Cloak checks until the start of your next turn. Only one copy may benefit you at a time.',
   }),
   prog({
@@ -292,6 +384,7 @@ export const PROGRAM_CATALOGUE = [
     img: `systems/cyberpunk-blue/assets/items/programs/see-ya.png`,
     cost: 'EV', category: 'booster',
     act: 1, def: 12, rez: 7,
+    netCombat: { booster: { boosts: [{ component: 'spider', use: 'pathfinder', value: 2, nonStacking: true }] } },
     description: '+2 to Pathfinder checks until the start of your next turn. Only one copy may benefit you at a time.',
   }),
   prog({
@@ -299,6 +392,7 @@ export const PROGRAM_CATALOGUE = [
     img: `systems/cyberpunk-blue/assets/items/programs/worm.png`,
     cost: 'CO', category: 'booster',
     act: 1, def: 12, rez: 7,
+    netCombat: { booster: { boosts: [{ component: 'codebreak', use: 'breach', value: 2, nonStacking: true }] } },
     description: '+2 to Breach checks until the start of your next turn. Only one copy may benefit you at a time.',
   }),
 

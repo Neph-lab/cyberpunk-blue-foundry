@@ -48,6 +48,18 @@
             <input type="text" name="system.netCombat.attack.damage.formula"
               value="{{netCombat.attack.damage.formula}}" placeholder="2d6" {{#unless isGM}}disabled{{/unless}} />
           </label>
+          <label class="net-field-row">
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.BonusDamageFormula"}}</span>
+            <input type="text" name="system.netCombat.attack.damage.bonusFormula"
+              value="{{netCombat.attack.damage.bonusFormula}}" placeholder="1d6" {{#unless isGM}}disabled{{/unless}} />
+          </label>
+          <label class="net-field-row">
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.BonusDamageVsType"}}</span>
+            <select name="system.netCombat.attack.damage.vsType" {{#unless isGM}}disabled{{/unless}}>
+              <option value="">—</option>
+              {{#each programTypeOptions as |o|}}<option value="{{o.value}}" {{#if (eq o.value ../netCombat.attack.damage.vsType)}}selected{{/if}}>{{o.label}}</option>{{/each}}
+            </select>
+          </label>
         {{/if}}
       </div>
 
@@ -111,6 +123,161 @@
         {{#if netCombat.attack.effectText.enabled}}
           <textarea name="system.netCombat.attack.effectText.text" rows="2"
             placeholder="{{localize "CYBER_BLUE.Netrunning.NetCombat.EffectTextPlaceholder"}}" {{#unless isGM}}disabled{{/unless}}>{{netCombat.attack.effectText.text}}</textarea>
+        {{/if}}
+      </div>
+
+      {{!-- On-hit riders --}}
+      <label class="net-option-head">
+        <input type="checkbox" name="system.netCombat.attack.deleteOnKill"
+          {{checked netCombat.attack.deleteOnKill}} {{#unless isGM}}disabled{{/unless}} />
+        <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.DeleteOnKill"}}</span>
+      </label>
+
+      <div class="net-option {{#if netCombat.attack.forceDisconnect.enabled}}is-on{{/if}}">
+        <label class="net-option-head">
+          <input type="checkbox" name="system.netCombat.attack.forceDisconnect.enabled"
+            {{checked netCombat.attack.forceDisconnect.enabled}} {{#unless isGM}}disabled{{/unless}} />
+          <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.ForceDisconnect"}}</span>
+        </label>
+        {{#if netCombat.attack.forceDisconnect.enabled}}
+          <label class="net-option-head net-sub">
+            <input type="checkbox" name="system.netCombat.attack.forceDisconnect.oncePerSource"
+              {{checked netCombat.attack.forceDisconnect.oncePerSource}} {{#unless isGM}}disabled{{/unless}} />
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.ForceDisconnectOnce"}}</span>
+          </label>
+        {{/if}}
+      </div>
+
+      {{!-- Apply Condition (fire = Burning) (N13) --}}
+      <div class="net-option {{#if netCombat.attack.applyCondition.enabled}}is-on{{/if}}">
+        <label class="net-option-head">
+          <input type="checkbox" name="system.netCombat.attack.applyCondition.enabled"
+            {{checked netCombat.attack.applyCondition.enabled}} {{#unless isGM}}disabled{{/unless}} />
+          <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.ApplyCondition"}}</span>
+        </label>
+        {{#if netCombat.attack.applyCondition.enabled}}
+          <label class="net-field-row">
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.Condition"}}</span>
+            <select name="system.netCombat.attack.applyCondition.conditionId" {{#unless isGM}}disabled{{/unless}}>
+              <option value="">—</option>
+              {{#each conditionOptions as |o|}}<option value="{{o.value}}" {{#if (eq o.value ../netCombat.attack.applyCondition.conditionId)}}selected{{/if}}>{{o.label}}</option>{{/each}}
+            </select>
+          </label>
+        {{/if}}
+      </div>
+
+      {{!-- NET-action penalty (N1) --}}
+      <div class="net-option {{#if netCombat.attack.netActionPenalty.enabled}}is-on{{/if}}">
+        <label class="net-option-head">
+          <input type="checkbox" name="system.netCombat.attack.netActionPenalty.enabled"
+            {{checked netCombat.attack.netActionPenalty.enabled}} {{#unless isGM}}disabled{{/unless}} />
+          <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.NetActionPenalty"}}</span>
+        </label>
+        {{#if netCombat.attack.netActionPenalty.enabled}}
+          <label class="net-field-row">
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.PenaltyAmount"}}</span>
+            <input type="number" name="system.netCombat.attack.netActionPenalty.amount"
+              value="{{netCombat.attack.netActionPenalty.amount}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+          </label>
+          <label class="net-field-row">
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.PenaltyFloor"}}</span>
+            <input type="number" name="system.netCombat.attack.netActionPenalty.floor"
+              value="{{netCombat.attack.netActionPenalty.floor}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+          </label>
+          <label class="net-field-row">
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.PenaltyDuration"}}</span>
+            <select name="system.netCombat.attack.netActionPenalty.duration" {{#unless isGM}}disabled{{/unless}}>
+              <option value="nextTurn" {{#if (eq "nextTurn" netCombat.attack.netActionPenalty.duration)}}selected{{/if}}>{{localize "CYBER_BLUE.Netrunning.NetCombat.DurNextTurn"}}</option>
+              <option value="untilDisconnect" {{#if (eq "untilDisconnect" netCombat.attack.netActionPenalty.duration)}}selected{{/if}}>{{localize "CYBER_BLUE.Netrunning.NetCombat.DurUntilDisconnect"}}</option>
+            </select>
+          </label>
+        {{/if}}
+      </div>
+
+      {{!-- Stat penalty (rolled) (N7) --}}
+      <div class="net-option {{#if netCombat.attack.statPenalty.enabled}}is-on{{/if}}">
+        <label class="net-option-head">
+          <input type="checkbox" name="system.netCombat.attack.statPenalty.enabled"
+            {{checked netCombat.attack.statPenalty.enabled}} {{#unless isGM}}disabled{{/unless}} />
+          <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.StatPenalty"}}</span>
+        </label>
+        {{#if netCombat.attack.statPenalty.enabled}}
+          <label class="net-field-row">
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.StatPenaltyStats"}}</span>
+            <select name="system.netCombat.attack.statPenalty.stats" multiple {{#unless isGM}}disabled{{/unless}}>
+              {{#each statOptions as |o|}}<option value="{{o.value}}" {{#if (includes ../netCombat.attack.statPenalty.stats o.value)}}selected{{/if}}>{{o.label}}</option>{{/each}}
+            </select>
+          </label>
+          <label class="net-field-row">
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.StatPenaltyFormula"}}</span>
+            <input type="text" name="system.netCombat.attack.statPenalty.formula"
+              value="{{netCombat.attack.statPenalty.formula}}" placeholder="1d6" {{#unless isGM}}disabled{{/unless}} />
+          </label>
+          <label class="net-field-row">
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.PenaltyFloor"}}</span>
+            <input type="number" name="system.netCombat.attack.statPenalty.floor"
+              value="{{netCombat.attack.statPenalty.floor}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+          </label>
+          <label class="net-field-row">
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.StatPenaltyDuration"}}</span>
+            <input type="text" name="system.netCombat.attack.statPenalty.durationLabel"
+              value="{{netCombat.attack.statPenalty.durationLabel}}" placeholder="1 hour" {{#unless isGM}}disabled{{/unless}} />
+          </label>
+        {{/if}}
+      </div>
+
+      {{!-- Node lock (N3) --}}
+      <div class="net-option {{#if netCombat.attack.nodeLock.enabled}}is-on{{/if}}">
+        <label class="net-option-head">
+          <input type="checkbox" name="system.netCombat.attack.nodeLock.enabled"
+            {{checked netCombat.attack.nodeLock.enabled}} {{#unless isGM}}disabled{{/unless}} />
+          <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.NodeLock"}}</span>
+        </label>
+        {{#if netCombat.attack.nodeLock.enabled}}
+          <label class="net-field-row">
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.NodeLockDuration"}}</span>
+            <select name="system.netCombat.attack.nodeLock.duration" {{#unless isGM}}disabled{{/unless}}>
+              <option value="turns" {{#if (eq "turns" netCombat.attack.nodeLock.duration)}}selected{{/if}}>{{localize "CYBER_BLUE.Netrunning.NetCombat.DurTurns"}}</option>
+              <option value="endNextTurn" {{#if (eq "endNextTurn" netCombat.attack.nodeLock.duration)}}selected{{/if}}>{{localize "CYBER_BLUE.Netrunning.NetCombat.DurEndNextTurn"}}</option>
+            </select>
+          </label>
+          {{#if (eq "turns" netCombat.attack.nodeLock.duration)}}
+            <label class="net-field-row">
+              <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.NodeLockTurns"}}</span>
+              <input type="text" name="system.netCombat.attack.nodeLock.turns"
+                value="{{netCombat.attack.nodeLock.turns}}" placeholder="1d6" {{#unless isGM}}disabled{{/unless}} />
+            </label>
+          {{/if}}
+        {{/if}}
+      </div>
+
+      {{!-- Program strike: derez/delete the target's programs (N4) --}}
+      <div class="net-option {{#if netCombat.attack.programStrike.enabled}}is-on{{/if}}">
+        <label class="net-option-head">
+          <input type="checkbox" name="system.netCombat.attack.programStrike.enabled"
+            {{checked netCombat.attack.programStrike.enabled}} {{#unless isGM}}disabled{{/unless}} />
+          <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.ProgramStrike"}}</span>
+        </label>
+        {{#if netCombat.attack.programStrike.enabled}}
+          <label class="net-field-row">
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.ProgramStrikeAction"}}</span>
+            <select name="system.netCombat.attack.programStrike.action" {{#unless isGM}}disabled{{/unless}}>
+              <option value="derez" {{#if (eq "derez" netCombat.attack.programStrike.action)}}selected{{/if}}>{{localize "CYBER_BLUE.Netrunning.NetCombat.PSDerez"}}</option>
+              <option value="delete" {{#if (eq "delete" netCombat.attack.programStrike.action)}}selected{{/if}}>{{localize "CYBER_BLUE.Netrunning.NetCombat.PSDelete"}}</option>
+            </select>
+          </label>
+          <label class="net-field-row">
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.ProgramStrikeCount"}}</span>
+            <input type="number" name="system.netCombat.attack.programStrike.count"
+              value="{{netCombat.attack.programStrike.count}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+          </label>
+          <label class="net-field-row">
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.ProgramStrikeFilter"}}</span>
+            <select name="system.netCombat.attack.programStrike.filter" {{#unless isGM}}disabled{{/unless}}>
+              <option value="any" {{#if (eq "any" netCombat.attack.programStrike.filter)}}selected{{/if}}>{{localize "CYBER_BLUE.Netrunning.NetCombat.PSAny"}}</option>
+              <option value="defender" {{#if (eq "defender" netCombat.attack.programStrike.filter)}}selected{{/if}}>{{localize "CYBER_BLUE.Netrunning.NetCombat.PSDefender"}}</option>
+            </select>
+          </label>
         {{/if}}
       </div>
 
@@ -179,6 +346,32 @@
           {{/if}}
         </div>
 
+        <div class="net-option {{#if netCombat.defense.intercept.enabled}}is-on{{/if}}">
+          <label class="net-option-head">
+            <input type="checkbox" name="system.netCombat.defense.intercept.enabled" {{checked netCombat.defense.intercept.enabled}} {{#unless isGM}}disabled{{/unless}} />
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.Intercept"}}</span>
+          </label>
+          {{#if netCombat.defense.intercept.enabled}}
+            <label class="net-option-head net-sub">
+              <input type="checkbox" name="system.netCombat.defense.intercept.exceptBlackIce" {{checked netCombat.defense.intercept.exceptBlackIce}} {{#unless isGM}}disabled{{/unless}} />
+              <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.InterceptExceptBlackIce"}}</span>
+            </label>
+          {{/if}}
+        </div>
+
+        <div class="net-option {{#if netCombat.defense.restore.enabled}}is-on{{/if}}">
+          <label class="net-option-head">
+            <input type="checkbox" name="system.netCombat.defense.restore.enabled" {{checked netCombat.defense.restore.enabled}} {{#unless isGM}}disabled{{/unless}} />
+            <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.Restore"}}</span>
+          </label>
+          {{#if netCombat.defense.restore.enabled}}
+            <label class="net-field-row">
+              <span>{{localize "CYBER_BLUE.Combat.DV"}}</span>
+              <input type="number" name="system.netCombat.defense.restore.dv" value="{{netCombat.defense.restore.dv}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+            </label>
+          {{/if}}
+        </div>
+
         <label class="net-option-head">
           <input type="checkbox" name="system.netCombat.defense.memHandler" {{checked netCombat.defense.memHandler}} {{#unless isGM}}disabled{{/unless}} />
           <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.MemHandler"}}</span>
@@ -193,6 +386,35 @@
           <input type="text" name="system.netCombat.defense.effectText" value="{{netCombat.defense.effectText}}" {{#unless isGM}}disabled{{/unless}} />
         </label>
       </div>
+    {{/if}}
+  </section>
+
+  {{!-- ───────────────────────── Aura (N8) ───────────────────────── --}}
+  <section class="sheet-panel net-combat-section">
+    <h3><i class="fas fa-broadcast-tower"></i> {{localize "CYBER_BLUE.Netrunning.NetCombat.AuraSection"}}</h3>
+    <label class="net-option-head">
+      <input type="checkbox" name="system.netCombat.aura.enabled" {{checked netCombat.aura.enabled}} {{#unless isGM}}disabled{{/unless}} />
+      <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.AuraEnabled"}}</span>
+    </label>
+    {{#if netCombat.aura.enabled}}
+      <label class="net-field-row">
+        <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.AuraTarget"}}</span>
+        <select name="system.netCombat.aura.target" {{#unless isGM}}disabled{{/unless}}>
+          <option value="self" {{#if (eq "self" netCombat.aura.target)}}selected{{/if}}>{{localize "CYBER_BLUE.Netrunning.NetCombat.AuraSelf"}}</option>
+          <option value="enemiesDetected" {{#if (eq "enemiesDetected" netCombat.aura.target)}}selected{{/if}}>{{localize "CYBER_BLUE.Netrunning.NetCombat.AuraEnemies"}}</option>
+          <option value="allies" {{#if (eq "allies" netCombat.aura.target)}}selected{{/if}}>{{localize "CYBER_BLUE.Netrunning.NetCombat.AuraAllies"}}</option>
+        </select>
+      </label>
+      <label class="net-field-row net-field-wide">
+        <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.AuraEffect"}}</span>
+        <select name="system.netCombat.aura.effectId" {{#unless isGM}}disabled{{/unless}}>
+          <option value="">—</option>
+          {{#each disabledEffects as |e|}}<option value="{{e.id}}" {{#if (eq e.id ../netCombat.aura.effectId)}}selected{{/if}}>{{e.name}}</option>{{/each}}
+        </select>
+      </label>
+      {{#unless disabledEffects.length}}
+        <p class="hint">{{localize "CYBER_BLUE.Netrunning.NetCombat.NoTemplateHint"}}</p>
+      {{/unless}}
     {{/if}}
   </section>
 

@@ -65,9 +65,22 @@ export default class CyberBlueProgram extends CyberBlueDataModel {
         mode: new fields.StringField({ required: true, blank: false, initial: 'none' }),
         supportModifier: int(0),
         stopRunningAfter: bool(false),
+        // Permanently delete a program target (rather than leaving it derezzed)
+        // when this attack reduces its REZ to 0. (N5 — Dragon, Killer)
+        deleteOnKill: bool(false),
+        // Force an unsafe disconnect on a Netrunner target on hit. (N2 —
+        // Deckkrash, Giant) oncePerSource: only the first hit per source program.
+        forceDisconnect: new fields.SchemaField({
+          enabled: bool(false),
+          oncePerSource: bool(false),
+        }),
         damage: new fields.SchemaField({
           enabled: bool(false),
           formula: str(''),
+          // Extra damage rolled only when the target program's type matches
+          // `vsType`. (N6 — Sword: +1d6 vs Black ICE)
+          bonusFormula: str(''),
+          vsType: str(''),
         }),
         affliction: new fields.SchemaField({
           enabled: bool(false),
@@ -82,6 +95,47 @@ export default class CyberBlueProgram extends CyberBlueDataModel {
           enabled: bool(false),
           text: str(''),
         }),
+        // Reduce a Netrunner target's NET actions on hit. (N1 — Hellbolt,
+        // Vrizzbolt, Wisp) `floor` = never reduce below this many actions.
+        netActionPenalty: new fields.SchemaField({
+          enabled: bool(false),
+          amount: int(1),
+          floor: int(0),
+          // 'nextTurn' | 'untilDisconnect'
+          duration: new fields.StringField({ required: true, blank: false, initial: 'nextTurn' }),
+        }),
+        // Rolled stat reduction on hit. (N7 — Nervescrub, Liche, Scorpion)
+        statPenalty: new fields.SchemaField({
+          enabled: bool(false),
+          stats: new fields.ArrayField(new fields.StringField({ blank: false })),
+          formula: str('1d6'),
+          floor: int(1),
+          durationLabel: str('1 hour'),
+        }),
+        // Lock a target from safe-disconnecting / changing nodes on hit. (N3 —
+        // Superglue, Kraken)
+        nodeLock: new fields.SchemaField({
+          enabled: bool(false),
+          turns: str('1d6'),
+          // 'turns' | 'endNextTurn'
+          duration: new fields.StringField({ required: true, blank: false, initial: 'turns' }),
+        }),
+        // Apply a system Condition (statusEffect) on hit. (N13 — fire = the
+        // Burning conditions burning-embers / burning-fire / burning-deadly.)
+        applyCondition: new fields.SchemaField({
+          enabled: bool(false),
+          conditionId: str(''),
+        }),
+        // Derez or delete programs on the target's cyberdeck. (N4 — Poison
+        // Flatline, Asp, Raven)
+        programStrike: new fields.SchemaField({
+          enabled: bool(false),
+          // 'derez' | 'delete'
+          action: new fields.StringField({ required: true, blank: false, initial: 'derez' }),
+          count: int(1),
+          // 'any' | 'defender'
+          filter: new fields.StringField({ required: true, blank: false, initial: 'any' }),
+        }),
       }),
       defense: new fields.SchemaField({
         // 'standard' | 'defender' | 'personnel' | 'program'
@@ -91,6 +145,18 @@ export default class CyberBlueProgram extends CyberBlueDataModel {
         reduce: new fields.SchemaField({ enabled: bool(false), formula: str('') }),
         strengthen: new fields.SchemaField({ enabled: bool(false), amount: int(0) }),
         block: new fields.SchemaField({ enabled: bool(false), amount: int(0) }),
+        // Intercept the incoming damage onto this program's REZ, then deactivate.
+        // (N9 — Shield) exceptBlackIce: never intercepts Black ICE attacks.
+        intercept: new fields.SchemaField({
+          enabled: bool(false),
+          exceptBlackIce: bool(true),
+        }),
+        // Reactively save a same-deck program from malicious deletion on a 1d10
+        // ≥ dv, spending all of this program's REZ. (N10 — Restore)
+        restore: new fields.SchemaField({
+          enabled: bool(false),
+          dv: int(7),
+        }),
         memHandler: bool(false),
         junkData: bool(false),
         effectText: str(''),
@@ -100,7 +166,20 @@ export default class CyberBlueProgram extends CyberBlueDataModel {
           component: str(''),
           use: str(''),
           value: int(0),
+          // When true, multiple copies of this boost (same component/use) do not
+          // stack — getBoost takes the max instead of the sum. (N11)
+          nonStacking: bool(false),
         })),
+      }),
+      // Passive aura applied while the program runs, removed on despawn. (N8 —
+      // Skunk, Flack) `effectId` is a disabled template AE on this program whose
+      // changes are copied onto the resolved targets.
+      aura: new fields.SchemaField({
+        enabled: bool(false),
+        // 'self' | 'enemiesDetected' | 'allies'
+        target: new fields.StringField({ required: true, blank: false, initial: 'self' }),
+        effectId: str(''),
+        note: str(''),
       }),
     });
   }

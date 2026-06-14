@@ -1872,6 +1872,26 @@ Hooks.on('combatTurn', async (combat, updateData) => {
     actor.sheet?.render(false);
   }
 
+  // ── Burning condition damage-over-time ───────────────────────────────────────
+  // At the end of a combatant's turn, each active Burning condition deals its
+  // per-turn HP (ignoring armor). Driven here because the statusEffect's
+  // `burnDamage` flag is otherwise inert.
+  if (prev?.actor && ['character', 'npc', 'mook'].includes(prev.actor.type)) {
+    let burn = 0;
+    for (const e of prev.actor.effects) {
+      if (e.disabled) continue;
+      const d = e.getFlag('cyberpunk-blue', 'burnDamage');
+      if (typeof d === 'number') burn += d;
+    }
+    if (burn > 0) {
+      await prev.actor.applyDamage(burn, { ignoreArmor: true });
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: prev.actor }),
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-fire"></i> ${game.i18n.format('CYBER_BLUE.Condition.BurningDamage', { name: prev.actor.name, dmg: burn })}</p></div>`,
+      });
+    }
+  }
+
   // Resolve pending NET timers (quickhack activation, encrypt/decrypt completion)
   const _roundNumber = updateData?.round ?? combat.round ?? 1;
   await resolveNetTimers(combat, _roundNumber);
@@ -3263,6 +3283,7 @@ async function _syncProgramEntries(catalogue) {
   );
 
   const updates = [];
+  const effectCreations = []; // { docId, effects } applied after the field updates
   for (const entry of pack.index) {
     if (entry.type !== 'programExecutable') continue;
     const def = byName.get(entry.name);
@@ -3279,33 +3300,42 @@ async function _syncProgramEntries(catalogue) {
     const newType = def.system?.programType;
     const typeChanged = newType && (doc.system?.programType !== newType);
 
-    // Seed netCombat for damage-dealing programs that haven't been configured
-    // yet (don't clobber a GM's existing Attack-mode config).
+    // Sync the full NET Combat config from the catalogue (authoritative). Merge
+    // so unrelated fields are preserved; idempotent — only writes on a real diff.
     const defNet = def.system?.netCombat ?? null;
-    const docMode = doc.system?.netCombat?.attack?.mode ?? 'none';
-    const netNeedsSeed = Boolean(defNet) && docMode === 'none';
+    let netChanged = false;
+    if (defNet) {
+      const current = doc.system?.netCombat ?? {};
+      const merged = foundry.utils.mergeObject(foundry.utils.deepClone(current), defNet, { inplace: false });
+      netChanged = JSON.stringify(current) !== JSON.stringify(merged);
+    }
 
-    if (!formulaChanged && !imgChanged && !typeChanged && !netNeedsSeed) continue;
+    // Create any catalogue template effects (e.g. aura templates) the pack entry
+    // is missing (matched by _id).
+    const missingEffects = (def.effects ?? []).filter((e) => e._id && !doc.effects.has(e._id));
+    if (missingEffects.length) effectCreations.push({ docId: doc.id, effects: missingEffects });
+
+    if (!formulaChanged && !imgChanged && !typeChanged && !netChanged) continue;
 
     const update = { _id: doc.id };
     if (formulaChanged) update['system.damageFormula'] = newFormula;
     if (imgChanged)     update.img = def.img;
     if (typeChanged)    update['system.programType'] = newType;
-    if (netNeedsSeed) {
-      update['system.netCombat.attack.mode'] = 'attack';
-      update['system.netCombat.attack.damage.enabled'] = true;
-      update['system.netCombat.attack.damage.formula'] = defNet.attack?.damage?.formula ?? newFormula;
-    }
+    if (netChanged)     update['system.netCombat'] = defNet;
     updates.push(update);
   }
 
-  if (updates.length === 0) return;
+  if (updates.length === 0 && effectCreations.length === 0) return;
 
   await pack.configure({ locked: false });
   try {
-    await Item.updateDocuments(updates, { pack: PACK_ID });
+    if (updates.length) await Item.updateDocuments(updates, { pack: PACK_ID });
+    for (const { docId, effects } of effectCreations) {
+      const doc = await pack.getDocument(docId);
+      if (doc) await doc.createEmbeddedDocuments('ActiveEffect', effects, { keepId: true });
+    }
     const imgCount = updates.filter((u) => 'img' in u).length;
-    console.log(`Cyberpunk Blue | Synced damageFormula/images for ${updates.length} programs (${imgCount} images).`);
+    console.log(`Cyberpunk Blue | Synced ${updates.length} programs (${imgCount} images, ${effectCreations.length} effect templates).`);
   } finally {
     await pack.configure({ locked: true });
   }

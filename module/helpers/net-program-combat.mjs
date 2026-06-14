@@ -29,6 +29,19 @@ export const ATTACK_TYPES      = ['antipersonnel', 'antiprogram', 'ice', 'blacki
 export const SUPPORT_TYPES     = ['antipersonnel', 'antiprogram'];
 export const ADD_DEFENSE_TYPES = ['defender', 'booster'];
 
+/** Display labels for every programType (drives the bonus-vs-type dropdown). */
+export const PROGRAM_TYPE_LABELS = {
+  antipersonnel: 'Anti-Personnel',
+  antiprogram:   'Anti-Program',
+  defender:      'Defender',
+  booster:       'Booster',
+  quickhack:     'Quickhack',
+  ice:           'ICE',
+  blackice:      'Black ICE',
+  daemon:        'Daemon',
+  malware:       'Malware',
+};
+
 /**
  * Component → uses map for the Booster authoring dropdown AND boost lookup.
  * Cracker is special: it boosts generic "attack"/"defend", applying to Zap and
@@ -154,6 +167,15 @@ export function buildNetCombatContext(doc) {
     nc?.attack?.damage?.enabled || nc?.attack?.affliction?.enabled || nc?.attack?.effectText?.enabled,
   );
 
+  const programTypeOptions = Object.entries(PROGRAM_TYPE_LABELS)
+    .map(([value, label]) => ({ value, label }));
+
+  // System Conditions (statusEffects) selectable for the on-hit applyCondition
+  // rider — e.g. the Burning conditions for fire effects.
+  const conditionOptions = (CONFIG.statusEffects ?? [])
+    .filter((s) => s.flags?.['cyberpunk-blue']?.conditionId)
+    .map((s) => ({ value: s.id, label: game.i18n.localize(s.name) }));
+
   // Display-safe mode flags: if a stored mode is no longer valid for this type
   // (e.g. "attack" left over after switching to Booster) treat it as inactive so
   // stale sub-blocks don't show.
@@ -186,6 +208,8 @@ export function buildNetCombatContext(doc) {
     boosterComponents,
     boosts,
     attackHasEffects,
+    programTypeOptions,
+    conditionOptions,
   };
 }
 
@@ -209,23 +233,40 @@ export function componentsForSkill(skillSlug) {
  * @param {Item|Actor} sourceDoc      - program actor (Attack) or exe (Support);
  *                                       owns the affliction template AE.
  * @param {object}     attack         - `system.netCombat.attack`
+ * @param {Actor}      [targetDoc]    - the attack's target (for bonus-vs-type).
  * @returns {Promise<{damage:number, damageRoll:Roll|null,
  *   affliction:object|null, effectText:string}>}
  */
-export async function buildAttackResolution(sourceDoc, attack) {
-  const out = { damage: 0, damageRoll: null, affliction: null, effectText: '' };
+export async function buildAttackResolution(sourceDoc, attack, targetDoc = null) {
+  const out = { damage: 0, damageRoll: null, affliction: null, effectText: '', conditions: [] };
   if (!attack) return out;
+
+  // Pending system Condition to apply on hit (N13). The defense pipeline may
+  // strip a burning condition (Cool) before it is applied.
+  if (attack.applyCondition?.enabled && (attack.applyCondition.conditionId ?? '')) {
+    out.conditions.push(attack.applyCondition.conditionId);
+  }
 
   if (attack.damage?.enabled && (attack.damage.formula ?? '').trim()) {
     out.damageRoll = await new Roll(attack.damage.formula.trim()).evaluate();
     out.damage = out.damageRoll.total;
+
+    // Bonus damage vs a matching target program type (N6 — Sword vs Black ICE).
+    const bonus = (attack.damage.bonusFormula ?? '').trim();
+    const vsType = attack.damage.vsType ?? '';
+    if (bonus && vsType && getProgramType(targetDoc) === vsType) {
+      const bonusRoll = await new Roll(bonus).evaluate();
+      out.damage += bonusRoll.total;
+    }
   }
 
   if (attack.affliction?.enabled) {
     const a = attack.affliction;
     const tpl = a.effectId ? sourceDoc.effects?.get(a.effectId) : null;
     const isBurning = Boolean(
-      tpl?.statuses?.has?.('burning') || /\bburn/i.test(tpl?.name ?? ''),
+      [...(tpl?.statuses ?? [])].some((s) => String(s).startsWith('burning'))
+      || String(tpl?.getFlag?.('cyberpunk-blue', 'conditionId') ?? '').startsWith('burning-')
+      || /\bburn/i.test(tpl?.name ?? ''),
     );
     out.affliction = {
       sourceDoc,
@@ -262,6 +303,134 @@ export async function applyAfflictionFromConfig(affliction, targetActor) {
   const roll = await rollAfflictionDefense(targetActor, weaponLike, 0);
   if (roll.total >= affliction.dv) return; // resisted
   await applyAfflictionEffect(affliction.sourceDoc, weaponLike, targetActor);
+}
+
+/** Parse a human duration label ("1 hour") into a v14 AE `{ value, units }`. */
+function parseDurationLabel(label) {
+  const m = String(label ?? '').match(/(\d+)\s*(second|minute|hour|day|round|turn)/i);
+  if (!m) return {};
+  const units = {
+    second: 'seconds', minute: 'minutes', hour: 'hours',
+    day: 'days', round: 'rounds', turn: 'turns',
+  }[m[2].toLowerCase()];
+  return { value: Number(m[1]), units };
+}
+
+/**
+ * Apply the on-hit "rider" effects of an attack to the target, after damage,
+ * affliction, and the defense pipeline have resolved. Burning Conditions that
+ * the pipeline stripped (Cool) are excluded — pass the surviving list.
+ *
+ * @param {object} attack               - `system.netCombat.attack`
+ * @param {Actor}  targetActor
+ * @param {string[]} survivingConditions - condition ids not removed by defense
+ */
+export async function applyAttackRiders(attack, targetActor, survivingConditions = []) {
+  if (!attack || !targetActor) return;
+  const round = game.combat?.round ?? 0;
+  const isPerson = targetActor.type === 'character' || targetActor.type === 'npc';
+
+  // N13 — apply surviving system Conditions (fire = Burning).
+  if (survivingConditions.length) {
+    const { toggleStatusEffectWithPermission } = await import('./socket.mjs');
+    for (const conditionId of survivingConditions) {
+      await toggleStatusEffectWithPermission(targetActor, conditionId, true);
+    }
+  }
+
+  // N7 — rolled stat penalty (e.g. RFLX & INT −1d6 for 1 hour).
+  const sp = attack.statPenalty;
+  if (sp?.enabled && sp.stats?.length) {
+    const r = await new Roll((sp.formula || '1d6').trim()).evaluate();
+    const mag = Math.max(r.total, Number(sp.floor) || 0);
+    if (mag > 0) {
+      const statLabels = sp.stats
+        .map((s) => CONFIG.CYBER_BLUE.stats?.[s]?.shortLabel ?? s.toUpperCase()).join(', ');
+      await targetActor.createEmbeddedDocuments('ActiveEffect', [{
+        name: game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.StatPenaltyLabel', { stats: statLabels, amount: mag }),
+        icon: 'icons/svg/downgrade.svg',
+        disabled: false,
+        transfer: false,
+        duration: parseDurationLabel(sp.durationLabel),
+        changes: sp.stats.map((stat) => ({
+          key: `system.stats.${stat}.value`, mode: CONST.ACTIVE_EFFECT_MODES.ADD, value: String(-mag),
+        })),
+        flags: { 'cyberpunk-blue': { netStatPenalty: true } },
+      }]);
+    }
+  }
+
+  // N1 — NET action penalty (reduce netActionsTotal, never below `floor`).
+  const np = attack.netActionPenalty;
+  if (np?.enabled && isPerson) {
+    const current = Number(targetActor.system?.netActionsTotal ?? 0);
+    const reduce = Math.max(0, Math.min(Number(np.amount) || 0, current - (Number(np.floor) || 0)));
+    if (reduce > 0) {
+      await targetActor.createEmbeddedDocuments('ActiveEffect', [{
+        name: game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.NetActionPenaltyLabel', { amount: reduce }),
+        icon: 'icons/svg/clockwork.svg',
+        disabled: false,
+        transfer: false,
+        changes: [{ key: 'system.netActionsTotal', mode: CONST.ACTIVE_EFFECT_MODES.ADD, value: String(-reduce) }],
+        flags: {
+          'cyberpunk-blue': {
+            netActionPenalty: true,
+            netExpiresRound: np.duration === 'nextTurn' ? round + 1 : null,
+            clearOnDisconnect: np.duration === 'untilDisconnect',
+          },
+        },
+      }]);
+    }
+  }
+
+  // N3 — node lock (cannot safely disconnect / change nodes).
+  const nl = attack.nodeLock;
+  if (nl?.enabled && isPerson) {
+    let turns = 1;
+    if (nl.duration === 'turns') {
+      const r = await new Roll((nl.turns || '1d6').trim()).evaluate();
+      turns = Math.max(r.total, 1);
+    }
+    await targetActor.createEmbeddedDocuments('ActiveEffect', [{
+      name: game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.NodeLockLabel'),
+      icon: 'icons/svg/padlock.svg',
+      disabled: false,
+      transfer: false,
+      changes: [],
+      flags: {
+        'cyberpunk-blue': {
+          nodeLocked: true,
+          netExpiresRound: round + (nl.duration === 'endNextTurn' ? 1 : turns),
+          clearOnDisconnect: true,
+        },
+      },
+    }]);
+  }
+
+  // N4 — derez/delete programs on the target Netrunner's cyberdeck.
+  const ps = attack.programStrike;
+  if (ps?.enabled && isPerson) {
+    const { getNetConnection, getPrimaryCyberdeck, maliciouslyDeleteProgram } = await import('./netrunning.mjs');
+    const deckId = getNetConnection(targetActor)?.cyberdeckId
+      || getPrimaryCyberdeck(targetActor)?.id || null;
+    if (deckId) {
+      let candidates = targetActor.items.filter((i) =>
+        i.type === 'programExecutable' && i.system.installedOnId === deckId);
+      // derez only affects rezzed (running) programs; delete can target any.
+      if (ps.action === 'derez') candidates = candidates.filter((i) => i.system.running);
+      if (ps.filter === 'defender') candidates = candidates.filter((i) => getProgramType(i) === 'defender');
+      const picks = candidates
+        .sort(() => Math.random() - 0.5)
+        .slice(0, Math.max(Number(ps.count) || 1, 1));
+      for (const exe of picks) {
+        if (ps.action === 'delete') {
+          await maliciouslyDeleteProgram(exe);
+        } else if (exe.system.running) {
+          await exe.update({ 'system.running': false });
+        }
+      }
+    }
+  }
 }
 
 // ── Defensive interjection ───────────────────────────────────────────────────
@@ -335,9 +504,10 @@ export async function gatherDefenders(targetActor) {
  *
  * @param {object} resolution
  * @param {Array}  defenders
+ * @param {{ attackerIsBlackIce?: boolean }} [opts]
  * @returns {Promise<{ notes:string[], postEffects:Array }>}
  */
-export async function applyDefensePipeline(resolution, defenders) {
+export async function applyDefensePipeline(resolution, defenders, { attackerIsBlackIce = false } = {}) {
   const notes = [];
   const postEffects = [];
   if (!defenders?.length) return { notes, postEffects };
@@ -349,6 +519,24 @@ export async function applyDefensePipeline(resolution, defenders) {
     const c = def.config;
     if (!c) continue;
     const parts = [];
+
+    // Intercept (N9 — Shield): take the whole incoming hit onto this program's
+    // REZ, then deactivate it. Skips Black ICE attacks when exceptBlackIce.
+    if (c.intercept?.enabled && resolution.damage > 0
+      && !(c.intercept.exceptBlackIce && attackerIsBlackIce)) {
+      const rez = def.programActor ? progRez(def.programActor) : progRez(def.exe);
+      const absorbed = resolution.damage;
+      const newRez = Math.max(rez - absorbed, 0);
+      if (def.programActor) {
+        await def.programActor.update({ 'system.resources.rez.value': newRez });
+      } else {
+        await def.exe.update({ 'system.rez.value': newRez });
+      }
+      resolution.damage = 0;
+      parts.push(game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.DefIntercept', { absorbed }));
+      // Deactivate after absorbing (despawns its token).
+      postEffects.push({ kind: 'memHandler', def });
+    }
 
     if (c.ablate) {
       const rez = def.programActor ? progRez(def.programActor) : progRez(def.exe);
@@ -376,9 +564,19 @@ export async function applyDefensePipeline(resolution, defenders) {
       resolution.affliction.dv = Math.max(resolution.affliction.dv - (Number(c.strengthen.amount) || 0), 0);
       parts.push(game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.DefStrengthen', { amount: c.strengthen.amount, dv: resolution.affliction.dv }));
     }
-    if (c.cool && resolution.affliction?.isBurning) {
-      resolution.affliction = null;
-      parts.push(game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.DefCool'));
+    if (c.cool) {
+      let cooled = false;
+      // Cool removes a pending burning affliction…
+      if (resolution.affliction?.isBurning) {
+        resolution.affliction = null;
+        cooled = true;
+      }
+      // …and a pending burning Condition (N13 — burning-embers/fire/deadly).
+      if (resolution.conditions?.some?.((id) => id.startsWith('burning-'))) {
+        resolution.conditions = resolution.conditions.filter((id) => !id.startsWith('burning-'));
+        cooled = true;
+      }
+      if (cooled) parts.push(game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.DefCool'));
     }
     if ((c.effectText ?? '').trim()) {
       parts.push(c.effectText.trim());
@@ -432,15 +630,21 @@ export async function runDefensePostEffects(postEffects) {
  */
 export function getBoost(netrunner, deckId, componentSlug, useSlug) {
   if (!netrunner || !deckId) return 0;
-  let total = 0;
+  // Stacking boosts sum; non-stacking boosts (N11 — "only one copy may benefit")
+  // contribute only their highest matching value.
+  let stacking = 0;
+  let nonStackingMax = 0;
   for (const exe of netrunner.items) {
     if (exe.type !== 'programExecutable') continue;
     if (exe.system.installedOnId !== deckId) continue;
     if (!isBoosterType(getProgramType(exe))) continue;
     if (isInert(exe)) continue;
     for (const b of (getNetCombat(exe)?.booster?.boosts ?? [])) {
-      if (b.component === componentSlug && b.use === useSlug) total += Number(b.value) || 0;
+      if (b.component !== componentSlug || b.use !== useSlug) continue;
+      const v = Number(b.value) || 0;
+      if (b.nonStacking) nonStackingMax = Math.max(nonStackingMax, v);
+      else stacking += v;
     }
   }
-  return total;
+  return stacking + nonStackingMax;
 }

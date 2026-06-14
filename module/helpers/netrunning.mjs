@@ -415,6 +415,12 @@ export async function disconnectFromArchitecture(actor, safe = true, { forUserId
   const conn = getNetConnection(actor);
   if (!conn) return;
 
+  // Node lock (N3 — Superglue, Kraken): a locked Netrunner cannot disconnect
+  // safely. (KRASH-Barrier below may still convert the unsafe disconnect.)
+  if (safe && actor.effects.some((e) => e.getFlag('cyberpunk-blue', 'nodeLocked'))) {
+    safe = false;
+  }
+
   const archScene = game.scenes.get(conn.archSceneId);
 
   // Stop all running executables (despawn their program tokens).
@@ -459,6 +465,11 @@ export async function disconnectFromArchitecture(actor, safe = true, { forUserId
   const jackedInAe = actor.effects.find((e) => e.getFlag('cyberpunk-blue', JACKED_IN_AE_FLAG));
   if (jackedInAe) await jackedInAe.delete();
 
+  // Clear NET-combat rider AEs that end on disconnect (NET-action penalty
+  // 'untilDisconnect', node lock).
+  const onDisconnect = actor.effects.filter((e) => e.getFlag('cyberpunk-blue', 'clearOnDisconnect'));
+  for (const ae of onDisconnect) await ae.delete();
+
   // KRASH-Barrier hardware mod: converts unsafe disconnects to safe ones.
   // Pass cyberdeckId explicitly — connection flag is already cleared above.
   if (!safe && _hasKrashBarrier(actor, conn.cyberdeckId)) {
@@ -485,6 +496,80 @@ export async function disconnectFromArchitecture(actor, safe = true, { forUserId
       content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-plug-circle-minus"></i> ${game.i18n.format('CYBER_BLUE.Netrunning.DisconnectedMsg', { name: actor.name })}</p></div>`,
     });
   }
+}
+
+/**
+ * Permanently destroy a Program-actor target. Prefers deleting its linked
+ * executable item (so the `deleteItem` hook despawns the actor + tokens AND the
+ * Backup Drive `preDelete` guard can save a non-Black-ICE program); falls back
+ * to removing tokens + the actor directly when there is no parent exe.
+ * @param {Actor} programActor
+ */
+async function destroyProgramTarget(programActor) {
+  if (!programActor) return;
+  const exe = await getLinkedExecutable(programActor);
+  if (exe?.id && exe?.parent) {
+    await maliciouslyDeleteProgram(exe);
+    return;
+  }
+  for (const scene of game.scenes) {
+    const tIds = scene.tokens.filter((t) => t.actorId === programActor.id).map((t) => t.id);
+    if (tIds.length) await scene.deleteEmbeddedDocuments('Token', tIds);
+  }
+  await programActor.delete();
+}
+
+/**
+ * Maliciously delete a program executable (from an attack — N4 / N5). Honors the
+ * two defensive saves before deleting:
+ *   • Restore (N10): a running Restore on the owner rolls 1d10 (spending all its
+ *     REZ); on ≥ its DV the target is closed (running:false) instead of deleted.
+ *   • Backup Drive: a non-Black-ICE program is preserved rather than deleted
+ *     (closing a running one routes through the despawn-path save + message).
+ * @param {Item} exe - the program executable being deleted
+ */
+export async function maliciouslyDeleteProgram(exe) {
+  if (!exe?.id) return;
+  const owner = exe.parent;
+
+  if (owner) {
+    // Restore (N10).
+    const restore = owner.items.find((i) => i.type === 'programExecutable'
+      && i.system.running && i.system.netCombat?.defense?.restore?.enabled);
+    if (restore) {
+      const dv = Number(restore.system.netCombat.defense.restore.dv) || 7;
+      const roll = await new Roll('1d10').evaluate();
+      await restore.update({ 'system.rez.value': 0 });
+      const saved = roll.total >= dv;
+      await roll.toMessage({
+        speaker: ChatMessage.getSpeaker({ actor: owner }),
+        flavor: `<div class="cyberpunk-blue chat-card"><h3><i class="fas fa-shield-halved"></i> ${restore.name}</h3>
+          <p>${game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.RestoreRoll', { name: exe.name, dv, result: saved ? game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.RestoreSaved') : game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.RestoreFailed') })}</p></div>`,
+        rollMode: game.settings.get('core', 'rollMode'),
+      });
+      if (saved) {
+        if (exe.system.running) await exe.update({ 'system.running': false });
+        return;
+      }
+    }
+
+    // Backup Drive: non-Black-ICE programs are preserved (not deleted).
+    if (exe.system.category !== 'black-ice' && _hasBackupDrive(owner)) {
+      if (exe.system.running) {
+        // The despawn-path Backup-Drive branch posts the save message + keeps it.
+        await exe.update({ 'system.running': false });
+      } else {
+        await ChatMessage.create({
+          content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-hard-drive"></i>
+            <strong>Backup Drive</strong>: ${game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.BackupDriveSaved', { name: exe.name })}</p></div>`,
+        });
+      }
+      return;
+    }
+  }
+
+  // No save applies — permanent deletion (the deleteItem hook despawns the actor).
+  await exe.delete();
 }
 
 // ── Program actor lifecycle ────────────────────────────────────────────────────
@@ -585,6 +670,60 @@ export async function spawnProgramActor(actor, exeItem) {
   }]);
 
   await exeItem.setFlag('cyberpunk-blue', PROGRAM_ACTOR_FLAG, programActor.id);
+
+  // Apply this program's passive aura (N8 — Skunk, Flack) while it runs.
+  await applyProgramAura(actor, exeItem);
+}
+
+/**
+ * Apply a program's passive aura (N8): copy its `aura.effectId` template AE onto
+ * the resolved target set. Records the applied AE ids on the exe so the matching
+ * despawn can remove them. Targets: 'self' = the running Netrunner; otherwise a
+ * best-effort set of other actors connected to the same architecture (no
+ * detection model exists — the GM prunes; see plan Part E).
+ */
+async function applyProgramAura(actor, exeItem) {
+  const aura = exeItem.system.netCombat?.aura;
+  if (!aura?.enabled || !aura.effectId) return;
+  const tpl = exeItem.effects.get(aura.effectId);
+  if (!tpl) return;
+
+  let targets = [];
+  if (aura.target === 'self') {
+    targets = [actor];
+  } else {
+    const archSceneId = getNetConnection(actor)?.archSceneId;
+    for (const a of game.actors) {
+      if (a.id === actor.id) continue;
+      const c = a.getFlag('cyberpunk-blue', NET_CONNECTION_FLAG);
+      if (c?.archSceneId && c.archSceneId === archSceneId) targets.push(a);
+    }
+  }
+  if (!targets.length) return;
+
+  const effectData = tpl.toObject();
+  delete effectData._id;
+  effectData.disabled = false;
+  effectData.transfer = false;
+  effectData.flags = effectData.flags ?? {};
+  effectData.flags['cyberpunk-blue'] = { ...(effectData.flags['cyberpunk-blue'] ?? {}), programAuraSource: exeItem.id };
+
+  const applied = [];
+  for (const t of targets) {
+    const [ae] = await t.createEmbeddedDocuments('ActiveEffect', [effectData]);
+    if (ae) applied.push({ actorId: t.id, effectId: ae.id });
+  }
+  await exeItem.setFlag('cyberpunk-blue', 'auraApplied', applied);
+}
+
+/** Remove any aura AEs this program applied (N8), reversing applyProgramAura. */
+async function removeProgramAura(exeItem) {
+  const applied = exeItem.getFlag('cyberpunk-blue', 'auraApplied') ?? [];
+  for (const { actorId, effectId } of applied) {
+    const ae = game.actors.get(actorId)?.effects.get(effectId);
+    if (ae) await ae.delete();
+  }
+  if (applied.length) await exeItem.unsetFlag('cyberpunk-blue', 'auraApplied');
 }
 
 /**
@@ -631,6 +770,10 @@ async function _despawnProgramActor(
 ) {
   const programActorId = exeItem.getFlag('cyberpunk-blue', PROGRAM_ACTOR_FLAG);
   if (!programActorId) return;
+
+  // Remove this program's passive aura (N8). (The once-per-source
+  // forceDisconnect guard lives on the program actor, which is deleted below.)
+  await removeProgramAura(exeItem);
 
   // ── Backup Drive: save non-Black ICE programs instead of deleting them ────
   // If the Netrunner has a Backup Drive installed and the program being
@@ -957,6 +1100,17 @@ export async function resolveNetTimers(combat, roundNumber) {
       await ae.delete();
     }
   }
+
+  // ── Expiring NET-combat rider AEs (NET-action penalty, node lock) ──────────
+  // Any rider AE flagged with `netExpiresRound` is removed once that round is
+  // reached. ('untilDisconnect' riders carry a null round and are skipped here.)
+  for (const actor of game.actors) {
+    const expired = actor.effects.filter((e) => {
+      const r = e.getFlag('cyberpunk-blue', 'netExpiresRound');
+      return typeof r === 'number' && r <= roundNumber;
+    });
+    for (const ae of expired) await ae.delete();
+  }
 }
 
 /**
@@ -1047,22 +1201,29 @@ export async function resolveNetAttack(attackerActor, targetActor, atkModifier, 
     dv = result;
   }
 
-  // Attack roll (+ booster boost)
-  const totalMod = (Number(atkModifier) || 0) + (Number(boostContext) || 0);
+  // Attack roll (+ booster boost). Flack (N8) halves an ICE attacker's ATK
+  // against a target carrying the netHalveIceAtk aura.
+  let atk = Number(atkModifier) || 0;
+  const attackerIsIce = ['ice', 'blackice'].includes(attackerActor?.system?.programType);
+  if (attackerIsIce && targetActor.effects?.some((e) => !e.disabled && e.getFlag('cyberpunk-blue', 'netHalveIceAtk'))) {
+    atk = Math.floor(atk / 2);
+  }
+  const totalMod = atk + (Number(boostContext) || 0);
   const formula = totalMod >= 0 ? `1d10+${totalMod}` : `1d10${totalMod}`;
   const roll = await new Roll(formula).evaluate();
   const hit = roll.total >= dv;
 
-  const resolution = { damage: 0, affliction: null };
+  const resolution = { damage: 0, affliction: null, conditions: [] };
   let effectText = '';
   let defNotes = [];
   if (hit) {
     // Build the incoming damage / affliction either from the program's
     // configured NET Combat effects, or the legacy flat damage formula.
     if (effectsConfig) {
-      const built = await npc.buildAttackResolution(effectsSourceDoc ?? attackerActor, effectsConfig);
+      const built = await npc.buildAttackResolution(effectsSourceDoc ?? attackerActor, effectsConfig, targetActor);
       resolution.damage = built.damage;
       resolution.affliction = built.affliction;
+      resolution.conditions = built.conditions ?? [];
       effectText = built.effectText;
     } else if (damageFormula) {
       const dmgRoll = await new Roll(damageFormula).evaluate();
@@ -1071,22 +1232,45 @@ export async function resolveNetAttack(attackerActor, targetActor, atkModifier, 
 
     // Defensive interjection (Defender / personnel / program), random order.
     const defenders = await npc.gatherDefenders(targetActor);
-    const result = await npc.applyDefensePipeline(resolution, defenders);
+    const attackerIsBlackIce = attackerActor?.system?.programType === 'blackice';
+    const result = await npc.applyDefensePipeline(resolution, defenders, { attackerIsBlackIce });
     defNotes = result.notes;
 
     // Apply final damage (program → REZ, character/NPC → HP, armour ignored).
     if (resolution.damage > 0) {
       if (targetActor.type === 'program') {
         const curRez = npc.progRez(targetActor);
-        await targetActor.update({ 'system.resources.rez.value': Math.max(curRez - resolution.damage, 0) });
+        const newRez = Math.max(curRez - resolution.damage, 0);
+        await targetActor.update({ 'system.resources.rez.value': newRez });
+        // deleteOnKill (N5 — Dragon, Killer): destroy rather than derez at REZ 0.
+        if (newRez <= 0 && effectsConfig?.deleteOnKill) {
+          await destroyProgramTarget(targetActor);
+        }
       } else {
         await targetActor.applyDamage(resolution.damage, { ignoreArmor: true });
+      }
+    }
+
+    // Force an unsafe disconnect on a Netrunner target (N2 — Deckkrash, Giant).
+    const fd = effectsConfig?.forceDisconnect;
+    if (fd?.enabled && (targetActor.type === 'character' || targetActor.type === 'npc')) {
+      const src = effectsSourceDoc ?? attackerActor;
+      const alreadyUsed = fd.oncePerSource && src?.getFlag?.('cyberpunk-blue', 'forceDisconnectUsed');
+      if (!alreadyUsed) {
+        if (fd.oncePerSource && src) await src.setFlag('cyberpunk-blue', 'forceDisconnectUsed', true);
+        await disconnectFromArchitecture(targetActor, false);
       }
     }
 
     // Affliction (if not Cooled away) — rolls the target's defence + applies AE.
     if (resolution.affliction) {
       await npc.applyAfflictionFromConfig(resolution.affliction, targetActor);
+    }
+
+    // On-hit riders: surviving Conditions (fire), stat penalty, NET-action
+    // penalty, node lock (N13 / N7 / N1 / N3).
+    if (effectsConfig) {
+      await npc.applyAttackRiders(effectsConfig, targetActor, resolution.conditions ?? []);
     }
 
     // Post-resolution defender effects (MemHandler / JunkData).
