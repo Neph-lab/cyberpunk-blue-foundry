@@ -11,7 +11,7 @@ import { getStatCheckPreview } from '../helpers/roll-preview.mjs';
 import {
   buildNetCombatContext, isNonCombatant, getNetCombat, progAtk, canAttackMode, getProgramType,
 } from '../helpers/net-program-combat.mjs';
-import { attachNetCombatListeners } from '../helpers/net-combat-ui.mjs';
+import { attachNetCombatListeners, preserveBoosterBoosts } from '../helpers/net-combat-ui.mjs';
 
 const PROGRAM_TYPES = [
   { value: 'antipersonnel', label: 'Anti-Personnel' },
@@ -51,6 +51,17 @@ export class CyberBlueProgramSheet extends HandlebarsApplicationMixin(ActorSheet
 
   /** Persisted active tab between re-renders. */
   tabGroups = { primary: 'details' };
+
+  /**
+   * Booster `boosts` rows have no `name` and never ride a form submit, but
+   * cleanData (partial:false) would reset the un-submitted array to []. Restore
+   * the stored boosts so an unrelated NET Combat edit can't wipe them. (Booster
+   * edits go through the data-* listeners' direct doc.update, not this path.)
+   */
+  _prepareSubmitData(event, form, formData) {
+    const data = super._prepareSubmitData(event, form, formData);
+    return preserveBoosterBoosts(data, this.document);
+  }
 
   async _prepareContext(options) {
     const context = await super._prepareContext(options);

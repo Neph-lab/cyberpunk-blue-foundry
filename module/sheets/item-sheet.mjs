@@ -7,7 +7,7 @@ import { applyWeaponTypeDefaults, buildWeaponUpdate, createWeaponData, getWeapon
 import { parsePsycheLossFormula } from '../helpers/cyberware.mjs';
 import { PROGRAM_ACTOR_FLAG } from '../helpers/netrunning.mjs';
 import { buildNetCombatContext } from '../helpers/net-program-combat.mjs';
-import { attachNetCombatListeners } from '../helpers/net-combat-ui.mjs';
+import { attachNetCombatListeners, preserveBoosterBoosts } from '../helpers/net-combat-ui.mjs';
 import { GEAR_STATES, getGearStateUpdateData, normalizeGearState } from '../helpers/gear.mjs';
 import {
   createWeaponChangeData,
@@ -540,7 +540,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
 
     // If no weapon form fields were actually submitted, there's nothing more to do
     if (Object.keys(formWeaponFields).length === 0) {
-      return data;
+      return preserveBoosterBoosts(data, this.document);
     }
 
     // Read existing weapons from _source (raw stored JSON, not cleaned/derived)
@@ -566,7 +566,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       }
     }
 
-    return data;
+    return preserveBoosterBoosts(data, this.document);
   }
 
   async _onRender(context, options) {

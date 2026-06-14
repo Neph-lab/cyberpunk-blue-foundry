@@ -24,6 +24,34 @@ function readBoostsFromDom(rootEl) {
   }));
 }
 
+/**
+ * Preserve the Booster `boosts` array across a sheet form submit.
+ *
+ * Booster rows are edited through `data-*` attributes with NO `name`, so they
+ * never ride a form submit — they are written directly via `doc.update()` by the
+ * listeners above. But `super._prepareSubmitData` runs the submitted data through
+ * SchemaField cleanData with `partial:false`, which resets any un-submitted field
+ * to its schema `initial` — for the `booster.boosts` ArrayField that is `[]`. So
+ * any unrelated NET Combat edit would silently wipe the boosts. Whenever a submit
+ * produces a `system.netCombat` payload, restore the stored boosts from `_source`
+ * (the form is never the source of truth for them).
+ *
+ * Call this from each sheet's `_prepareSubmitData`, just before returning.
+ *
+ * @param {object}     data - the prepared submit data (nested `system.*`)
+ * @param {Actor|Item} doc  - the sheet's document
+ * @returns {object} the same `data`, with `booster.boosts` preserved
+ */
+export function preserveBoosterBoosts(data, doc) {
+  const nc = data?.system?.netCombat;
+  if (!nc) return data;
+  const stored = doc?._source?.system?.netCombat?.booster?.boosts;
+  if (stored === undefined) return data;
+  nc.booster ??= {};
+  nc.booster.boosts = foundry.utils.deepClone(stored);
+  return data;
+}
+
 export function attachNetCombatListeners(rootEl, doc) {
   if (!rootEl) return;
 
