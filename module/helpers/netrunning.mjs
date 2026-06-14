@@ -1136,7 +1136,7 @@ async function _promptNetDv(targetName) {
     content: `<div class="cyberpunk-blue">
       <p>${game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.DvDialogHint', { target: targetName })}</p>
       <label>${game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.DvDialogLabel')}
-        <input type="number" id="net-dv-input" value="15" min="0" style="width:4rem;margin-left:.4rem;" />
+        <input type="number" name="net-dv-input" id="net-dv-input" value="15" min="0" style="width:4rem;margin-left:.4rem;" />
       </label>
     </div>`,
     buttons: [
@@ -1145,7 +1145,9 @@ async function _promptNetDv(targetName) {
         label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Confirm'),
         icon: 'fas fa-bolt',
         default: true,
-        callback: (event, button, html) => resolve(Number(html.querySelector('#net-dv-input')?.value) || 0),
+        // DialogV2 button callbacks receive (event, button, dialog) — read the
+        // value from button.form, not a non-existent html element.
+        callback: (event, button) => resolve(Number(button.form?.elements['net-dv-input']?.value) || 0),
       },
       {
         action: 'cancel',

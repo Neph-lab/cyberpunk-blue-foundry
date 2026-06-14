@@ -9,7 +9,7 @@ import {
 import { buildActorEffectGroups, attachEffectsPanelListeners } from '../helpers/effects.mjs';
 import { getStatCheckPreview } from '../helpers/roll-preview.mjs';
 import {
-  buildNetCombatContext, isNonCombatant, getNetCombat, progAtk,
+  buildNetCombatContext, isNonCombatant, getNetCombat, progAtk, canAttackMode, getProgramType,
 } from '../helpers/net-program-combat.mjs';
 import { attachNetCombatListeners } from '../helpers/net-combat-ui.mjs';
 
@@ -89,9 +89,11 @@ export class CyberBlueProgramSheet extends HandlebarsApplicationMixin(ActorSheet
     netTab.isGM = isGM;
     netTab.attackMod = progAtk(this.document);
     context.netTab = netTab;
-    // GM Attack button shows only for a combatant attacker program in Attack mode.
+    // GM Attack button shows only for a combatant attacker-type program whose
+    // Attack mode is selected (guard against a stale mode after a type change).
     context.showProgramAttackButton = isGM
       && !netTab.isNonCombatant
+      && canAttackMode(getProgramType(this.document))
       && getNetCombat(this.document)?.attack?.mode === 'attack'
       && !inErrorState;
 

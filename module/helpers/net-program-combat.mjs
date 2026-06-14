@@ -154,9 +154,21 @@ export function buildNetCombatContext(doc) {
     nc?.attack?.damage?.enabled || nc?.attack?.affliction?.enabled || nc?.attack?.effectText?.enabled,
   );
 
+  // Display-safe mode flags: if a stored mode is no longer valid for this type
+  // (e.g. "attack" left over after switching to Booster) treat it as inactive so
+  // stale sub-blocks don't show.
+  const attackModeValid = attackModes.some((m) => m.value === nc?.attack?.mode);
+  const attackActive = attackModeValid && nc?.attack?.mode !== 'none';
+  const attackSupport = attackActive && nc?.attack?.mode === 'support';
+  const defenseModeValid = defenseModes.some((m) => m.value === nc?.defense?.mode);
+  const defenseActive = defenseModeValid && nc?.defense?.mode !== 'standard';
+
   return {
     netCombat: nc,
     programType: type,
+    attackActive,
+    attackSupport,
+    defenseActive,
     caps: {
       attack: canAttackMode(type),
       support: canSupportMode(type),

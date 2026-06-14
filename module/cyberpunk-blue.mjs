@@ -1230,28 +1230,34 @@ Hooks.on('deleteCombat', () => { try { clearTechChargeHighlights(); } catch { } 
 // Also sync stat changes to the live program actor, and keep the actor's token
 // image up-to-date when the actor's own image changes.
 Hooks.on('updateItem', async (item, change, options) => {
-  if (game.user !== game.users.activeGM) return;
+  if (!game.user.isGM) return;
   if (item.type !== 'programExecutable') return;
 
   const actor = item.parent;
 
+  // ── Field sync: exe → linked Program Actor(s) ──────────────────────────────
+  // Mirror any corresponding field change onto every Program Actor linked to
+  // this exe (attached or referenced). This is idempotent and echo-suppressed
+  // (`cyberblueProgramSync` marks updates the sync itself made), so it is safe
+  // to run on ANY GM client — not just the active GM. Restricting it to the
+  // active GM silently breaks sync when a second/stale GM session holds that
+  // role.
+  if (!options?.cyberblueProgramSync
+    && (foundry.utils.hasProperty(change, 'system')
+      || change.name !== undefined || change.img !== undefined)) {
+    await syncExecutableToProgramActors(item, change);
+  }
+
   // ── Running flag: spawn or despawn ─────────────────────────────────────────
-  if (foundry.utils.hasProperty(change, 'system.running') && actor && isNetConnected(actor)) {
+  // Token creation/deletion is NOT idempotent — only the active GM may do it,
+  // or multiple GMs would each spawn a duplicate program token.
+  if (game.user === game.users.activeGM
+    && foundry.utils.hasProperty(change, 'system.running') && actor && isNetConnected(actor)) {
     if (change.system.running === true) {
       await spawnProgramActor(actor, item);
     } else {
       await despawnProgramActor(actor, item);
     }
-  }
-
-  // ── Field sync: exe → linked Program Actor(s) ──────────────────────────────
-  // Mirror any corresponding field change onto every Program Actor linked to
-  // this exe (attached or referenced). `cyberblueProgramSync` marks updates the
-  // sync itself made — skip those to avoid an echo loop.
-  if (!options?.cyberblueProgramSync
-    && (foundry.utils.hasProperty(change, 'system')
-      || change.name !== undefined || change.img !== undefined)) {
-    await syncExecutableToProgramActors(item, change);
   }
 });
 
@@ -1330,9 +1336,10 @@ Hooks.on('updateToken', async (tokenDoc, change) => {
 // ##ERROR## state when REZ hits 0. `cyberblueProgramSync` marks updates the sync
 // itself made — skip those to avoid an echo loop.
 Hooks.on('updateActor', async (actor, changes, options) => {
-  if (game.user !== game.users.activeGM) return;
+  if (!game.user.isGM) return;
   if (actor.type !== 'program') return;
   if (!actor.system?.executableUuid) return;
+  const isActiveGM = game.user === game.users.activeGM;
 
   // Clamp: REZ must never be negative. Correct it and let the re-fire handle
   // sync + ##ERROR## state (newRez will be 0 on the second pass).
@@ -1345,12 +1352,16 @@ Hooks.on('updateActor', async (actor, changes, options) => {
     }
   }
 
+  // Field sync (idempotent + echo-suppressed) — safe on any GM, so it keeps
+  // working when a second/stale GM session holds the active-GM role.
   if (!options?.cyberblueProgramSync) {
     await syncProgramActorToExecutable(actor, changes);
   }
 
-  // ##ERROR## state when a temporary program's REZ reaches 0.
-  if (actor.getFlag('cyberpunk-blue', 'isTemporaryProgramActor')
+  // ##ERROR## state when a temporary program's REZ reaches 0 — active GM only
+  // (creates an AE; avoid duplicate work across multiple GM sessions).
+  if (isActiveGM
+    && actor.getFlag('cyberpunk-blue', 'isTemporaryProgramActor')
     && foundry.utils.hasProperty(changes, 'system.resources.rez.value')) {
     const rez = foundry.utils.getProperty(changes, 'system.resources.rez.value') ?? 0;
     if (rez <= 0) await applyErrorState(actor);

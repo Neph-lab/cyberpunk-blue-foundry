@@ -25,8 +25,8 @@
       {{/each}}
     </div>
 
-    {{#unless (eq netCombat.attack.mode "none")}}
-      {{#if (eq netCombat.attack.mode "support")}}
+    {{#if attackActive}}
+      {{#if attackSupport}}
         <label class="net-field-row">
           <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.SupportModifier"}}</span>
           <input type="number" name="system.netCombat.attack.supportModifier"
@@ -121,7 +121,7 @@
           <span>{{localize "CYBER_BLUE.Netrunning.NetCombat.StopRunningAfter"}}</span>
         </label>
       {{/if}}
-    {{/unless}}
+    {{/if}}
   </section>
 
   {{!-- ───────────────────────── Defense ───────────────────────── --}}
@@ -138,7 +138,7 @@
       {{/each}}
     </div>
 
-    {{#unless (eq netCombat.defense.mode "standard")}}
+    {{#if defenseActive}}
       <div class="net-defense-options">
         <label class="net-option-head">
           <input type="checkbox" name="system.netCombat.defense.ablate" {{checked netCombat.defense.ablate}} {{#unless isGM}}disabled{{/unless}} />
@@ -193,7 +193,7 @@
           <input type="text" name="system.netCombat.defense.effectText" value="{{netCombat.defense.effectText}}" {{#unless isGM}}disabled{{/unless}} />
         </label>
       </div>
-    {{/unless}}
+    {{/if}}
   </section>
 
   {{!-- ───────────────────────── Booster ───────────────────────── --}}
