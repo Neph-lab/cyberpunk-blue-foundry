@@ -863,7 +863,7 @@
                             <span class="state-chip state-disabled">{{localize "CYBER_BLUE.Cyberware.Disable.Label"}}</span>
                           {{/if}}
                         </button>
-                        <div class="embedded-summary">{{item.integrationLabel}}</div>
+                        <div class="embedded-summary">{{item.integrationLabel}}{{#if item.paired}} <span class="state-chip">{{localize "CYBER_BLUE.Cyberware.PairedTag"}}</span>{{/if}}</div>
                         <span class="embedded-rank numeric-column">{{item.slotText}}</span>
                         <div class="embedded-summary">{{item.platformName}}</div>
                         <div class="instruction-cell">
@@ -932,7 +932,7 @@
                           <span class="state-chip state-disabled">{{localize "CYBER_BLUE.Cyberware.Disable.Label"}}</span>
                         {{/if}}
                       </button>
-                      <div class="embedded-summary">{{item.integrationLabel}}</div>
+                      <div class="embedded-summary">{{item.integrationLabel}}{{#if item.paired}} <span class="state-chip">{{localize "CYBER_BLUE.Cyberware.PairedTag"}}</span>{{/if}}</div>
                       <span class="embedded-rank numeric-column">{{item.slotText}}</span>
                       <div class="embedded-summary">{{localize "CYBER_BLUE.Cyberware.Unassigned"}}</div>
                       <div class="instruction-cell">
@@ -995,7 +995,7 @@
                           {{/if}}
                         </span>
                       </button>
-                      <div class="embedded-summary">{{item.integrationLabel}}</div>
+                      <div class="embedded-summary">{{item.integrationLabel}}{{#if item.paired}} <span class="state-chip">{{localize "CYBER_BLUE.Cyberware.PairedTag"}}</span>{{/if}}</div>
                       <span class="embedded-rank numeric-column"></span>
                       <div class="embedded-summary"></div>
                       <div class="instruction-cell"></div>

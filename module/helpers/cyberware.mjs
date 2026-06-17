@@ -65,6 +65,36 @@ export function getCyberwareEntries(actor, { pendingItemId = null, pendingSystem
   return entries;
 }
 
+// The platform(s) an extension occupies. A paired extension consumes its slots
+// on BOTH assigned platforms; a normal extension only on its single parent.
+export function getEntryPlatformIds(system) {
+  if (system.integration !== 'extension') {
+    return [];
+  }
+  const ids = [];
+  if (system.parentCyberwareId) {
+    ids.push(system.parentCyberwareId);
+  }
+  if (system.paired && system.parentCyberwareId2) {
+    ids.push(system.parentCyberwareId2);
+  }
+  return ids;
+}
+
+// True when an extension has every platform it needs (one normally, two when
+// paired). Non-extensions are trivially "connected". Used to decide whether an
+// item renders in its installed group or in the Unconnected list, and mirrors
+// CyberBlueItem#isUnconnectedExtension.
+export function isExtensionFullyConnected(system) {
+  if (system.integration !== 'extension') {
+    return true;
+  }
+  if (!system.parentCyberwareId) {
+    return false;
+  }
+  return !system.paired || Boolean(system.parentCyberwareId2);
+}
+
 export function getPlatformUsage(entries, { excludedItemId = null } = {}) {
   const usage = new Map();
 
@@ -73,12 +103,10 @@ export function getPlatformUsage(entries, { excludedItemId = null } = {}) {
       continue;
     }
 
-    if (entry.system.integration !== 'extension' || !entry.system.parentCyberwareId) {
-      continue;
+    const slots = entry.system.slotsUsed ?? 0;
+    for (const platformId of getEntryPlatformIds(entry.system)) {
+      usage.set(platformId, (usage.get(platformId) ?? 0) + slots);
     }
-
-    const current = usage.get(entry.system.parentCyberwareId) ?? 0;
-    usage.set(entry.system.parentCyberwareId, current + (entry.system.slotsUsed ?? 0));
   }
 
   return usage;
@@ -143,6 +171,64 @@ export async function promptForCyberwarePlatform(eligiblePlatforms) {
   });
 }
 
+// Select the TWO platforms a paired extension installs into. Returns an array
+// of two distinct platform ids, or null if the pairing can't be made (fewer
+// than two eligible platforms, or the prompt was cancelled).
+export async function promptForCyberwarePlatformPair(eligiblePlatforms) {
+  if (eligiblePlatforms.length < 2) {
+    return null;
+  }
+
+  // Exactly two slots available — no choice to make, assign both.
+  if (eligiblePlatforms.length === 2) {
+    return [eligiblePlatforms[0].id, eligiblePlatforms[1].id];
+  }
+
+  const optionsMarkup = (selectedId) => eligiblePlatforms.map((platform) => `
+    <option value="${platform.id}"${platform.id === selectedId ? ' selected' : ''}>${platform.name} (${game.i18n.format('CYBER_BLUE.Cyberware.FreeSlots', {
+      free: platform.freeSlots,
+      total: platform.slotsProvided,
+    })})</option>
+  `).join('');
+
+  const result = await foundry.applications.api.DialogV2.prompt({
+    window: {
+      title: game.i18n.localize('CYBER_BLUE.Cyberware.PairAssignment'),
+    },
+    content: `
+      <form>
+        <div class="form-group">
+          <label>${game.i18n.localize('CYBER_BLUE.Sheet.Labels.PlatformA')}</label>
+          <select name="platformA">${optionsMarkup(eligiblePlatforms[0].id)}</select>
+        </div>
+        <div class="form-group">
+          <label>${game.i18n.localize('CYBER_BLUE.Sheet.Labels.PlatformB')}</label>
+          <select name="platformB">${optionsMarkup(eligiblePlatforms[1].id)}</select>
+        </div>
+      </form>
+    `,
+    ok: {
+      label: game.i18n.localize('CYBER_BLUE.Sheet.Buttons.AssignPlatform'),
+      callback: (_event, _button, dialog) => ({
+        a: dialog.element.querySelector('[name="platformA"]')?.value,
+        b: dialog.element.querySelector('[name="platformB"]')?.value,
+      }),
+    },
+    rejectClose: false,
+  });
+
+  if (!result?.a || !result?.b) {
+    return null;
+  }
+
+  if (result.a === result.b) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Cyberware.Errors.SamePlatform'));
+    return null;
+  }
+
+  return [result.a, result.b];
+}
+
 export function validateCyberwareConfiguration(actor, { itemId = null, itemName = '', system } = {}) {
   const entries = getCyberwareEntries(actor, {
     pendingItemId: itemId ?? '__pending__',
@@ -173,30 +259,41 @@ export function validateCyberwareConfiguration(actor, { itemId = null, itemName 
       continue;
     }
 
-    if (!entry.system.parentCyberwareId) {
-      continue;
-    }
-
-    const platform = entries.find((candidate) => candidate.id === entry.system.parentCyberwareId);
-    if (!platform) {
+    // A paired extension's two platforms must be distinct items (e.g. left eye
+    // and right eye, not the same eye twice). A partially-assigned paired item
+    // is allowed here — it just stays Disconnected (see isUnconnectedExtension).
+    if (entry.system.paired
+      && entry.system.parentCyberwareId
+      && entry.system.parentCyberwareId2
+      && entry.system.parentCyberwareId === entry.system.parentCyberwareId2) {
       return {
         valid: false,
-        reason: game.i18n.localize('CYBER_BLUE.Cyberware.Errors.InvalidPlatform'),
+        reason: game.i18n.localize('CYBER_BLUE.Cyberware.Errors.SamePlatform'),
       };
     }
 
-    if (platform.system.integration !== 'platform') {
-      return {
-        valid: false,
-        reason: game.i18n.localize('CYBER_BLUE.Cyberware.Errors.PlatformRequired'),
-      };
-    }
+    for (const platformId of getEntryPlatformIds(entry.system)) {
+      const platform = entries.find((candidate) => candidate.id === platformId);
+      if (!platform) {
+        return {
+          valid: false,
+          reason: game.i18n.localize('CYBER_BLUE.Cyberware.Errors.InvalidPlatform'),
+        };
+      }
 
-    if (platform.system.cyberwareType !== entry.system.cyberwareType) {
-      return {
-        valid: false,
-        reason: game.i18n.localize('CYBER_BLUE.Cyberware.Errors.TypeMismatch'),
-      };
+      if (platform.system.integration !== 'platform') {
+        return {
+          valid: false,
+          reason: game.i18n.localize('CYBER_BLUE.Cyberware.Errors.PlatformRequired'),
+        };
+      }
+
+      if (platform.system.cyberwareType !== entry.system.cyberwareType) {
+        return {
+          valid: false,
+          reason: game.i18n.localize('CYBER_BLUE.Cyberware.Errors.TypeMismatch'),
+        };
+      }
     }
   }
 

@@ -1,7 +1,9 @@
 import {
   getEligiblePlatforms,
+  isExtensionFullyConnected,
   parsePsycheLossFormula,
   promptForCyberwarePlatform,
+  promptForCyberwarePlatformPair,
   validateCyberwareConfiguration,
 } from '../helpers/cyberware.mjs';
 import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs';
@@ -83,21 +85,41 @@ export class CyberBlueItem extends Item {
     if (nextSystem.integration === 'extension' && !nextSystem.parentCyberwareId) {
       const eligiblePlatforms = getEligiblePlatforms(this.parent, this.id, nextSystem);
 
-      let selectedPlatformId;
-      if (options?.cyberBlueSkipRoleGrant) {
-        // Auto-assign to the first eligible platform (no user prompt for role grants)
-        selectedPlatformId = eligiblePlatforms[0]?.id ?? null;
+      if (nextSystem.paired) {
+        // Paired extensions need two platforms. Auto-assign the first two for
+        // role grants; otherwise prompt. If two can't be assigned the item is
+        // created Disconnected (no abort) — exactly like a normal extension
+        // dropped with no available platform.
+        let pair;
+        if (options?.cyberBlueSkipRoleGrant) {
+          pair = eligiblePlatforms.length >= 2
+            ? [eligiblePlatforms[0].id, eligiblePlatforms[1].id]
+            : null;
+        } else {
+          pair = await promptForCyberwarePlatformPair(eligiblePlatforms);
+        }
+
+        nextSystem.parentCyberwareId = pair?.[0] ?? null;
+        nextSystem.parentCyberwareId2 = pair?.[1] ?? null;
+        data.system = nextSystem;
+        this.updateSource({ system: nextSystem });
       } else {
-        selectedPlatformId = await promptForCyberwarePlatform(eligiblePlatforms);
-      }
+        let selectedPlatformId;
+        if (options?.cyberBlueSkipRoleGrant) {
+          // Auto-assign to the first eligible platform (no user prompt for role grants)
+          selectedPlatformId = eligiblePlatforms[0]?.id ?? null;
+        } else {
+          selectedPlatformId = await promptForCyberwarePlatform(eligiblePlatforms);
+        }
 
-      if (selectedPlatformId === undefined || selectedPlatformId === '') {
-        return false;
-      }
+        if (selectedPlatformId === undefined || selectedPlatformId === '') {
+          return false;
+        }
 
-      nextSystem.parentCyberwareId = selectedPlatformId || null;
-      data.system = nextSystem;
-      this.updateSource({ system: nextSystem });
+        nextSystem.parentCyberwareId = selectedPlatformId || null;
+        data.system = nextSystem;
+        this.updateSource({ system: nextSystem });
+      }
     }
 
     const validation = validateCyberwareConfiguration(this.parent, {
@@ -216,7 +238,7 @@ export class CyberBlueItem extends Item {
     return this.type === 'cyberware'
       && this.parent instanceof Actor
       && this.system.integration === 'extension'
-      && !this.system.parentCyberwareId;
+      && !isExtensionFullyConnected(this.system);
   }
 
   shouldApplyCyberwareEffects() {

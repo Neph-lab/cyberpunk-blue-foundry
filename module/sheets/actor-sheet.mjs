@@ -2,7 +2,7 @@ const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { Tabs } = foundry.applications.ux;
 import { getBrandLogoPath } from '../helpers/branding.mjs';
-import { getEligiblePlatforms, getPlatformUsage, promptForCyberwarePlatform } from '../helpers/cyberware.mjs';
+import { getEligiblePlatforms, getPlatformUsage, isExtensionFullyConnected, promptForCyberwarePlatform, promptForCyberwarePlatformPair } from '../helpers/cyberware.mjs';
 import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs';
 import { normalizeGearState, getGearStateUpdateData } from '../helpers/gear.mjs';
 import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
@@ -292,9 +292,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       .map((typeConfig) => {
         const items = cyberwareItems
           .filter((item) => item.system.installed && item.system.cyberwareType === typeConfig.value)
-          .filter((item) => item.system.integration !== 'extension' || Boolean(item.system.parentCyberwareId))
+          .filter((item) => isExtensionFullyConnected(item.system))
           .map((item) => {
             const parent = cyberwareItems.find((candidate) => candidate.id === item.system.parentCyberwareId);
+            const parent2 = item.system.paired
+              ? cyberwareItems.find((candidate) => candidate.id === item.system.parentCyberwareId2)
+              : null;
             const usedSlots = cyberwareUsage.get(item.id) ?? 0;
             const itemDoc = this.document.items.get(item.id);
             return {
@@ -309,11 +312,13 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
                   ?.find((entry) => entry.value === item.system.integration)?.label
                 ?? item.system.integration,
               ),
+              paired: Boolean(item.system.paired),
               slotText: item.system.integration === 'platform'
                 ? `${Math.max((item.system.slotsProvided ?? 0) - usedSlots, 0)}/${item.system.slotsProvided ?? 0}`
                 : `${item.system.slotsUsed ?? 0}`,
-              platformName: parent?.name ?? null,
-              canDetachPlatform: item.system.integration === 'extension' && Boolean(item.system.parentCyberwareId),
+              platformName: [parent?.name, parent2?.name].filter(Boolean).join(' + ') || null,
+              canDetachPlatform: item.system.integration === 'extension'
+                && (Boolean(item.system.parentCyberwareId) || Boolean(item.system.parentCyberwareId2)),
               description: cyberwareDescriptionMap.get(item.id) ?? '',
               rowGapClass: 'embedded-entry',
               effectiveWeapons: getEffectiveItemWeapons(itemDoc ?? item).map((weapon, weaponIndex) => {
@@ -359,7 +364,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       .filter((group) => group.items.length > 0);
     {
       const unconnected = cyberwareItems
-        .filter((item) => item.system.installed && item.system.integration === 'extension' && !item.system.parentCyberwareId)
+        .filter((item) => item.system.installed && item.system.integration === 'extension' && !isExtensionFullyConnected(item.system))
         .map((item) => {
           const eligiblePlatforms = getEligiblePlatforms(this.document, item.id, item.system);
           return {
@@ -371,8 +376,11 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
             integrationLabel: CONFIG.CYBER_BLUE.cyberware.integrations
               ?.find((entry) => entry.value === item.system.integration)?.label ?? item.system.integration,
             slotText: `${item.system.slotsUsed ?? 0}`,
+            paired: Boolean(item.system.paired),
             eligiblePlatforms,
-            hasEligiblePlatforms: eligiblePlatforms.length > 0,
+            hasEligiblePlatforms: item.system.paired
+              ? eligiblePlatforms.length >= 2
+              : eligiblePlatforms.length > 0,
             description: cyberwareDescriptionMap.get(item.id) ?? '',
           };
         });
@@ -397,6 +405,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
             ?.find((entry) => entry.value === item.system.integration)?.label
           ?? item.system.integration,
         ),
+        paired: Boolean(item.system.paired),
         description: cyberwareDescriptionMap.get(item.id) ?? '',
       }));
     const gearDocs = embeddedItemDocuments.filter((item) => item.type === 'gear');
@@ -1966,6 +1975,23 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     }
 
     const eligiblePlatforms = getEligiblePlatforms(this.document, item.id, item.system);
+
+    if (item.system.paired) {
+      if (eligiblePlatforms.length < 2) {
+        ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Cyberware.NeedTwoPlatforms'));
+        return;
+      }
+      const pair = await promptForCyberwarePlatformPair(eligiblePlatforms);
+      if (!pair) {
+        return;
+      }
+      await item.update({
+        'system.parentCyberwareId': pair[0],
+        'system.parentCyberwareId2': pair[1],
+      });
+      return;
+    }
+
     if (!eligiblePlatforms.length) {
       ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Cyberware.NoEligiblePlatforms'));
       return;
@@ -1987,7 +2013,12 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       return;
     }
 
-    await item.update({ 'system.parentCyberwareId': null });
+    // Detaching a paired extension clears both platform assignments.
+    const update = { 'system.parentCyberwareId': null };
+    if (item.system.paired) {
+      update['system.parentCyberwareId2'] = null;
+    }
+    await item.update(update);
   }
 
   // Flip an owned-but-uninstalled cyberware item to installed so it moves into

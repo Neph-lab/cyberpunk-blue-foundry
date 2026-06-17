@@ -19,10 +19,22 @@ export default class CyberBlueCyberware extends CyberBlueItemBase {
     });
     schema.weapons = new fields.ArrayField(buildWeaponField(), { initial: [] });
     schema.multipleInstalls = new fields.BooleanField({ initial: false });
+    // Paired extensions must occupy a slot on TWO separate platforms of their
+    // type (e.g. cyberoptics installed in both eyes). slotsUsed is consumed on
+    // each; if two valid platforms can't be assigned the item is Disconnected,
+    // exactly like an unconnected extension. parentCyberwareId2 holds the second
+    // platform (unused when paired is false).
+    schema.paired = new fields.BooleanField({ initial: false });
     schema.integration = new fields.StringField({ required: true, blank: false, initial: 'standalone' });
     schema.slotsUsed = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
     schema.slotsProvided = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
     schema.parentCyberwareId = new fields.StringField({
+      required: false,
+      nullable: true,
+      blank: true,
+      initial: null,
+    });
+    schema.parentCyberwareId2 = new fields.StringField({
       required: false,
       nullable: true,
       blank: true,

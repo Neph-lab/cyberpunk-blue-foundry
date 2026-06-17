@@ -3058,8 +3058,10 @@ async function _syncCyberwareEntries(catalogue) {
     const effectsChanged = catSig !== docSig;
 
     const catMultipleInstalls = def.system?.multipleInstalls ?? false;
+    const catPaired           = def.system?.paired           ?? false;
     const catDescription      = def.system?.description      ?? '';
     const multipleInstallsChanged = doc.system.multipleInstalls !== catMultipleInstalls;
+    const pairedChanged           = (doc.system.paired ?? false) !== catPaired;
     const descriptionChanged      = catDescription && doc.system.description !== catDescription;
 
     const update = { _id: doc.id };
@@ -3080,6 +3082,10 @@ async function _syncCyberwareEntries(catalogue) {
     }
     if (multipleInstallsChanged) {
       update['system.multipleInstalls'] = catMultipleInstalls;
+      needsUpdate = true;
+    }
+    if (pairedChanged) {
+      update['system.paired'] = catPaired;
       needsUpdate = true;
     }
     if (descriptionChanged) {

@@ -99,6 +99,8 @@
         "InstallationDv": "Installation DV",
         "UseCyberneticsComponent": "Use Cybernetics Component",
         "Platform": "Platform",
+        "PlatformA": "First platform",
+        "PlatformB": "Second platform",
         "Note": "Note",
         "StoppingPower": "Stopping Power",
         "NoArmor": "No Armor",
@@ -243,11 +245,14 @@
       "RollLoss": "Roll Loss",
       "SkipLoss": "Skip",
       "PlatformAssignment": "Platform Assignment",
+      "PairAssignment": "Paired Platform Assignment",
+      "PairedTag": "Paired",
       "Unconnected": "Unconnected",
       "Unassigned": "Unassigned",
       "Owned": "Owned (not installed)",
       "NoUnconnected": "No unconnected cyberware.",
       "NoEligiblePlatforms": "No eligible platforms available",
+      "NeedTwoPlatforms": "Paired cyberware needs two platforms of its type with free slots.",
       "InstalledUnder": "Installed under {platform}",
       "FreeSlots": "{free}/{total} free slots",
       "Disable": {
@@ -286,7 +291,8 @@
         "InvalidPlatform": "The selected platform is not available on this actor.",
         "PlatformRequired": "Extensions must be attached to a platform cyberware item.",
         "TypeMismatch": "Extensions must use a platform of the same cyberware type.",
-        "NotEnoughSlots": "The selected platform does not have enough free slots."
+        "NotEnoughSlots": "The selected platform does not have enough free slots.",
+        "SamePlatform": "Paired cyberware must be installed on two different platforms."
       }
     },
     "Role": {
