@@ -248,7 +248,7 @@ export const DRUG_CATALOGUE = [
   // Complex primary (2d6 PSYCHE restore) and complex secondary (rescue window).
   // No addiction.
   drug({
-    name:      'Immunoblockers',
+    name:      'Immunoblockers', img: `systems/cyberpunk-blue/assets/items/drugs/immunoblockers.png`,
     cost:      'PR',
     duration:  'Wears off at a stressful moment (likelihood increases over time); maximum 1 month.',
     primary:   'Immediately restore 2d6 PSYCHE. Characters in full cyberpsychosis may require multiple doses before any benefit is possible.',
@@ -284,7 +284,7 @@ export const DRUG_CATALOGUE = [
   // ── RPM ─────────────────────────────────────────────────────────────────────
   // Complex primary (fatigue step). Addiction: narrative only.
   drug({
-    name:      'RPM',
+    name:      'RPM', img: `systems/cyberpunk-blue/assets/items/drugs/RPM.png`,
     cost:      'EV',
     duration:  '20 hours',
     primary:   'Reduce your current Fatigue level by one step (if merely Fatigued, you suffer no ill effects). If taken within the previous 24 hours, also lose 1d6÷2 PSYCHE (round down).',

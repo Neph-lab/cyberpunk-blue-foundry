@@ -344,7 +344,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Music Album (Shard)',
-    folder: 'Media Gear', cost: 'CH',
+    folder: 'Media Gear', imgPath: `${A_GEAR}/music-album.png`, cost: 'CH',
     description: '10–20 songs on a shard or legacy format.',
   }),
   gear({
@@ -497,7 +497,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Techscanner',
-    folder: 'Scientific & Medical', cost: 'VEX',
+    folder: 'Scientific & Medical', imgPath: `${A_GEAR}/techscanner.png`, cost: 'VEX',
     description: '+2 to Electronics and Mechanics checks (hardware only).',
     effects: [ae('Electronics +2, Mechanics +2 (hardware)', [skill('electronics', 2), skill('mechanics', 2)])],
   }),
@@ -551,7 +551,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Smart Visor',
-    folder: 'Computer Hardware', cost: 'EX',
+    folder: 'Computer Hardware', imgPath: `${A_GEAR}/smart-visor.png`, cost: 'EX',
     description: 'Functions as a 2-slot cybereye with Virtuality pre-installed while worn. Note: interaction with installed cyberoptics may vary; consult your GM.',
   }),
 

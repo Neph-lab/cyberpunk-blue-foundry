@@ -192,6 +192,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Kerenzikov',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/kereznikov.png`,
     folder: 'Neuralware',
     cyberwareType: 'neuralware', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'hospital', installationCost: 'EX', installationDv: 17,
@@ -263,6 +264,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'MicroOptics',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/micro-optics.png`,
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 14,
@@ -316,6 +318,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Wide Spectrum Optics',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/wide-spectrum-optics.png`,
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 2,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -400,6 +403,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Voice Stress Analyzer',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/voice-stress-analyzer.png`,
     folder: 'Cyberaudio',
     cyberwareType: 'cyberaudio', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 12,
@@ -429,6 +433,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Standard Cyberhand',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/standard-cyberhand.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'platform', slotsProvided: 1,
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -542,6 +547,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Subdermal Grip',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/subdermal-grip.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 1,
     cost: 'CO', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -821,6 +827,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'MidnightLady™',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/midnight-lady.png`,
     folder: 'External Cyberware',
     cyberwareType: 'external', integration: 'standalone',
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 14,
@@ -829,6 +836,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Mr. Studd™',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/mr-stud.png`,
     folder: 'External Cyberware',
     cyberwareType: 'external', integration: 'standalone',
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 14,
