@@ -155,7 +155,7 @@ export const CORPO = role({
       selectedUuids: [],
     },
   ],
-  notes: '<p><strong>Starting Gear:</strong> Tsunami Arms Nue; Basic Very Heavy Pistol Ammo ×50; Light Armorjack; Radio Communicator ×4; Scrambler/De-scrambler; Chipware: Olfactory Boost or Language; Subdermal Display.<br><strong>Cyberware:</strong> Neuroport, Tech Hair or Light Tattoo, Toxin Binders or Nasal Filters.<br><strong>Bonus:</strong> €$1,000 on top of usual starting credit.</p>',
+  notes: '<p><strong>Starting Gear:</strong> Tsunami Arms Nue; Basic Very Heavy Pistol Ammo ×50; Light Armorjack; Radio Communicator ×4; Scrambler/De-scrambler; Chipware: Olfactory Boost or Language; Dermal Display.<br><strong>Cyberware:</strong> Neuroport, Tech Hair or Light Tattoo, Toxin Binders or Nasal Filters.<br><strong>Bonus:</strong> €$1,000 on top of usual starting credit.</p>',
 });
 
 // ── Fixer ─────────────────────────────────────────────────────────────────────
@@ -196,7 +196,7 @@ export const FIXER = role({
     { id: id('fixer-9'), name: 'Monarch of the Fixers', unlockRank: 9, content: '<p><strong>Monarch of the Fixers</strong> — <em>Contacts:</em> Divisional corp head, state politico, well-known celebrity. <em>Reach:</em> Luxury (€$5,000). Night Markets can include a Midnight Market. <em>Haggle:</em> Adjust any item price by up to 20%. Gain another Language rank.</p>' },
     { id: id('fixer-10'), name: 'World Broker', unlockRank: 10, content: '<p><strong>World Broker</strong> — <em>Contacts:</em> Major world leaders, major corporation heads, world celebrities. <em>Reach:</em> Almost any item. <em>Haggle:</em> Negotiate up to double pay per person for dangerous jobs. Repeat Language rank selection twice.</p>' },
   ],
-  notes: '<p><strong>Starting Gear:</strong> Constitutional Arms Unity or Liberty; Tsunami Arms Kappa or Militech Ticon; Baseball Bat; Basic Heavy Pistol Ammo ×50 ×2 (or VHP); Light Armorjack; Bug Detector, Disposable Phone ×2, Duct Tape, Advanced Laptop.<br><strong>Cyberware:</strong> Neuroport, Standard Cyberaudio Suite, Voice Stress Analyzer or Amplified Hearing, Sub-Dermal Pocket.</p>',
+  notes: '<p><strong>Starting Gear:</strong> Constitutional Arms Unity or Liberty; Tsunami Arms Kappa or Militech Ticon; Baseball Bat; Basic Heavy Pistol Ammo ×50 ×2 (or VHP); Light Armorjack; Bug Detector, Disposable Phone ×2, Duct Tape, Laptop, Advanced.<br><strong>Cyberware:</strong> Neuroport, Standard Cyberaudio Suite, Voice Stress Analyzer or Amplified Hearing, Subdermal Pocket.</p>',
 });
 
 // ── Guide ─────────────────────────────────────────────────────────────────────
@@ -250,7 +250,7 @@ export const GUIDE = role({
 <tr><td>21</td><td>The World</td><td><em>Achievement and completion; togetherness with the whole.</em></td><td>Everyone in your team is gathered to plan ahead.</td><td>Define a specific expected check. You gain +3 to that one check if/when it happens.</td></tr>
 </tbody></table>` },
   ],
-  notes: '<p><strong>Starting Gear:</strong> Constitutional Arms Unity; Stun Baton or Knife or Bow; Baseball Bat or Axe or Combat Knife; Smoke Grenade; Basic Heavy Pistol Ammo ×50; Light Armorjack.<br><strong>Outfit:</strong> Duct Tape, Flashlight, Glowstick, Radio Scanner/Music Player, Video Camera, Chipware: Language or Skill Chip, Chipware: Olfactory Boost or Tactile Boost.<br><strong>Cyberware:</strong> Neuroport, Light Tattoo, Shift Tacts or Tech Hair, Skin-Weave, Subdermal Pocket.</p>',
+  notes: '<p><strong>Starting Gear:</strong> Constitutional Arms Unity; Stun Baton or Knife or Bow; Baseball Bat or Axe or Combat Knife; Smoke Grenade; Basic Heavy Pistol Ammo ×50; Light Armorjack.<br><strong>Outfit:</strong> Duct Tape, Flashlight, Glow Stick, Radio Scanner/Music Player, Video Camera, Chipware: Language or Skill Chip, Chipware: Olfactory Boost or Tactile Boost.<br><strong>Cyberware:</strong> Neuroport, Light Tattoo, Shift Tacts or Tech Hair, Skin-Weave, Subdermal Pocket.</p>',
 });
 
 // ── Law ───────────────────────────────────────────────────────────────────────
@@ -332,7 +332,7 @@ export const MEDIA = role({
     { id: id('media-9'), name: 'Senior Correspondent', unlockRank: 9, content: '<p><strong>Senior Correspondent</strong> — <em>Access:</em> Divisional corp head, state politico, well-known celebrity. <em>Audience:</em> Continent-wide within your area of expertise. <em>Impact:</em> Can topple large corporations or local governments.</p>' },
     { id: id('media-10'), name: 'World Journalist', unlockRank: 10, content: '<p><strong>World Journalist</strong> — <em>Access:</em> Major world leaders, corporation heads, world celebrities. <em>Audience:</em> World-wide; both celebrity and go-to leak recipient. <em>Impact:</em> Large-scale changes affecting millions.</p>' },
   ],
-  notes: '<p><strong>Starting Gear:</strong> Constitutional Arms Unity; Basic Heavy Pistol Ammo ×50; Light Armorjack; Audio Recorder, Binoculars, Disposable Cell Phone ×2 or Grapple Gun, Flashlight, Laptop, Radio Scanner/Music Player, Scrambler/Descrambler, Video Camera.<br><strong>Cyberware:</strong> Neuroport, Standard Cyberaudio Suite, Amplified Hearing or Voice Stress Analyzer, Scrambler/Descrambler or Bug Detector.</p>',
+  notes: '<p><strong>Starting Gear:</strong> Constitutional Arms Unity; Basic Heavy Pistol Ammo ×50; Light Armorjack; Audio Recorder, Binoculars, Disposable Cell Phone ×2 or Grapple Gun, Flashlight, Laptop, Radio Scanner/Music Player, Scrambler/Descrambler or Bug Detector, Video Camera.<br><strong>Cyberware:</strong> Neuroport, Standard Cyberaudio Suite, Amplified Hearing or Voice Stress Analyzer.</p>',
 });
 
 // ── Medtech ───────────────────────────────────────────────────────────────────
@@ -428,7 +428,7 @@ export const MEDTECH = role({
       optionGroups: [],
     },
   ],
-  notes: '<p><strong>Starting Gear:</strong> Rostovic DB-4 Palica or Militech M251s Ajax; Basic Shotgun Shells ×100 or Basic Rifle Ammo ×100; Incendiary ammo ×10; Smoke Grenade ×2; Light Armorjack; Bulletproof Shield; Airhypo, Handcuffs, Flashlight, Glow Paint, Medtech Bag.<br><strong>Cyberware:</strong> Neuroport, Cybereye, Teleoptics, Microoptics, Nasal Filters or Toxin Binders.</p>',
+  notes: '<p><strong>Starting Gear:</strong> Rostovic DB-4 Palica or Militech M251s Ajax; Basic Shotgun Shells ×100 or Basic Rifle Ammo ×100; Incendiary ammo ×10; Smoke Grenade ×2; Light Armorjack; Bulletproof Shield; Airhypo, Handcuffs, Flashlight, Glow Paint, Medtech Bag.<br><strong>Cyberware:</strong> Neuroport, Standard Cybereye, TeleOptics, MicroOptics, Nasal Filters or Toxin Binders.</p>',
 });
 
 // ── Netrunner ─────────────────────────────────────────────────────────────────
@@ -460,7 +460,7 @@ export const NETRUNNER = role({
 <tbody><tr><td>NET Actions</td><td>2</td><td>3</td><td>4</td><td>5</td></tr></tbody></table>
 <p>Formula: <strong>NET Actions = 1 + ⌈Rank / 3⌉</strong></p>`,
   abilitySections: [],
-  notes: '<p><strong>Starting Gear:</strong> Militech Ticon; Basic Heavy Pistol Ammo ×50; Light Bodyweight Suit; Standard Cyberdeck; Glow Paint; Programs: Armor, Sword, See Ya or Eraser, Sword or Vrizzbolt, Sword or Worm.<br><strong>Cyberware:</strong> Neuroport, Cybereyes ×2, Virtuality, Shift Tacts.</p>',
+  notes: '<p><strong>Starting Gear:</strong> Militech Ticon; Basic Heavy Pistol Ammo ×50; Light Bodyweight Suit; Standard Cyberdeck; Glow Paint; Programs: Armor, Sword, See-Ya or Eraser, Sword or Vrizzbolt, Sword or Worm.<br><strong>Cyberware:</strong> Neuroport, Standard Cybereye ×2, Virtuality, Shift Tacts.</p>',
 });
 
 // ── Ninja ─────────────────────────────────────────────────────────────────────
@@ -498,7 +498,7 @@ export const NINJA = role({
     { id: id('ninja-tac-weakspot'), unlockRank: 2, name: 'Weak-Spot', description: 'Bypass armor with SP ≤ (points/2) × 3. At 2 points, bypass ≤ 3 SP; at 4 points, ≤ 6 SP; up to 15 SP for 10 points. Attack does not ablate armor.', minPoints: 0, maxPoints: 10, step: 2, points: 0 },
     { id: id('ninja-tac-precision'), unlockRank: 3, name: 'Precision Kill', description: 'When your target is unaware of your attack: +1d6 damage for 3 points, +2d6 for 6 points, +3d6 for 9 points.', minPoints: 0, maxPoints: 9, step: 3, points: 0 },
   ],
-  notes: '<p><strong>Starting Gear:</strong> Katana; Stun Baton or Katana; Kendachi Ra-5 Powered Knife; Constitutional Arms Liberty or Tsunami Arms Yanari; Militech M-179 Achilles or Arasaka Nowaki; Throwing Axe or Bow; Basic Medium Pistol Ammo ×50; Basic Sniper/Assault Rifle Ammo ×50; Light Armorjack; Binoculars, Caltrops, Lock-Picking Set, Radio Communicator, Toxin.<br><strong>Cyberware:</strong> Neuroport, Hidden Holster, Sub-Dermal Pocket, Toxin Binders.</p>',
+  notes: '<p><strong>Starting Gear:</strong> Katana; Stun Baton or Katana; Kendachi RA-5 Powered Knife; Constitutional Arms Liberty or Tsunami Arms Yanari; Militech M-179 Achilles or Arasaka Nowaki; Throwing Axe or Bow; Basic Medium Pistol Ammo ×50; Basic Sniper/Assault Rifle Ammo ×50; Light Armorjack; Binoculars, Caltrops, Lock-Picking Kit, Radio Communicator, Toxin.<br><strong>Cyberware:</strong> Neuroport, Hidden Holster, Subdermal Pocket, Toxin Binders.</p>',
 });
 
 // ── Operative ─────────────────────────────────────────────────────────────────
@@ -602,7 +602,7 @@ export const OPERATIVE = role({
       ],
     },
   ],
-  notes: '<p><strong>Starting Gear:</strong> Constitutional Arms Unity; Militech M2 Combat Knife; AmuTek XC-10 Cetus or Strix; Basic Heavy Pistol Ammo ×50; Light Armorjack; Audio Recorder, Bug Detector, Disposable Cell Phone ×2, Radio Communicator, Scrambler/Descrambler.<br><strong>Cyberware:</strong> Neuroport, Standard Cybereye, MicroOptics, Standard Cyberaudio Suite, Amplified Hearing, Shift Tacts.</p>',
+  notes: '<p><strong>Starting Gear:</strong> Constitutional Arms Unity; Militech M2 Combat Knife; Amutek XC-10 Cetus or Strix; Basic Heavy Pistol Ammo ×50; Light Armorjack; Audio Recorder, Bug Detector, Disposable Cell Phone ×2, Radio Communicator, Scrambler/Descrambler.<br><strong>Cyberware:</strong> Neuroport, Standard Cybereye, MicroOptics, Standard Cyberaudio Suite, Amplified Hearing, Shift Tacts.</p>',
 });
 
 // ── Rocker ────────────────────────────────────────────────────────────────────
@@ -637,7 +637,7 @@ export const ROCKER = role({
     { id: id('rocker-9'), name: 'Scream and the World Will Listen', unlockRank: 9, content: '<p><strong>Scream and the World Will Listen</strong> — <em>Venues:</em> Large concert halls, national video feed. <em>Single Fan:</em> Commit major crimes. <em>Small Group:</em> Commit major crimes. <em>Large Group:</em> Brainwashed, cult-like; will riot, destroy property, even kill for you.</p>' },
     { id: id('rocker-10'), name: 'Worldwide Icon', unlockRank: 10, content: '<p><strong>Worldwide Icon</strong> — <em>Venues:</em> Huge stadiums or international video. <em>Single Fan:</em> Sacrifice themselves without question. <em>Small Group:</em> Risk their lives; act as personal protection. <em>Large Group:</em> Worldwide cult-like following; private army based on your charisma.</p>' },
   ],
-  notes: '<p><strong>Starting Gear:</strong> Tsunami Arms Nue; Baseball Bat or Flashbang Grenade; Teargas Grenade ×2; Basic Very Heavy Pistol Ammo ×50; Light Armorjack; Laptop, Electric Guitar, Pocket Amplifier, Glow Paint ×5, Radio Scanner/Music Player.<br><strong>Cyberware:</strong> Neuroport, Cyberaudio Suite, Level Dampener, Chemskin, Tech Hair.</p>',
+  notes: '<p><strong>Starting Gear:</strong> Tsunami Arms Nue; Baseball Bat or Flashbang Grenade; Teargas Grenade ×2; Basic Very Heavy Pistol Ammo ×50; Light Armorjack; Laptop, Electric Guitar, Pocket Amplifier, Glow Paint ×5, Radio Scanner/Music Player.<br><strong>Cyberware:</strong> Neuroport, Standard Cyberaudio Suite, Level Dampener, Chemskin, Tech Hair.</p>',
 });
 
 // ── Solo ──────────────────────────────────────────────────────────────────────
@@ -671,7 +671,7 @@ export const SOLO = role({
     { id: id('solo-tac-precision'), unlockRank: 3, name: 'Precision Attack', description: '+1 to all attacks for every 3 points allocated (max +3 for 9 points).', minPoints: 0, maxPoints: 9, step: 3, points: 0 },
     { id: id('solo-tac-fumble'), unlockRank: 4, name: 'Fumble Recovery', description: '4 points: if you roll 1 on the die for an attack roll, reroll it (must accept the new result).', minPoints: 0, maxPoints: 4, step: 4, points: 0 },
   ],
-  notes: '<p><strong>Starting Gear:</strong> Tsunami Arms Nue; Constitutional Arms M2038 Tactician; Nokota D5 Copperhead; Militech M2 Combat Knife; Kang Tao Type-2067 or Militech Mk.2x Grandstand; Basic Very Heavy Pistol Ammo ×50; Basic Assault Rifle Ammo ×50; Basic Shotgun Slugs or Shells ×20; Light Armorjack; Binoculars, Backpack, Duct Tape, Flashlight, Rope.<br><strong>Cyberware:</strong> Neuroport, Sandevistan or Kerenzikov, Cyberarm, Wolvers.</p>',
+  notes: '<p><strong>Starting Gear:</strong> Tsunami Arms Nue; Constitutional Arms M2038 Tactician; Nokota D5 Copperhead; Militech M2 Combat Knife; Kang Tao Type-2067 or Militech Mk.2X Grandstand; Basic Very Heavy Pistol Ammo ×50; Basic Assault Rifle Ammo ×50; Basic Shotgun Slugs or Shells ×20; Light Armorjack; Binoculars, Backpack, Duct Tape, Flashlight, Rope.<br><strong>Cyberware:</strong> Neuroport, Sandevistan or Kerenzikov, Cyberarm, Wolvers.</p>',
 });
 
 // ── Techie ────────────────────────────────────────────────────────────────────
@@ -762,7 +762,7 @@ export const TECHIE = role({
       optionGroups: [],
     },
   ],
-  notes: '<p><strong>Starting Gear:</strong> Techtronika VST-37 Pozhar or Nokota D5 Copperhead; Basic Shotgun ammo ×50 or Basic Assault Rifle Ammo ×50; Flashbang Grenade; Light Armorjack; Anti-Smog Breathing Mask, Disposable Cell Phone, Duct Tape ×5, Flashlight, Road Flare ×6, Tech Bag, Tech Tool.<br><strong>Cyberware:</strong> Neuroport, Standard Cybereye, MicroOptics, Dermal Display, Standard Cyberarm, Tool Hand.</p>',
+  notes: '<p><strong>Starting Gear:</strong> Techtronika VST-37 Pozhar or Nokota D5 Copperhead; Basic Shotgun ammo ×50 or Basic Assault Rifle Ammo ×50; Flashbang Grenade; Light Armorjack; Anti-Smog Breathing Mask, Disposable Cell Phone, Duct Tape ×5, Flashlight, Road Flare ×6, Tech Bag, Techtool.<br><strong>Cyberware:</strong> Neuroport, Standard Cybereye, MicroOptics, Dermal Display, Standard Cyberarm, Tool Hand.</p>',
 });
 
 // ── Catalogue export ──────────────────────────────────────────────────────────

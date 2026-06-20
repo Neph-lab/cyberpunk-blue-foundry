@@ -70,6 +70,11 @@ export const ROLE_STARTING_GEAR = {
       { name: 'Glow Paint' },
       { name: 'Glow Stick', quantity: 2 },
     ]),
+    pick('bandit-drugs',          'Drugs (choose 1)', 1, [
+      { name: 'Black Lace',  quantity: 2 },
+      { name: 'Blue Glass',  quantity: 5 },
+      { name: 'Synthcoke',   quantity: 5 },
+    ]),
     all('bandit-cyberware',       'Cyberware', [
       { name: 'Neuroport' },
       { name: 'Standard Cyberarm' },
