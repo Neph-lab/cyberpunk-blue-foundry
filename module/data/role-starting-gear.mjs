@@ -472,7 +472,7 @@ export const ROLE_STARTING_GEAR = {
       { name: 'Neuroport' },
       { name: 'Standard Cyberaudio Suite' },
       { name: 'Level Dampener' },
-      { name: 'Chem-Skin' },
+      { name: 'Chemskin' },
       { name: 'Tech Hair' },
     ]),
   ],

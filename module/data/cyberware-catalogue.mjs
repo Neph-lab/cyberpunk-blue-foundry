@@ -762,13 +762,13 @@ export const CYBERWARE_CATALOGUE = [
     effects: [ae('Acting +2, Music +2', [skill('acting', 2), comp('music', 2)])],
   }),
   cw({
-    name: 'Chem-Skin',
+    name: 'Chemskin',
     folder: 'Fashionware',
     cyberwareType: 'fashionware', integration: 'standalone',
     cost: 'CO', facilities: 'clinic', installationCost: 'PR', installationDv: 15,
     psycheLoss: '1d6',
-    description: 'Permanent skin color and pattern change; optionally reactive to temperature or hormone levels. Chem-Skin combined with Tech-Hair grants +2 Style (not additive with other bonuses).',
-    effects: [reminder('If both Chem-Skin AND Tech-Hair installed: +2 Style')],
+    description: 'Permanent skin color and pattern change; optionally reactive to temperature or hormone levels. Chemskin combined with Tech Hair grants +2 Style (not additive with other bonuses).',
+    effects: [reminder('If both Chemskin AND Tech Hair installed: +2 Style')],
   }),
   cw({
     name: 'Light Tattoo',
@@ -795,8 +795,8 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'fashionware', integration: 'standalone',
     cost: 'CO', facilities: 'mall', installationCost: 'CO', installationDv: 14,
     psycheLoss: '',
-    description: 'Artificial hair that can emit light; optionally reactive to temperature or hormone levels. Tech-Hair combined with Chem-Skin grants +2 Style (not additive with other bonuses).',
-    effects: [reminder('If both Chem-Skin AND Tech-Hair installed: +2 Style')],
+    description: 'Artificial hair that can emit light; optionally reactive to temperature or hormone levels. Tech Hair combined with Chemskin grants +2 Style (not additive with other bonuses).',
+    effects: [reminder('If both Chemskin AND Tech Hair installed: +2 Style')],
   }),
   cw({
     name: 'Threading',
