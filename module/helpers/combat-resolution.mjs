@@ -1,4 +1,4 @@
-import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
+import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG, spendWeaponUse } from './combat.mjs';
 import { getEffectiveItemWeapons, getInstalledWeaponMods } from './mods.mjs';
 import { resolveConeAttack, resolveExplosionAttack, resolveAfflictionConeAttack, resolveAfflictionExplosionAttack, resolveScatterEffect } from './cone-attack.mjs';
 import {
@@ -112,9 +112,9 @@ async function rollTargetEvasion(targetActor) {
 }
 
 async function consumeAmmo(item, weaponIndex, shots) {
-  if (shots <= 0) return;
-  const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
-  await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: Math.max(currentAmmo - shots, 0) }));
+  // Delegates to the shared helper so consumable-thrown grenades spend from
+  // quantity (and self-delete at 0) instead of decrementing ammoCurrent.
+  await spendWeaponUse(item, weaponIndex, shots);
 }
 
 /** Set a pending chomp-ammo flag on the attacker for detonation on their next turn. */

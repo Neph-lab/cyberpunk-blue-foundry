@@ -305,6 +305,7 @@ function enrichWeaponType(definition) {
     usesMagazine,
     usesShots,
     usesRangeTable,
+    isThrown: definition.category === 'thrown',
     showRateOfFire: definition.value !== 'thrown',
     showMagazine: usesMagazine,
     showAmmoCurrent: usesMagazine,
@@ -414,6 +415,38 @@ export function buildWeaponUpdate(itemOrSource, weaponIndex, changes = {}, extra
     updates[`system.weapons.${weaponIndex}.${field}`] = value;
   }
   return updates;
+}
+
+/**
+ * Spend one attack's worth of ammunition for a weapon.
+ *
+ * For consumable-thrown weapons (grenades, `weapon.consumableThrown`), the
+ * owning Item's `system.quantity` is the magazine: one is consumed per throw
+ * regardless of `shots`, and the Item is deleted from its actor when the
+ * quantity reaches zero. For every other weapon, the weapon entry's
+ * `ammoCurrent` is decremented by `shots`.
+ *
+ * @param {Item}   item         The weapon Item (must be embedded on an actor)
+ * @param {number} weaponIndex  Index in system.weapons
+ * @param {number} shots        Rounds consumed by this attack (ignored for grenades)
+ * @returns {Promise<boolean>}  true if the Item was deleted (grenade depleted)
+ */
+export async function spendWeaponUse(item, weaponIndex, shots) {
+  const weapon = item.system.weapons?.[weaponIndex];
+  if (weapon?.consumableThrown) {
+    const remaining = (Number(item.system.quantity) || 0) - 1;
+    if (remaining <= 0) {
+      await item.delete();
+      return true;
+    }
+    await item.update({ 'system.quantity': remaining });
+    return false;
+  }
+  if (shots > 0) {
+    const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
+    await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: Math.max(currentAmmo - shots, 0) }));
+  }
+  return false;
 }
 
 export function applyWeaponTypeDefaults(existingWeapon = {}, type = 'lightMelee') {

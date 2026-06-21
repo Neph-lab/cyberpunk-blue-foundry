@@ -515,6 +515,10 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         showsAmmo: definition.usesMagazine,
         ammoCurrent: ammo.current,
         magazine: ammo.magazine,
+        // Consumable-thrown grenades: the owning Item's quantity is the magazine,
+        // shown read-only (no editable ammo field, no reload button).
+        isConsumableThrown: !!weapon.consumableThrown,
+        grenadeQty: Number(itemDoc.system?.quantity) || 0,
         shots: weapon.shots ?? 0,
         damageType,
         hasAutofire: damageType === 'autofire',

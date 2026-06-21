@@ -1,4 +1,4 @@
-import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
+import { getWeaponTypeDefinition, COMBAT_CONFIG, spendWeaponUse } from './combat.mjs';
 import { playSfx } from './audio.mjs';
 import { getEffectiveItemWeapons } from './mods.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
@@ -480,10 +480,9 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
 
   // Consume ammo
   const shots = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
-  if (shots > 0) {
-    const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
-    await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: Math.max(currentAmmo - shots, 0) }));
-  }
+  // Consumable-thrown grenades spend one from quantity (deleting the Item at 0);
+  // other weapons decrement ammoCurrent by `shots`.
+  await spendWeaponUse(item, weaponIndex, shots);
 
   // Determine explosion centre (hit or scatter)
   let explosionCenter = aimPoint;
@@ -663,10 +662,9 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
 
   // Consume ammo (shots)
   const shots = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
-  if (shots > 0) {
-    const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
-    await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: Math.max(currentAmmo - shots, 0) }));
-  }
+  // Consumable-thrown grenades spend one from quantity (deleting the Item at 0);
+  // other weapons decrement ammoCurrent by `shots`.
+  await spendWeaponUse(item, weaponIndex, shots);
 
   // Find tokens in cone
   const targets = [];
@@ -922,10 +920,9 @@ export async function resolveAfflictionConeAttack(attacker, item, weaponIndex) {
 
   // Consume ammo
   const shots = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
-  if (shots > 0) {
-    const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
-    await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: Math.max(currentAmmo - shots, 0) }));
-  }
+  // Consumable-thrown grenades spend one from quantity (deleting the Item at 0);
+  // other weapons decrement ammoCurrent by `shots`.
+  await spendWeaponUse(item, weaponIndex, shots);
 
   // Find tokens in cone
   const targets = [];
@@ -1122,10 +1119,9 @@ export async function resolveAfflictionExplosionAttack(attacker, item, weaponInd
 
   // Consume ammo
   const shots = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
-  if (shots > 0) {
-    const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
-    await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: Math.max(currentAmmo - shots, 0) }));
-  }
+  // Consumable-thrown grenades spend one from quantity (deleting the Item at 0);
+  // other weapons decrement ammoCurrent by `shots`.
+  await spendWeaponUse(item, weaponIndex, shots);
 
   let explosionCenter = aimPoint;
   if (!hit) {

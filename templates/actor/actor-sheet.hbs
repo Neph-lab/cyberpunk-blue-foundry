@@ -242,6 +242,8 @@
                         <span>/</span>
                         <input type="number" value="{{weapon.magazine}}" disabled />
                       </div>
+                    {{else if weapon.isConsumableThrown}}
+                      <span title="{{localize "CYBER_BLUE.Combat.GrenadesRemaining"}}">&times;{{weapon.grenadeQty}}</span>
                     {{else}}
                       <span>&mdash;</span>
                     {{/if}}

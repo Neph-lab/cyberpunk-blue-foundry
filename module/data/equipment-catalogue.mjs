@@ -196,7 +196,7 @@ export const EQUIPMENT_CATALOGUE = [
     isWeapon: true,
     weapons: [{
       type: 'thrown', skill: 'athletics', damage: '0', rateOfFire: 1,
-      magazine: 0, ammoCurrent: 0, shots: 0, hands: 1, concealable: true,
+      magazine: 0, ammoCurrent: 0, shots: 1, hands: 1, concealable: true, consumableThrown: true,
       damageType: 'affliction-explosion', autofireMultiplier: 1, autofireRangeTable: Array(8).fill(0),
       coneSpread: 8, coneAngle: 45, coneHalfDamageDistance: 4,
       rangeTable: [15, 13, 25, 0, 0, 0, 0, 0],
@@ -221,7 +221,7 @@ export const EQUIPMENT_CATALOGUE = [
     isWeapon: true,
     weapons: [{
       type: 'thrown', skill: 'athletics', damage: '0', rateOfFire: 1,
-      magazine: 0, ammoCurrent: 0, shots: 0, hands: 1, concealable: true,
+      magazine: 0, ammoCurrent: 0, shots: 1, hands: 1, concealable: true, consumableThrown: true,
       damageType: 'affliction-explosion', autofireMultiplier: 1, autofireRangeTable: Array(8).fill(0),
       coneSpread: 22, coneAngle: 45, coneHalfDamageDistance: 16,
       rangeTable: [15, 13, 25, 0, 0, 0, 0, 0],
@@ -246,7 +246,7 @@ export const EQUIPMENT_CATALOGUE = [
     isWeapon: true,
     weapons: [{
       type: 'thrown', skill: 'athletics', damage: '0', rateOfFire: 1,
-      magazine: 0, ammoCurrent: 0, shots: 0, hands: 1, concealable: true,
+      magazine: 0, ammoCurrent: 0, shots: 1, hands: 1, concealable: true, consumableThrown: true,
       damageType: 'affliction-explosion', autofireMultiplier: 1, autofireRangeTable: Array(8).fill(0),
       coneSpread: 12, coneAngle: 45, coneHalfDamageDistance: 10,
       rangeTable: [15, 13, 25, 0, 0, 0, 0, 0],
@@ -271,7 +271,7 @@ export const EQUIPMENT_CATALOGUE = [
     isWeapon: true,
     weapons: [{
       type: 'thrown', skill: 'athletics', damage: '0', rateOfFire: 1,
-      magazine: 0, ammoCurrent: 0, shots: 0, hands: 1, concealable: true,
+      magazine: 0, ammoCurrent: 0, shots: 1, hands: 1, concealable: true, consumableThrown: true,
       damageType: 'affliction-explosion', autofireMultiplier: 1, autofireRangeTable: Array(8).fill(0),
       coneSpread: 12, coneAngle: 45, coneHalfDamageDistance: 10,
       rangeTable: [15, 13, 25, 0, 0, 0, 0, 0],
@@ -296,7 +296,7 @@ export const EQUIPMENT_CATALOGUE = [
     isWeapon: true,
     weapons: [{
       type: 'thrown', skill: 'athletics', damage: '2d6', rateOfFire: 1,
-      magazine: 0, ammoCurrent: 0, shots: 0, hands: 1, concealable: true,
+      magazine: 0, ammoCurrent: 0, shots: 1, hands: 1, concealable: true, consumableThrown: true,
       damageType: 'explosion', autofireMultiplier: 1, autofireRangeTable: Array(8).fill(0),
       coneSpread: 10, coneAngle: 45, coneHalfDamageDistance: 4,
       rangeTable: [15, 13, 25, 0, 0, 0, 0, 0],

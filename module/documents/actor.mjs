@@ -5,6 +5,39 @@ import { CyberBlueActiveEffect } from './active-effect.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack } from '../helpers/combat-resolution.mjs';
 import { reloadWeapon, toggleWeaponCharge, toggleWeaponRicochet } from '../helpers/weapon-actions.mjs';
 
+/** True if the create-data / item has a consumable-thrown (grenade) weapon entry. */
+function isConsumableThrownEntry(entry) {
+  const weapons = entry?.system?.weapons;
+  return Array.isArray(weapons) && weapons.some((w) => w?.consumableThrown);
+}
+
+/**
+ * Strip the fields that legitimately differ between two copies of the same
+ * grenade stack (quantity, carried state, and the per-weapon ammoCurrent, which
+ * is meaningless when quantity is the magazine) so the remainder can be compared.
+ */
+function normalizeStackSystem(system = {}) {
+  const clone = foundry.utils.deepClone(system);
+  delete clone.quantity;
+  delete clone.carried;
+  delete clone.state;
+  if (Array.isArray(clone.weapons)) {
+    for (const w of clone.weapons) { if (w) delete w.ammoCurrent; }
+  }
+  return clone;
+}
+
+/** Two grenade stacks merge when they share name/type and an otherwise-identical system. */
+function consumableThrownStacksMatch(existingItem, entry) {
+  if (existingItem.type !== entry.type || existingItem.name !== entry.name) return false;
+  const existingObj = existingItem.toObject();
+  if (!isConsumableThrownEntry(existingObj)) return false;
+  return foundry.utils.objectsEqual(
+    normalizeStackSystem(existingObj.system),
+    normalizeStackSystem(entry.system ?? {}),
+  );
+}
+
 export class CyberBlueActor extends Actor {
   static SERIOUS_WOUND_FLAG = 'autoSeriousWound';
   static MORTALLY_WOUNDED_FLAG = 'autoMortallyWounded';
@@ -244,6 +277,22 @@ export class CyberBlueActor extends Actor {
   }
 
   async _prepareIncomingItemData(entry, options = {}) {
+    // ── Grenade stacking: merge identical consumable-thrown stacks ────────────
+    // When a grenade identical to one already on the actor (save for quantity,
+    // carried state, and naturally-unique fields like the id) is added, fold its
+    // quantity into the existing stack and skip creating a duplicate. The
+    // existing item keeps its own carried state.
+    if (isConsumableThrownEntry(entry)) {
+      const existing = this.items.find((it) => consumableThrownStacksMatch(it, entry));
+      if (existing) {
+        const incoming = Number(entry.system?.quantity) || 1;
+        const current = Number(existing.system?.quantity) || 0;
+        await existing.update({ 'system.quantity': current + incoming });
+        return null; // skip creating a new item
+      }
+      return entry;
+    }
+
     // ── Ammo stacking: merge into existing item instead of creating a new one ─
     // When ammo of the same name already exists on the actor, increment its
     // quantity rather than adding a duplicate.  Quantity comes from the incoming

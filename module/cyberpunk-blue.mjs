@@ -3224,6 +3224,14 @@ async function _syncGearEntries(catalogue) {
 
     const weaponCountChanged = currentWeapons.length !== catWeapons.length;
     const isWeaponChanged    = currentIsWeapon !== catIsWeapon;
+    // Field-level drift: re-sync when any catalogue-specified weapon field differs
+    // from the stored entry (e.g. a newly added field like consumableThrown, or a
+    // changed shots/damage value). Only fields present in the catalogue entry are
+    // compared, so schema-default fields the catalogue omits never force a rewrite.
+    const weaponFieldsChanged = !weaponCountChanged && catWeapons.some((cw, i) => {
+      const dw = currentWeapons[i] ?? {};
+      return Object.keys(cw).some((k) => JSON.stringify(cw[k]) !== JSON.stringify(dw[k]));
+    });
 
     const catEffects = def.effects ?? [];
     const docEffects = (doc.effects?.contents ?? []).filter((e) => !_isSystemGeneratedEffect(e));
@@ -3241,7 +3249,7 @@ async function _syncGearEntries(catalogue) {
 
     const update = { _id: doc.id };
     let needsUpdate = false;
-    if (weaponCountChanged || isWeaponChanged) {
+    if (weaponCountChanged || isWeaponChanged || weaponFieldsChanged) {
       update['system.isWeapon'] = catIsWeapon;
       update['system.weapons']  = catWeapons;
       needsUpdate = true;

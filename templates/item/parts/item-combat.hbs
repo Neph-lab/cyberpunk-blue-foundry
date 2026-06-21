@@ -180,6 +180,13 @@
                   <input type="checkbox" name="system.weapons.{{weapon.index}}.concealable" {{checked weapon.concealable}} />
                 </label>
 
+                {{#if weapon.definition.isThrown}}
+                  <label class="checkbox-label" title="{{localize "CYBER_BLUE.Sheet.Labels.ConsumableThrownHint"}}">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.ConsumableThrown"}}</span>
+                    <input type="checkbox" name="system.weapons.{{weapon.index}}.consumableThrown" {{checked weapon.consumableThrown}} />
+                  </label>
+                {{/if}}
+
                 <fieldset class="weapon-damage-type-group">
                   <legend>{{localize "CYBER_BLUE.Sheet.Labels.DamageType"}}</legend>
                   <label class="checkbox-label">
