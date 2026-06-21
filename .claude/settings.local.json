@@ -166,7 +166,21 @@
       "Bash(node --check module/documents/active-effect.mjs)",
       "Bash(git push *)",
       "Bash(node --check module/documents/item.mjs)",
-      "Bash(node --check module/helpers/martial-arts.mjs)"
+      "Bash(node --check module/helpers/martial-arts.mjs)",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('lang/en.json','utf8'\\)\\);console.log\\('en.json ok'\\)\")",
+      "PowerShell(Get-Service sshd -ErrorAction SilentlyContinue)",
+      "mcp__Claude_in_Chrome__form_input",
+      "Bash(node --check module/helpers/net-combat-ui.mjs)",
+      "Bash(node --check module/sheets/item-sheet.mjs)",
+      "Bash(node --check module/sheets/program-sheet.mjs)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('scripts:', d.get\\('scripts',{}\\)\\)\")",
+      "Bash(git commit *)",
+      "Bash(cd \"D:\\\\FoundryVTT\\\\Data\\\\systems\\\\cyberpunk-blue\" && grep -hE \"name: *['\\\\\"]\" module/data/weapon-catalogue.mjs module/data/mod-catalogue.mjs module/data/ammo-catalogue.mjs module/data/cyberware-catalogue.mjs module/data/equipment-catalogue.mjs module/data/drug-catalogue.mjs module/data/program-catalogue.mjs | sed -E \"s/.*name: *['\\\\\"]\\([^'\\\\\"]+\\)['\\\\\"].*/\\\\1/\" | sort -u > /tmp/cat_names.txt && wc -l /tmp/cat_names.txt)",
+      "Bash(cd \"D:\\\\FoundryVTT\\\\Data\\\\systems\\\\cyberpunk-blue\" && grep -oE \"\\\\{ name: '[^']+'\" module/data/role-starting-gear.mjs | sed -E \"s/\\\\{ name: '\\([^']+\\)'/\\\\1/\" | sort -u > /tmp/role_names.txt && wc -l /tmp/role_names.txt && echo \"---missing from catalogues---\" && comm -23 /tmp/role_names.txt /tmp/cat_names.txt)",
+      "Bash(node -e \"let p=JSON.parse\\(require\\('fs'\\).readFileSync\\(0\\)\\);console.log\\('scripts:',JSON.stringify\\(p.scripts||{}\\)\\)\")",
+      "Bash(npx --no-install eslint module/documents/actor.mjs module/helpers/combat.mjs)",
+      "Bash(git --no-pager diff --stat)",
+      "Bash(git --no-pager diff module/data/equipment-catalogue.mjs)"
     ]
   }
 }
