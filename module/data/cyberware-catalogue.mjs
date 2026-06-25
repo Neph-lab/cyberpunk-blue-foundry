@@ -290,6 +290,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Targeting Scope',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/targeting-scope.png`,
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 1,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -355,6 +356,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Bug Detector (Cyberaudio)',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/bug-detector.png`,
     folder: 'Cyberaudio',
     cyberwareType: 'cyberaudio', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'mall', installationCost: 'CO', installationDv: 15,
@@ -395,6 +397,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Scrambler / Descrambler (Cyberaudio)',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/scrambler-descrambler.png`,
     folder: 'Cyberaudio',
     cyberwareType: 'cyberaudio', integration: 'extension', slotsUsed: 1,
     cost: 'EX', facilities: 'mall', installationCost: 'CO', installationDv: 12,
@@ -442,6 +445,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Big Knucks',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/big-knucks.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 15,
@@ -584,6 +588,7 @@ export const CYBERWARE_CATALOGUE = [
 
   cw({
     name: 'Standard Cyberleg',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/standard-cyberleg.png`,
     folder: 'Cyberlegs',
     cyberwareType: 'cyberlegs', integration: 'platform', slotsProvided: 3,
     cost: 'EX', facilities: 'hospital', installationCost: 'EX', installationDv: 18,
@@ -592,6 +597,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Standard Cyberfoot',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/standard-cyberfoot.png`,
     folder: 'Cyberlegs',
     cyberwareType: 'cyberlegs', integration: 'platform', slotsProvided: 1,
     cost: 'CO', facilities: 'clinic', installationCost: 'PR', installationDv: 16,
@@ -716,6 +722,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Nasal Filters',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/nasal-filters.png`,
     folder: 'Internal Cyberware',
     cyberwareType: 'internal', integration: 'standalone',
     cost: 'CO', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
