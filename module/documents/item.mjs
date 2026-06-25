@@ -10,7 +10,6 @@ import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs'
 import { getGearStateUpdateData, normalizeGearState } from '../helpers/gear.mjs';
 import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
 import { applyFirstRoleSetup, normalizeRoleSystemData } from '../helpers/roles.mjs';
-import { isNetConnected } from '../helpers/netrunning.mjs';
 import { CyberBlueActiveEffect } from './active-effect.mjs';
 
 function preserveRoleArrayIds(next, current) {
@@ -137,19 +136,6 @@ export class CyberBlueItem extends Item {
   async _preDelete(options, user) {
     const allowed = await super._preDelete(options, user);
     if (allowed === false) return false;
-
-    // Block deletion of Backup Drive gear items while the actor is NET-connected.
-    // Removing the drive mid-run strips program-save protection silently; the GM
-    // or player should jack out first.
-    if (
-      this.type === 'gear'
-      && this.name === 'Backup Drive'
-      && this.parent instanceof Actor
-      && isNetConnected(this.parent)
-    ) {
-      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Netrunning.CannotRemoveBackupDriveConnected'));
-      return false;
-    }
 
     return allowed;
   }

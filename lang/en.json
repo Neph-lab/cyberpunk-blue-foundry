@@ -1013,7 +1013,6 @@
       "RamLabel": "RAM",
       "RangeLabel": "Range",
       "NotConnected": "Not connected",
-      "CannotRemoveBackupDriveConnected": "Cannot remove Backup Drive while jacked into an architecture. Jack out first.",
       "QuickhackActivated": "Quickhack Active: {qh} on {target}",
       "EncryptDecryptPending": "{op} in progress…",
       "EncryptDecryptComplete": "{op} operation complete.",

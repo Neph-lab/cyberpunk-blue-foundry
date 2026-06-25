@@ -346,6 +346,43 @@ const computerMods = [
     system: { modType: 'computerMod' },
     description: desc('Architecture Hardware add-on. Adds +1 DATA node to the device. Can be purchased multiple times (servers only).'),
   }),
+  modItem({
+    name: 'Backup Drive',
+    cost: 'PR',
+    system: { modType: 'computerMod', modSlots: 2 },
+    description: desc('Hardware MOD — 2 hardware slots. Non-Black ICE programs deleted from the host device are saved separately; they can be retrieved as a full Action.'),
+  }),
+  modItem({
+    name: 'DNA Lock',
+    cost: 'PR',
+    system: { modType: 'computerMod' },
+    description: desc('Hardware MOD — 1 hardware slot. Biometric lock. Bypass DV: 17 TECH+Electronics (Security).'),
+  }),
+  modItem({
+    name: 'Hardened Circuitry',
+    cost: 'EX',
+    imgPath: `systems/cyberpunk-blue/assets/items/mods/hardware-mod-hardened-circuitry.png`,
+    system: { modType: 'computerMod' },
+    description: desc('Hardware MOD — 1 hardware slot. The host device is immune to EMP, microwave pulses, and non-Black ICE programs.'),
+  }),
+  modItem({
+    name: 'Insulated Wiring',
+    cost: 'PR',
+    system: { modType: 'computerMod' },
+    description: desc('Hardware MOD — 1 hardware slot. The host device, its user, and their clothes will not catch fire from program effects.'),
+  }),
+  modItem({
+    name: 'KRASH-Barrier',
+    cost: 'PR',
+    system: { modType: 'computerMod' },
+    description: desc('Hardware MOD — 1 hardware slot. Unsafe disconnections are made safe.'),
+  }),
+  modItem({
+    name: 'Range Upgrade',
+    cost: 'PR',
+    system: { modType: 'computerMod' },
+    description: desc('Hardware MOD — 1 hardware slot. Doubles the host device\'s wireless connection range.'),
+  }),
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════

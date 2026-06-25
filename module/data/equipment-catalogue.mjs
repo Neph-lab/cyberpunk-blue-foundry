@@ -556,37 +556,8 @@ export const EQUIPMENT_CATALOGUE = [
   }),
 
   // ── Cyberdeck Hardware MODs ───────────────────────────────────────────────
-
-  gear({
-    name: 'Backup Drive',
-    folder: 'Cyberdeck Hardware MODs', cost: 'PR',
-    description: 'Cyberdeck MOD — 2 hardware slots. Non-Black ICE programs deleted from the connected deck are saved separately; they can be retrieved as a full Action.',
-  }),
-  gear({
-    name: 'DNA Lock',
-    folder: 'Cyberdeck Hardware MODs', cost: 'PR',
-    description: 'Cyberdeck MOD — 1 hardware slot. Biometric lock. Bypass DV: 17 TECH+Electronics (Security).',
-  }),
-  gear({
-    name: 'Hardened Circuitry',
-    folder: 'Cyberdeck Hardware MODs', imgPath: `systems/cyberpunk-blue/assets/items/mods/hardware-mod-hardened-circuitry.png`, cost: 'EX',
-    description: 'Cyberdeck MOD — 1 hardware slot. The device is immune to EMP, microwave pulses, and non-Black ICE programs.',
-  }),
-  gear({
-    name: 'Insulated Wiring',
-    folder: 'Cyberdeck Hardware MODs', cost: 'PR',
-    description: 'Cyberdeck MOD — 1 hardware slot. The cyberdeck, runner, and their clothes will not catch fire from program effects.',
-  }),
-  gear({
-    name: 'KRASH-Barrier',
-    folder: 'Cyberdeck Hardware MODs', cost: 'PR',
-    description: 'Cyberdeck MOD — 1 hardware slot. Unsafe disconnections are made safe.',
-  }),
-  gear({
-    name: 'Range Upgrade',
-    folder: 'Cyberdeck Hardware MODs', cost: 'PR',
-    description: 'Cyberdeck MOD — 1 hardware slot. Doubles the cyberdeck\'s wireless connection range.',
-  }),
+  // Backup Drive, DNA Lock, Hardened Circuitry, Insulated Wiring, KRASH-Barrier,
+  // and Range Upgrade are computerMod items — see mod-catalogue.mjs.
 
   // ── Clandestine Gear ──────────────────────────────────────────────────────
 

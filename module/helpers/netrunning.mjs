@@ -501,7 +501,7 @@ export async function disconnectFromArchitecture(actor, safe = true, { forUserId
 /**
  * Permanently destroy a Program-actor target. Prefers deleting its linked
  * executable item (so the `deleteItem` hook despawns the actor + tokens AND the
- * Backup Drive `preDelete` guard can save a non-Black-ICE program); falls back
+ * Backup Drive save in despawnProgramActor can preserve a non-Black-ICE program); falls back
  * to removing tokens + the actor directly when there is no parent exe.
  * @param {Actor} programActor
  */
@@ -756,13 +756,20 @@ function _hasKrashBarrier(actor, cyberdeckId = null) {
 }
 
 /**
- * Return true if the actor has an equipped Backup Drive gear item.
- * Backup Drive is a Cyberdeck Hardware MOD (gear type, equipped state).
+ * Return true if the cyberdeck the actor is connected through (or its primary
+ * cyberdeck when omitted) has a Backup Drive hardware mod embedded in it.
+ * Backup Drive is a computerMod that saves non-Black-ICE programs from deletion.
+ *
+ * @param {Actor}       actor        - The Netrunner
+ * @param {string|null} [cyberdeckId] - Specific cyberdeck item ID; falls back
+ *                                      to the connected cyberdeck.
  */
-function _hasBackupDrive(actor) {
-  return actor.items.some(
-    (item) => item.type === 'gear' && item.name === 'Backup Drive' && item.system.equipped,
-  );
+function _hasBackupDrive(actor, cyberdeckId = null) {
+  const deckId = cyberdeckId ?? getNetConnection(actor)?.cyberdeckId;
+  if (!deckId) return false;
+  const deck = actor.items.get(deckId);
+  if (!deck) return false;
+  return (deck.system.embeddedMods ?? []).some((m) => m.name === 'Backup Drive');
 }
 
 async function _despawnProgramActor(
