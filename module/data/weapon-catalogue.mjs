@@ -286,6 +286,13 @@ const shotguns = [
       sgShell({ magazine: 3 }),
     ],
     description: desc('Power Weapon.') }),
+  weaponItem({ name: 'Arasaka Akumu Mk.II', manufacturer: 'Arasaka', cost: 'VEX', imgPath: img(W_SHOTGUN, 'Arasaka Akumu Mk.II.png'),
+    weapons: [
+      sgSlug({ damage: '5d6', magazine: 25, smart: true, excellent: true }),
+      sgShell({ magazine: 25, smart: true, excellent: true }),
+      entry({ type: 'grenadeLauncher', damage: '6d6', rateOfFire: 1, magazine: 1, shots: 1, hands: 2, rangeTable: R.rl, excellent: true, damageType: 'explosion', coneSpread: 10, coneAngle: 360, coneHalfDamageDistance: 4 }),
+    ],
+    description: desc('Smart Weapon, Excellent Quality (+1 to all attacks: slug, shell, and grenade). Can use Smart ammo. Slug: 5d6, ammo 25. Shell: 3d6 in an 8/8m cone (as the Techtronika VST-37 Pozhar). Under-barrel grenade launcher: Ammo 1, fires a fragmentation grenade for 6d6 explosion (4m inner / 10m outer sphere).') }),
   weaponItem({ name: 'Militech Crusher', manufacturer: 'Militech', cost: 'VEX', imgPath: img(W_SHOTGUN, 'Militech Crusher.png'),
     weapons: [
       sgShell({ magazine: 12, power: true }),

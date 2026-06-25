@@ -180,7 +180,9 @@
       "Bash(node -e \"let p=JSON.parse\\(require\\('fs'\\).readFileSync\\(0\\)\\);console.log\\('scripts:',JSON.stringify\\(p.scripts||{}\\)\\)\")",
       "Bash(npx --no-install eslint module/documents/actor.mjs module/helpers/combat.mjs)",
       "Bash(git --no-pager diff --stat)",
-      "Bash(git --no-pager diff module/data/equipment-catalogue.mjs)"
+      "Bash(git --no-pager diff module/data/equipment-catalogue.mjs)",
+      "Bash(node --check module/data/weapon-catalogue.mjs)",
+      "Bash(node --check module/data/cyberware-catalogue.mjs)"
     ]
   }
 }
