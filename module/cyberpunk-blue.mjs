@@ -3417,6 +3417,11 @@ async function ensureEquipmentCatalogue() {
     // Sync effects and weapons on already-populated gear pack entries
     await _syncGearEntries(EQUIPMENT_CATALOGUE);
 
+    // Remove gear-pack entries that were reclassified to another item type
+    // (cyberdeck Hardware MODs moved gear → computerMod; they live in the
+    // weapon-mods pack now). Prunes stale duplicates from already-seeded packs.
+    await _pruneReclassifiedGear();
+
     // Sync effects and instructions on already-populated drug pack entries
     await _syncDrugEntries(DRUG_CATALOGUE);
 
@@ -3436,6 +3441,36 @@ async function ensureEquipmentCatalogue() {
     }
   } catch (err) {
     console.error('Cyberpunk Blue | Failed to import equipment catalogue:', err);
+  }
+}
+
+/**
+ * Names of items that used to ship as `gear` but have been reclassified to a
+ * different item type (here: cyberdeck Hardware MODs moved gear → computerMod,
+ * now living in the weapon-mods pack). Their stale gear copies are pruned from
+ * the already-seeded gear pack so they don't show up twice.
+ */
+const _RECLASSIFIED_OUT_OF_GEAR = [
+  'Backup Drive', 'DNA Lock', 'Hardened Circuitry',
+  'Insulated Wiring', 'KRASH-Barrier', 'Range Upgrade',
+];
+
+/** Delete reclassified gear-pack entries by name. Idempotent — no-op once gone. */
+async function _pruneReclassifiedGear() {
+  const PACK_ID = 'cyberpunk-blue.gear';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) return;
+  await pack.getIndex({ fields: ['name', 'type'] });
+  const ids = pack.index
+    .filter((e) => e.type === 'gear' && _RECLASSIFIED_OUT_OF_GEAR.includes(e.name))
+    .map((e) => e._id);
+  if (!ids.length) return;
+  await pack.configure({ locked: false });
+  try {
+    await Item.deleteDocuments(ids, { pack: PACK_ID });
+    console.log(`Cyberpunk Blue | Pruned ${ids.length} reclassified gear entries (now computerMods).`);
+  } finally {
+    await pack.configure({ locked: true });
   }
 }
 
