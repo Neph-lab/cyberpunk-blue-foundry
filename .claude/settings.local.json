@@ -182,7 +182,9 @@
       "Bash(git --no-pager diff --stat)",
       "Bash(git --no-pager diff module/data/equipment-catalogue.mjs)",
       "Bash(node --check module/data/weapon-catalogue.mjs)",
-      "Bash(node --check module/data/cyberware-catalogue.mjs)"
+      "Bash(node --check module/data/cyberware-catalogue.mjs)",
+      "Bash(node --check module/data/mod-catalogue.mjs)",
+      "Bash(node --check module/helpers/netrunning.mjs)"
     ]
   }
 }

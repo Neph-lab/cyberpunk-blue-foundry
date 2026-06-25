@@ -659,6 +659,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Webbed Foot',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/webbed-feet.png`,
     folder: 'Cyberlegs',
     cyberwareType: 'cyberlegs', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
