@@ -706,6 +706,7 @@ export const EQUIPMENT_CATALOGUE = [
 
   gear({
     name: 'MicroComp',
+    imgPath: `${A_GEAR}/MicroComp.png`,
     folder: 'Architecture Hardware', cost: 'CO',
     isComputer: true,
     computer: { nodes: 2, softwareSlots: 4 },

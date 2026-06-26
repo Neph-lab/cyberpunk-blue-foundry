@@ -250,6 +250,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Dartgun',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/cybereye-dartgun.png`,
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 3,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -258,6 +259,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Image Enhance',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/image-enchance.png`,
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 1,
     cost: 'EX', facilities: 'mall', installationCost: 'CO', installationDv: 17,
@@ -693,6 +695,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Enhanced Antibodies',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/enhanced-antibodies.png`,
     folder: 'Internal Cyberware',
     cyberwareType: 'internal', integration: 'standalone',
     cost: 'EX', facilities: 'mall', installationCost: 'CO', installationDv: 15,
@@ -702,6 +705,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Gills',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/gills.png`,
     folder: 'Internal Cyberware',
     cyberwareType: 'internal', integration: 'standalone',
     cost: 'EX', facilities: 'hospital', installationCost: 'EX', installationDv: 20,
@@ -719,6 +723,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Independent Air Supply',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/independent-air-supply.png`,
     folder: 'Internal Cyberware',
     cyberwareType: 'internal', integration: 'standalone',
     cost: 'EX', facilities: 'hospital', installationCost: 'EX', installationDv: 18,
