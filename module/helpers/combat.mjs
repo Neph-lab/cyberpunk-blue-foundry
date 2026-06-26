@@ -1,3 +1,5 @@
+import { reduceShoulderArmsRangeTable } from '../data/weapon-schema.mjs';
+
 const RANGE_BREAKPOINTS = [0, 6, 12, 25, 50, 100, 200, 400, 800];
 
 const RAW_WEAPON_TYPES = [
@@ -293,7 +295,17 @@ function normalizeRangeTable(rangeTable = []) {
 }
 
 function enrichWeaponType(definition) {
-  const rangeTable = normalizeRangeTable(definition.rangeTable ?? []);
+  const isShoulderArms = definition.defaultSkill === 'shoulderArms';
+  // Shoulder Arms weapons have every range-band DV reduced by floor(DV/10).
+  // Reducing here means the new-weapon defaults (createWeaponData, the sheet's
+  // type-change handler, and the autofire-default it applies) all hand out the
+  // already-reduced tables.
+  const rangeTable = isShoulderArms
+    ? reduceShoulderArmsRangeTable(normalizeRangeTable(definition.rangeTable ?? []))
+    : normalizeRangeTable(definition.rangeTable ?? []);
+  const defaultAutofireRangeTable = (isShoulderArms && Array.isArray(definition.defaultAutofireRangeTable))
+    ? reduceShoulderArmsRangeTable(definition.defaultAutofireRangeTable)
+    : definition.defaultAutofireRangeTable;
   const usesMagazine = definition.category !== 'melee' && definition.value !== 'thrown';
   const usesShots = usesMagazine;
   const usesRangeTable = definition.category === 'thrown'
@@ -302,6 +314,7 @@ function enrichWeaponType(definition) {
   return {
     ...definition,
     rangeTable,
+    defaultAutofireRangeTable,
     usesMagazine,
     usesShots,
     usesRangeTable,

@@ -15,6 +15,8 @@
  *   installationDv: DV for the installation check
  */
 
+import { applyShoulderArmsRangeReduction } from './weapon-schema.mjs';
+
 const COST = {
   CH:  '€$10 (Cheap)',
   EV:  '€$20 (Everyday)',
@@ -118,7 +120,9 @@ function cw({
       isComputer: false,
       minBodyReq: 0,
       armor: { maxSp, currentSp: maxSp },
-      weapons,
+      // Shoulder Arms weapons get their range-band DVs reduced (no-op for the
+      // current all-melee cyberware, but keeps the rule uniform with gear).
+      weapons: weapons.map(applyShoulderArmsRangeReduction),
       installed: false,
       parentCyberwareId: null,
       description: description ? h(description) : '',

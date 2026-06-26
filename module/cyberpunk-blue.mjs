@@ -2501,6 +2501,18 @@ async function _syncModEntries(catalogue) {
 }
 
 /**
+ * Compare two range-band DV tables for equality, normalised to 8 numeric bands.
+ * Missing/short tables are treated as zero-padded, so an absent table and an
+ * all-zero table compare equal (avoids spurious melee re-syncs).
+ */
+function _rangeTablesEqual(a, b) {
+  for (let i = 0; i < 8; i++) {
+    if ((Number(a?.[i]) || 0) !== (Number(b?.[i]) || 0)) return false;
+  }
+  return true;
+}
+
+/**
  * Synchronise the `system.weapons` array of existing gear items in the weapons
  * compendium against the current catalogue definition.  Runs on every GM load
  * so removing a duplicate SS entry or changing autofireDamage propagates
@@ -2618,8 +2630,19 @@ async function _syncWeaponEntries(catalogue) {
       const cur = currentWeapons[i] ?? {};
       return !!cur.isBeaconWeapon !== !!cw.isBeaconWeapon;
     });
+    // Batch 14: range-band DV tables (Shoulder Arms floor(DV/10) reduction, etc.)
+    const rangeFieldsChanged = catalogueWeapons.some((cw, i) => {
+      const cur = currentWeapons[i] ?? {};
+      return !_rangeTablesEqual(cur.rangeTable, cw.rangeTable)
+        || !_rangeTablesEqual(cur.autofireRangeTable, cw.autofireRangeTable);
+    });
+    // Batch 14: firing-mode skill reassignment (e.g. SMGs moved to the handgun skill)
+    const skillChanged = catalogueWeapons.some((cw, i) => {
+      const cur = currentWeapons[i] ?? {};
+      return (cur.skill ?? '') !== (cw.skill ?? '');
+    });
 
-    const weaponDataChanged = countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged || batch9FieldsChanged || batch10FieldsChanged || batch11FieldsChanged || batch12FieldsChanged || batch13FieldsChanged;
+    const weaponDataChanged = countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged || batch9FieldsChanged || batch10FieldsChanged || batch11FieldsChanged || batch12FieldsChanged || batch13FieldsChanged || rangeFieldsChanged || skillChanged;
     const weaponImgChanged = def.img && doc.img !== def.img;
     if (weaponDataChanged || weaponImgChanged) {
       const update = { _id: doc.id };
@@ -3041,6 +3064,13 @@ async function _syncCyberwareEntries(catalogue) {
     const critDoublePickChanged = catWeapons.some((cw, i) =>
       !!currentWeapons[i]?.critDoublePick !== !!cw.critDoublePick
     );
+    // Range-band DV tables (Shoulder Arms floor(DV/10) reduction). No-op for the
+    // current all-melee cyberware, but keeps the rule uniform with the gear pack.
+    const rangeFieldsChanged = catWeapons.some((cw, i) => {
+      const cur = currentWeapons[i] ?? {};
+      return !_rangeTablesEqual(cur.rangeTable, cw.rangeTable)
+        || !_rangeTablesEqual(cur.autofireRangeTable, cw.autofireRangeTable);
+    });
 
     // Compare effects (catalogue definition vs. doc's non-system-generated AEs)
     const catEffects = def.effects ?? [];
@@ -3066,7 +3096,7 @@ async function _syncCyberwareEntries(catalogue) {
 
     const update = { _id: doc.id };
     let needsUpdate = false;
-    if (weaponCountChanged || isWeaponChanged || critDoublePickChanged) {
+    if (weaponCountChanged || isWeaponChanged || critDoublePickChanged || rangeFieldsChanged) {
       update['system.isWeapon'] = catIsWeapon;
       update['system.weapons']  = catWeapons;
       needsUpdate = true;

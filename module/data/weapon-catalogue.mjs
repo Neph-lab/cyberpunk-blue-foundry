@@ -13,6 +13,8 @@
  *   - Budget Arms Slaught-O-Matic (can't reload + melts)
  */
 
+import { applyShoulderArmsRangeReduction } from './weapon-schema.mjs';
+
 // ─── Cost abbreviation → full COST_LADDER string ─────────────────────────────
 
 const COST_EXPAND = {
@@ -72,14 +74,14 @@ function entry(opts = {}) {
     lightMelee: 'meleeWeapons', mediumMelee: 'meleeWeapons',
     heavyMelee: 'meleeWeapons', veryHeavyMelee: 'meleeWeapons',
     mediumPistol: 'handgun', heavyPistol: 'handgun', veryHeavyPistol: 'handgun',
-    smg: 'shoulderArms', heavySmg: 'shoulderArms',
+    smg: 'handgun', heavySmg: 'handgun',
     shotgun: 'shoulderArms', assaultRifle: 'shoulderArms',
     machineGun: 'heavyWeapons', precisionRifle: 'shoulderArms',
     sniperRifle: 'shoulderArms', grenadeLauncher: 'heavyWeapons',
     rocketLauncher: 'heavyWeapons', flamethrower: 'heavyWeapons',
     bowCrossbow: 'archery', stunGun: 'handgun', thrown: 'athletics',
   };
-  return {
+  return applyShoulderArmsRangeReduction({
     type: opts.type ?? 'mediumPistol',
     skill: opts.skill ?? skillByType[opts.type] ?? 'meleeWeapons',
     damage: opts.damage ?? '1d6',
@@ -143,7 +145,7 @@ function entry(opts = {}) {
     afflictionEffectId: opts.afflictionEffectId ?? '',
     outerZoneResistBonus: opts.outerZoneResistBonus ?? 2,
     isBeaconWeapon: !!opts.isBeaconWeapon,
-  };
+  });
 }
 
 /** Build a 'gear' Item with type=weapon, equipped state. */
