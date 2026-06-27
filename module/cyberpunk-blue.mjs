@@ -1575,6 +1575,7 @@ Hooks.once('ready', async () => {
   await ensureAmmoCatalogue();
   await ensureEquipmentCatalogue();
   await ensureRoleCatalogue();
+  await migrateRoleComponentTrainingSkill();
   await ensureAbilityCatalogue();
   await ensureLifepathCatalogue();
   await syncRoleLifepathLinks();
@@ -3543,6 +3544,42 @@ async function ensureRoleCatalogue() {
     console.error('Cyberpunk Blue | Failed to populate roles compendium:', err);
   } finally {
     await pack.configure({ locked: true });
+  }
+}
+
+/**
+ * One-off migration: stamp the catalogue's componentTraining skill onto existing
+ * owned role items (e.g. set Netrunner roles created before the ability existed
+ * to skill 'netrunning'). The compendium template is synced by _syncRoleEntries;
+ * owned copies are independent, so this walks every world actor's role items.
+ * Idempotent — only writes when the skill differs. Player picks are untouched.
+ */
+async function migrateRoleComponentTrainingSkill() {
+  if (!game.user.isGM) return;
+  const byName = new Map(
+    ROLE_CATALOGUE
+      .filter((r) => r.system?.componentTraining?.skill)
+      .map((r) => [r.name, r.system.componentTraining.skill]),
+  );
+  if (!byName.size) return;
+
+  let updated = 0;
+  for (const actor of game.actors.contents) {
+    const updates = [];
+    for (const item of actor.items) {
+      if (item.type !== 'role') continue;
+      const wantedSkill = byName.get(item.name);
+      if (!wantedSkill) continue;
+      if ((item.system?.componentTraining?.skill ?? '') === wantedSkill) continue;
+      updates.push({ _id: item.id, 'system.componentTraining.skill': wantedSkill });
+    }
+    if (updates.length) {
+      await actor.updateEmbeddedDocuments('Item', updates);
+      updated += updates.length;
+    }
+  }
+  if (updated) {
+    console.log(`Cyberpunk Blue | Stamped componentTraining skill on ${updated} owned role item(s).`);
   }
 }
 
