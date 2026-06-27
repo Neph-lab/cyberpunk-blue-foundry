@@ -1,45 +1,4 @@
 /**
- * Shoulder Arms range-DV reduction.
- *
- * Weapons that fire on the Shoulder Arms skill have their autofire range-band
- * DVs reduced by floor(DV/10) (so a band DV of 30 becomes 27, 15 becomes 14,
- * 0 stays 0). Only the autofire table is affected — single-shot range tables
- * keep their canonical DVs — and only for firing modes whose `skill` is
- * `shoulderArms` (currently just assault-rifle autofire).
- *
- * The reduction is baked into the source data (compendium catalogues and the
- * defaults handed to newly-created weapons) rather than computed at runtime, so
- * the stored range tables are the already-reduced values.
- */
-export function reduceRangeBandDV(value) {
-  const v = Number(value) || 0;
-  return v - Math.floor(v / 10);
-}
-
-/** Map a whole range-band table through {@link reduceRangeBandDV}, returning a new array. */
-export function reduceShoulderArmsRangeTable(table = []) {
-  return (Array.isArray(table) ? table : []).map(reduceRangeBandDV);
-}
-
-/**
- * Apply the Shoulder Arms range-DV reduction to a single weapon firing-mode
- * entry — but only when that entry actually uses the Shoulder Arms skill.
- *
- * Only the autofire range table is reduced. Single-shot `rangeTable` values are
- * left untouched for every Shoulder Arms weapon (assault rifles, shotguns,
- * sniper/precision rifles), so the standard "Attack" always uses the canonical
- * DVs. Non-Shoulder-Arms weapons (and falsy input) are returned unchanged.
- *
- * @param {object} weapon  A weapon firing-mode entry (one element of system.weapons)
- * @returns {object}       A new entry with a reduced autofire table, or the input unchanged
- */
-export function applyShoulderArmsRangeReduction(weapon) {
-  if (!weapon || weapon.skill !== 'shoulderArms') return weapon;
-  if (!Array.isArray(weapon.autofireRangeTable)) return weapon;
-  return { ...weapon, autofireRangeTable: reduceShoulderArmsRangeTable(weapon.autofireRangeTable) };
-}
-
-/**
  * Shared weapon-entry schema used by both Gear and Cyberware items.
  *
  * Anything inside `system.weapons[N]` lives here. Item-level fields (like

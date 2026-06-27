@@ -13,8 +13,6 @@
  *   - Budget Arms Slaught-O-Matic (can't reload + melts)
  */
 
-import { applyShoulderArmsRangeReduction } from './weapon-schema.mjs';
-
 // ─── Cost abbreviation → full COST_LADDER string ─────────────────────────────
 
 const COST_EXPAND = {
@@ -81,7 +79,7 @@ function entry(opts = {}) {
     rocketLauncher: 'heavyWeapons', flamethrower: 'heavyWeapons',
     bowCrossbow: 'archery', stunGun: 'handgun', thrown: 'athletics',
   };
-  return applyShoulderArmsRangeReduction({
+  return {
     type: opts.type ?? 'mediumPistol',
     skill: opts.skill ?? skillByType[opts.type] ?? 'meleeWeapons',
     damage: opts.damage ?? '1d6',
@@ -145,7 +143,7 @@ function entry(opts = {}) {
     afflictionEffectId: opts.afflictionEffectId ?? '',
     outerZoneResistBonus: opts.outerZoneResistBonus ?? 2,
     isBeaconWeapon: !!opts.isBeaconWeapon,
-  });
+  };
 }
 
 /** Build a 'gear' Item with type=weapon, equipped state. */
