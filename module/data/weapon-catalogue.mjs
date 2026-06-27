@@ -181,8 +181,10 @@ function weaponItem({ name, manufacturer = '', cost = '', minBody = 0, weapons =
 //   damage         = single-shot damage (used by the Attack button)
 //   autofireDamage = per-bullet autofire damage (used by the Autofire button)
 //   shots          = rounds consumed per single attack
-const smgAF  = (overrides = {}) => entry({ type: 'smg', damage: '3d6', autofireDamage: '2d6', rateOfFire: 1, magazine: 30, hands: 1, concealable: true, damageType: 'autofire', autofireMultiplier: 3, autofireRangeTable: R.smgAF, rangeTable: R.smgAF, shots: 3, ...overrides });
-const arAF   = (overrides = {}) => entry({ type: 'assaultRifle', damage: '5d6', autofireDamage: '2d6', rateOfFire: 1, magazine: 24, hands: 2, damageType: 'autofire', autofireMultiplier: 4, autofireRangeTable: R.arAF, rangeTable: R.arAF, shots: 3, ...overrides });
+//   rangeTable          = single-shot DVs (Attack button)
+//   autofireRangeTable  = autofire DVs (Autofire button)
+const smgAF  = (overrides = {}) => entry({ type: 'smg', damage: '3d6', autofireDamage: '2d6', rateOfFire: 1, magazine: 30, hands: 1, concealable: true, damageType: 'autofire', autofireMultiplier: 3, autofireRangeTable: R.smgAF, rangeTable: R.smgSingle, shots: 3, ...overrides });
+const arAF   = (overrides = {}) => entry({ type: 'assaultRifle', damage: '5d6', autofireDamage: '2d6', rateOfFire: 1, magazine: 24, hands: 2, damageType: 'autofire', autofireMultiplier: 4, autofireRangeTable: R.arAF, rangeTable: R.arSingle, shots: 3, ...overrides });
 const mgAF   = (overrides = {}) => entry({ type: 'machineGun', damage: '5d6', autofireDamage: '2d6', rateOfFire: 1, magazine: 40, hands: 2, damageType: 'autofire', autofireMultiplier: 3, autofireRangeTable: R.mgAF, rangeTable: R.mgAF, shots: 5, ...overrides });
 const sgSlug = (overrides = {}) => entry({ type: 'shotgun', damage: '5d6', rateOfFire: 1, magazine: 5, hands: 2, rangeTable: R.sgSlug, shots: 1, ...overrides });
 const sgShell = (overrides = {}) => entry({ type: 'shotgun', damage: '3d6', rateOfFire: 1, magazine: 5, hands: 2, damageType: 'cone', coneSpread: 8, coneAngle: 53, coneHalfDamageDistance: 3, shots: 1, ...overrides });

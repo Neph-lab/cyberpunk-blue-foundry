@@ -21,19 +21,33 @@ export function reduceShoulderArmsRangeTable(table = []) {
 }
 
 /**
+ * True when a weapon firing-mode entry has an autofire mode (assault rifles).
+ * Detected via the autofire damage type or a non-empty autofire range table.
+ */
+export function weaponHasAutofire(weapon) {
+  return weapon?.damageType === 'autofire'
+    || (Array.isArray(weapon?.autofireRangeTable) && weapon.autofireRangeTable.some((v) => Number(v) > 0));
+}
+
+/**
  * Apply the Shoulder Arms range-DV reduction to a single weapon firing-mode
- * entry — but only when that entry actually uses the Shoulder Arms skill. Both
- * `rangeTable` and `autofireRangeTable` are reduced. Non-Shoulder-Arms weapons
- * (and falsy input) are returned unchanged.
+ * entry — but only when that entry actually uses the Shoulder Arms skill.
+ *
+ * The autofire range table is always reduced. The single-shot `rangeTable` is
+ * reduced ONLY for weapons with no autofire mode (shotguns, sniper/precision
+ * rifles); autofire-capable weapons (assault rifles) keep their canonical
+ * single-shot DVs unreduced — the standard "Attack" still uses the full table.
+ * Non-Shoulder-Arms weapons (and falsy input) are returned unchanged.
  *
  * @param {object} weapon  A weapon firing-mode entry (one element of system.weapons)
  * @returns {object}       A new entry with reduced range tables, or the input unchanged
  */
 export function applyShoulderArmsRangeReduction(weapon) {
   if (!weapon || weapon.skill !== 'shoulderArms') return weapon;
+  const hasAutofire = weaponHasAutofire(weapon);
   const out = { ...weapon };
-  if (Array.isArray(out.rangeTable)) out.rangeTable = reduceShoulderArmsRangeTable(out.rangeTable);
   if (Array.isArray(out.autofireRangeTable)) out.autofireRangeTable = reduceShoulderArmsRangeTable(out.autofireRangeTable);
+  if (!hasAutofire && Array.isArray(out.rangeTable)) out.rangeTable = reduceShoulderArmsRangeTable(out.rangeTable);
   return out;
 }
 
