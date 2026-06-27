@@ -224,12 +224,15 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       .map(([slug, data]) => {
         const groupSkills = data.skills
           .map((skillSlug) => skillsBySlug[skillSlug])
-          .filter(Boolean);
+          .filter(Boolean)
+          .sort((a, b) => a.label.localeCompare(b.label));
         groupSkills.forEach((entry) => categorizedSlugs.add(entry.slug));
         return { slug, label: data.label, skills: groupSkills };
       })
       .filter((group) => group.skills.length);
-    const uncategorizedSkills = skillEntries.filter((entry) => !categorizedSlugs.has(entry.slug));
+    const uncategorizedSkills = skillEntries
+      .filter((entry) => !categorizedSlugs.has(entry.slug))
+      .sort((a, b) => a.label.localeCompare(b.label));
     if (uncategorizedSkills.length) {
       context.skillGroups.push({ slug: 'uncategorized', label: 'Other', skills: uncategorizedSkills });
     }

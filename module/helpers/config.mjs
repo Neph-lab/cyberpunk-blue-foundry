@@ -250,9 +250,11 @@ const SKILLS = {
 };
 
 // Player-facing skill groupings for the Skills-tab overview. Object key order
-// sets display order; each `skills` array sets the order within a group. Every
-// skill slug should live in exactly one group — any skill missing from here is
-// rendered under an "Other" fallback group rather than silently dropped.
+// sets the order the groups appear in; each `skills` array just defines group
+// membership — within a group the skills are displayed alphabetically by label
+// (sorted in actor-sheet.mjs). Every skill slug should live in exactly one
+// group — any skill missing from here is rendered under an "Other" fallback
+// group rather than silently dropped.
 const SKILL_CATEGORIES = {
   ranged:    { label: 'Ranged Combat',       skills: ['archery', 'autofire', 'handgun', 'hvyWeapons', 'shoulderArms'] },
   melee:     { label: 'Close Combat',         skills: ['martialArts', 'meleeWeapons', 'evasion'] },
