@@ -297,16 +297,11 @@ function normalizeRangeTable(rangeTable = []) {
 function enrichWeaponType(definition) {
   const isShoulderArms = definition.defaultSkill === 'shoulderArms';
   const hasAutofire = Array.isArray(definition.defaultAutofireRangeTable);
-  // Shoulder Arms weapons have their range-band DVs reduced by floor(DV/10).
-  // The autofire table is always reduced; the single-shot table is reduced only
-  // for weapons with no autofire mode (shotguns, sniper/precision rifles) —
-  // assault rifles keep their canonical single-shot DVs. Reducing here means the
+  // Shoulder Arms weapons have only their autofire DVs reduced by floor(DV/10);
+  // single-shot tables keep their canonical DVs. Reducing here means the
   // new-weapon defaults (createWeaponData, the sheet's type-change handler, and
   // the autofire-default it applies) all hand out the correct tables.
-  const baseRangeTable = normalizeRangeTable(definition.rangeTable ?? []);
-  const rangeTable = (isShoulderArms && !hasAutofire)
-    ? reduceShoulderArmsRangeTable(baseRangeTable)
-    : baseRangeTable;
+  const rangeTable = normalizeRangeTable(definition.rangeTable ?? []);
   const defaultAutofireRangeTable = (isShoulderArms && hasAutofire)
     ? reduceShoulderArmsRangeTable(definition.defaultAutofireRangeTable)
     : definition.defaultAutofireRangeTable;

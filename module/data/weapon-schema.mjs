@@ -1,10 +1,11 @@
 /**
  * Shoulder Arms range-DV reduction.
  *
- * Weapons that fire on the Shoulder Arms skill have every range-band DV reduced
- * by floor(DV/10) (so a band DV of 30 becomes 27, 15 becomes 14, 0 stays 0).
- * This is applied to BOTH the single-shot range table and the autofire range
- * table, and only to weapon firing modes whose `skill` is `shoulderArms`.
+ * Weapons that fire on the Shoulder Arms skill have their autofire range-band
+ * DVs reduced by floor(DV/10) (so a band DV of 30 becomes 27, 15 becomes 14,
+ * 0 stays 0). Only the autofire table is affected — single-shot range tables
+ * keep their canonical DVs — and only for firing modes whose `skill` is
+ * `shoulderArms` (currently just assault-rifle autofire).
  *
  * The reduction is baked into the source data (compendium catalogues and the
  * defaults handed to newly-created weapons) rather than computed at runtime, so
@@ -21,34 +22,21 @@ export function reduceShoulderArmsRangeTable(table = []) {
 }
 
 /**
- * True when a weapon firing-mode entry has an autofire mode (assault rifles).
- * Detected via the autofire damage type or a non-empty autofire range table.
- */
-export function weaponHasAutofire(weapon) {
-  return weapon?.damageType === 'autofire'
-    || (Array.isArray(weapon?.autofireRangeTable) && weapon.autofireRangeTable.some((v) => Number(v) > 0));
-}
-
-/**
  * Apply the Shoulder Arms range-DV reduction to a single weapon firing-mode
  * entry — but only when that entry actually uses the Shoulder Arms skill.
  *
- * The autofire range table is always reduced. The single-shot `rangeTable` is
- * reduced ONLY for weapons with no autofire mode (shotguns, sniper/precision
- * rifles); autofire-capable weapons (assault rifles) keep their canonical
- * single-shot DVs unreduced — the standard "Attack" still uses the full table.
- * Non-Shoulder-Arms weapons (and falsy input) are returned unchanged.
+ * Only the autofire range table is reduced. Single-shot `rangeTable` values are
+ * left untouched for every Shoulder Arms weapon (assault rifles, shotguns,
+ * sniper/precision rifles), so the standard "Attack" always uses the canonical
+ * DVs. Non-Shoulder-Arms weapons (and falsy input) are returned unchanged.
  *
  * @param {object} weapon  A weapon firing-mode entry (one element of system.weapons)
- * @returns {object}       A new entry with reduced range tables, or the input unchanged
+ * @returns {object}       A new entry with a reduced autofire table, or the input unchanged
  */
 export function applyShoulderArmsRangeReduction(weapon) {
   if (!weapon || weapon.skill !== 'shoulderArms') return weapon;
-  const hasAutofire = weaponHasAutofire(weapon);
-  const out = { ...weapon };
-  if (Array.isArray(out.autofireRangeTable)) out.autofireRangeTable = reduceShoulderArmsRangeTable(out.autofireRangeTable);
-  if (!hasAutofire && Array.isArray(out.rangeTable)) out.rangeTable = reduceShoulderArmsRangeTable(out.rangeTable);
-  return out;
+  if (!Array.isArray(weapon.autofireRangeTable)) return weapon;
+  return { ...weapon, autofireRangeTable: reduceShoulderArmsRangeTable(weapon.autofireRangeTable) };
 }
 
 /**
