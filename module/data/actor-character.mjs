@@ -11,7 +11,14 @@ export default class CyberBlueCharacter extends CyberBlueActorBase {
         rank: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
         // AE target: system.skills.<slug>.bonus or system.components.<slug>.bonus
         // Use this for cyberware/gear/tactic bonuses — never modify rank via AE.
+        // `bonus` is the SKILL/COMPONENT-scoped channel: it is folded INTO the
+        // min(skill+skillBonus, component+componentBonus) resolution, so on a
+        // skill+component check it can be capped by the lower side.
         bonus: new fields.NumberField({ ...requiredInteger, initial: 0 }),
+        // `generalBonus` is the GENERAL channel: added on top of the min, never
+        // capped. Use for aids that should always apply in full (speedware,
+        // tech tools, drugs). See CyberBlueActor#getSkillRollContext.
+        generalBonus: new fields.NumberField({ ...requiredInteger, initial: 0 }),
       });
 
     schema.skills = new fields.SchemaField(

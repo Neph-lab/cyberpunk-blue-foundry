@@ -56,6 +56,8 @@ const statMod = (slug, val) => ({ key: `system.stats.${slug}.rollMod`,  mode: 2,
 // `.rank` corrupts the player-set rank. See module/data/actor-character.mjs.
 const skill   = (slug, val) => ({ key: `system.skills.${slug}.bonus`,    mode: 2, value: String(val) });
 const comp    = (slug, val) => ({ key: `system.components.${slug}.bonus`, mode: 2, value: String(val) });
+// General channel: added on top of the min, never capped (tools that always help).
+const skillGen = (slug, val) => ({ key: `system.skills.${slug}.generalBonus`, mode: 2, value: String(val) });
 
 // ── Instruction step helpers ───────────────────────────────────────────────
 const S = {
@@ -499,7 +501,7 @@ export const EQUIPMENT_CATALOGUE = [
     name: 'Techscanner',
     folder: 'Scientific & Medical', imgPath: `${A_GEAR}/techscanner.png`, cost: 'VEX',
     description: '+2 to Electronics and Mechanics checks (hardware only).',
-    effects: [ae('Electronics +2, Mechanics +2 (hardware)', [skill('electronics', 2), skill('mechanics', 2)])],
+    effects: [ae('Electronics +2, Mechanics +2 (hardware)', [skillGen('electronics', 2), skillGen('mechanics', 2)])],
   }),
   gear({
     name: 'Techtool',

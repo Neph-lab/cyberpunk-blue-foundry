@@ -45,6 +45,9 @@ const statMod = (slug, val) => ({ key: `system.stats.${slug}.rollMod`,  mode: 2,
 // once; `.bonus` adds to the roll only. See module/data/actor-character.mjs.
 const skill   = (slug, val) => ({ key: `system.skills.${slug}.bonus`,    mode: 2, value: String(val) });
 const comp    = (slug, val) => ({ key: `system.components.${slug}.bonus`, mode: 2, value: String(val) });
+// General channel: added on top of min(skill+skillBonus, component+componentBonus),
+// never capped. Use for aids that always apply in full (speedware, tech tools).
+const skillGen = (slug, val) => ({ key: `system.skills.${slug}.generalBonus`, mode: 2, value: String(val) });
 
 // ── Instruction step helpers ───────────────────────────────────────────────
 const S = {
@@ -198,7 +201,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'PR', facilities: 'hospital', installationCost: 'EX', installationDv: 17,
     psycheLoss: '4d6',
     description: 'Speedware. +1 to Initiative, vehicle Swerve checks, and Evasion. Only one speedware may be installed at a time.',
-    effects: [ae('Speedware: +1 Initiative, Evasion, Swerve', [statMod('rflx', 1), skill('evasion', 1), skill('drive', 1)])],
+    effects: [ae('Speedware: +1 Initiative, Evasion, Swerve', [statMod('rflx', 1), skillGen('evasion', 1), skillGen('drive', 1)])],
   }),
   cw({
     name: 'Sandevistan',
@@ -208,7 +211,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'hospital', installationCost: 'VEX', installationDv: 20,
     psycheLoss: '4d6',
     description: 'Speedware and COS replacement. Activated as an Action, lasts 10 minutes: +3 Initiative, +3 Evasion, +3 Martial Arts, +3 Melee Weapons (Drive and Sleight-of-Hand at GM discretion). Using it again within 1 hour deals 3d6 HP damage before the effect applies. Only one speedware and one COS may be installed at a time.',
-    effects: [aeOff('Sandevistan Active', [statMod('rflx', 3), skill('evasion', 3), skill('martialArts', 3), skill('meleeWeapons', 3)])],
+    effects: [aeOff('Sandevistan Active', [statMod('rflx', 3), skillGen('evasion', 3), skillGen('martialArts', 3), skillGen('meleeWeapons', 3)])],
     instructions: [
       S.message('<p><strong>Sandevistan activated</strong> — +3 Initiative, Evasion, Martial Arts, and Melee Weapons for 10 minutes.</p><p><em>Warning: reactivating within 1 hour deals 3d6 HP damage first.</em></p>', { name: 'Activate' }),
       S.effect({ name: 'Apply Sandevistan AE', effectName: 'Sandevistan Active' }),
@@ -567,7 +570,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     useCyberneticsComponent: true, psycheLoss: '2d6',
     description: '+2 to Electronics and Mechanics checks (hardware only).',
-    effects: [ae('Electronics +2, Mechanics +2 (hardware)', [skill('electronics', 2), skill('mechanics', 2)])],
+    effects: [ae('Electronics +2, Mechanics +2 (hardware)', [skillGen('electronics', 2), skillGen('mechanics', 2)])],
   }),
   cw({
     name: 'Tool Hand',

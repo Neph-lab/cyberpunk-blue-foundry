@@ -16,6 +16,7 @@ export default class CyberBlueMook extends CyberBlueDataModel {
         active: new fields.BooleanField({ initial: false }),
         rank: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
         bonus: new fields.NumberField({ ...requiredInteger, initial: 0 }),
+        generalBonus: new fields.NumberField({ ...requiredInteger, initial: 0 }),
       });
 
     return {
@@ -63,7 +64,7 @@ export default class CyberBlueMook extends CyberBlueDataModel {
         const converted = {};
         for (const entry of source[key]) {
           if (!entry?.slug) continue;
-          converted[entry.slug] = { active: true, rank: Number(entry.rank) || 0, bonus: 0 };
+          converted[entry.slug] = { active: true, rank: Number(entry.rank) || 0, bonus: 0, generalBonus: 0 };
         }
         source[key] = converted;
       }

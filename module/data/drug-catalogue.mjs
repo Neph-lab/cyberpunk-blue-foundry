@@ -62,6 +62,8 @@ function ae(name, changes, extraFlags = {}) {
 // (e.g. HP from BODY) for the drug's duration.
 const stat  = (slug, val) => ({ key: `system.stats.${slug}.rollMod`, value: val });
 const skill = (slug, val) => ({ key: `system.skills.${slug}.bonus`,  value: val });
+// General channel: added on top of the min, never capped by a component side.
+const skillGen = (slug, val) => ({ key: `system.skills.${slug}.generalBonus`, value: val });
 
 // ─── Step helpers ─────────────────────────────────────────────────────────────
 
@@ -316,14 +318,14 @@ export const DRUG_CATALOGUE = [
         skill('contortionist', +2),
         skill('humanPerc',   +2),
         skill('influence',   +2),
-        skill('performance', +2),
+        skillGen('performance', +2),
       ]),
       ae('Smash - Addiction', [
         skill('acting',      -2),
         skill('contortionist', -2),
         skill('humanPerc',   -2),
         skill('influence',   -2),
-        skill('performance', -2),
+        skillGen('performance', -2),
       ]),
     ],
     instructions: [

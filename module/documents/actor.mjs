@@ -548,17 +548,23 @@ export class CyberBlueActor extends Actor {
         ? combatNumber
         : Math.floor(combatNumber / 2);
 
+      // Mooks have no ranks (checks resolve from the Combat Number), so there is
+      // nothing for a scoped bonus to be capped against — every skill/component
+      // bonus (scoped or general) is treated as a flat general bonus on top.
+      const skillScoped = this.system.skills?.[skillSlug]?.bonus ?? 0;
+      const skillGeneral = this.system.skills?.[skillSlug]?.generalBonus ?? 0;
+      const compScoped = componentSlug ? (this.system.components?.[componentSlug]?.bonus ?? 0) : 0;
+      const compGeneral = componentSlug ? (this.system.components?.[componentSlug]?.generalBonus ?? 0) : 0;
       return {
         skillLabel: skillDef?.label ?? skillSlug,
         skillRank: 0,
-        skillBonus: this.system.skills?.[skillSlug]?.bonus ?? 0,
         statShortLabel: 'CN',
         statValue,
         statRollMod: 0,
         componentLabel: componentDef?.label ?? componentSlug ?? null,
         componentRank: componentSlug ? (this.system.components?.[componentSlug]?.rank ?? 0) : null,
-        componentBonus: componentSlug ? (this.system.components?.[componentSlug]?.bonus ?? 0) : 0,
         usedRank: 0,
+        generalBonus: skillScoped + skillGeneral + compScoped + compGeneral,
       };
     }
 
@@ -572,13 +578,17 @@ export class CyberBlueActor extends Actor {
     const statRollMod = this.system.stats[skill.stat]?.rollMod ?? 0;
     const skillRank = this.system.skills[skillSlug]?.rank ?? 0;
     const skillBonus = this.system.skills[skillSlug]?.bonus ?? 0;
+    const skillGeneral = this.system.skills[skillSlug]?.generalBonus ?? 0;
 
     // Skill Chip: active AEs may impose a minimum rank floor of 3.
     const chipFloors = this._getSkillChipFloors();
     const skillFloor = chipFloors.get(skillSlug) ?? 0;
     const effectiveSkillRank = Math.max(skillRank, skillFloor);
+    // Scoped (skill) bonus is folded into the skill side of the min.
+    const skillSide = effectiveSkillRank + skillBonus;
 
     if (!componentSlug) {
+      // No component: the min collapses to skill + skillBonus; general on top.
       return {
         skillLabel: skill.label,
         skillRank,
@@ -589,7 +599,8 @@ export class CyberBlueActor extends Actor {
         componentLabel: null,
         componentRank: null,
         componentBonus: 0,
-        usedRank: effectiveSkillRank,
+        usedRank: skillSide,
+        generalBonus: skillGeneral,
       };
     }
 
@@ -600,8 +611,11 @@ export class CyberBlueActor extends Actor {
 
     const componentRank = this.system.components[componentSlug]?.rank ?? 0;
     const componentBonus = this.system.components[componentSlug]?.bonus ?? 0;
+    const componentGeneral = this.system.components[componentSlug]?.generalBonus ?? 0;
     const componentFloor = chipFloors.get(componentSlug) ?? 0;
     const effectiveComponentRank = Math.max(componentRank, componentFloor);
+    // Scoped (component) bonus is folded into the component side of the min.
+    const componentSide = effectiveComponentRank + componentBonus;
 
     return {
       skillLabel: skill.label,
@@ -613,7 +627,9 @@ export class CyberBlueActor extends Actor {
       componentLabel: component.label,
       componentRank,
       componentBonus,
-      usedRank: Math.min(effectiveSkillRank, effectiveComponentRank),
+      // result = stat + min(skill+skillBonus, component+componentBonus) + general
+      usedRank: Math.min(skillSide, componentSide),
+      generalBonus: skillGeneral + componentGeneral,
     };
   }
 
@@ -625,10 +641,12 @@ export class CyberBlueActor extends Actor {
       terms.push(context.statRollMod);
     }
 
-    // AE-sourced skill/component bonuses (from cyberware, tactics, etc.)
-    const totalBonus = (context.skillBonus ?? 0) + (context.componentBonus ?? 0);
-    if (totalBonus) {
-      terms.push(totalBonus);
+    // General bonuses (speedware, tech tools, drugs, Netrunner rank, …) add on
+    // top of the min — skill/component-scoped bonuses are already folded into
+    // context.usedRank by getSkillRollContext.
+    const generalBonus = context.generalBonus ?? 0;
+    if (generalBonus) {
+      terms.push(generalBonus);
     }
 
     if (modifier) {
@@ -644,10 +662,10 @@ export class CyberBlueActor extends Actor {
     const hasDv = Number.isFinite(dv);
     const success = hasDv ? roll.total >= dv : null;
     const statModifierText = context.statRollMod ? ` ${context.statRollMod >= 0 ? '+' : '-'} stat mod ${Math.abs(context.statRollMod)}` : '';
-    const bonusText = totalBonus ? ` ${totalBonus >= 0 ? '+' : '-'} bonus ${Math.abs(totalBonus)}` : '';
+    const bonusText = generalBonus ? ` ${generalBonus >= 0 ? '+' : '-'} bonus ${Math.abs(generalBonus)}` : '';
     const modifierText = modifier ? ` + modifier ${modifier}` : '';
     const componentText = componentSlug
-      ? `<p><strong>${context.componentLabel}</strong> rank ${context.componentRank}${context.componentBonus ? ` (+${context.componentBonus} bonus)` : ''}. ${game.i18n.localize("CYBER_BLUE.Sheet.Roll.UsesLowerRank")}</p>`
+      ? `<p><strong>${context.componentLabel}</strong> rank ${context.componentRank}${context.componentBonus ? ` (+${context.componentBonus} scoped)` : ''}. ${game.i18n.localize("CYBER_BLUE.Sheet.Roll.UsesLowerRank")}</p>`
       : '';
     const dvText = hasDv
       ? `<p>${game.i18n.format("CYBER_BLUE.Sheet.Roll.AgainstDv", { dv })}: <strong>${success ? game.i18n.localize("CYBER_BLUE.Sheet.Roll.Success") : game.i18n.localize("CYBER_BLUE.Sheet.Roll.Failure")}</strong></p>`
