@@ -29,6 +29,7 @@ import {
   createSpecialtySectionData,
   normalizeRoleSystemData,
   prepareRoleSheetCategoryData,
+  getComponentTrainingOptions,
 } from '../helpers/roles.mjs';
 
 const { ItemSheetV2 } = foundry.applications.sheets;
@@ -252,6 +253,47 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
         canDecrement: (Number(s.rank) || 0) > 0,
       }));
     }
+    // ── Component-training (Netrunner): per-rank +1 picks among a skill's
+    //    components. Editable by the owner only during character creation
+    //    (GM/Assistant always), and locked once creation is complete. ─────────
+    if (context.isRole) {
+      const ctSystem = normalizeRoleSystemData(itemData.system ?? {}).componentTraining ?? {};
+      const ctSkill = ctSystem.skill ?? '';
+      const skillDef = ctSkill ? CONFIG.CYBER_BLUE.skills?.[ctSkill] : null;
+      if (skillDef) {
+        const inCreation = !!(ownerActor?.system?.characterCreation?.active);
+        const editable = canManageRestricted || (context.roleCanEditChoices && (!ownerActor || inCreation));
+        const picks = Array.isArray(ctSystem.picks) ? ctSystem.picks : [];
+        const counts = {};
+        for (const slug of picks) counts[slug] = (counts[slug] ?? 0) + 1;
+        const used = picks.length;
+        const remaining = Math.max(roleRank - used, 0);
+        context.roleComponentTraining = {
+          skill: ctSkill,
+          skillLabel: skillDef.label ?? ctSkill,
+          editable,
+          locked: !editable && !!ownerActor,
+          used,
+          remaining,
+          total: roleRank,
+          components: getComponentTrainingOptions(ctSkill).map((slug) => {
+            const points = counts[slug] ?? 0;
+            return {
+              slug,
+              label: CONFIG.CYBER_BLUE.components?.[slug]?.label ?? slug,
+              points,
+              canIncrement: editable && remaining > 0,
+              canDecrement: editable && points > 0,
+            };
+          }),
+        };
+      } else {
+        context.roleComponentTraining = null;
+      }
+    } else {
+      context.roleComponentTraining = null;
+    }
+
     context.effects = prepareActiveEffectCategories(
       this.document.effects.filter((effect) => !effect.getFlag('cyberpunk-blue', 'modId'))
     );
@@ -668,6 +710,9 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     this.element.querySelectorAll('[data-action="specialty-rank-change"]').forEach((button) => {
       button.addEventListener('click', this._onSpecialtyRankChange.bind(this));
     });
+    this.element.querySelectorAll('[data-action="component-training-change"]').forEach((button) => {
+      button.addEventListener('click', this._onComponentTrainingChange.bind(this));
+    });
     this.element.querySelectorAll('[data-action="add-weapon"]').forEach((button) => {
       button.addEventListener('click', this._onAddWeapon.bind(this));
     });
@@ -1055,6 +1100,40 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     if (newRank === currentRank) return;
 
     specialty.rank = newRank;
+    await this.document.update({ system });
+  }
+
+  async _onComponentTrainingChange(event) {
+    event.preventDefault();
+    const slug = event.currentTarget.dataset.slug;
+    const delta = Number.parseInt(event.currentTarget.dataset.delta ?? '0', 10);
+    if (!slug || !Number.isFinite(delta) || delta === 0) return;
+
+    // Lock guard: owners may only edit during character creation; GM always.
+    const ownerActor = this.document.parent instanceof Actor ? this.document.parent : null;
+    const canManageRestricted = game.user.role >= CONST.USER_ROLES.ASSISTANT;
+    const inCreation = !!(ownerActor?.system?.characterCreation?.active);
+    const editable = canManageRestricted || (canEditRoleChoices(this.document) && (!ownerActor || inCreation));
+    if (!editable) return;
+
+    const system = this._cloneRoleSystem();
+    const ct = system.componentTraining ?? { skill: '', picks: [] };
+    if (!ct.skill) return;
+    const validComponents = new Set(getComponentTrainingOptions(ct.skill));
+    if (!validComponents.has(slug)) return;
+
+    const rank = Math.max(Number(system.rank) || 0, 0);
+    const picks = Array.isArray(ct.picks) ? [...ct.picks] : [];
+    if (delta > 0) {
+      if (picks.length >= rank) return; // total picks capped at role rank
+      picks.push(slug);
+    } else {
+      const idx = picks.lastIndexOf(slug);
+      if (idx === -1) return;
+      picks.splice(idx, 1);
+    }
+    ct.picks = picks;
+    system.componentTraining = ct;
     await this.document.update({ system });
   }
 

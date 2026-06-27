@@ -840,6 +840,33 @@
               </section>
             {{/if}}
 
+            {{#if roleComponentTraining}}
+              <section class="sheet-panel">
+                <div class="panel-header">
+                  <span>{{localize "CYBER_BLUE.Role.ComponentTraining.Title"}}</span>
+                </div>
+                <p class="hint">{{localize "CYBER_BLUE.Role.ComponentTraining.Hint" skill=roleComponentTraining.skillLabel}}</p>
+                <div class="role-focus-summary">
+                  <span>{{localize "CYBER_BLUE.Role.ComponentTraining.Pool"}}: <strong>{{roleComponentTraining.remaining}} / {{roleComponentTraining.total}}</strong></span>
+                  {{#if roleComponentTraining.locked}}
+                    <span class="hint">{{localize "CYBER_BLUE.Role.ComponentTraining.Locked"}}</span>
+                  {{/if}}
+                </div>
+                {{#each roleComponentTraining.components as |comp|}}
+                  <div class="role-tactic-entry">
+                    <div class="role-tactic-header component-training-row">
+                      <span class="role-tactic-name">{{comp.label}}</span>
+                      <div class="component-training-stepper">
+                        <button type="button" data-action="component-training-change" data-slug="{{comp.slug}}" data-delta="-1" {{#unless comp.canDecrement}}disabled{{/unless}} class="specialty-rank-btn" title="{{localize "CYBER_BLUE.Role.ComponentTraining.Remove"}}">−</button>
+                        <span class="readonly-value">+{{comp.points}}</span>
+                        <button type="button" data-action="component-training-change" data-slug="{{comp.slug}}" data-delta="1" {{#unless comp.canIncrement}}disabled{{/unless}} class="specialty-rank-btn" title="{{localize "CYBER_BLUE.Role.ComponentTraining.Add"}}">+</button>
+                      </div>
+                    </div>
+                  </div>
+                {{/each}}
+              </section>
+            {{/if}}
+
             {{#if (eq roleCategoryData.category "specialist")}}
               <section class="sheet-panel">
                 {{!-- Point allocation & option selection — owner + GM (in play) --}}

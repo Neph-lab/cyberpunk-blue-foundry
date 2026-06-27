@@ -299,6 +299,14 @@
     },
     "Role": {
       "Category": "Role Category",
+      "ComponentTraining": {
+        "Title": "Component Training",
+        "Hint": "Choose one {skill} Component per Role rank to gain +1. Picks may stack on the same Component. This is a bonus, not a rank — it costs no IP.",
+        "Pool": "Picks remaining",
+        "Locked": "Locked — character creation complete.",
+        "Add": "Add +1",
+        "Remove": "Remove +1"
+      },
       "LeaderFeatures": "Leader Features",
       "LeaderFeature": "Leader Feature",
       "AddLeaderFeature": "Add leader feature",

@@ -58,6 +58,33 @@ export default class CyberBlueCharacter extends CyberBlueActorBase {
 
   prepareDerivedData() {
     super.prepareDerivedData();
+    this._applyComponentTrainingBonuses();
+  }
+
+  /**
+   * Component-training roles (e.g. Netrunner) grant +1 per role rank among a
+   * skill's components, chosen on the Role item. Apply each pick as a scoped
+   * component bonus so it folds into the roll min and costs no IP (rank
+   * unchanged). Runs after AEs so it stacks on top of any AE-sourced bonus.
+   */
+  _applyComponentTrainingBonuses() {
+    const items = this.parent?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type !== 'role') continue;
+      const ct = item.system?.componentTraining;
+      const skillSlug = ct?.skill;
+      if (!skillSlug) continue;
+      const validComponents = new Set(CONFIG.CYBER_BLUE?.skills?.[skillSlug]?.components ?? []);
+      const rank = Math.max(Number(item.system.rank) || 0, 0);
+      const picks = (Array.isArray(ct.picks) ? ct.picks : [])
+        .filter((slug) => validComponents.has(slug))
+        .slice(0, rank);
+      for (const slug of picks) {
+        const comp = this.components?.[slug];
+        if (comp) comp.bonus = (comp.bonus ?? 0) + 1;
+      }
+    }
   }
 
   getRollData() {

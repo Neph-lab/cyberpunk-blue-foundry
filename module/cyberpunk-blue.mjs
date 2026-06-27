@@ -3578,6 +3578,9 @@ async function _syncRoleEntries() {
       'system.leaderFeatures':    catalogueEntry.system.leaderFeatures,
       'system.proteanFoci':       catalogueEntry.system.proteanFoci,
       'system.specialties':       catalogueEntry.system.specialties,
+      // Sync the component-training config (skill); picks are player data on the
+      // owned copy and are not overwritten there (this only touches the pack).
+      'system.componentTraining.skill': catalogueEntry.system.componentTraining?.skill ?? '',
       'system.notes':             catalogueEntry.system.notes,
     };
     if (entry.folder) update.folder = null; // migrate out of subfolder

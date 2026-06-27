@@ -133,9 +133,31 @@ function mergeWithDefaults(defaults, value) {
   return merged;
 }
 
+/**
+ * Valid component slugs a component-training role may pick from — the components
+ * linked to the configured skill. Returns [] when the feature is off/misconfigured.
+ */
+export function getComponentTrainingOptions(skillSlug) {
+  if (!skillSlug) return [];
+  return CONFIG.CYBER_BLUE?.skills?.[skillSlug]?.components ?? [];
+}
+
 export function normalizeRoleSystemData(system = {}) {
   const next = foundry.utils.deepClone(system);
   next.category ??= 'sundry';
+
+  // Component-training picks: keep only components linked to the configured skill
+  // and cap the total to the role rank (one +1 per rank; stacking allowed).
+  const ct = next.componentTraining ?? {};
+  const ctSkill = typeof ct.skill === 'string' ? ct.skill : '';
+  const validComponents = new Set(getComponentTrainingOptions(ctSkill));
+  const roleRankForCt = Math.max(Number(next.rank) || 0, 0);
+  next.componentTraining = {
+    skill: ctSkill,
+    picks: ctSkill
+      ? (Array.isArray(ct.picks) ? ct.picks : []).filter((slug) => validComponents.has(slug)).slice(0, roleRankForCt)
+      : [],
+  };
   next.abilitySections = (next.abilitySections ?? []).map((section) => mergeWithDefaults(createRoleAbilitySectionData(), section));
   next.grantedItemGroups = (next.grantedItemGroups ?? []).map((group) => ({
     ...mergeWithDefaults(createRoleGrantGroupData(), group),

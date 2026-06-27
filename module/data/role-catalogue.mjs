@@ -17,6 +17,7 @@ function role({
   name, category, img, description = '', lifepathLinks = '', lifepathQuestions = '',
   abilityOverview = '', abilitySections = [], grantedItemGroups = [],
   leaderFeatures = [], proteanFoci = [], specialties = [], notes = '',
+  componentTraining = { skill: '', picks: [] },
 }) {
   return {
     name,
@@ -34,6 +35,7 @@ function role({
       leaderFeatures,
       proteanFoci,
       specialties,
+      componentTraining,
       notes,
       rank: 0,
     },
@@ -458,7 +460,9 @@ export const NETRUNNER = role({
   abilityOverview: `<p>A Netrunner uses a cyberdeck to access network architecture directly with their brain. As their regular Action, they can instead perform a number of NET Actions.</p>
 <table><thead><tr><th>Role Rank</th><th>1–3</th><th>4–6</th><th>7–9</th><th>10</th></tr></thead>
 <tbody><tr><td>NET Actions</td><td>2</td><td>3</td><td>4</td><td>5</td></tr></tbody></table>
-<p>Formula: <strong>NET Actions = 1 + ⌈Rank / 3⌉</strong></p>`,
+<p>Formula: <strong>NET Actions = 1 + ⌈Rank / 3⌉</strong></p>
+<p><strong>Component Training:</strong> For each rank in this Role, choose one Component linked to the Netrunning skill and gain +1 to it. This is a bonus, not a rank increase — it costs no IP to "keep" and does not raise the cost of improving that Component. Multiple picks may stack on the same Component. Selections are made on this Role and lock once character creation is complete.</p>`,
+  componentTraining: { skill: 'netrunning', picks: [] },
   abilitySections: [],
   notes: '<p><strong>Starting Gear:</strong> Militech Ticon; Basic Heavy Pistol Ammo ×50; Light Bodyweight Suit; Standard Cyberdeck; Glow Paint; Programs: Armor, Sword, See-Ya or Eraser, Sword or Vrizzbolt, Sword or Worm.<br><strong>Cyberware:</strong> Neuroport, Standard Cybereye ×2, Virtuality, Shift Tacts.</p>',
 });

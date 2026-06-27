@@ -885,18 +885,27 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       const NETRUNNER_COMPONENTS_ORDER = ['codebreak', 'cracker', 'dev', 'ghost', 'spider', 'quickhacking'];
       const intVal = system.stats?.int?.value ?? 0;
       const netrunningSkillRank = system.skills?.netrunning?.rank ?? 0;
+      const netrunningBonus = system.skills?.netrunning?.bonus ?? 0;
+      const netrunningGeneral = system.skills?.netrunning?.generalBonus ?? 0;
 
       context.netrunnerComponents = NETRUNNER_COMPONENTS_ORDER.map((slug) => {
         const componentRank = system.components?.[slug]?.rank ?? 0;
-        const usedRank = Math.min(netrunningSkillRank, componentRank);
-        const modifier = intVal + networkerRank + usedRank;
+        const componentBonus = system.components?.[slug]?.bonus ?? 0;
+        const componentGeneral = system.components?.[slug]?.generalBonus ?? 0;
+        // result = INT + min(netrunning+skillBonus, component+componentBonus)
+        //          + Netrunner rank (general) + any general skill/component bonus.
+        const usedRank = Math.min(netrunningSkillRank + netrunningBonus, componentRank + componentBonus);
+        const extraGeneral = netrunningGeneral + componentGeneral;
+        const modifier = intVal + usedRank + networkerRank + extraGeneral;
         const modLabel = (modifier >= 0 ? '+' : '') + modifier;
         // Breakdown tooltip mirroring the unified roll buttons.
-        const tooltip = [
+        const tooltipLines = [
           `INT +${intVal}`,
           `Netrunner +${networkerRank}`,
           `${CONFIG.CYBER_BLUE.components[slug]?.label ?? slug} +${usedRank}`,
-        ].join('<br>');
+        ];
+        if (extraGeneral) tooltipLines.push(`Bonus +${extraGeneral}`);
+        const tooltip = tooltipLines.join('<br>');
         // Embed componentSlug + modifier into each use so the template doesn't need ../
         const uses = (NETRUNNER_COMPONENT_USES[slug] ?? []).map((u) => ({
           ...u,
@@ -2375,14 +2384,22 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       return;
     }
 
-    // Cracker modifier (same math as Zap): INT + Netrunner rank + min(netrunning, cracker).
+    // Cracker modifier (same math as Zap):
+    //   INT + min(netrunning+skillBonus, cracker+componentBonus) + Netrunner rank
+    //   (general) + any general skill/component bonus.
     const sys = actor.system;
     const networkerRole = actor.items.find((i) => i.type === 'role' && i.name === 'Netrunner' && (Number(i.system.rank) || 0) >= 1);
     const networkerRank = Number(networkerRole?.system?.rank) || 0;
     const intVal = Number(sys.stats?.int?.value) || 0;
     const crackerRank = Number(sys.components?.cracker?.rank) || 0;
+    const crackerBonus = Number(sys.components?.cracker?.bonus) || 0;
+    const crackerGeneral = Number(sys.components?.cracker?.generalBonus) || 0;
     const netrunningRank = Number(sys.skills?.netrunning?.rank) || 0;
-    const crackerMod = intVal + networkerRank + Math.min(netrunningRank, crackerRank);
+    const netrunningBonus = Number(sys.skills?.netrunning?.bonus) || 0;
+    const netrunningGeneral = Number(sys.skills?.netrunning?.generalBonus) || 0;
+    const crackerMod = intVal
+      + Math.min(netrunningRank + netrunningBonus, crackerRank + crackerBonus)
+      + networkerRank + netrunningGeneral + crackerGeneral;
     const supportMod = Number(getNetCombat(exe)?.attack?.supportModifier) || 0;
 
     const label = game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.SupportAttackLabel', { name: exe.name });

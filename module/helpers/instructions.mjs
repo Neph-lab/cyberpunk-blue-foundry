@@ -246,7 +246,11 @@ async function _rollCheckStep(item, step, actor) {
   const statValue     = actor.system?.stats?.[statSlug]?.value ?? 0;
   const statRollMod   = actor.system?.stats?.[statSlug]?.rollMod ?? 0;
   const skillRank     = skillSlug ? (actor.system?.skills?.[skillSlug]?.rank ?? 0) : 0;
+  const skillBonus    = skillSlug ? (actor.system?.skills?.[skillSlug]?.bonus ?? 0) : 0;
+  const skillGeneral  = skillSlug ? (actor.system?.skills?.[skillSlug]?.generalBonus ?? 0) : 0;
   const componentRank = componentSlug ? (actor.system?.components?.[componentSlug]?.rank ?? null) : null;
+  const componentBonus    = componentSlug ? (actor.system?.components?.[componentSlug]?.bonus ?? 0) : 0;
+  const componentGeneral  = componentSlug ? (actor.system?.components?.[componentSlug]?.generalBonus ?? 0) : 0;
 
   // Auto-fail: requiresComponent is true and the actor doesn't have the component at all.
   if (step.requiresComponent && componentSlug && componentRank === null) {
@@ -259,8 +263,13 @@ async function _rollCheckStep(item, step, actor) {
     return { advances: false };
   }
 
-  const effectiveSkill = componentRank !== null ? Math.min(skillRank, componentRank) : skillRank;
-  const flatBonus      = statValue + effectiveSkill + (statRollMod || 0);
+  // Universal model: stat + min(skill+skillBonus, component+componentBonus) +
+  // general bonuses (skill/component general channels) + stat roll mod.
+  const effectiveSkill = componentRank !== null
+    ? Math.min(skillRank + skillBonus, componentRank + componentBonus)
+    : (skillRank + skillBonus);
+  const generalBonus   = skillGeneral + (componentRank !== null ? componentGeneral : 0);
+  const flatBonus      = statValue + effectiveSkill + generalBonus + (statRollMod || 0);
 
   const roll = await new Roll(`1d10 + ${flatBonus}`).evaluate();
 
@@ -272,6 +281,7 @@ async function _rollCheckStep(item, step, actor) {
     `${statLabel} ${statValue}`,
     skillLabel   ? `${skillLabel} ${skillRank}`         : null,
     componentLabel ? `(${componentLabel} ${componentRank})` : null,
+    generalBonus ? `Bonus ${generalBonus >= 0 ? '+' : ''}${generalBonus}` : null,
     statRollMod  ? `Mod ${statRollMod}`                 : null,
   ].filter(Boolean).join(' + ');
 

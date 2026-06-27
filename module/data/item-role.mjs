@@ -82,6 +82,16 @@ export default class CyberBlueRole extends CyberBlueItemBase {
     schema.leaderFeatures = new fields.ArrayField(buildLeaderFeatureField(), { initial: [] });
     schema.proteanFoci = new fields.ArrayField(buildProteanFocusField(), { initial: [] });
     schema.specialties = new fields.ArrayField(buildSpecialtyField(), { initial: [] });
+    // Component-training ability (Netrunner): when `skill` names a skill, the
+    // role grants one +1 pick per role rank among that skill's components. Each
+    // entry in `picks` is a component slug (repeats allowed = stacking). The +1s
+    // are applied as scoped component bonuses (system.components.<slug>.bonus) in
+    // the character's prepareDerivedData, so they fold into the roll min and cost
+    // no IP. `skill: ''` disables the feature.
+    schema.componentTraining = new fields.SchemaField({
+      skill: new fields.StringField({ required: true, blank: true, initial: '' }),
+      picks: new fields.ArrayField(new fields.StringField({ required: true, blank: true }), { initial: [] }),
+    });
     schema.notes = new fields.HTMLField({ initial: "" });
 
     return schema;

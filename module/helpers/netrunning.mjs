@@ -921,8 +921,16 @@ export async function performQuickhackBreach(actor, targetActor) {
   const networkerRank  = Number(networkerRole?.system?.rank) || 0;
   const intVal         = Number(sys.stats?.int?.value)          || 0;
   const netrunningRank = Number(sys.skills?.netrunning?.rank)   || 0;
+  const netrunningBonus = Number(sys.skills?.netrunning?.bonus) || 0;
+  const netrunningGeneral = Number(sys.skills?.netrunning?.generalBonus) || 0;
   const qhRank         = Number(sys.components?.quickhacking?.rank) || 0;
-  const modifier       = intVal + networkerRank + Math.min(netrunningRank, qhRank);
+  const qhBonus        = Number(sys.components?.quickhacking?.bonus) || 0;
+  const qhGeneral      = Number(sys.components?.quickhacking?.generalBonus) || 0;
+  // INT + min(netrunning+skillBonus, quickhacking+componentBonus) + Netrunner
+  // rank (general) + any general skill/component bonus.
+  const modifier       = intVal
+    + Math.min(netrunningRank + netrunningBonus, qhRank + qhBonus)
+    + networkerRank + netrunningGeneral + qhGeneral;
 
   const selfIceCount = targetActor.items?.filter((i) =>
     i.type === 'cyberware'
