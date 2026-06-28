@@ -177,7 +177,7 @@ const SKILLS = {
   },
   netrunning: {
     label: 'Netrunner',
-    stat: 'tech',
+    stat: 'int',
     components: ['codebreak', 'cracker', 'dev', 'ghost', 'software', 'spider', 'quickhacking'],
     description: "Non-Netrunners can only use this for trouble-shooting or using the software on a computer with a regular interface, or to use commands that are part of their neuroport's UI.",
   },
