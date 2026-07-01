@@ -3521,22 +3521,44 @@ async function ensureEquipmentCatalogue() {
 const _RECLASSIFIED_OUT_OF_GEAR = [
   'Backup Drive', 'DNA Lock', 'Hardened Circuitry',
   'Insulated Wiring', 'KRASH-Barrier', 'Range Upgrade',
+  // Original batch moved gear → computerMod in a563814 but never pruned.
+  'Coolant', 'Insulation', 'Memory Upgrade',
 ];
 
-/** Delete reclassified gear-pack entries by name. Idempotent — no-op once gone. */
+/** Gear-pack folders that are obsolete once their contents are reclassified. */
+const _OBSOLETE_GEAR_FOLDERS = ['Cyberdeck Hardware MODs'];
+
+/**
+ * Delete reclassified gear-pack entries by name, then remove any obsolete gear
+ * folder left empty by that pruning. Idempotent — no-op once gone.
+ */
 async function _pruneReclassifiedGear() {
   const PACK_ID = 'cyberpunk-blue.gear';
   const pack = game.packs.get(PACK_ID);
   if (!pack) return;
-  await pack.getIndex({ fields: ['name', 'type'] });
+  await pack.getIndex({ fields: ['name', 'type', 'folder'] });
   const ids = pack.index
     .filter((e) => e.type === 'gear' && _RECLASSIFIED_OUT_OF_GEAR.includes(e.name))
     .map((e) => e._id);
-  if (!ids.length) return;
+
   await pack.configure({ locked: false });
   try {
-    await Item.deleteDocuments(ids, { pack: PACK_ID });
-    console.log(`Cyberpunk Blue | Pruned ${ids.length} reclassified gear entries (now computerMods).`);
+    if (ids.length) {
+      await Item.deleteDocuments(ids, { pack: PACK_ID });
+      console.log(`Cyberpunk Blue | Pruned ${ids.length} reclassified gear entries (now computerMods).`);
+    }
+
+    // Remove obsolete folders once empty (re-read the index so just-deleted
+    // items no longer count as occupants).
+    await pack.getIndex({ fields: ['name', 'type', 'folder'] });
+    const staleFolders = pack.folders.filter((f) => _OBSOLETE_GEAR_FOLDERS.includes(f.name));
+    const emptyFolderIds = staleFolders
+      .filter((f) => !pack.index.some((e) => e.folder === f.id))
+      .map((f) => f.id);
+    if (emptyFolderIds.length) {
+      await Folder.deleteDocuments(emptyFolderIds, { pack: pack.collection });
+      console.log(`Cyberpunk Blue | Removed ${emptyFolderIds.length} empty obsolete gear folder(s).`);
+    }
   } finally {
     await pack.configure({ locked: true });
   }
