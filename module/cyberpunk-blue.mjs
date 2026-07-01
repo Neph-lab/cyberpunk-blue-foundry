@@ -2463,8 +2463,11 @@ async function _syncModEntries(catalogue) {
         improvedChargeChanged || srCapacityChanged ||
         accidentalDischargeChanged || bayonetChanged || requiresLightMeleeChanged;
     const modImgChanged = def.img && doc.img !== def.img;
-    if (modDataChanged || modImgChanged) {
+    const catDescription = defSys?.description ?? '';
+    const descriptionChanged = catDescription && sys.description !== catDescription;
+    if (modDataChanged || modImgChanged || descriptionChanged) {
       const update = { _id: doc.id };
+      if (descriptionChanged) update['system.description'] = catDescription;
       if (modDataChanged) Object.assign(update, {
         'system.weaponChanges': defSys.weaponChanges ?? [],
         'system.burstControlAmmoReduction': defSys.burstControlAmmoReduction ?? 0,
@@ -2645,10 +2648,13 @@ async function _syncWeaponEntries(catalogue) {
 
     const weaponDataChanged = countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged || batch9FieldsChanged || batch10FieldsChanged || batch11FieldsChanged || batch12FieldsChanged || batch13FieldsChanged || rangeFieldsChanged || skillChanged;
     const weaponImgChanged = def.img && doc.img !== def.img;
-    if (weaponDataChanged || weaponImgChanged) {
+    const catDescription = def.system?.description ?? '';
+    const descriptionChanged = catDescription && doc.system.description !== catDescription;
+    if (weaponDataChanged || weaponImgChanged || descriptionChanged) {
       const update = { _id: doc.id };
       if (weaponDataChanged) update['system.weapons'] = catalogueWeapons;
       if (weaponImgChanged)  update.img = def.img;
+      if (descriptionChanged) update['system.description'] = catDescription;
       updates.push(update);
     }
 
@@ -3192,6 +3198,15 @@ async function _syncDrugEntries(catalogue) {
       update['system.instructions'] = def.system.instructions ?? [];
       needsUpdate = true;
     }
+    // Text fields (description + effect prose). Only sync when the catalogue
+    // provides a value and it differs from the stored entry.
+    for (const field of ['description', 'primaryEffect', 'secondaryEffect', 'addictionPenalty']) {
+      const catVal = def.system?.[field] ?? '';
+      if (catVal && doc.system[field] !== catVal) {
+        update[`system.${field}`] = catVal;
+        needsUpdate = true;
+      }
+    }
     if (def.img && doc.img !== def.img) {
       update.img = def.img;
       needsUpdate = true;
@@ -3278,6 +3293,16 @@ async function _syncGearEntries(catalogue) {
     })).sort().join('\n');
     const effectsChanged = catSig !== docSig;
 
+    const catDescription = def.system?.description ?? '';
+    const descriptionChanged = catDescription && doc.system.description !== catDescription;
+    // Computer block: only the fields the catalogue entry specifies are compared,
+    // so stored fields the catalogue omits (e.g. range/running) never force a
+    // rewrite. Merge on update so those omitted fields are preserved.
+    const catComputer = def.system?.computer ?? null;
+    const computerChanged = catComputer && Object.keys(catComputer).some(
+      (k) => JSON.stringify(catComputer[k]) !== JSON.stringify(doc.system.computer?.[k])
+    );
+
     const update = { _id: doc.id };
     let needsUpdate = false;
     if (weaponCountChanged || isWeaponChanged || weaponFieldsChanged) {
@@ -3290,6 +3315,14 @@ async function _syncGearEntries(catalogue) {
     }
     if (def.img && doc.img !== def.img) {
       update.img = def.img;
+      needsUpdate = true;
+    }
+    if (descriptionChanged) {
+      update['system.description'] = catDescription;
+      needsUpdate = true;
+    }
+    if (computerChanged) {
+      update['system.computer'] = { ...(doc.system.computer ?? {}), ...catComputer };
       needsUpdate = true;
     }
     if (needsUpdate) updates.push(update);
@@ -3360,13 +3393,17 @@ async function _syncProgramEntries(catalogue) {
     const missingEffects = (def.effects ?? []).filter((e) => e._id && !doc.effects.has(e._id));
     if (missingEffects.length) effectCreations.push({ docId: doc.id, effects: missingEffects });
 
-    if (!formulaChanged && !imgChanged && !typeChanged && !netChanged) continue;
+    const catDescription = def.system?.description ?? '';
+    const descriptionChanged = catDescription && doc.system?.description !== catDescription;
+
+    if (!formulaChanged && !imgChanged && !typeChanged && !netChanged && !descriptionChanged) continue;
 
     const update = { _id: doc.id };
     if (formulaChanged) update['system.damageFormula'] = newFormula;
     if (imgChanged)     update.img = def.img;
     if (typeChanged)    update['system.programType'] = newType;
     if (netChanged)     update['system.netCombat'] = defNet;
+    if (descriptionChanged) update['system.description'] = catDescription;
     updates.push(update);
   }
 
