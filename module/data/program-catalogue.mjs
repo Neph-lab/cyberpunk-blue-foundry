@@ -27,7 +27,7 @@ const FOLDER = {
   'malware':   'Malware',
 };
 
-const h = (text) => `<p>${text}</p>`;
+const h = (text) => /^\s*<(p|ul|ol|div|h\d|table)\b/i.test(text) ? text : `<p>${text}</p>`;
 
 // Map the display category to the program's mechanical `programType` (which
 // drives the NET Combat capability gating). 'attack' covers Anti-Personnel and
@@ -113,7 +113,7 @@ export const PROGRAM_CATALOGUE = [
       applyCondition: { enabled: true, conditionId: 'burning-embers' },
       netActionPenalty: { enabled: true, amount: 1, floor: 0, duration: 'nextTurn' },
     } },
-    description: 'Attack a netrunner. Deals 2d6 HP directly; a non-insulated cyberdeck starts a small fire. Target has 1 fewer NET action (non-cumulative) on their next turn.',
+    description: '<p>Attack a netrunner. Deals <strong>2d6</strong> HP directly; a non-insulated cyberdeck starts a small fire. Target has 1 fewer NET action (non-cumulative) on their next turn.</p>',
   }),
   prog({
     name: 'Nervescrub',
@@ -124,7 +124,7 @@ export const PROGRAM_CATALOGUE = [
       mode: 'attack',
       statPenalty: { enabled: true, stats: ['rflx', 'int'], formula: '1d6', floor: 1, durationLabel: '1 hour' },
     } },
-    description: 'Attack a netrunner. No damage. Target\'s RFLX and INT are each reduced by 1d6 (minimum 1) for 1 hour. Effect is non-stacking and psychosomatic.',
+    description: '<p>Attack a netrunner. No damage. Target\'s <strong>RFLX</strong> and <strong>INT</strong> are each reduced by <strong>1d6</strong> (minimum 1) for 1 hour. Effect is non-stacking and psychosomatic.</p>',
   }),
   prog({
     name: 'Poison Flatline',
@@ -142,7 +142,7 @@ export const PROGRAM_CATALOGUE = [
     img: `systems/cyberpunk-blue/assets/items/programs/speed-slice.png`,
     cost: 'PR', category: 'attack', programType: 'antiprogram',
     act: 1, atk: 2, def: 10, rez: 5, damageFormula: '2d6',
-    description: 'Attack a program (as own action or as a NET action). Deals 2d6 damage. ACT 1. A single target can only be attacked once per turn per copy of this program.',
+    description: '<p>Attack a program (as own action or as a NET action). Deals <strong>2d6</strong> damage. ACT 1. A single target can only be attacked once per turn per copy of this program.</p>',
   }),
   prog({
     name: 'Superglue',
@@ -153,7 +153,7 @@ export const PROGRAM_CATALOGUE = [
       mode: 'attack',
       nodeLock: { enabled: true, turns: '1d6', duration: 'turns' },
     } },
-    description: 'Attack a netrunner. No damage. For 1d6 turns, or until closed, the target cannot move between nodes or safely disconnect. Must be closed and re-run to use again.',
+    description: '<p>Attack a netrunner. No damage. For <strong>1d6</strong> turns, or until closed, the target cannot move between nodes or safely disconnect. Must be closed and re-run to use again.</p>',
   }),
   prog({
     name: 'Sword',
@@ -161,7 +161,7 @@ export const PROGRAM_CATALOGUE = [
     cost: 'CO', category: 'attack', programType: 'antiprogram',
     atk: 2, def: 10, rez: 5, damageFormula: '2d6',
     netCombat: { attack: { mode: 'attack', damage: { enabled: true, formula: '2d6', bonusFormula: '1d6', vsType: 'blackice' } } },
-    description: 'Attack a program. Deals 2d6 damage (+1d6 extra against Black ICE).',
+    description: '<p>Attack a program. Deals <strong>2d6</strong> damage (<strong>+1d6</strong> extra against Black ICE).</p>',
   }),
   prog({
     name: 'Vrizzbolt',
@@ -172,7 +172,7 @@ export const PROGRAM_CATALOGUE = [
       damage: { enabled: true, formula: '1d6' },
       netActionPenalty: { enabled: true, amount: 1, floor: 2, duration: 'nextTurn' },
     } },
-    description: 'Attack a netrunner. Deals 1d6 HP directly to the brain. Target\'s NET actions on their next turn are reduced by 1 (minimum 2).',
+    description: '<p>Attack a netrunner. Deals <strong>1d6</strong> HP directly to the brain. Target\'s NET actions on their next turn are reduced by 1 (minimum 2).</p>',
   }),
 
   // ── Black ICE ─────────────────────────────────────────────────────────────
@@ -198,7 +198,7 @@ export const PROGRAM_CATALOGUE = [
     act: 1, atk: 11, def: 21, net: 2, per: 15, rez: 30,
     damageFormula: '6d6',
     netCombat: { attack: { mode: 'attack', damage: { enabled: true, formula: '6d6' }, deleteOnKill: true } },
-    description: 'Deals 6d6 damage to a program. If the program\'s REZ reaches 0, the program is deleted rather than merely derezzed.',
+    description: '<p>Deals <strong>6d6</strong> damage to a program. If the program\'s REZ reaches 0, the program is deleted rather than merely derezzed.</p>',
   }),
   prog({
     name: 'Giant',
@@ -207,7 +207,7 @@ export const PROGRAM_CATALOGUE = [
     act: 1, atk: 13, def: 19, net: 2, per: 14, rez: 25,
     damageFormula: '3d6',
     netCombat: { attack: { mode: 'attack', damage: { enabled: true, formula: '3d6' }, forceDisconnect: { enabled: true, oncePerSource: true } } },
-    description: 'Deals 3d6 HP directly to a netrunner and unsafely disconnects them. This disconnect effect can only happen once per Giant.',
+    description: '<p>Deals <strong>3d6</strong> HP directly to a netrunner and unsafely disconnects them. This disconnect effect can only happen once per Giant.</p>',
   }),
   prog({
     name: 'Hellhound',
@@ -220,7 +220,7 @@ export const PROGRAM_CATALOGUE = [
       damage: { enabled: true, formula: '3d6' },
       applyCondition: { enabled: true, conditionId: 'burning-embers' },
     } },
-    description: 'Deals 3d6 HP directly to a netrunner. The runner\'s non-insulated cyberdeck and clothes catch Fire (Mild).',
+    description: '<p>Deals <strong>3d6</strong> HP directly to a netrunner. The runner\'s non-insulated cyberdeck and clothes catch Fire (Mild).</p>',
   }),
   prog({
     name: 'Killer',
@@ -229,7 +229,7 @@ export const PROGRAM_CATALOGUE = [
     act: 1, atk: 11, def: 17, net: 1, per: 12, rez: 20,
     damageFormula: '4d6',
     netCombat: { attack: { mode: 'attack', damage: { enabled: true, formula: '4d6' }, deleteOnKill: true } },
-    description: 'Deals 4d6 damage to a program. If the program\'s REZ reaches 0, it is deleted rather than merely derezzed.',
+    description: '<p>Deals <strong>4d6</strong> damage to a program. If the program\'s REZ reaches 0, it is deleted rather than merely derezzed.</p>',
   }),
   prog({
     name: 'Kraken',
@@ -242,7 +242,7 @@ export const PROGRAM_CATALOGUE = [
       damage: { enabled: true, formula: '4d6' },
       nodeLock: { enabled: true, duration: 'endNextTurn' },
     } },
-    description: 'Deals 4d6 HP directly to a netrunner. Until the end of their next turn, the target cannot connect to a different node or safely disconnect.',
+    description: '<p>Deals <strong>4d6</strong> HP directly to a netrunner. Until the end of their next turn, the target cannot connect to a different node or safely disconnect.</p>',
   }),
   prog({
     name: 'Liche',
@@ -254,7 +254,7 @@ export const PROGRAM_CATALOGUE = [
       mode: 'attack',
       statPenalty: { enabled: true, stats: ['rflx', 'tech', 'int'], formula: '1d6', floor: 1, durationLabel: '1 hour' },
     } },
-    description: 'Target netrunner\'s RFLX, TECH, and INT are each reduced by 1d6 (minimum 1) for 1 hour. Effect is non-stacking and psychosomatic.',
+    description: '<p>Target netrunner\'s <strong>RFLX</strong>, <strong>TECH</strong>, and <strong>INT</strong> are each reduced by <strong>1d6</strong> (minimum 1) for 1 hour. Effect is non-stacking and psychosomatic.</p>',
   }),
   prog({
     name: 'Raven',
@@ -267,7 +267,7 @@ export const PROGRAM_CATALOGUE = [
       damage: { enabled: true, formula: '1d6' },
       programStrike: { enabled: true, action: 'derez', count: 1, filter: 'defender' },
     } },
-    description: 'Derezzes a random Defender program from a target netrunner, then deals 1d6 HP directly.',
+    description: '<p>Derezzes a random Defender program from a target netrunner, then deals <strong>1d6</strong> HP directly.</p>',
   }),
   prog({
     name: 'Sabertooth',
@@ -275,7 +275,7 @@ export const PROGRAM_CATALOGUE = [
     cost: 'EX', category: 'black-ice',
     act: 1, atk: 12, def: 17, net: 3, per: 10, rez: 25,
     damageFormula: '6d6',
-    description: 'Deals 6d6 damage to a program.',
+    description: '<p>Deals <strong>6d6</strong> damage to a program.</p>',
   }),
   prog({
     name: 'Scorpion',
@@ -287,7 +287,7 @@ export const PROGRAM_CATALOGUE = [
       mode: 'attack',
       statPenalty: { enabled: true, stats: ['move'], formula: '1d6', floor: 1, durationLabel: '1 hour' },
     } },
-    description: 'Target netrunner\'s MOVE is reduced by 1d6 (minimum 1) for 1 hour. Effect is non-stacking and psychosomatic.',
+    description: '<p>Target netrunner\'s <strong>MOVE</strong> is reduced by <strong>1d6</strong> (minimum 1) for 1 hour. Effect is non-stacking and psychosomatic.</p>',
   }),
   prog({
     name: 'Skunk',
@@ -308,7 +308,7 @@ export const PROGRAM_CATALOGUE = [
       ],
       flags: { 'cyberpunk-blue': {} },
     }],
-    description: 'While rezzed: any detected target runner makes all Slide and Cloak checks at −2. Follows one runner; penalties from multiple Skunks stack.',
+    description: '<p><strong>WHILE REZZED:</strong> any detected target runner makes all Slide and Cloak checks at <strong>−2</strong>. Follows one runner; penalties from multiple Skunks stack.</p>',
   }),
   prog({
     name: 'Wisp',
@@ -321,7 +321,7 @@ export const PROGRAM_CATALOGUE = [
       damage: { enabled: true, formula: '1d6' },
       netActionPenalty: { enabled: true, amount: 1, floor: 2, duration: 'untilDisconnect' },
     } },
-    description: 'Deals 1d6 HP directly to a target netrunner. Reduces their NET actions by 1 (minimum 2) until they disconnect.',
+    description: '<p>Deals <strong>1d6</strong> HP directly to a target netrunner. Reduces their NET actions by 1 (minimum 2) until they disconnect.</p>',
   }),
 
   // ── Defender Programs ─────────────────────────────────────────────────────
@@ -356,7 +356,7 @@ export const PROGRAM_CATALOGUE = [
     cost: 'PR', category: 'defender',
     def: 14, rez: 7,
     netCombat: { defense: { mode: 'program', restore: { enabled: true, dv: 7 } } },
-    description: 'When a program in the same node as Restore would be maliciously deleted: roll 1d10 and reduce Restore to 0 REZ. On a result of 7 or higher, the program is closed instead of deleted.',
+    description: '<p>When a program in the same node as Restore would be maliciously deleted: roll <strong>1d10</strong> and reduce Restore to 0 REZ. On a result of 7 or higher, the program is closed instead of deleted.</p>',
   }),
   prog({
     name: 'Shield',
@@ -364,7 +364,7 @@ export const PROGRAM_CATALOGUE = [
     cost: 'CO', category: 'defender',
     def: 10, rez: 7,
     netCombat: { defense: { mode: 'personnel', intercept: { enabled: true, exceptBlackIce: true } } },
-    description: 'Intercepts the first non-Black ICE effect that would deal damage to the Netrunner or one of their programs, taking the damage instead. Deactivates if REZ > 0 after absorbing an effect.',
+    description: '<p>Intercepts the first non-Black ICE effect that would deal damage to the <strong>Netrunner</strong> or one of their programs, taking the damage instead. Deactivates if REZ > 0 after absorbing an effect.</p>',
   }),
 
   // ── Booster Programs ──────────────────────────────────────────────────────
@@ -377,7 +377,7 @@ export const PROGRAM_CATALOGUE = [
     cost: 'EV', category: 'booster',
     act: 1, def: 12, rez: 7,
     netCombat: { booster: { boosts: [{ component: 'ghost', use: 'cloak', value: 2, nonStacking: true }] } },
-    description: '+2 to Cloak checks until the start of your next turn. Only one copy may benefit you at a time.',
+    description: '<p><strong>+2</strong> to Cloak checks until the start of your next turn. Only one copy may benefit you at a time.</p>',
   }),
   prog({
     name: 'See-Ya',
@@ -385,7 +385,7 @@ export const PROGRAM_CATALOGUE = [
     cost: 'EV', category: 'booster',
     act: 1, def: 12, rez: 7,
     netCombat: { booster: { boosts: [{ component: 'spider', use: 'pathfinder', value: 2, nonStacking: true }] } },
-    description: '+2 to Pathfinder checks until the start of your next turn. Only one copy may benefit you at a time.',
+    description: '<p><strong>+2</strong> to Pathfinder checks until the start of your next turn. Only one copy may benefit you at a time.</p>',
   }),
   prog({
     name: 'Worm',
@@ -393,7 +393,7 @@ export const PROGRAM_CATALOGUE = [
     cost: 'CO', category: 'booster',
     act: 1, def: 12, rez: 7,
     netCombat: { booster: { boosts: [{ component: 'codebreak', use: 'breach', value: 2, nonStacking: true }] } },
-    description: '+2 to Breach checks until the start of your next turn. Only one copy may benefit you at a time.',
+    description: '<p><strong>+2</strong> to Breach checks until the start of your next turn. Only one copy may benefit you at a time.</p>',
   }),
 
   // ── Daemons ───────────────────────────────────────────────────────────────
@@ -444,13 +444,13 @@ export const PROGRAM_CATALOGUE = [
     name: 'Impair Movement',
     cost: 'EV', category: 'quickhack',
     ram: 1, atk: 6, def: 12, rez: 20,
-    description: 'MOVE −1. At 0 MOVE, the target cannot take a Move Action.',
+    description: '<p><strong>MOVE</strong> <strong>−1</strong>. At 0 <strong>MOVE</strong>, the target cannot take a Move Action.</p>',
   }),
   prog({
     name: 'Lure',
     cost: 'EX', category: 'quickhack',
     ram: 3, atk: 2, def: 14, rez: 20,
-    description: 'If the target knows they are being hacked, they may defend with TECH+Human Perception; otherwise it succeeds automatically. On their next turn, the Netrunner decides the target\'s Move (full Move if the target was unaware; the target cannot be Lured into obvious danger).',
+    description: '<p>If the target knows they are being hacked, they may defend with <strong>TECH</strong>+<strong>Human Perception</strong>; otherwise it succeeds automatically. On their next turn, the <strong>Netrunner</strong> decides the target\'s Move (full Move if the target was unaware; the target cannot be Lured into obvious danger).</p>',
   }),
   prog({
     name: 'Overheat',
@@ -468,7 +468,7 @@ export const PROGRAM_CATALOGUE = [
     name: 'Shard Ejection',
     cost: 'EX', category: 'quickhack',
     ram: 4, atk: 0, def: 15, rez: 20,
-    description: 'Forcibly uninstalls and ejects one slotted shard (Netrunner\'s choice, including chipware) into an adjacent space. A cover plate over the socket prevents ejection.',
+    description: '<p>Forcibly uninstalls and ejects one slotted shard (<strong>Netrunner</strong>\'s choice, including chipware) into an adjacent space. A cover plate over the socket prevents ejection.</p>',
   }),
   prog({
     name: 'Short Circuit',
@@ -480,7 +480,7 @@ export const PROGRAM_CATALOGUE = [
     name: 'Slow',
     cost: 'EX', category: 'quickhack',
     ram: 3, atk: 2, def: 14, rez: 20,
-    description: 'MOVE −1d6 (−2d6 if the target has only cyberlegs). At 0 MOVE, the target cannot take a Move Action.',
+    description: '<p><strong>MOVE</strong> <strong>−1d6</strong> (<strong>−2d6</strong> if the target has only cyberlegs). At 0 <strong>MOVE</strong>, the target cannot take a Move Action.</p>',
   }),
   prog({
     name: 'Sonic Shock',
@@ -492,7 +492,7 @@ export const PROGRAM_CATALOGUE = [
     name: 'Synapse Burnout',
     cost: 'VEX', category: 'quickhack',
     ram: 3, atk: 2, def: 14, rez: 20,
-    description: 'Deals 3d6 damage directly to the target\'s brain, ignoring and not ablating armor.',
+    description: '<p>Deals <strong>3d6</strong> damage directly to the target\'s brain, ignoring and not ablating armor.</p>',
   }),
   prog({
     name: 'System Reset',
@@ -509,24 +509,24 @@ export const PROGRAM_CATALOGUE = [
     name: 'Corrupt',
     cost: 'PR', category: 'malware',
     act: 1, atk: 1, def: 10, net: 2, per: 3, rez: 15,
-    description: '‡ Illegal without a permit. Provided an encryption key before upload. Spreads randomly, giving all data it finds DV13 encryption.',
+    description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Provided an encryption key before upload. Spreads randomly, giving all data it finds <strong style="color: var(--cpb-accent);">DV13</strong> encryption.</p>',
   }),
   prog({
     name: 'Download',
     cost: 'EX', category: 'malware',
     act: 1, atk: 2, def: 10, net: 1, per: 7, rez: 15,
-    description: '‡ Illegal without a permit. Searches for a named file (or any file if none specified) and sends it to a designated NET address.',
+    description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Searches for a named file (or any file if none specified) and sends it to a designated NET address.</p>',
   }),
   prog({
     name: 'Mapper',
     cost: 'PR', category: 'malware',
     act: 1, atk: 1, def: 14, net: 4, per: 5, rez: 10,
-    description: '‡ Illegal without a permit. Slides into every node it enters and runs Pathfinding; attempts to Breach any Passwalls it finds. Sends a complete Architecture map to a specified NET address.',
+    description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Slides into every node it enters and runs Pathfinding; attempts to Breach any Passwalls it finds. Sends a complete Architecture map to a specified NET address.</p>',
   }),
   prog({
     name: 'WireTap',
     cost: 'PR', category: 'malware',
     act: 1, atk: 3, def: 10, net: 2, per: 10, rez: 10,
-    description: '‡ Illegal without a permit. Alternates between Sliding into nodes and Cloaking. The number of nodes to reach and Passwalls to Breach are set beforehand. Logs all activity and sends reports to a given NET address.',
+    description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Alternates between Sliding into nodes and Cloaking. The number of nodes to reach and Passwalls to Breach are set beforehand. Logs all activity and sends reports to a given NET address.</p>',
   }),
 ];

@@ -20,7 +20,7 @@ const COST = {
   SLX: '€$10,000 (Super Luxury)',
 };
 
-const h = (text) => `<p>${text}</p>`;
+const h = (text) => /^\s*<(p|ul|ol|div|h\d|table)\b/i.test(text) ? text : `<p>${text}</p>`;
 
 // ── Asset paths ───────────────────────────────────────────────────────────────
 const ASSET_BASE = 'systems/cyberpunk-blue/assets/items';
@@ -194,7 +194,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Knock-Out Grenade',
     folder: 'Grenades', imgPath: `${A_AMMO}/Knock-out Gas Grenade.png`, cost: 'EX',
-    description: 'Deals no damage. AoE: 4m inner / 8m outer sphere; targets in outer zone get +5 to resist. DV13 BODY+Endurance or fall unconscious for a number of minutes equal to the margin of failure (waking from damage or an action taken to rouse them). No SP ablation. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind. Quality: Standard (EX), Poor (PR), Excellent (VEX).',
+    description: '<p>Deals no damage.</p><p><strong>AOE:</strong> 4m inner / 8m outer sphere; targets in outer zone get <strong>+5</strong> to resist. <strong style="color: var(--cpb-accent);">DV13</strong> <strong>BODY</strong>+<strong>Endurance</strong> or fall unconscious for a number of minutes equal to the margin of failure (waking from damage or an action taken to rouse them). No SP ablation. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind.</p><p><strong>QUALITY:</strong> Standard (EX), Poor (PR), Excellent (VEX).</p>',
     isWeapon: true,
     weapons: [{
       type: 'thrown', skill: 'athletics', damage: '0', rateOfFire: 1,
@@ -219,7 +219,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Smoke Grenade',
     folder: 'Grenades', imgPath: `${A_AMMO}/Smoke Grenade.png`, cost: 'CO',
-    description: 'Deals no damage. AoE: 16m inner / 22m outer sphere. DV13 BODY+Endurance or suffer Damaged Eye Critical Injury for 1 minute. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind. Quality: Standard (CO), Poor (EV), Excellent (PR).',
+    description: '<p>Deals no damage.</p><p><strong>AOE:</strong> 16m inner / 22m outer sphere. <strong style="color: var(--cpb-accent);">DV13</strong> <strong>BODY</strong>+<strong>Endurance</strong> or suffer Damaged Eye Critical Injury for 1 minute. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind.</p><p><strong>QUALITY:</strong> Standard (CO), Poor (EV), Excellent (PR).</p>',
     isWeapon: true,
     weapons: [{
       type: 'thrown', skill: 'athletics', damage: '0', rateOfFire: 1,
@@ -244,7 +244,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Teargas Grenade',
     folder: 'Grenades', imgPath: `${A_AMMO}/Teargas Grenade.png`, cost: 'CO',
-    description: 'Deals no damage. AoE: 10m inner / 12m outer sphere; targets in outer zone get +4 to resist. DV13 BODY+Endurance or suffer Damaged Eye Critical Injury for 1 minute. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind. Quality: Standard (CO), Poor (EV), Excellent (PR).',
+    description: '<p>Deals no damage.</p><p><strong>AOE:</strong> 10m inner / 12m outer sphere; targets in outer zone get <strong>+4</strong> to resist. <strong style="color: var(--cpb-accent);">DV13</strong> <strong>BODY</strong>+<strong>Endurance</strong> or suffer Damaged Eye Critical Injury for 1 minute. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind.</p><p><strong>QUALITY:</strong> Standard (CO), Poor (EV), Excellent (PR).</p>',
     isWeapon: true,
     weapons: [{
       type: 'thrown', skill: 'athletics', damage: '0', rateOfFire: 1,
@@ -269,7 +269,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Flashbang Grenade',
     folder: 'Grenades', imgPath: `${A_AMMO}/Flasgbang Grenade.png`, cost: 'EX',
-    description: 'Deals no damage. AoE: 10m inner / 12m outer sphere; targets in outer zone get +4 to resist. DV17 REFLEXES+Athletics or become Blinded and Deafened for 1 round. Both radii shrink by 2m after each subsequent turn.',
+    description: '<p>Deals no damage.</p><p><strong>AOE:</strong> 10m inner / 12m outer sphere; targets in outer zone get <strong>+4</strong> to resist. <strong style="color: var(--cpb-accent);">DV17</strong> REFLEXES+<strong>Athletics</strong> or become Blinded and Deafened for 1 round. Both radii shrink by 2m after each subsequent turn.</p>',
     isWeapon: true,
     weapons: [{
       type: 'thrown', skill: 'athletics', damage: '0', rateOfFire: 1,
@@ -294,7 +294,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Toxic Grenade',
     folder: 'Grenades', imgPath: `${A_AMMO}/Toxic Gas Grenade.png`, cost: 'EX',
-    description: 'Deals no damage, no SP ablation, cannot cause Critical Injuries. AoE: 4m inner / 10m outer sphere; targets in outer zone get +2 to resist. DV15 BODY+Endurance or take 2d6 HP; on a successful resist, take half (rounded down). Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind. Quality: Standard (EX), Poor (PR), Excellent (VEX).',
+    description: '<p>Deals no damage, no SP ablation, cannot cause Critical Injuries.</p><p><strong>AOE:</strong> 4m inner / 10m outer sphere; targets in outer zone get <strong>+2</strong> to resist. <strong style="color: var(--cpb-accent);">DV15</strong> <strong>BODY</strong>+<strong>Endurance</strong> or take <strong>2d6</strong> HP; on a successful resist, take half (rounded down). Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind.</p><p><strong>QUALITY:</strong> Standard (EX), Poor (PR), Excellent (VEX).</p>',
     isWeapon: true,
     weapons: [{
       type: 'thrown', skill: 'athletics', damage: '2d6', rateOfFire: 1,
@@ -445,7 +445,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Airhypo',
     folder: 'Scientific & Medical', imgPath: `${A_GEAR}/airhypo.png`, cost: 'CO',
-    description: 'Holds up to 3 drug ampules. Administers a dose as an Action. To inject an unwilling target, make a BODY+Melee Weapons attack instead of dealing damage on a hit.',
+    description: '<p>Holds up to 3 drug ampules. Administers a dose as an Action. To inject an unwilling target, make a <strong>BODY</strong>+<strong>Melee Weapons</strong> attack instead of dealing damage on a hit.</p>',
     isWeapon: true,
     weapons: [{
       type: 'lightMelee', skill: 'meleeWeapons', damage: '0', rateOfFire: 1,
@@ -474,17 +474,17 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Cryopump',
     folder: 'Scientific & Medical', imgPath: `${A_GEAR}/cryobag.png`, cost: 'LUX',
-    description: 'Medtech only. Briefcase that unfolds into a body-bag and coolant pump (Action). DV12 TECH+Medicine (Cryotech) to place a person in stasis for up to 1 week (Action). The bag has 15 HP. Recharge costs CO.',
+    description: '<p>Medtech only. Briefcase that unfolds into a body-bag and coolant pump (Action). <strong style="color: var(--cpb-accent);">DV12</strong> <strong>TECH</strong>+<strong>Medicine</strong> (Cryotech) to place a person in stasis for up to 1 week (Action). The bag has 15 HP. Recharge costs CO.</p>',
   }),
   gear({
     name: 'Cryotank',
     folder: 'Scientific & Medical', imgPath: `${A_GEAR}/cryotank.png`, cost: 'LUX',
-    description: 'Medtech only. DV15 TECH+Medicine (Cryotech) for indefinite stasis, or conscious suspension with 2× the natural healing rate.',
+    description: '<p>Medtech only. <strong style="color: var(--cpb-accent);">DV15</strong> <strong>TECH</strong>+<strong>Medicine</strong> (Cryotech) for indefinite stasis, or conscious suspension with 2× the natural healing rate.</p>',
   }),
   gear({
     name: 'Medscanner',
     folder: 'Scientific & Medical', imgPath: `${A_GEAR}/medscanner.png`, cost: 'VEX',
-    description: 'Performs most medical tests. +2 to Medicine checks.',
+    description: '<p>Performs most medical tests. <strong>+2</strong> to <strong>Medicine</strong> checks.</p>',
     effects: [ae('Medicine +2', [skill('medicine', 2)])],
   }),
   gear({
@@ -495,12 +495,12 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Tech Bag',
     folder: 'Scientific & Medical', imgPath: `${A_GEAR}/tech-bag.png`, cost: 'EX',
-    description: 'Contains: Techtool, hammer, 2 prybars, heat torch, voltmeter, and assorted screws, nuts, and wire.',
+    description: '<p><strong>CONTAINS:</strong></p><ul><li>Techtool</li><li>Hammer</li><li>2 prybars</li><li>Heat torch</li><li>Voltmeter</li><li>Assorted screws, nuts, and wire</li></ul>',
   }),
   gear({
     name: 'Techscanner',
     folder: 'Scientific & Medical', imgPath: `${A_GEAR}/techscanner.png`, cost: 'VEX',
-    description: '+2 to Electronics and Mechanics checks (hardware only).',
+    description: '<p><strong>+2</strong> to <strong>Electronics</strong> and <strong>Mechanics</strong> checks (hardware only).</p>',
     effects: [ae('Electronics +2, Mechanics +2 (hardware)', [skillGen('electronics', 2), skillGen('mechanics', 2)])],
   }),
   gear({
@@ -542,19 +542,19 @@ export const EQUIPMENT_CATALOGUE = [
     folder: 'Computer Hardware', cost: 'VEX',
     isComputer: true,
     computer: { hardwareSlots: 1 },
-    description: '1 hardware slot (functionally part of a connected cyberdeck). −2 to remote hack damage while seated. Requires a Neuroport Cyberdeck Port.',
+    description: '<p>1 hardware slot (functionally part of a connected cyberdeck). <strong>−2</strong> to remote hack damage while seated. Requires a Neuroport Cyberdeck Port.</p>',
   }),
   gear({
     name: 'Netrunner Chair, Advanced',
     folder: 'Computer Hardware', cost: 'LUX',
     isComputer: true,
     computer: { hardwareSlots: 2 },
-    description: '+1 NET Action per turn and 2 hardware slots (functionally part of a connected cyberdeck). −3 to remote hack damage while seated. Requires a Neuroport Cyberdeck Port.',
+    description: '<p><strong>+1</strong> NET Action per turn and 2 hardware slots (functionally part of a connected cyberdeck). <strong>−3</strong> to remote hack damage while seated. Requires a Neuroport Cyberdeck Port.</p>',
   }),
   gear({
     name: 'Smart Visor',
     folder: 'Computer Hardware', imgPath: `${A_GEAR}/smart-visor.png`, cost: 'EX',
-    description: 'Functions as a 2-slot cybereye with Virtuality pre-installed while worn. Note: interaction with installed cyberoptics may vary; consult your GM.',
+    description: '<p>Functions as a 2-slot cybereye with Virtuality pre-installed while worn.</p><p><strong>NOTE:</strong> interaction with installed cyberoptics may vary; consult your GM.</p>',
   }),
 
   // ── Cyberdeck Hardware MODs ───────────────────────────────────────────────
@@ -571,7 +571,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Caltrops',
     folder: 'Clandestine Gear', imgPath: `${A_GEAR}/caltrops.png`, cost: 'EV',
-    description: 'Covers 2m². Any creature moving through must make a DV15 RFLX+Athletics check or take 1d6 damage per 2m of movement through the area. Shoes have SP 1 against this; army boots have SP 5. DV10 INT+Perception to detect.',
+    description: '<p>Covers 2m². Any creature moving through must make a <strong style="color: var(--cpb-accent);">DV15</strong> <strong>RFLX</strong>+<strong>Athletics</strong> check or take <strong>1d6</strong> damage per 2m of movement through the area. Shoes have SP 1 against this; army boots have SP 5. <strong style="color: var(--cpb-accent);">DV10</strong> <strong>INT</strong>+<strong>Perception</strong> to detect.</p>',
     // Deployed as an "affliction explosion" placement that drops a persistent
     // movement-hazard Region (see createHazardRegion / CyberBlueHazardRegionBehavior).
     isWeapon: true,
@@ -604,7 +604,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Handcuffs',
     folder: 'Clandestine Gear', imgPath: `${A_GEAR}/handcuffs.png`, cost: 'CO',
-    description: 'Steel. A character with BODY 10+ can break free.',
+    description: '<p>Steel. A character with <strong>BODY</strong> 10+ can break free.</p>',
   }),
   gear({
     name: 'Homing Tracer',
@@ -644,7 +644,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Linear Frame Sigma',
     folder: 'Miscellaneous', cost: 'VEX',
-    description: 'Exoskeleton. Connect via Personal Link as an Action; regular limbs are unavailable until disconnected (also an Action). While connected, perform strength-based tasks as if BODY were 12.',
+    description: '<p>Exoskeleton. Connect via Personal Link as an Action; regular limbs are unavailable until disconnected (also an Action). While connected, perform strength-based tasks as if <strong>BODY</strong> were 12.</p>',
     effects: [aeOff('Linear Frame Sigma Connected (BODY 12)', [statOvr('body', 12)])],
     instructions: [
       S.message('<p><strong>Linear Frame Sigma connected</strong> — strength-based tasks as if BODY were 12. Regular limbs unavailable while connected.</p>', { name: 'Connect' }),
@@ -655,7 +655,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Linear Frame Beta',
     folder: 'Miscellaneous', cost: 'LUX',
-    description: 'Exoskeleton. Connect via Personal Link as an Action; regular limbs are unavailable until disconnected (also an Action). While connected, perform strength-based tasks as if BODY were 14.',
+    description: '<p>Exoskeleton. Connect via Personal Link as an Action; regular limbs are unavailable until disconnected (also an Action). While connected, perform strength-based tasks as if <strong>BODY</strong> were 14.</p>',
     effects: [aeOff('Linear Frame Beta Connected (BODY 14)', [statOvr('body', 14)])],
     instructions: [
       S.message('<p><strong>Linear Frame Beta connected</strong> — strength-based tasks as if BODY were 14. Regular limbs unavailable while connected.</p>', { name: 'Connect' }),
@@ -680,13 +680,13 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Olfactory Boost Chip', imgPath: `${A_CHIPWARE}/olfactory-boost.png`,
     folder: 'Chipware', cost: 'PR',
-    description: 'Chipware — equipped in a shard socket. Scent-based tracking using Survival; +2 to scent-based Perception checks.',
+    description: '<p>Chipware — equipped in a shard socket. Scent-based tracking using Survival; <strong>+2</strong> to scent-based <strong>Perception</strong> checks.</p>',
     effects: [reminder('Scent Perception +2 (situational)')],
   }),
   gear({
     name: 'Pain Editor Chip', imgPath: `${A_CHIPWARE}/pain-editor.png`,
     folder: 'Chipware', cost: 'EX',
-    description: 'Chipware — equipped in a shard socket. Ignore Seriously Wounded penalties while installed.',
+    description: 'Chipware — equipped in a shard socket. Ignore <strong>Seriously Wounded</strong> penalties while installed.',
     effects: [{
       name: 'Pain Editor: Ignore Seriously Wounded',
       disabled: false, transfer: true, changes: [],
@@ -696,7 +696,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Skill Chip', imgPath: `${A_CHIPWARE}/skill-chip.png`,
     folder: 'Chipware', cost: 'EX',
-    description: 'Chipware — equipped in a shard socket. Covers one Skill or Component. While installed: if the user has fewer than 3 ranks in that Skill or Component, it is treated as 3.',
+    description: '<p>Chipware — equipped in a shard socket. Covers one Skill or Component.</p><p><strong>WHILE INSTALLED:</strong> if the user has fewer than 3 ranks in that Skill or Component, it is treated as 3.</p>',
   }),
   gear({
     name: 'Tactile Boost Chip', imgPath: `${A_CHIPWARE}/tactile-boost.png`,

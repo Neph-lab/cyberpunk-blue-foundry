@@ -35,7 +35,7 @@ export const ABILITY_CATALOGUE = [
     system: {
       rank: 0,
       maxRank: 10,
-      description: '<p>This ability has 10 levels and acts as if it was a component wired to the Perception skill. Successfully observing someone\'s lips as they speak allows you to know what they\'re saying.</p>',
+      description: '<p>This ability has 10 levels and acts as if it was a component wired to the <strong>Perception</strong> skill. Successfully observing someone\'s lips as they speak allows you to know what they\'re saying.</p>',
       note: '',
     },
   },
@@ -47,7 +47,7 @@ export const ABILITY_CATALOGUE = [
     system: {
       rank: 0,
       maxRank: 3,
-      description: '<p>This ability can be increased to a total of three ranks. Each rank adds +1 to Initiative rolls. This bonus applies only to Initiative — not to other uses of RFLX.</p>',
+      description: '<p>This ability can be increased to a total of three ranks. Each rank adds <strong>+1</strong> to Initiative rolls. This bonus applies only to Initiative — not to other uses of <strong>RFLX</strong>.</p>',
       note: '',
     },
   },

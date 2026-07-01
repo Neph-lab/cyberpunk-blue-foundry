@@ -26,7 +26,7 @@ const COST = {
   SLX: '€$10,000 (Super Luxury)',
 };
 
-const h = (text) => `<p>${text}</p>`;
+const h = (text) => /^\s*<(p|ul|ol|div|h\d|table)\b/i.test(text) ? text : `<p>${text}</p>`;
 
 // ── AE helpers ─────────────────────────────────────────────────────────────
 const ae      = (name, changes) => ({ name, disabled: false, transfer: true, changes });
@@ -144,7 +144,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'neuralware', integration: 'platform', slotsProvided: 5,
     cost: 'PR', facilities: 'hospital', installationCost: 'EX', installationDv: 17,
     psycheLoss: '',
-    description: 'Platform for all Neuralware. Provides 5 neural link slots, 2 shard sockets, COS, Holophone, Biomonitor, HUD, Personal Link (wrist cable), Wireless Connector (4m), Digital Wallet, and hardened circuitry (EMP-protected; still vulnerable to software attacks and direct connections). COS and other default functions do not consume slots.',
+    description: '<p>Platform for all Neuralware. Provides:</p><ul><li>5 neural link slots</li><li>2 shard sockets</li><li>COS</li><li>Holophone</li><li>Biomonitor</li><li>HUD</li><li>Personal Link (wrist cable)</li><li>Wireless Connector (4m)</li><li>Digital Wallet</li><li>Hardened circuitry (EMP-protected; still vulnerable to software attacks and direct connections)</li></ul><p>COS and other default functions do not consume slots.</p>',
   }),
 
   // ── Neuralware ────────────────────────────────────────────────────────────
@@ -165,7 +165,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'neuralware', integration: 'extension', slotsUsed: 1,
     cost: 'VEX', facilities: 'hospital', installationCost: 'EX', installationDv: 17,
     useCyberneticsComponent: true, psycheLoss: '1d6',
-    description: 'Adds 1 hardware or software slot to an installed cyberdeck. Installing 2 or more Ex-Disks grants +1 NET Action via wired connection. Requires a Neuroport Cyberdeck Port.',
+    description: '<p>Adds 1 hardware or software slot to an installed cyberdeck. Installing 2 or more Ex-Disks grants <strong>+1</strong> NET Action via wired connection. Requires a Neuroport Cyberdeck Port.</p>',
   }),
   cw({
     name: 'Neuroport Cyberdeck Port',
@@ -183,7 +183,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'neuralware', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'mall', installationCost: 'CO', installationDv: 13,
     psycheLoss: '', multipleInstalls: true,
-    description: 'Adds a Passwall protecting your neuroport against Quickhacking. The Passwall DV = 15 + (2 × total number of Self-ICE installs). Installing a second Self-ICE raises the DV to 19, a third to 21, and so on. Can be installed by a Netrunner (Electronics/Cybernetics) or a Medtech.',
+    description: '<p>Adds a Passwall protecting your neuroport against <strong>Quickhacking</strong>. The Passwall <strong style="color: var(--cpb-accent);">DV = 15 + (2 × total number of Self-ICE installs)</strong>. Installing a second Self-ICE raises the <strong style="color: var(--cpb-accent);">DV</strong> to 19, a third to 21, and so on. Can be installed by a <strong>Netrunner</strong> (<strong>Electronics</strong>/<strong>Cybernetics</strong>) or a Medtech.</p>',
   }),
   cw({
     name: 'Shard Socket',
@@ -200,7 +200,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'neuralware', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'hospital', installationCost: 'EX', installationDv: 17,
     psycheLoss: '4d6',
-    description: 'Speedware. +1 to Initiative, vehicle Swerve checks, and Evasion. Only one speedware may be installed at a time.',
+    description: '<p>Speedware. <strong>+1</strong> to Initiative, vehicle Swerve checks, and <strong>Evasion</strong>. Only one speedware may be installed at a time.</p>',
     effects: [ae('Speedware: +1 Initiative, Evasion, Swerve', [statMod('rflx', 1), skillGen('evasion', 1), skillGen('drive', 1)])],
   }),
   cw({
@@ -210,7 +210,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'neuralware', integration: 'extension', slotsUsed: 1,
     cost: 'EX', facilities: 'hospital', installationCost: 'VEX', installationDv: 20,
     psycheLoss: '4d6',
-    description: 'Speedware and COS replacement. Activated as an Action, lasts 10 minutes: +3 Initiative, +3 Evasion, +3 Martial Arts, +3 Melee Weapons (Drive and Sleight-of-Hand at GM discretion). Using it again within 1 hour deals 3d6 HP damage before the effect applies. Only one speedware and one COS may be installed at a time.',
+    description: '<p>Speedware and COS replacement. Activated as an Action, lasts 10 minutes: <strong>+3</strong> Initiative, <strong>+3</strong> <strong>Evasion</strong>, <strong>+3</strong> <strong>Martial Arts</strong>, <strong>+3</strong> <strong>Melee Weapons</strong> (Drive and <strong>Sleight-of-Hand</strong> at GM discretion). Using it again within 1 hour deals <strong>3d6</strong> HP damage before the effect applies. Only one speedware and one COS may be installed at a time.</p>',
     effects: [aeOff('Sandevistan Active', [statMod('rflx', 3), skillGen('evasion', 3), skillGen('martialArts', 3), skillGen('meleeWeapons', 3)])],
     instructions: [
       S.message('<p><strong>Sandevistan activated</strong> — +3 Initiative, Evasion, Martial Arts, and Melee Weapons for 10 minutes.</p><p><em>Warning: reactivating within 1 hour deals 3d6 HP damage first.</em></p>', { name: 'Activate' }),
@@ -254,7 +254,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 3,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '1d6',
-    description: '‡ Illegal without a permit. Single-shot exotic weapon concealed in the eye. Takes 1 minute to reload.',
+    description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Single-shot exotic weapon concealed in the eye. Takes 1 minute to reload.</p>',
   }),
   cw({
     name: 'Image Enhance',
@@ -264,7 +264,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'mall', installationCost: 'CO', installationDv: 17,
     useCyberneticsComponent: true, psycheLoss: '1d6',
     paired: true,
-    description: 'PAIRED (must be installed in both eyes). +2 to sight-based Perception checks.',
+    description: '<p>PAIRED (must be installed in both eyes). <strong>+2</strong> to sight-based <strong>Perception</strong> checks.</p>',
     effects: [reminder('Sight Perception +2 (situational)')],
   }),
   cw({
@@ -300,7 +300,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 1,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '1d6',
-    description: '‡ Illegal without a permit. +1 to Aimed attacks. Does not stack; only one scope benefit applies at a time.',
+    description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p><strong>+1</strong> to Aimed attacks. Does not stack; only one scope benefit applies at a time.</p>',
     effects: [aeFlag('Targeting Scope: +1 Aimed Attack', 'targetingScope')],
   }),
   cw({
@@ -309,7 +309,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 1,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '1d6',
-    description: 'Detailed vision up to 800m. +1 to attack rolls at ranges greater than 50m (does not apply to Autofire).',
+    description: '<p>Detailed vision up to 800m. <strong>+1</strong> to attack rolls at ranges greater than 50m (does not apply to <strong>Autofire</strong>).</p>',
     effects: [aeFlag('TeleOptics: +1 attack >50m', 'teleOptics')],
   }),
   cw({
@@ -356,7 +356,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'cyberaudio', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 15,
     psycheLoss: '1d6',
-    description: '+2 to hearing-based Perception checks.',
+    description: '<p><strong>+2</strong> to hearing-based <strong>Perception</strong> checks.</p>',
     effects: [reminder('Hearing Perception +2 (situational)')],
   }),
   cw({
@@ -366,7 +366,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'cyberaudio', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'mall', installationCost: 'CO', installationDv: 15,
     useCyberneticsComponent: true, psycheLoss: '1d6/2',
-    description: '‡ Illegal without a permit. Creates resonance to detect microphones within 2m.',
+    description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Creates resonance to detect microphones within 2m.</p>',
   }),
   cw({
     name: 'Homing Tracer (Cyberaudio)',
@@ -407,7 +407,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'cyberaudio', integration: 'extension', slotsUsed: 1,
     cost: 'EX', facilities: 'mall', installationCost: 'CO', installationDv: 12,
     useCyberneticsComponent: true, psycheLoss: '1d6/2',
-    description: '‡ Illegal without a permit. Encrypted communications (sold as a pair; matching unit required for the other party). Additional encryption keys can be read from a shard.',
+    description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Encrypted communications (sold as a pair; matching unit required for the other party). Additional encryption keys can be read from a shard.</p>',
   }),
   cw({
     name: 'Voice Stress Analyzer',
@@ -416,7 +416,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'cyberaudio', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 12,
     psycheLoss: '1d6',
-    description: '+2 to Human Perception and +1 to Influence.',
+    description: '<p><strong>+2</strong> to <strong>Human Perception</strong> and <strong>+1</strong> to <strong>Influence</strong>.</p>',
     effects: [ae('Human Perception +2, Influence +1', [skill('humanPerc', 2), skill('influence', 1)])],
   }),
 
@@ -437,7 +437,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'cyberarms', integration: 'platform', slotsProvided: 3,
     cost: 'VEX', facilities: 'hospital', installationCost: 'EX', installationDv: 19,
     psycheLoss: '2d6',
-    description: 'Fist counts as an Excellent Quality Heavy Melee Weapon. Wield weapons and gear as if BODY were 11. With two Gorilla Arms: Grapple, Choke, Slam, and pry open as if BODY were 11.',
+    description: '<p>Fist counts as an Excellent Quality Heavy Melee Weapon. Wield weapons and gear as if <strong>BODY</strong> were 11.</p><p><strong>WITH TWO GORILLA ARMS:</strong> Grapple, Choke, Slam, and pry open as if <strong>BODY</strong> were 11.</p>',
   }),
   cw({
     name: 'Standard Cyberhand',
@@ -455,7 +455,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 15,
     psycheLoss: '1d6',
-    description: '+1d6 to Martial Arts punch damage.',
+    description: '<p><strong>+1d6</strong> to <strong>Martial Arts</strong> punch damage.</p>',
     effects: [aeFlag('Big Knucks: +1d6 MA damage', 'maExtraDamageDice', 1)],
   }),
   cw({
@@ -495,7 +495,7 @@ export const CYBERWARE_CATALOGUE = [
         concealable: true, isExcellentQuality: true,
       },
     ],
-    description: '‡ Illegal without a permit. Excellent Quality Heavy Melee Weapon concealed in the forearm. Free to draw and stow. The hand is unavailable while the blades are deployed. When two Mantis Blades both attack the same target in a single Attack action, roll all damage dice at once (increasing Critical Injury probability).',
+    description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Excellent Quality Heavy Melee Weapon concealed in the forearm. Free to draw and stow. The hand is unavailable while the blades are deployed. When two Mantis Blades both attack the same target in a single Attack action, roll all damage dice at once (increasing Critical Injury probability).</p>',
   }),
   cw({
     name: 'Medscanner (Cyberarm)',
@@ -503,7 +503,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 2,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 15,
     useCyberneticsComponent: true, psycheLoss: '2d6',
-    description: 'Performs most medical tests. +2 to Medicine checks.',
+    description: '<p>Performs most medical tests. <strong>+2</strong> to <strong>Medicine</strong> checks.</p>',
     effects: [ae('Medicine +2', [skill('medicine', 2)])],
   }),
   cw({
@@ -518,7 +518,7 @@ export const CYBERWARE_CATALOGUE = [
       type: 'heavyMelee', damage: '3d6', rateOfFire: 2, hands: 1,
       concealable: true, critDoublePick: true,
     }],
-    description: '‡ Illegal without a permit. Mono-filament whip housed in the hand or forearm. 1-handed melee weapon: 3d6 damage, RoF 2, no mod slots, 6m range. On a Critical Injury, roll the table twice and pick the preferred result.',
+    description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Mono-filament whip housed in the hand or forearm.</p><p><strong>1-HANDED MELEE WEAPON:</strong> <strong>3d6</strong> damage, RoF 2, no mod slots, 6m range. On a Critical Injury, roll the table twice and pick the preferred result.</p>',
   }),
   cw({
     name: 'Projectile Launch System',
@@ -527,7 +527,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 2,
     cost: 'VEX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     useCyberneticsComponent: true, psycheLoss: '3d6',
-    description: '‡ Illegal without a permit. Miniature rocket launcher: magazine 1, 7d6 −10/14 Explosive, RoF 1. Only compatible with the Smart Rebuild mod. Free to draw and stow; the arm is unavailable while deployed.',
+    description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p><strong>MINIATURE ROCKET LAUNCHER:</strong> magazine 1, <strong>7d6</strong> <strong>−10</strong>/14 Explosive, RoF 1. Only compatible with the Smart Rebuild mod. Free to draw and stow; the arm is unavailable while deployed.</p>',
   }),
   cw({
     name: 'Rippers',
@@ -536,7 +536,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '1d6',
-    description: '‡ Illegal without a permit. Carbon-glass fingernails. Medium Melee Weapon, concealable. Can be installed in a meat arm without needing a platform (only install allowed). The hand is unavailable while deployed as a weapon.',
+    description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Carbon-glass fingernails. Medium Melee Weapon, concealable. Can be installed in a meat arm without needing a platform (only install allowed). The hand is unavailable while deployed as a weapon.</p>',
   }),
   cw({
     name: 'Scratchers',
@@ -569,7 +569,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 2,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     useCyberneticsComponent: true, psycheLoss: '2d6',
-    description: '+2 to Electronics and Mechanics checks (hardware only).',
+    description: '<p><strong>+2</strong> to <strong>Electronics</strong> and <strong>Mechanics</strong> checks (hardware only).</p>',
     effects: [ae('Electronics +2, Mechanics +2 (hardware)', [skillGen('electronics', 2), skillGen('mechanics', 2)])],
   }),
   cw({
@@ -586,7 +586,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 1,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '2d6',
-    description: '‡ Illegal without a permit. Heavy Melee Weapon claws extending between the knuckles. Concealable. The hand is unavailable while deployed.',
+    description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Heavy Melee Weapon claws extending between the knuckles. Concealable. The hand is unavailable while deployed.</p>',
   }),
 
   // ── Cyberlegs ─────────────────────────────────────────────────────────────
@@ -646,7 +646,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 15,
     useCyberneticsComponent: true, psycheLoss: '1d6',
     paired: true,
-    description: 'PAIRED (must be installed in both legs/feet). Inline skates that extend and retract at will. Movement distance +6m per turn (not MOVE stat).',
+    description: '<p>PAIRED (must be installed in both legs/feet). Inline skates that extend and retract at will. Movement distance <strong>+6</strong>m per turn (not <strong>MOVE</strong> stat).</p>',
     effects: [aeOff('Skate Foot Active (+6m movement)', [stat('move', 3)])],
     instructions: [
       S.message('<p><strong>Skate Foot deployed</strong> — movement distance +6m per turn.</p>', { name: 'Deploy' }),
@@ -690,7 +690,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'internal', integration: 'standalone',
     cost: 'EX', facilities: 'hospital', installationCost: 'EX', installationDv: 20,
     psycheLoss: '4d6',
-    description: 'Very Heavy Melee Weapon (4d6, RoF 1) concealed in the esophagus.',
+    description: '<p>Very Heavy Melee Weapon (<strong>4d6</strong>, RoF 1) concealed in the esophagus.</p>',
   }),
   cw({
     name: 'Enhanced Antibodies',
@@ -699,7 +699,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'internal', integration: 'standalone',
     cost: 'EX', facilities: 'mall', installationCost: 'CO', installationDv: 15,
     psycheLoss: '1d6/2',
-    description: 'After being stabilised, heals BODY×2 HP per day with light activity (versus the standard recovery rate).',
+    description: '<p>After being stabilised, heals <strong>BODY</strong>×2 HP per day with light activity (versus the standard recovery rate).</p>',
     effects: [reminder('Heals BODY×2 HP/day when stabilised (GM-handled)')],
   }),
   cw({
@@ -717,7 +717,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'internal', integration: 'standalone',
     cost: 'EX', facilities: 'hospital', installationCost: 'EX', installationDv: 20,
     psycheLoss: '4d6', multipleInstalls: true,
-    description: 'BODY +2 (cannot push BODY past 10 through this cyberware). IP cost to improve BODY is calculated as if this bonus did not exist. Can be installed multiple times.',
+    description: '<p><strong>BODY</strong> <strong>+2</strong> (cannot push <strong>BODY</strong> past 10 through this cyberware). IP cost to improve <strong>BODY</strong> is calculated as if this bonus did not exist. Can be installed multiple times.</p>',
     effects: [ae('BODY +2 (max 10 from this cyberware)', [stat('body', 2)])],
   }),
   cw({
@@ -727,7 +727,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'internal', integration: 'standalone',
     cost: 'EX', facilities: 'hospital', installationCost: 'EX', installationDv: 18,
     psycheLoss: '1d6',
-    description: 'Hold breath for 30 minutes; the reservoir replenishes in 1 hour at 1 atm. Replacement tank: CO as an Action.',
+    description: '<p>Hold breath for 30 minutes; the reservoir replenishes in 1 hour at 1 atm.</p><p><strong>REPLACEMENT TANK:</strong> €$50 (Costly) as an Action.</p>',
   }),
   cw({
     name: 'Nasal Filters',
@@ -754,7 +754,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'internal', integration: 'standalone',
     cost: 'CO', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '1d6/2',
-    description: '+2 to Endurance checks to resist blood-borne toxins and drugs. Does not stack.',
+    description: '<p><strong>+2</strong> to <strong>Endurance</strong> checks to resist blood-borne toxins and drugs. Does not stack.</p>',
     effects: [ae('Endurance +2 vs blood-borne toxins/drugs', [skill('endurance', 2)])],
   }),
   cw({
@@ -763,7 +763,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'internal', integration: 'standalone',
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '3d6',
-    description: 'Excellent Quality Light Melee Weapon (1d6, RoF 2) concealed as fangs. Can safely inject 1 toxin dose via the fangs.',
+    description: '<p>Excellent Quality Light Melee Weapon (<strong>1d6</strong>, RoF 2) concealed as fangs. Can safely inject 1 toxin dose via the fangs.</p>',
   }),
 
   // ── Fashionware ───────────────────────────────────────────────────────────
@@ -774,7 +774,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'fashionware', integration: 'standalone',
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '1d6',
-    description: 'Voice synthesizer. +2 to Acting and Music (singing). With a voice-analysis shard: an Acting roll lets you perfectly imitate someone\'s voice.',
+    description: '<p>Voice synthesizer. <strong>+2</strong> to <strong>Acting</strong> and Music (singing).</p><p><strong>WITH A VOICE-ANALYSIS SHARD:</strong> an <strong>Acting</strong> roll lets you perfectly imitate someone\'s voice.</p>',
     effects: [ae('Acting +2, Music +2', [skill('acting', 2), comp('music', 2)])],
   }),
   cw({
@@ -783,7 +783,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'fashionware', integration: 'standalone',
     cost: 'CO', facilities: 'clinic', installationCost: 'PR', installationDv: 15,
     psycheLoss: '1d6',
-    description: 'Permanent skin color and pattern change; optionally reactive to temperature or hormone levels. Chemskin combined with Tech Hair grants +2 Style (not additive with other bonuses).',
+    description: '<p>Permanent skin color and pattern change; optionally reactive to temperature or hormone levels. Chemskin combined with Tech Hair grants <strong>+2</strong> Style (not additive with other bonuses).</p>',
     effects: [reminder('If both Chemskin AND Tech Hair installed: +2 Style')],
   }),
   cw({
@@ -793,7 +793,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'fashionware', integration: 'standalone',
     cost: 'CO', facilities: 'mall', installationCost: 'CO', installationDv: 12,
     psycheLoss: '', multipleInstalls: true,
-    description: 'Subdermal display projecting a colored tattoo through the skin. Having 3 or more Light Tattoos installed grants +2 Style total.',
+    description: '<p>Subdermal display projecting a colored tattoo through the skin. Having 3 or more Light Tattoos installed grants <strong>+2</strong> Style total.</p>',
     effects: [reminder('3+ Light Tattoos installed: +2 Style total')],
   }),
   cw({
@@ -811,7 +811,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'fashionware', integration: 'standalone',
     cost: 'CO', facilities: 'mall', installationCost: 'CO', installationDv: 14,
     psycheLoss: '',
-    description: 'Artificial hair that can emit light; optionally reactive to temperature or hormone levels. Tech Hair combined with Chemskin grants +2 Style (not additive with other bonuses).',
+    description: '<p>Artificial hair that can emit light; optionally reactive to temperature or hormone levels. Tech Hair combined with Chemskin grants <strong>+2</strong> Style (not additive with other bonuses).</p>',
     effects: [reminder('If both Chemskin AND Tech Hair installed: +2 Style')],
   }),
   cw({
@@ -839,7 +839,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'external', integration: 'standalone',
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '2d6',
-    description: '‡ Illegal without a permit. A small body cavity for concealing a concealable weapon.',
+    description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>A small body cavity for concealing a concealable weapon.</p>',
   }),
   cw({
     name: 'MidnightLady™',
@@ -897,7 +897,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'borgware', integration: 'standalone',
     cost: 'EX', facilities: 'hospital', installationCost: 'EX', installationDv: 22,
     psycheLoss: '4d6',
-    description: 'Up to 2 additional cyberarms can be mounted below the regular arms. BODY 10+ allows a second Artificial Shoulder Mount for a total of 6 arms.',
+    description: '<p>Up to 2 additional cyberarms can be mounted below the regular arms. <strong>BODY</strong> 10+ allows a second Artificial Shoulder Mount for a total of 6 arms.</p>',
   }),
   cw({
     name: 'Implanted Linear Frame Beta',
@@ -905,7 +905,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'borgware', integration: 'standalone',
     cost: 'LUX', facilities: 'hospital', installationCost: 'EX', installationDv: 22,
     psycheLoss: '4d6',
-    description: 'Prerequisite: BODY 8+, two Grafted Muscle & Bone Lace implants. BODY becomes 14 (cannot be further improved with IP).',
+    description: '<p><strong>PREREQUISITE:</strong> <strong>BODY</strong> 8+, two Grafted Muscle & Bone Lace implants. <strong>BODY</strong> becomes 14 (cannot be further improved with IP).</p>',
     effects: [ae('BODY becomes 14', [statOvr('body', 14)])],
   }),
   cw({
@@ -914,7 +914,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'borgware', integration: 'standalone',
     cost: 'VEX', facilities: 'hospital', installationCost: 'EX', installationDv: 20,
     psycheLoss: '4d6',
-    description: 'Prerequisite: BODY 6+, one Grafted Muscle & Bone Lace implant. BODY becomes 12 (cannot be further improved with IP).',
+    description: '<p><strong>PREREQUISITE:</strong> <strong>BODY</strong> 6+, one Grafted Muscle & Bone Lace implant. <strong>BODY</strong> becomes 12 (cannot be further improved with IP).</p>',
     effects: [ae('BODY becomes 12', [statOvr('body', 12)])],
   }),
   cw({
@@ -924,7 +924,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'borgware', integration: 'standalone', slotsProvided: 5,
     cost: 'EX', facilities: 'hospital', installationCost: 'EX', installationDv: 20,
     psycheLoss: '4d6',
-    description: 'Prerequisite: 2 cybereyes already installed. Splits the optic nerves; up to 5 additional cybereye installations become possible.',
+    description: '<p><strong>PREREQUISITE:</strong> 2 cybereyes already installed. Splits the optic nerves; up to 5 additional cybereye installations become possible.</p>',
   }),
   cw({
     name: 'Sensor Array',
@@ -932,6 +932,6 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'borgware', integration: 'standalone', slotsProvided: 7,
     cost: 'EX', facilities: 'hospital', installationCost: 'EX', installationDv: 18,
     psycheLoss: '3d6',
-    description: 'Prerequisite: Cyberaudio Suite installed. Multiple antenna and sensor attachment points; provides +7 additional cyberaudio slots.',
+    description: '<p><strong>PREREQUISITE:</strong> Cyberaudio Suite installed. Multiple antenna and sensor attachment points; provides <strong>+7</strong> additional cyberaudio slots.</p>',
   }),
 ];

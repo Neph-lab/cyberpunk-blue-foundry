@@ -35,6 +35,9 @@ const COST = {
   SLX: '€$10,000 (Super Luxury)',
 };
 
+/** Wrap plain text in a paragraph, but pass through pre-formatted block HTML. */
+const h = (text) => /^\s*<(p|ul|ol|div|h\d|table)\b/i.test(text) ? text : `<p>${text}</p>`;
+
 /** ADD mode for ActiveEffect changes. */
 const ADD = 2;
 
@@ -123,11 +126,11 @@ function drug({ name, cost, duration, img = '', primary, secDv, secondary, addic
       manufacturer: '',
       cost:              COST[cost] ?? cost,
       duration,
-      primaryEffect:     `<p>${primary}</p>`,
+      primaryEffect:     h(primary),
       secondaryDv:       secDv,
-      secondaryEffect:   `<p>${secondary}</p>`,
-      addictionPenalty:  addiction   ? `<p>${addiction}</p>`   : '',
-      description:       description ? `<p>${description}</p>` : '',
+      secondaryEffect:   h(secondary),
+      addictionPenalty:  addiction   ? h(addiction)   : '',
+      description:       description ? h(description) : '',
       notes: '',
       quantity:          1,
       instructionReduceQuantity: true,
@@ -150,7 +153,7 @@ export const DRUG_CATALOGUE = [
     cost:        'CO',
     description: 'Sold in packs of 10 doses.',
     duration:    '24 hours',
-    primary:     '−1 to BODY checks. If the secondary effect is avoided, gain +2 to natural healing for the day.',
+    primary: '<p><strong>−1</strong> to <strong>BODY</strong> checks. If the secondary effect is avoided, gain <strong>+2</strong> to natural healing for the day.</p>',
     secDv:       10,
     secondary:   'Full day of nausea; no natural healing for the day.',
     effects: [
@@ -179,10 +182,10 @@ export const DRUG_CATALOGUE = [
     name:      'Black Lace',
     cost:      'CO',
     duration:  '24 hours',
-    primary:   'Lose 2d6 PSYCHE temporarily (regained if secondary is avoided). Ignore Seriously Wounded, Broken Arm/Leg/Ribs/Jaw, and Torn Muscle/Foreign Object Critical Injury effects; each turn you benefit from this immunity costs 1d6 HP.',
+    primary: '<p>Lose <strong>2d6</strong> PSYCHE temporarily (regained if secondary is avoided). Ignore <strong>Seriously Wounded</strong>, Broken Arm/Leg/Ribs/Jaw, and Torn Muscle/Foreign Object Critical Injury effects; each turn you benefit from this immunity costs <strong>1d6</strong> HP.</p>',
     secDv:     17,
     secondary: 'PSYCHE loss becomes permanent. If not already addicted, you are now addicted.',
-    addiction: 'RFLX −2 while addicted but not actively using.',
+    addiction: '<p><strong>RFLX</strong> <strong>−2</strong> while addicted but not actively using.</p>',
     effects: [
       ae('Black Lace - Addiction', [stat('rflx', -2)]),
     ],
@@ -228,10 +231,10 @@ export const DRUG_CATALOGUE = [
     name:      'Boost', img: `systems/cyberpunk-blue/assets/items/drugs/boost.png`,
     cost:      'CO',
     duration:  '20 hours',
-    primary:   'INT +2 (maximum of 8 total).',
+    primary: '<p><strong>INT</strong> <strong>+2</strong> (maximum of 8 total).</p>',
     secDv:     17,
     secondary: 'If not already addicted, you are now addicted.',
-    addiction: 'INT −2 while addicted but not actively using.',
+    addiction: '<p><strong>INT</strong> <strong>−2</strong> while addicted but not actively using.</p>',
     effects: [
       ae('Boost - Usage',    [stat('int', +2)]),
       ae('Boost - Addiction',[stat('int', -2)]),
@@ -253,9 +256,9 @@ export const DRUG_CATALOGUE = [
     name:      'Immunoblockers', img: `systems/cyberpunk-blue/assets/items/drugs/immunoblockers.png`,
     cost:      'PR',
     duration:  'Wears off at a stressful moment (likelihood increases over time); maximum 1 month.',
-    primary:   'Immediately restore 2d6 PSYCHE. Characters in full cyberpsychosis may require multiple doses before any benefit is possible.',
+    primary: '<p>Immediately restore <strong>2d6</strong> PSYCHE. Characters in full cyberpsychosis may require multiple doses before any benefit is possible.</p>',
     secDv:     21,
-    secondary: 'The PSYCHE gained is lost. −2 to all checks for the next 1 minute (20 rounds). If the user does not take 2 doses (which can be a combined Action) within that 1-minute window, they lose 4d6 PSYCHE.',
+    secondary: '<p>The PSYCHE gained is lost. <strong>−2</strong> to all checks for the next 1 minute (20 rounds). If the user does not take 2 doses (which can be a combined Action) within that 1-minute window, they lose <strong>4d6</strong> PSYCHE.</p>',
     instructions: [
       S.pause('[Wear off]'),
       S.message('<p><strong>Immunoblockers taken.</strong> Restore 2d6 PSYCHE immediately. Effects wear off at a stressful moment (max 1 month).</p>'),
@@ -271,9 +274,9 @@ export const DRUG_CATALOGUE = [
     name:      'PDGF Injection', img: `systems/cyberpunk-blue/assets/items/drugs/pdgf-injection.png`,
     cost:      'CO',
     duration:  '4 hours',
-    primary:   'Instantly regain 1d6 HP. Additional doses within 24 hours leave the user merely hungry, thirsty, and lightly anaemic.',
+    primary: '<p>Instantly regain <strong>1d6</strong> HP. Additional doses within 24 hours leave the user merely hungry, thirsty, and lightly anaemic.</p>',
     secDv:     15,
-    secondary: 'Tissues grow into each other abnormally. The user takes 1d6÷2 damage each time they move more than half their MOVE, Evade, use Athletics, or perform similar advanced movement. Fix: DV13 TECH+Medicine (Surgery) at a ripperdoc, or CO for the treatment.',
+    secondary: '<p>Tissues grow into each other abnormally. The user takes <strong>1d6</strong>÷2 damage each time they move more than half their <strong>MOVE</strong>, Evade, use <strong>Athletics</strong>, or perform similar advanced movement.</p><p><strong>FIX:</strong> <strong style="color: var(--cpb-accent);">DV13</strong> <strong>TECH</strong>+<strong>Medicine</strong> (Surgery) at a ripperdoc, or CO for the treatment.</p>',
     instructions: [
       S.pause('[Wear off]'),
       S.message('<p><strong>PDGF Injection taken.</strong> Regain 1d6 HP immediately. Effects last 4 hours.</p>'),
@@ -289,10 +292,10 @@ export const DRUG_CATALOGUE = [
     name:      'RPM', img: `systems/cyberpunk-blue/assets/items/drugs/RPM.png`,
     cost:      'EV',
     duration:  '20 hours',
-    primary:   'Reduce your current Fatigue level by one step (if merely Fatigued, you suffer no ill effects). If taken within the previous 24 hours, also lose 1d6÷2 PSYCHE (round down).',
+    primary: '<p>Reduce your current Fatigue level by one step (if merely <strong>Fatigued</strong>, you suffer no ill effects). If taken within the previous 24 hours, also lose <strong>1d6</strong>÷2 PSYCHE (round down).</p>',
     secDv:     13,
     secondary: 'If not already addicted, you are now addicted.',
-    addiction: 'Always at least Fatigued while addicted but not actively using.',
+    addiction: 'Always at least <strong>Fatigued</strong> while addicted but not actively using.',
     instructions: [
       S.pause('[Wear off]'),
       S.message('<p><strong>RPM taken.</strong> Fatigue reduced by one step. If taken within the last 24 hours, also lose 1d6÷2 PSYCHE. Effects last 20 hours.</p>'),
@@ -308,10 +311,10 @@ export const DRUG_CATALOGUE = [
     name:      'Smash', img: `systems/cyberpunk-blue/assets/items/drugs/smash.png`,
     cost:      'CH',
     duration:  '4 hours',
-    primary:   'Euphoria and confidence; +2 to Acting, Contortionist, Human Perception, Influence, and Performance.',
+    primary: '<p>Euphoria and confidence; <strong>+2</strong> to <strong>Acting</strong>, <strong>Contortionist</strong>, <strong>Human Perception</strong>, <strong>Influence</strong>, and <strong>Performance</strong>.</p>',
     secDv:     15,
     secondary: 'If not already addicted, you are now addicted.',
-    addiction: '−2 to Acting, Contortionist, Human Perception, Influence, and Performance while addicted but not using. Intense occasional cravings.',
+    addiction: '<p><strong>−2</strong> to <strong>Acting</strong>, <strong>Contortionist</strong>, <strong>Human Perception</strong>, <strong>Influence</strong>, and <strong>Performance</strong> while addicted but not using. Intense occasional cravings.</p>',
     effects: [
       ae('Smash - Usage', [
         skill('acting',      +2),
@@ -347,7 +350,7 @@ export const DRUG_CATALOGUE = [
     primary:   'No sense of hunger (the physical need persists). Fatigue penalties reduced by 1.',
     secDv:     15,
     secondary: 'If not already addicted, you are now addicted.',
-    addiction: '−2 on tasks requiring extended focus while addicted but not using.',
+    addiction: '<p><strong>−2</strong> on tasks requiring extended focus while addicted but not using.</p>',
     instructions: [
       S.pause('[Wear off]'),
       S.message('<p><strong>Speed taken.</strong> No sense of hunger (physical need persists). Fatigue penalties reduced by 1. Effects last 8 hours.</p>'),
@@ -363,10 +366,10 @@ export const DRUG_CATALOGUE = [
     name:      'Synthcoke', img: `systems/cyberpunk-blue/assets/items/drugs/synth-coke.png`,
     cost:      'EV',
     duration:  '4 hours',
-    primary:   'RFLX +1. Constant sense of paranoia and being watched.',
+    primary: '<p><strong>RFLX</strong> <strong>+1</strong>. Constant sense of paranoia and being watched.</p>',
     secDv:     15,
     secondary: 'If not already addicted, you are now addicted.',
-    addiction: 'RFLX −2 while addicted but not using. Intense, near-uncontrollable cravings.',
+    addiction: '<p><strong>RFLX</strong> <strong>−2</strong> while addicted but not using. Intense, near-uncontrollable cravings.</p>',
     effects: [
       ae('Synthcoke - Usage',    [stat('rflx', +1)]),
       ae('Synthcoke - Addiction',[stat('rflx', -2)]),
