@@ -315,7 +315,7 @@ export const EQUIPMENT_CATALOGUE = [
   // ── Media Gear ────────────────────────────────────────────────────────────
 
   gear({
-    name: 'Audio Recorder',
+    name: 'Audio Recorder', manufacturer: 'Fuyutsuki',
     folder: 'Media Gear', imgPath: `${A_GEAR}/audio-recorder.png`, cost: 'CO',
     description: '24-hour recording capacity per shard (1 shard included).',
   }),
@@ -325,17 +325,17 @@ export const EQUIPMENT_CATALOGUE = [
     description: 'Up to 4 hours of full-sensory recorded experience on a shard.',
   }),
   gear({
-    name: 'Braindance Wreath',
+    name: 'Braindance Wreath', manufacturer: 'Segotari',
     folder: 'Media Gear', imgPath: `${A_GEAR}/braindance-wreath.png`, cost: 'EX',
     description: 'Required to experience a Braindance recording.',
   }),
   gear({
-    name: 'Drum Synthesizer',
+    name: 'Drum Synthesizer', manufacturer: 'Fuyutsuki',
     folder: 'Media Gear', imgPath: `${A_GEAR}/drum-synthesizer.png`, cost: 'EX',
     description: 'Plastic pads that simulate a drum kit; includes pre-programmed beats and loops. Requires a pocket amplifier or amp.',
   }),
   gear({
-    name: 'Electric Guitar',
+    name: 'Electric Guitar', manufacturer: 'Fuyutsuki',
     folder: 'Media Gear', imgPath: `${A_GEAR}/electric-guitar.png`, cost: 'EX',
     description: 'Requires a pocket amplifier or amp.',
   }),
@@ -350,17 +350,17 @@ export const EQUIPMENT_CATALOGUE = [
     description: '10–20 songs on a shard or legacy format.',
   }),
   gear({
-    name: 'Pocket Amplifier',
+    name: 'Pocket Amplifier', manufacturer: 'Fuyutsuki',
     folder: 'Media Gear', imgPath: `${A_GEAR}/pocket-amp.png`, cost: 'PR',
     description: 'Large-book sized amplifier. Connects up to 2 instruments; up to 90dB output.',
   }),
   gear({
-    name: 'Radio / Music Player',
+    name: 'Radio / Music Player', manufacturer: 'Fuyutsuki',
     folder: 'Media Gear', imgPath: `${A_GEAR}/music-player.png`, cost: 'CO',
     description: 'Can play audio from the Data Pool, memory chip, or radio broadcast.',
   }),
   gear({
-    name: 'Video Camera',
+    name: 'Video Camera', manufacturer: 'Fuyutsuki',
     folder: 'Media Gear', imgPath: `${A_GEAR}/video-camera.png`, cost: 'PR',
     description: '10-hour recording capacity per shard (1 shard included).',
   }),
@@ -374,18 +374,18 @@ export const EQUIPMENT_CATALOGUE = [
     effects: [reminder('Immune to inhaled toxins while worn')],
   }),
   gear({
-    name: 'Auto-Level Ear Protectors',
+    name: 'Auto-Level Ear Protectors', manufacturer: 'Fuyutsuki',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/auto-level-ear-protectors.png`, cost: 'PR',
     description: 'Immune to deafness effects and damage from loud noises while worn.',
     effects: [reminder('Immune to deafness / loud-noise damage while worn')],
   }),
   gear({
-    name: 'Backpack',
+    name: 'Backpack', manufacturer: 'Everest VentureWare',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/backpack.png`, cost: 'CO',
     description: 'Spacious and sturdy.',
   }),
   gear({
-    name: 'Binoculars',
+    name: 'Binoculars', manufacturer: 'Miitech',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/binoculars.png`, cost: 'CO',
     description: 'Magnifies up to ×5.',
   }),
@@ -395,22 +395,22 @@ export const EQUIPMENT_CATALOGUE = [
     description: '100m roll. Available in glow-in-the-dark color options.',
   }),
   gear({
-    name: 'Flashlight',
+    name: 'Flashlight', manufacturer: 'Everest VentureWare',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/flashlight.png`, cost: 'EV',
     description: '100m illumination beam.',
   }),
   gear({
-    name: 'Food Stick',
+    name: 'Food Stick', manufacturer: 'AllFoods',
     folder: 'Survival & Exploration', cost: 'CH',
     description: '1 meal. Available in various awful flavors.',
   }),
   gear({
-    name: 'Grapple Gun',
+    name: 'Grapple Gun', manufacturer: 'Everest VentureWare',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/grappling-gun.png`, cost: 'PR',
     description: 'Rocket-propelled grapple that embeds in thick cover within 30m. Action to fire or fully retract. 30m rope, 2-person capacity, rope has 10 HP.',
   }),
   gear({
-    name: 'Inflatable Bed & Sleeping Bag',
+    name: 'Inflatable Bed & Sleeping Bag', manufacturer: 'Everest VentureWare',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/inflatable-bed-and-sleeping-bag.png`, cost: 'EV',
     description: 'Folds down to a 15×15×10cm package.',
   }),
@@ -430,12 +430,12 @@ export const EQUIPMENT_CATALOGUE = [
     description: '100m radius illumination, lasts 1 hour, single use. Available in various colors.',
   }),
   gear({
-    name: 'Rope',
+    name: 'Rope', manufacturer: 'Everest VentureWare',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/rope.png`, cost: 'EV',
     description: '60m nylon rope with 400kg capacity.',
   }),
   gear({
-    name: 'Tent & Camping Equipment',
+    name: 'Tent & Camping Equipment', manufacturer: 'Everest VentureWare',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/tent-and-camping-equipment.png`, cost: 'CO',
     description: 'Small tent, self-heating pot (2-hour use with 5-minute recharge), and basic utensils.',
   }),
@@ -467,7 +467,7 @@ export const EQUIPMENT_CATALOGUE = [
     }],
   }),
   gear({
-    name: 'Chemical Analyzer',
+    name: 'Chemical Analyzer', manufacturer: 'Tanson',
     folder: 'Scientific & Medical', imgPath: `${A_GEAR}/chemical-analyzer.png`, cost: 'VEX',
     description: 'Action to insert a sample; identifies the compound on the following round.',
   }),
@@ -482,7 +482,7 @@ export const EQUIPMENT_CATALOGUE = [
     description: '<p>Medtech only. <strong style="color: var(--cpb-accent);">DV15</strong> <strong>TECH</strong>+<strong>Medicine</strong> (Cryotech) for indefinite stasis, or conscious suspension with 2× the natural healing rate.</p>',
   }),
   gear({
-    name: 'Medscanner',
+    name: 'Medscanner', manufacturer: 'Trauma Team',
     folder: 'Scientific & Medical', imgPath: `${A_GEAR}/medscanner.png`, cost: 'VEX',
     description: '<p>Performs most medical tests. <strong>+2</strong> to <strong>Medicine</strong> checks.</p>',
     effects: [ae('Medicine +2', [skill('medicine', 2)])],
@@ -493,7 +493,7 @@ export const EQUIPMENT_CATALOGUE = [
     description: 'Complete set of basic medicine tools; equivalent to mall-level medical facilities.',
   }),
   gear({
-    name: 'Tech Bag',
+    name: 'Tech Bag', manufacturer: 'Tanson',
     folder: 'Scientific & Medical', imgPath: `${A_GEAR}/tech-bag.png`, cost: 'EX',
     description: '<p><strong>CONTAINS:</strong></p><ul><li>Techtool</li><li>Hammer</li><li>2 prybars</li><li>Heat torch</li><li>Voltmeter</li><li>Assorted screws, nuts, and wire</li></ul>',
   }),
@@ -504,7 +504,7 @@ export const EQUIPMENT_CATALOGUE = [
     effects: [ae('Electronics +2, Mechanics +2 (hardware)', [skillGen('electronics', 2), skillGen('mechanics', 2)])],
   }),
   gear({
-    name: 'Techtool',
+    name: 'Techtool', manufacturer: 'Tanson',
     folder: 'Scientific & Medical', imgPath: `${A_GEAR}/techtool.png`, cost: 'PR',
     description: 'Multi-tool containing pliers, blade, screwdrivers, files, and clippers.',
   }),
@@ -512,21 +512,21 @@ export const EQUIPMENT_CATALOGUE = [
   // ── Computer Hardware ─────────────────────────────────────────────────────
 
   gear({
-    name: 'Cyberdeck, Poor', imgPath: `${A_GEAR}/poor-cyberdeck.png`,
+    name: 'Cyberdeck, Poor', manufacturer: 'SoftSys', imgPath: `${A_GEAR}/poor-cyberdeck.png`,
     folder: 'Computer Hardware', cost: 'PR',
     isComputer: true,
     computer: { generalSlots: 5, ram: 4, isCyberdeck: true, canQuickhack: true },
     description: '5 general slots (hardware Mods or software Executables), 4 RAM, 10m wireless range. Requires a Neuroport Cyberdeck Port or Interface Plugs to use.',
   }),
   gear({
-    name: 'Cyberdeck, Standard', imgPath: `${A_GEAR}/standard-cyberdeck.png`,
+    name: 'Cyberdeck, Standard', manufacturer: 'Zetatech', imgPath: `${A_GEAR}/standard-cyberdeck.png`,
     folder: 'Computer Hardware', cost: 'EX',
     isComputer: true,
     computer: { generalSlots: 7, ram: 6, isCyberdeck: true, canQuickhack: true },
     description: '7 general slots (hardware Mods or software Executables), 6 RAM, 10m wireless range. Requires a Neuroport Cyberdeck Port or Interface Plugs to use.',
   }),
   gear({
-    name: 'Cyberdeck, Excellent', imgPath: `${A_GEAR}/excellent-cyberdeck.png`,
+    name: 'Cyberdeck, Excellent', manufacturer: 'Arasaka', imgPath: `${A_GEAR}/excellent-cyberdeck.png`,
     folder: 'Computer Hardware', cost: 'VEX',
     isComputer: true,
     computer: { generalSlots: 9, ram: 8, isCyberdeck: true, canQuickhack: true },
@@ -552,7 +552,7 @@ export const EQUIPMENT_CATALOGUE = [
     description: '<p><strong>+1</strong> NET Action per turn and 2 hardware slots (functionally part of a connected cyberdeck). <strong>−3</strong> to remote hack damage while seated. Requires a Neuroport Cyberdeck Port.</p>',
   }),
   gear({
-    name: 'Smart Visor',
+    name: 'Smart Visor', manufacturer: 'Tanson',
     folder: 'Computer Hardware', imgPath: `${A_GEAR}/smart-visor.png`, cost: 'EX',
     description: '<p>Functions as a 2-slot cybereye with Virtuality pre-installed while worn.</p><p><strong>NOTE:</strong> interaction with installed cyberoptics may vary; consult your GM.</p>',
   }),
@@ -564,7 +564,7 @@ export const EQUIPMENT_CATALOGUE = [
   // ── Clandestine Gear ──────────────────────────────────────────────────────
 
   gear({
-    name: 'Bug Detector',
+    name: 'Bug Detector', manufacturer: 'SecSystems',
     folder: 'Clandestine Gear', imgPath: `${A_GEAR}/bug-detector.png`, cost: 'EX',
     description: 'Creates and detects resonance in microphones within 2m.',
   }),
@@ -597,7 +597,7 @@ export const EQUIPMENT_CATALOGUE = [
     },
   }),
   gear({
-    name: 'Disposable Phone',
+    name: 'Disposable Phone', manufacturer: 'Zetatech',
     folder: 'Clandestine Gear', imgPath: `${A_GEAR}/disposable-phone.png`, cost: 'CO',
     description: 'Voice and holo-calls without a neuroport.',
   }),
@@ -607,7 +607,7 @@ export const EQUIPMENT_CATALOGUE = [
     description: '<p>Steel. A character with <strong>BODY</strong> 10+ can break free.</p>',
   }),
   gear({
-    name: 'Homing Tracer',
+    name: 'Homing Tracer', manufacturer: 'SecSystems',
     folder: 'Clandestine Gear', imgPath: `${A_GEAR}/homing-tracer.png`, cost: 'PR',
     description: '1 button beacon included; additional beacons cost CO each. City-street range of 1km.',
   }),
@@ -617,12 +617,12 @@ export const EQUIPMENT_CATALOGUE = [
     description: 'Tools for bypassing mechanical locks.',
   }),
   gear({
-    name: 'Radio Communicator',
+    name: 'Radio Communicator', manufacturer: 'Zetatech',
     folder: 'Clandestine Gear', imgPath: `${A_GEAR}/radio-communicator.png`, cost: 'CO',
     description: 'Discreet earpiece. 1-mile range; does not use public networks.',
   }),
   gear({
-    name: 'Scrambler / Descrambler',
+    name: 'Scrambler / Descrambler', manufacturer: 'SecSystems',
     folder: 'Clandestine Gear', imgPath: `${A_GEAR}/scrambler-descramber.png`, cost: 'EX',
     description: 'Sold in pairs for encrypted communications. Can read additional encryption keys from a shard.',
   }),
@@ -632,12 +632,12 @@ export const EQUIPMENT_CATALOGUE = [
   // ── Miscellaneous Gear ────────────────────────────────────────────────────
 
   gear({
-    name: 'Glow Paint',
+    name: 'Glow Paint', manufacturer: 'Spectra Underground',
     folder: 'Miscellaneous', imgPath: `${A_GEAR}/glow-paint.png`, cost: 'EV',
     description: 'Rattling spray can of glow-in-the-dark paint.',
   }),
   gear({
-    name: 'Glow Stick',
+    name: 'Glow Stick', manufacturer: 'Spectra Underground',
     folder: 'Miscellaneous', imgPath: `${A_GEAR}/glow-stick.png`, cost: 'CH',
     description: '4m radius illumination, lasts up to 10 hours. Single use.',
   }),
@@ -668,7 +668,7 @@ export const EQUIPMENT_CATALOGUE = [
   // Chipware is treated as Gear. Active while equipped in a shard socket.
 
   gear({
-    name: 'Chemical Sniffer Chip', imgPath: `${A_CHIPWARE}/chemical-sniffer.png`,
+    name: 'Chemical Sniffer Chip', manufacturer: 'Tanson', imgPath: `${A_CHIPWARE}/chemical-sniffer.png`,
     folder: 'Chipware', cost: 'EX',
     description: 'Chipware — equipped in a shard socket. Identifies most compounds by comparing smell and touch against an onboard database.',
   }),
@@ -678,13 +678,13 @@ export const EQUIPMENT_CATALOGUE = [
     description: 'Chipware — equipped in a shard socket. Full language comprehension while installed; sub-second processing lag.',
   }),
   gear({
-    name: 'Olfactory Boost Chip', imgPath: `${A_CHIPWARE}/olfactory-boost.png`,
+    name: 'Olfactory Boost Chip', manufacturer: 'Zetatech', imgPath: `${A_CHIPWARE}/olfactory-boost.png`,
     folder: 'Chipware', cost: 'PR',
     description: '<p>Chipware — equipped in a shard socket. Scent-based tracking using Survival; <strong>+2</strong> to scent-based <strong>Perception</strong> checks.</p>',
     effects: [reminder('Scent Perception +2 (situational)')],
   }),
   gear({
-    name: 'Pain Editor Chip', imgPath: `${A_CHIPWARE}/pain-editor.png`,
+    name: 'Pain Editor Chip', manufacturer: 'Miitech', imgPath: `${A_CHIPWARE}/pain-editor.png`,
     folder: 'Chipware', cost: 'EX',
     description: 'Chipware — equipped in a shard socket. Ignore <strong>Seriously Wounded</strong> penalties while installed.',
     effects: [{
@@ -699,7 +699,7 @@ export const EQUIPMENT_CATALOGUE = [
     description: '<p>Chipware — equipped in a shard socket. Covers one Skill or Component.</p><p><strong>WHILE INSTALLED:</strong> if the user has fewer than 3 ranks in that Skill or Component, it is treated as 3.</p>',
   }),
   gear({
-    name: 'Tactile Boost Chip', imgPath: `${A_CHIPWARE}/tactile-boost.png`,
+    name: 'Tactile Boost Chip', manufacturer: 'Zetatech', imgPath: `${A_CHIPWARE}/tactile-boost.png`,
     folder: 'Chipware', cost: 'PR',
     description: 'Chipware — equipped in a shard socket. Detects motion within 20 units on any surface being touched.',
   }),
@@ -722,42 +722,42 @@ export const EQUIPMENT_CATALOGUE = [
     description: 'Architecture Hardware. 3 nodes, 5 active program slots.',
   }),
   gear({
-    name: 'Laptop',
+    name: 'Laptop', manufacturer: 'SoftSys',
     folder: 'Architecture Hardware', cost: 'PR',
     isComputer: true,
     computer: { nodes: 4, softwareSlots: 5 },
     description: 'Architecture Hardware. 4 nodes, 5 active program slots.',
   }),
   gear({
-    name: 'Laptop, Advanced',
+    name: 'Laptop, Advanced', manufacturer: 'SoftSys',
     folder: 'Architecture Hardware', cost: 'EX',
     isComputer: true,
     computer: { nodes: 6, softwareSlots: 7 },
     description: 'Architecture Hardware. 6 nodes, 7 active program slots.',
   }),
   gear({
-    name: 'Desktop',
+    name: 'Desktop', manufacturer: 'Data Inc',
     folder: 'Architecture Hardware', cost: 'EX',
     isComputer: true,
     computer: { nodes: 5, softwareSlots: 8 },
     description: 'Architecture Hardware. 5 nodes, 8 active program slots.',
   }),
   gear({
-    name: 'Desktop, Advanced',
+    name: 'Desktop, Advanced', manufacturer: 'Data Inc',
     folder: 'Architecture Hardware', cost: 'VEX',
     isComputer: true,
     computer: { nodes: 7, softwareSlots: 10 },
     description: 'Architecture Hardware. 7 nodes, 10 active program slots.',
   }),
   gear({
-    name: 'Server',
+    name: 'Server', manufacturer: 'Microtech',
     folder: 'Architecture Hardware', cost: 'VEX',
     isComputer: true,
     computer: { nodes: 8, softwareSlots: 11 },
     description: 'Architecture Hardware. 8 nodes, 11 active program slots.',
   }),
   gear({
-    name: 'Server, High Capacity',
+    name: 'Server, High Capacity', manufacturer: 'Microtech',
     folder: 'Architecture Hardware', cost: 'LUX',
     isComputer: true,
     computer: { nodes: 12, softwareSlots: 16 },
@@ -830,7 +830,7 @@ export const EQUIPMENT_CATALOGUE = [
     ],
   }),
   gear({
-    name: 'Flak',
+    name: 'Flak', manufacturer: 'Gibson Battlegear',
     folder: 'Body Armor', imgPath: `${A_ARMOR}/flak-armor.png`, cost: 'EX',
     isArmor: true, maxSp: 15,
     description: 'Flack vest and pants. Inflexible, solid armor.',
@@ -838,7 +838,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Metalgear',
-    manufacturer: 'Militech',
+    manufacturer: 'Gibson Battlegear',
     folder: 'Body Armor', imgPath: `${A_ARMOR}/metalgear-armor.png`, cost: 'LUX',
     isArmor: true, maxSp: 18,
     description: 'Thick armor-plating. Inflexible.',

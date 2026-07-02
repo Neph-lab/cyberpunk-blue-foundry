@@ -159,7 +159,7 @@ export const CYBERWARE_CATALOGUE = [
     description: 'Records user experiences to an external system or a slotted shard (1 hour per shard). Raw data requires editing for smooth playback.',
   }),
   cw({
-    name: 'Ex-Disk',
+    name: 'Ex-Disk', manufacturer: 'Raven Microcybernetics',
     img: `systems/cyberpunk-blue/assets/items/cyberware/ex-disk.png`,
     folder: 'Neuralware',
     cyberwareType: 'neuralware', integration: 'extension', slotsUsed: 1,
@@ -177,7 +177,7 @@ export const CYBERWARE_CATALOGUE = [
     description: 'Installs a cyberdeck internally with a large jack at the back of the neck. The deck integrates with a bodyweight suit. Deck wireless range becomes 20m. Only one cyberdeck may be installed at a time.',
   }),
   cw({
-    name: 'Self-ICE',
+    name: 'Self-ICE', manufacturer: 'Netwatch',
     img: `systems/cyberpunk-blue/assets/items/cyberware/self-ice.png`,
     folder: 'Neuralware',
     cyberwareType: 'neuralware', integration: 'extension', slotsUsed: 1,
@@ -204,7 +204,7 @@ export const CYBERWARE_CATALOGUE = [
     effects: [ae('Speedware: +1 Initiative, Evasion, Swerve', [statMod('rflx', 1), skillGen('evasion', 1), skillGen('drive', 1)])],
   }),
   cw({
-    name: 'Sandevistan',
+    name: 'Sandevistan', manufacturer: 'Arasaka',
     img: `systems/cyberpunk-blue/assets/items/cyberware/sandevistan.png`,
     folder: 'Neuralware',
     cyberwareType: 'neuralware', integration: 'extension', slotsUsed: 1,
@@ -231,7 +231,7 @@ export const CYBERWARE_CATALOGUE = [
     description: 'Replaces one eye. Can appear as desired. Perfect 20/20 vision. Provides 3 cyberoptic slots for extensions. Can be installed a second time (second eye) — the pair is renamed to Left/Right automatically.',
   }),
   cw({
-    name: 'Anti-Dazzle',
+    name: 'Anti-Dazzle', manufacturer: 'Kiroshi',
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 1,
     cost: 'CO', facilities: 'mall', installationCost: 'CO', installationDv: 12,
@@ -257,7 +257,7 @@ export const CYBERWARE_CATALOGUE = [
     description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Single-shot exotic weapon concealed in the eye. Takes 1 minute to reload.</p>',
   }),
   cw({
-    name: 'Image Enhance',
+    name: 'Image Enhance', manufacturer: 'Kiroshi',
     img: `systems/cyberpunk-blue/assets/items/cyberware/image-enchance.png`,
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 1,
@@ -323,7 +323,7 @@ export const CYBERWARE_CATALOGUE = [
     description: 'PAIRED (must be installed in both eyes). Multi-sensory MeatSpace AR overlay. Used by Netrunners, gamers, and corpos.',
   }),
   cw({
-    name: 'Wide Spectrum Optics',
+    name: 'Wide Spectrum Optics', manufacturer: 'Kiroshi',
     img: `systems/cyberpunk-blue/assets/items/cyberware/wide-spectrum-optics.png`,
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 2,
@@ -341,7 +341,7 @@ export const CYBERWARE_CATALOGUE = [
   // ── Cyberaudio ────────────────────────────────────────────────────────────
 
   cw({
-    name: 'Standard Cyberaudio Suite',
+    name: 'Standard Cyberaudio Suite', manufacturer: 'Raven Microcybernetics',
     img: `systems/cyberpunk-blue/assets/items/cyberware/cyberaudio-suite.png`,
     folder: 'Cyberaudio',
     cyberwareType: 'cyberaudio', integration: 'platform', slotsProvided: 3,
@@ -401,7 +401,7 @@ export const CYBERWARE_CATALOGUE = [
     description: 'Detects radar, ladar, and echo scan; triangulates the source within a 10% margin.',
   }),
   cw({
-    name: 'Scrambler / Descrambler (Cyberaudio)',
+    name: 'Scrambler / Descrambler (Cyberaudio)', manufacturer: 'Raven Microcybernetics',
     img: `systems/cyberpunk-blue/assets/items/cyberware/scrambler-descrambler.png`,
     folder: 'Cyberaudio',
     cyberwareType: 'cyberaudio', integration: 'extension', slotsUsed: 1,
@@ -410,7 +410,7 @@ export const CYBERWARE_CATALOGUE = [
     description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Encrypted communications (sold as a pair; matching unit required for the other party). Additional encryption keys can be read from a shard.</p>',
   }),
   cw({
-    name: 'Voice Stress Analyzer',
+    name: 'Voice Stress Analyzer', manufacturer: 'Raven Microcybernetics',
     img: `systems/cyberpunk-blue/assets/items/cyberware/voice-stress-analyzer.png`,
     folder: 'Cyberaudio',
     cyberwareType: 'cyberaudio', integration: 'extension', slotsUsed: 1,
@@ -423,7 +423,7 @@ export const CYBERWARE_CATALOGUE = [
   // ── Cyberarms ─────────────────────────────────────────────────────────────
 
   cw({
-    name: 'Standard Cyberarm',
+    name: 'Standard Cyberarm', manufacturer: 'Moore',
     img: `systems/cyberpunk-blue/assets/items/cyberware/cyberarm.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'platform', slotsProvided: 4,
@@ -432,7 +432,7 @@ export const CYBERWARE_CATALOGUE = [
     description: 'Full arm replacement. Provides 4 cyberarm slots for extensions.',
   }),
   cw({
-    name: 'Gorilla Arm',
+    name: 'Gorilla Arm', manufacturer: 'Miitech',
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'platform', slotsProvided: 3,
     cost: 'VEX', facilities: 'hospital', installationCost: 'EX', installationDv: 19,
@@ -440,7 +440,7 @@ export const CYBERWARE_CATALOGUE = [
     description: '<p>Fist counts as an Excellent Quality Heavy Melee Weapon. Wield weapons and gear as if <strong>BODY</strong> were 11.</p><p><strong>WITH TWO GORILLA ARMS:</strong> Grapple, Choke, Slam, and pry open as if <strong>BODY</strong> were 11.</p>',
   }),
   cw({
-    name: 'Standard Cyberhand',
+    name: 'Standard Cyberhand', manufacturer: 'Moore',
     img: `systems/cyberpunk-blue/assets/items/cyberware/standard-cyberhand.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'platform', slotsProvided: 1,
@@ -498,7 +498,7 @@ export const CYBERWARE_CATALOGUE = [
     description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Excellent Quality Heavy Melee Weapon concealed in the forearm. Free to draw and stow. The hand is unavailable while the blades are deployed. When two Mantis Blades both attack the same target in a single Attack action, roll all damage dice at once (increasing Critical Injury probability).</p>',
   }),
   cw({
-    name: 'Medscanner (Cyberarm)',
+    name: 'Medscanner (Cyberarm)', manufacturer: 'Trauma Team',
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 2,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 15,
@@ -521,7 +521,7 @@ export const CYBERWARE_CATALOGUE = [
     description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Mono-filament whip housed in the hand or forearm.</p><p><strong>1-HANDED MELEE WEAPON:</strong> <strong>3d6</strong> damage, RoF 2, no mod slots, 6m range. On a Critical Injury, roll the table twice and pick the preferred result.</p>',
   }),
   cw({
-    name: 'Projectile Launch System',
+    name: 'Projectile Launch System', manufacturer: 'Miitech',
     img: `systems/cyberpunk-blue/assets/items/cyberware/projectile-launch-system.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 2,
@@ -555,7 +555,7 @@ export const CYBERWARE_CATALOGUE = [
     description: 'Concealable video camera mounted in the shoulder. Records to a memory chip or external system.',
   }),
   cw({
-    name: 'Subdermal Grip',
+    name: 'Subdermal Grip', manufacturer: 'Arasaka',
     img: `systems/cyberpunk-blue/assets/items/cyberware/subdermal-grip.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 1,
@@ -592,7 +592,7 @@ export const CYBERWARE_CATALOGUE = [
   // ── Cyberlegs ─────────────────────────────────────────────────────────────
 
   cw({
-    name: 'Standard Cyberleg',
+    name: 'Standard Cyberleg', manufacturer: 'Dynalar',
     img: `systems/cyberpunk-blue/assets/items/cyberware/standard-cyberleg.png`,
     folder: 'Cyberlegs',
     cyberwareType: 'cyberlegs', integration: 'platform', slotsProvided: 3,
@@ -601,7 +601,7 @@ export const CYBERWARE_CATALOGUE = [
     description: 'Full leg replacement. Provides 3 cyberleg slots for extensions.',
   }),
   cw({
-    name: 'Standard Cyberfoot',
+    name: 'Standard Cyberfoot', manufacturer: 'Dynalar',
     img: `systems/cyberpunk-blue/assets/items/cyberware/standard-cyberfoot.png`,
     folder: 'Cyberlegs',
     cyberwareType: 'cyberlegs', integration: 'platform', slotsProvided: 1,
@@ -663,7 +663,7 @@ export const CYBERWARE_CATALOGUE = [
     description: 'Light Melee Weapon blade in the foot. Extends and retracts at will. Can be installed in a meat foot without a platform (only install allowed).',
   }),
   cw({
-    name: 'Webbed Foot',
+    name: 'Webbed Foot', manufacturer: 'MetaCorp',
     img: `systems/cyberpunk-blue/assets/items/cyberware/webbed-feet.png`,
     folder: 'Cyberlegs',
     cyberwareType: 'cyberlegs', integration: 'extension', slotsUsed: 1,
@@ -677,7 +677,7 @@ export const CYBERWARE_CATALOGUE = [
   // ── Internal Cyberware ────────────────────────────────────────────────────
 
   cw({
-    name: 'Contraceptive Implant',
+    name: 'Contraceptive Implant', manufacturer: 'Mr Stud',
     folder: 'Internal Cyberware',
     cyberwareType: 'internal', integration: 'standalone',
     cost: 'CH', facilities: 'mall', installationCost: 'CO', installationDv: 10,
@@ -748,7 +748,7 @@ export const CYBERWARE_CATALOGUE = [
     effects: [reminder('50m terrain/underwater scan (GM-handled)')],
   }),
   cw({
-    name: 'Toxin Binders',
+    name: 'Toxin Binders', manufacturer: 'Biotechnica',
     img: `systems/cyberpunk-blue/assets/items/cyberware/toxin-binders.png`,
     folder: 'Internal Cyberware',
     cyberwareType: 'internal', integration: 'standalone',
@@ -842,7 +842,7 @@ export const CYBERWARE_CATALOGUE = [
     description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>A small body cavity for concealing a concealable weapon.</p>',
   }),
   cw({
-    name: 'MidnightLady™',
+    name: 'MidnightLady™', manufacturer: 'Midnight Lady',
     img: `systems/cyberpunk-blue/assets/items/cyberware/midnight-lady.png`,
     folder: 'External Cyberware',
     cyberwareType: 'external', integration: 'standalone',
@@ -851,7 +851,7 @@ export const CYBERWARE_CATALOGUE = [
     description: 'Vagina, vulva, and optional breasts. Maximizes pleasure for both the user and partners.',
   }),
   cw({
-    name: 'Mr. Studd™',
+    name: 'Mr. Studd™', manufacturer: 'Mr Stud',
     img: `systems/cyberpunk-blue/assets/items/cyberware/mr-stud.png`,
     folder: 'External Cyberware',
     cyberwareType: 'external', integration: 'standalone',
@@ -918,7 +918,7 @@ export const CYBERWARE_CATALOGUE = [
     effects: [ae('BODY becomes 12', [statOvr('body', 12)])],
   }),
   cw({
-    name: 'MultiOptic Mount',
+    name: 'MultiOptic Mount', manufacturer: 'Kiroshi',
     img: `systems/cyberpunk-blue/assets/items/cyberware/MultiOptic-Mount.png`,
     folder: 'Borgware',
     cyberwareType: 'borgware', integration: 'standalone', slotsProvided: 5,

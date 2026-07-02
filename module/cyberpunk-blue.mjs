@@ -2465,9 +2465,12 @@ async function _syncModEntries(catalogue) {
     const modImgChanged = def.img && doc.img !== def.img;
     const catDescription = defSys?.description ?? '';
     const descriptionChanged = catDescription && sys.description !== catDescription;
-    if (modDataChanged || modImgChanged || descriptionChanged) {
+    const catManufacturer = defSys?.manufacturer ?? '';
+    const manufacturerChanged = catManufacturer && sys.manufacturer !== catManufacturer;
+    if (modDataChanged || modImgChanged || descriptionChanged || manufacturerChanged) {
       const update = { _id: doc.id };
       if (descriptionChanged) update['system.description'] = catDescription;
+      if (manufacturerChanged) update['system.manufacturer'] = catManufacturer;
       if (modDataChanged) Object.assign(update, {
         'system.weaponChanges': defSys.weaponChanges ?? [],
         'system.burstControlAmmoReduction': defSys.burstControlAmmoReduction ?? 0,
@@ -2650,11 +2653,14 @@ async function _syncWeaponEntries(catalogue) {
     const weaponImgChanged = def.img && doc.img !== def.img;
     const catDescription = def.system?.description ?? '';
     const descriptionChanged = catDescription && doc.system.description !== catDescription;
-    if (weaponDataChanged || weaponImgChanged || descriptionChanged) {
+    const catManufacturer = def.system?.manufacturer ?? '';
+    const manufacturerChanged = catManufacturer && doc.system.manufacturer !== catManufacturer;
+    if (weaponDataChanged || weaponImgChanged || descriptionChanged || manufacturerChanged) {
       const update = { _id: doc.id };
       if (weaponDataChanged) update['system.weapons'] = catalogueWeapons;
       if (weaponImgChanged)  update.img = def.img;
       if (descriptionChanged) update['system.description'] = catDescription;
+      if (manufacturerChanged) update['system.manufacturer'] = catManufacturer;
       updates.push(update);
     }
 
@@ -3097,9 +3103,11 @@ async function _syncCyberwareEntries(catalogue) {
     const catMultipleInstalls = def.system?.multipleInstalls ?? false;
     const catPaired           = def.system?.paired           ?? false;
     const catDescription      = def.system?.description      ?? '';
+    const catManufacturer     = def.system?.manufacturer     ?? '';
     const multipleInstallsChanged = doc.system.multipleInstalls !== catMultipleInstalls;
     const pairedChanged           = (doc.system.paired ?? false) !== catPaired;
     const descriptionChanged      = catDescription && doc.system.description !== catDescription;
+    const manufacturerChanged     = catManufacturer && doc.system.manufacturer !== catManufacturer;
 
     const update = { _id: doc.id };
     let needsUpdate = false;
@@ -3127,6 +3135,10 @@ async function _syncCyberwareEntries(catalogue) {
     }
     if (descriptionChanged) {
       update['system.description'] = catDescription;
+      needsUpdate = true;
+    }
+    if (manufacturerChanged) {
+      update['system.manufacturer'] = catManufacturer;
       needsUpdate = true;
     }
     if (needsUpdate) updates.push(update);
@@ -3295,6 +3307,8 @@ async function _syncGearEntries(catalogue) {
 
     const catDescription = def.system?.description ?? '';
     const descriptionChanged = catDescription && doc.system.description !== catDescription;
+    const catManufacturer = def.system?.manufacturer ?? '';
+    const manufacturerChanged = catManufacturer && doc.system.manufacturer !== catManufacturer;
     // Computer block: only the fields the catalogue entry specifies are compared,
     // so stored fields the catalogue omits (e.g. range/running) never force a
     // rewrite. Merge on update so those omitted fields are preserved.
@@ -3319,6 +3333,10 @@ async function _syncGearEntries(catalogue) {
     }
     if (descriptionChanged) {
       update['system.description'] = catDescription;
+      needsUpdate = true;
+    }
+    if (manufacturerChanged) {
+      update['system.manufacturer'] = catManufacturer;
       needsUpdate = true;
     }
     if (computerChanged) {
