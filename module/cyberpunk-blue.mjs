@@ -2645,32 +2645,50 @@ async function ensureAmmoCatalogue() {
  * Ensure armor items from the gear catalogue are present in the gear pack.
  * Runs even when the pack is already populated (adds only missing items by name).
  */
-async function _ensureArmorInGearPack(gearItems) {
+/**
+ * Backfill any catalogue gear entry missing from an already-populated gear pack,
+ * placing each into its own `_folder` (creating the folder if needed). The full
+ * pack is only seeded once, on an empty pack, by `_populateEquipmentPack`; this
+ * step is what lets new gear added to the catalogue afterwards (grenades, new
+ * armor, etc.) appear in worlds whose pack was seeded by an earlier version.
+ * Missing entries are matched by name and grouped by folder so a single new
+ * folder (e.g. "Grenades") is created once for all its members.
+ */
+async function _ensureMissingGearInPack(gearItems) {
   const PACK_ID = 'cyberpunk-blue.gear';
   const pack = game.packs.get(PACK_ID);
   if (!pack) return;
 
-  const armorItems = gearItems.filter((it) => it.system?.isArmor);
-  if (armorItems.length === 0) return;
-
   await pack.getIndex({ fields: ['name', 'type'] });
   const existingNames = new Set(pack.index.map((e) => e.name));
-  const missing = armorItems.filter((it) => !existingNames.has(it.name));
+  const missing = gearItems.filter((it) => !existingNames.has(it.name));
   if (missing.length === 0) return;
+
+  // Group missing entries by target folder so each folder is created once.
+  const byFolder = new Map();
+  for (const item of missing) {
+    const folderName = item._folder ?? 'General';
+    if (!byFolder.has(folderName)) byFolder.set(folderName, []);
+    byFolder.get(folderName).push(item);
+  }
 
   await pack.configure({ locked: false });
   try {
-    const folder = await _ensureFolderInPack(pack, 'Body Armor');
-    const cleaned = missing.map((it) => {
-      const copy = foundry.utils.deepClone(it);
-      delete copy._id;
-      delete copy._folder;
-      copy.folder = folder?.id ?? null;
-      return copy;
-    });
-    const docs = await Item.createDocuments(cleaned, { pack: PACK_ID });
-    if (docs.length > 0) {
-      console.log(`Cyberpunk Blue | Added ${docs.length} armor item(s) to gear pack.`);
+    let created = 0;
+    for (const [folderName, group] of byFolder.entries()) {
+      const folder = await _ensureFolderInPack(pack, folderName);
+      const cleaned = group.map((it) => {
+        const copy = foundry.utils.deepClone(it);
+        delete copy._id;
+        delete copy._folder;
+        copy.folder = folder?.id ?? null;
+        return copy;
+      });
+      const docs = await Item.createDocuments(cleaned, { pack: PACK_ID });
+      created += docs.length;
+    }
+    if (created > 0) {
+      console.log(`Cyberpunk Blue | Added ${created} missing gear item(s) to gear pack.`);
     }
   } finally {
     await pack.configure({ locked: true });
@@ -3386,8 +3404,9 @@ async function ensureEquipmentCatalogue() {
     // Stamp each item's picture onto its effects' stored icons in the packs.
     await bakeCompendiumEffectImages();
 
-    // Add armor items that may have been missing in earlier versions
-    await _ensureArmorInGearPack(gearItems);
+    // Add any gear items missing from an already-populated pack (grenades, new
+    // armor, etc. added to the catalogue after the world's pack was first seeded)
+    await _ensureMissingGearInPack(gearItems);
 
     const total = gCreated + cyCreated + dCreated + pCreated;
     if (total > 0) {
