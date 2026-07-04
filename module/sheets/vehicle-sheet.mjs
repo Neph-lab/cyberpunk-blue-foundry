@@ -145,7 +145,7 @@ export class CyberBlueVehicleSheet extends HandlebarsApplicationMixin(ActorSheet
   async _onEditProfileImage(event) {
     event.preventDefault();
     if (!this.document.isOwner && game.user.role < CONST.USER_ROLES.ASSISTANT) return;
-    const picker = new FilePicker({
+    const picker = new foundry.applications.apps.FilePicker.implementation({
       type: 'imagevideo',
       current: this.document.img || '',
       callback: async (path) => this.document.update({ img: path }),

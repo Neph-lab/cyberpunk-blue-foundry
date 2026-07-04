@@ -1,4 +1,4 @@
-import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG, spendWeaponUse } from './combat.mjs';
+import { buildWeaponUpdate, getWeaponTypeDefinition, spendWeaponUse } from './combat.mjs';
 import { getEffectiveItemWeapons, getInstalledWeaponMods } from './mods.mjs';
 import { resolveConeAttack, resolveExplosionAttack, resolveAfflictionConeAttack, resolveAfflictionExplosionAttack, resolveScatterEffect } from './cone-attack.mjs';
 import {
@@ -15,6 +15,14 @@ import { clearWeaponCharge, countWallsBetweenTokens } from './tech-charge.mjs';
 import { getActiveAEFlag } from './effects.mjs';
 import { playUiSound, suppressNextFailSound, playSfx } from './audio.mjs';
 import { computeVisibilityPenalty } from './visibility.mjs';
+import {
+  getTarget,
+  getDistanceMeters,
+  getTokenDistanceMeters,
+  getDvForRange,
+  rollTargetEvasion,
+  isEvasionEligible,
+} from './targeting.mjs';
 
 /** Count the number of d6s in a damage roll (using their face count, not total). */
 function countDamageDice(roll) {
@@ -48,67 +56,6 @@ async function getLoadedAmmoItem(item, weaponIndex) {
   } catch {
     return null;
   }
-}
-
-function getTarget() {
-  const token = game.user.targets.first() ?? null;
-  return { token, actor: token?.actor ?? null };
-}
-
-/** Returns distance in meters between the attacker's first active token and the given target token. */
-function getDistanceMeters(attacker, targetToken) {
-  if (!canvas?.scene || !canvas?.grid || !targetToken) return null;
-
-  const attackerToken = attacker.getActiveTokens()[0];
-  if (!attackerToken) return null;
-
-  const gridSize = canvas.grid.size;
-  const ax = attackerToken.document.x + (attackerToken.document.width * gridSize) / 2;
-  const ay = attackerToken.document.y + (attackerToken.document.height * gridSize) / 2;
-  const tx = targetToken.document.x + (targetToken.document.width * gridSize) / 2;
-  const ty = targetToken.document.y + (targetToken.document.height * gridSize) / 2;
-
-  const pixelDist = Math.hypot(ax - tx, ay - ty);
-  const gridUnitDist = pixelDist / gridSize;
-
-  const gridDistance = canvas.scene.grid?.distance ?? 1;
-  const gridUnits = (canvas.scene.grid?.units ?? '').toLowerCase().trim();
-  const metersPerUnit = ['m', 'meter', 'meters'].includes(gridUnits) ? gridDistance : 2;
-
-  return gridUnitDist * metersPerUnit;
-}
-
-/** Returns the DV from a weapon's range table for a given distance, or null if no range table. */
-function getDvForRange(definition, distanceMeters, rangeTableOverride = null) {
-  if (!definition.usesRangeTable && !rangeTableOverride) return null;
-
-  const breakpoints = COMBAT_CONFIG.rangeBreakpoints; // [0, 6, 12, 25, 50, 100, 200, 400, 800]
-  const bandIndex = breakpoints.slice(1).findIndex((bp) => distanceMeters < bp);
-  if (bandIndex === -1) return 0; // beyond maximum range
-
-  const table = rangeTableOverride ?? definition.rangeTable;
-  return table[bandIndex] ?? 0;
-}
-
-async function rollTargetEvasion(targetActor) {
-  const rflx = targetActor.system?.stats?.rflx?.value ?? 0;
-  const rflxMod = targetActor.system?.stats?.rflx?.rollMod ?? 0;
-  const evasionRank = targetActor.system?.skills?.evasion?.rank
-    ?? targetActor.system?.skills?.athletics?.rank
-    ?? 0;
-  const formula = `1d10 + ${rflx} + ${evasionRank}${rflxMod ? ` + ${rflxMod}` : ''}`;
-  const roll = await new Roll(formula).evaluate();
-  await roll.toMessage({
-    speaker: ChatMessage.getSpeaker({ actor: targetActor }),
-    flavor: `
-      <div class="cyberpunk-blue chat-card">
-        <h3>${game.i18n.localize('CYBER_BLUE.Combat.EvasionRoll')}: ${targetActor.name}</h3>
-        <p>RFLX ${rflx} + ${game.i18n.localize('CYBER_BLUE.Combat.EvasionSkill')} ${evasionRank}</p>
-      </div>
-    `,
-    rollMode: game.settings.get('core', 'rollMode'),
-  });
-  return roll;
 }
 
 async function consumeAmmo(item, weaponIndex, shots) {
@@ -178,7 +125,6 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
 
   const { token: targetToken, actor: targetActor } = getTarget();
   let targetSP = targetActor ? (targetActor.system?.resources?.armor?.value ?? 0) : null;
-  const targetRflx = targetActor?.system?.stats?.rflx?.value ?? 0;
 
   // Distance measurement
   const distanceMeters = getDistanceMeters(attacker, targetToken);
@@ -213,6 +159,11 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     return;
   }
 
+  // Shell-mode DV deviation (Testera, Igla): shifts the range DV, never past 1.
+  if (rangeDV !== null && rangeDV > 0 && (weapon.shellDvModifier ?? 0) !== 0) {
+    rangeDV = Math.max(1, rangeDV + weapon.shellDvModifier);
+  }
+
   // ── Distance-conditional attack bonuses ────────────────────────────────────
   const trajectoryBonus = (installedMods.some((m) => m.trajectoryCalculations) && distanceMeters !== null && distanceMeters > 40) ? 1 : 0;
   const closeRangeBonusVal = (installedMods.some((m) => m.closeRangeBonus) && distanceMeters !== null && distanceMeters <= 20) ? 1 : 0;
@@ -229,11 +180,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const isMelee = definition.category === 'melee';
   const isRanged = definition.category === 'ranged';
 
-  // Evasion eligibility: melee within 2 m OR ranged vs RFLX ≥ 8
-  const evasionEligible = targetActor && (
-    (isMelee && distanceMeters !== null && distanceMeters <= 2)
-    || (isRanged && targetRflx >= 8)
-  );
+  const evasionEligible = isEvasionEligible(targetActor, { isMelee, isRanged, distanceMeters });
 
   // Show manual DV input only for ranged weapons with no range table result
   const needsManualDV = rangeDV === null;
@@ -643,9 +590,10 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // ── Silence system ────────────────────────────────────────────────────────
   // Post a public chat message with the DV to hear the silenced shot.
   // Handle silencer destruction by Tech Weapon discharge or RoF2+ firing.
-  const silencedMods = installedMods.filter((m) => (m.silenceDV ?? 0) > 0);
-  if (silencedMods.length > 0) {
-    const silenceDV = Math.max(...silencedMods.map((m) => m.silenceDV));
+  const silenceDVs = installedMods.filter((m) => (m.silenceDV ?? 0) > 0).map((m) => m.silenceDV);
+  if (weapon.silenceBuiltIn && (weapon.silenceBuiltInDV ?? 0) > 0) silenceDVs.push(weapon.silenceBuiltInDV);
+  if (silenceDVs.length > 0) {
+    const silenceDV = Math.max(...silenceDVs);
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: attacker }),
       content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-volume-xmark"></i> ${game.i18n.format('CYBER_BLUE.Combat.SilencedShot', { dv: silenceDV })}</p></div>`,
@@ -1069,7 +1017,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
         if (chargesRemaining > 0) {
           await item.setFlag('cyberpunk-blue', chargeKey, chargesRemaining - 1);
           const targetTech = targetActor.system?.stats?.tech?.value ?? 0;
-          const targetEndurance = targetActor.system?.skills?.endurance?.level ?? 0;
+          const targetEndurance = targetActor.system?.skills?.endurance?.rank ?? 0;
           const ecRoll = await new Roll('1d10 + @tech + @end', { tech: targetTech, end: targetEndurance }).evaluate();
           if (ecRoll.total >= 15) {
             await ecRoll.toMessage({
@@ -1128,7 +1076,9 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
 
   // ── Applied toxins (weapon-coated affliction Mods) ────────────────────────
   // A coated toxin is delivered when the attack draws blood (hit penetrates SP).
-  if (hit && targetActor && netDamage > 0) {
+  // Any attack that reaches this point landed (including Smart Ammo re-rolls
+  // and Beacon redirects), so only penetration gates the toxin.
+  if (targetActor && netDamage > 0) {
     const toxinMods = installedMods.filter((m) => m.appliesAffliction);
     for (const m of toxinMods) {
       const modDoc = attacker.items.get(m._docId);
@@ -1142,7 +1092,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   }
 
   // ── Shockwave (Kang Tao Mámù): BODY < 8 target pushed 2m ────────────────
-  if (hit && (weapon.shockwave ?? false) && targetActor) {
+  if ((weapon.shockwave ?? false) && targetActor) {
     const targetBody = targetActor.system?.stats?.body?.value ?? 0;
     if (targetBody < 8) {
       ChatMessage.create({
@@ -1193,30 +1143,37 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
     return;
   }
 
+  // A jammed weapon cannot autofire any more than it can single-shot.
+  if (item.getFlag('cyberpunk-blue', `jammed-${weaponIndex}`)) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.WeaponJammed'));
+    return;
+  }
+
   const definition = getWeaponTypeDefinition(weapon.type);
   const baseSkill = item.system.weapons?.[weaponIndex]?.skill ?? weapon.skill;
   const skillSlug = CONFIG.CYBER_BLUE.skills[weapon.skill] ? weapon.skill : baseSkill;
 
-  // Use lower of weapon skill rank and autofire rank
-  const weaponSkillRank = attacker.system?.skills?.[skillSlug]?.rank ?? 0;
+  // Autofire caps the effective rank at the Autofire skill rank; everything
+  // else (stat, AE bonus channels, skill-chip floors, mook Combat Number)
+  // matches a normal weapon-skill check — same terms the sheet preview shows.
+  const rollCtx = attacker.getSkillRollContext(skillSlug);
   const autofireRank = attacker.system?.skills?.autofire?.rank ?? 0;
-  const usedRank = Math.min(weaponSkillRank, autofireRank);
-  const statSlug = CONFIG.CYBER_BLUE.skills[skillSlug]?.stat ?? 'rflx';
-  const statValue = attacker.system?.stats?.[statSlug]?.value ?? 0;
-  const statRollMod = attacker.system?.stats?.[statSlug]?.rollMod ?? 0;
+  const usedRank = Math.min(rollCtx.usedRank, autofireRank);
+  const statValue = rollCtx.statValue;
+  const statRollMod = rollCtx.statRollMod ?? 0;
+  const generalBonus = rollCtx.generalBonus ?? 0;
 
   const autofireRangeTable = weapon.autofireRangeTable?.length ? weapon.autofireRangeTable : null;
   const multiplier = weapon.autofireMultiplier ?? 1;
 
   const { token: targetToken, actor: targetActor } = getTarget();
   const targetSP = targetActor ? (targetActor.system?.resources?.armor?.value ?? 0) : null;
-  const targetRflx = targetActor?.system?.stats?.rflx?.value ?? 0;
 
   const distanceMeters = getDistanceMeters(attacker, targetToken);
 
   // DV from autofire range table (falls back to weapon range table)
   const effectiveTable = autofireRangeTable ?? (definition.usesRangeTable ? definition.rangeTable : null);
-  const rangeDV = distanceMeters !== null && effectiveTable
+  let rangeDV = distanceMeters !== null && effectiveTable
     ? getDvForRange(definition, distanceMeters, effectiveTable)
     : null;
 
@@ -1225,14 +1182,16 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
     return;
   }
 
+  // Shell-mode DV deviation (Testera, Igla): shifts the range DV, never past 1.
+  if (rangeDV !== null && rangeDV > 0 && (weapon.shellDvModifier ?? 0) !== 0) {
+    rangeDV = Math.max(1, rangeDV + weapon.shellDvModifier);
+  }
+
   const isMelee = definition.category === 'melee';
   const isRanged = definition.category === 'ranged';
-  const evasionEligible = targetActor && (
-    (isMelee && distanceMeters !== null && distanceMeters <= 2)
-    || (isRanged && targetRflx >= 8)
-  );
+  const evasionEligible = isEvasionEligible(targetActor, { isMelee, isRanged, distanceMeters });
 
-  const totalBonus = statValue + usedRank + statRollMod;
+  const totalBonus = statValue + usedRank + statRollMod + generalBonus;
   const needsManualDV = rangeDV === null;
 
   const targetLine = targetActor
@@ -1255,7 +1214,7 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
   const dialogContent = `
     <div class="cyberpunk-blue" style="padding:0.5rem;">
       <p><strong>${game.i18n.localize('CYBER_BLUE.Combat.Autofire')}</strong> — ${game.i18n.format('CYBER_BLUE.Combat.AutofireConsumes', { ammo: AUTOFIRE_AMMO_COST })}${burstReduction > 0 ? ` <em>(${game.i18n.localize('CYBER_BLUE.Combat.BurstControl')})</em>` : ''} | ×${multiplier}</p>
-      <p>${game.i18n.localize('CYBER_BLUE.Combat.AutofireRollNote', { bonus: totalBonus >= 0 ? `+${totalBonus}` : `${totalBonus}` })}</p>
+      <p>${game.i18n.format('CYBER_BLUE.Combat.AutofireRollNote', { bonus: totalBonus >= 0 ? `+${totalBonus}` : `${totalBonus}` })}</p>
       ${targetLine}
       ${distanceLine}
       <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem;">
@@ -1316,13 +1275,30 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
   // ── Solo Precision Attack: +1 to all attacks per 3 pts allocated ─────────
   const autofirePrecisionBonus = getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
 
+  // ── Visibility penalty (same rules as single-shot attacks) ────────────────
+  const _hasThermalImagingAF = installedMods.some((m) => m.thermalImaging);
+  const _visAttackerTokenAF = attacker.getActiveTokens()[0];
+  const _visAF = _hasThermalImagingAF
+    ? { blocked: false, penalty: 0, darkEff: 0, obscEff: 0, notes: [] }
+    : computeVisibilityPenalty(attacker, _visAttackerTokenAF, targetToken);
+  if (_visAF.blocked) {
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      content: `<div class="cyberpunk-blue chat-card">
+        <h3><i class="fas fa-eye-slash"></i> ${game.i18n.localize('CYBER_BLUE.Visibility.BlockedTitle')}</h3>
+        <p>${_visAF.notes.join(' ')}</p>
+      </div>`,
+    });
+    return;
+  }
+
   playSfx('autofire');
 
-  // Roll attack using custom formula (skill override + recoil mod bonus)
-  const autofireTotal = totalBonus + autofirePrecisionBonus;
-  const formula = modRecoilBonus !== 0
-    ? `1d10 + ${autofireTotal} + ${modRecoilBonus}`
-    : `1d10 + ${autofireTotal}`;
+  // Roll attack using custom formula (skill/rank cap + recoil mod + visibility)
+  const autofireTotal = totalBonus + autofirePrecisionBonus + modRecoilBonus + _visAF.penalty;
+  const formula = autofireTotal >= 0
+    ? `1d10 + ${autofireTotal}`
+    : `1d10 - ${Math.abs(autofireTotal)}`;
   const attackRoll = await (new Roll(formula)).evaluate();
   await attackRoll.toMessage({
     speaker: ChatMessage.getSpeaker({ actor: attacker }),
@@ -1330,14 +1306,28 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
     rollMode: game.settings.get('core', 'rollMode'),
   });
 
+  // One-use AEs (e.g. Guide Tarot) contributed via the roll context — consume them.
+  await attacker.consumeOneUseEffects?.();
+
+  // Record this attack for RoF tracking / mark the Action used.
+  const afAttackerToken = attacker.getActiveTokens()[0];
+  const afCombatant = (afAttackerToken && game.combat?.started)
+    ? (game.combat.combatants.find((c) => c.tokenId === afAttackerToken.id) ?? null)
+    : null;
+  if (afCombatant) {
+    const rof = Math.max(Number(weapon.rateOfFire) || 1, 1);
+    await recordCombatAttack(afCombatant, item.id, weaponIndex, rof);
+  }
+
   // Consume ammo
   await consumeAmmo(item, weaponIndex, AUTOFIRE_AMMO_COST);
 
   // ── Silence system (autofire) ─────────────────────────────────────────────
   // Autofire always counts as RoF2+, destroying any destroyedByRof2 silencers.
-  const silencedModsAF = installedMods.filter((m) => (m.silenceDV ?? 0) > 0);
-  if (silencedModsAF.length > 0) {
-    const silenceDVAF = Math.max(...silencedModsAF.map((m) => m.silenceDV));
+  const silenceDVsAF = installedMods.filter((m) => (m.silenceDV ?? 0) > 0).map((m) => m.silenceDV);
+  if (weapon.silenceBuiltIn && (weapon.silenceBuiltInDV ?? 0) > 0) silenceDVsAF.push(weapon.silenceBuiltInDV);
+  if (silenceDVsAF.length > 0) {
+    const silenceDVAF = Math.max(...silenceDVsAF);
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: attacker }),
       content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-volume-xmark"></i> ${game.i18n.format('CYBER_BLUE.Combat.SilencedShot', { dv: silenceDVAF })}</p></div>`,
@@ -1459,17 +1449,8 @@ export async function resolveDoubleLockAttack(attacker, item, weaponIndex) {
   const actorB = tokenB.actor;
 
   // Warn if targets are more than 6m apart
-  const gridSize = canvas.grid.size;
-  const axA = tokenA.document.x + (tokenA.document.width * gridSize) / 2;
-  const ayA = tokenA.document.y + (tokenA.document.height * gridSize) / 2;
-  const axB = tokenB.document.x + (tokenB.document.width * gridSize) / 2;
-  const ayB = tokenB.document.y + (tokenB.document.height * gridSize) / 2;
-  const targetDist = Math.hypot(axA - axB, ayA - ayB) / gridSize;
-  const gridDistance = canvas.scene.grid?.distance ?? 1;
-  const gridUnits = (canvas.scene.grid?.units ?? '').toLowerCase().trim();
-  const metersPerUnit = ['m', 'meter', 'meters'].includes(gridUnits) ? gridDistance : 2;
-  const targetDistMeters = targetDist * metersPerUnit;
-  if (targetDistMeters > 6) {
+  const targetDistMeters = getTokenDistanceMeters(tokenA.document, tokenB.document);
+  if (targetDistMeters !== null && targetDistMeters > 6) {
     ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.DoubleLockTooFarApart', { dist: targetDistMeters.toFixed(1) }));
     return;
   }
@@ -1480,17 +1461,8 @@ export async function resolveDoubleLockAttack(attacker, item, weaponIndex) {
 
   // DV for each target from range table
   const attackerToken = attacker.getActiveTokens()[0];
-  function distTo(tok) {
-    if (!attackerToken || !canvas?.scene || !canvas?.grid) return null;
-    const px = attackerToken.document.x + (attackerToken.document.width * gridSize) / 2;
-    const py = attackerToken.document.y + (attackerToken.document.height * gridSize) / 2;
-    const tx = tok.document.x + (tok.document.width * gridSize) / 2;
-    const ty = tok.document.y + (tok.document.height * gridSize) / 2;
-    return (Math.hypot(px - tx, py - ty) / gridSize) * metersPerUnit;
-  }
-
-  const distA = distTo(tokenA);
-  const distB = distTo(tokenB);
+  const distA = attackerToken ? getTokenDistanceMeters(attackerToken.document, tokenA.document) : null;
+  const distB = attackerToken ? getTokenDistanceMeters(attackerToken.document, tokenB.document) : null;
   const dvA = distA !== null ? getDvForRange(definition, distA) : null;
   const dvB = distB !== null ? getDvForRange(definition, distB) : null;
 
@@ -1579,7 +1551,8 @@ export async function resolveDoubleLockAttack(attacker, item, weaponIndex) {
           flavor: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-crosshairs"></i> ${game.i18n.format('CYBER_BLUE.Combat.DoubleLockDamage', { target: actor.name })}</p></div>`,
           rollMode: game.settings.get('core', 'rollMode'),
         });
-        await applyDamageWithPermission(actor, netDmg);
+        // applyDamage deducts SP itself — pass the full pre-SP damage.
+        await applyDamageWithPermission(actor, damageRoll.total);
       }
     }
   }

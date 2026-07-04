@@ -8,24 +8,10 @@
  *    (canvas pixel coordinates in the stage coordinate system).
  */
 
+import { getPixelsPerMeter, getTokenCenter } from './targeting.mjs';
+
 /** Singleton PIXI.Graphics used for the persistent ricochet line visualisation. */
 let _lineGraphics = null;
-
-function getPixelsPerMeter() {
-  const gridSize = canvas.grid.size;
-  const gridDistance = canvas.scene.grid?.distance ?? 1;
-  const gridUnits = (canvas.scene.grid?.units ?? '').toLowerCase().trim();
-  const metersPerUnit = ['m', 'meter', 'meters'].includes(gridUnits) ? gridDistance : 2;
-  return gridSize / metersPerUnit;
-}
-
-function getTokenCenter(tokenDoc) {
-  const gridSize = canvas.grid.size;
-  return {
-    x: tokenDoc.x + (tokenDoc.width * gridSize) / 2,
-    y: tokenDoc.y + (tokenDoc.height * gridSize) / 2,
-  };
-}
 
 /**
  * Remove the current ricochet line graphic from the canvas.

@@ -188,15 +188,14 @@ export class CyberBlueActor extends Actor {
 
     if (options.cyberBlueShowComponentsExplainer && userId === game.user.id) {
       game.user.setFlag('cyberpunk-blue', 'seenComponentsExplainer', true);
-      new Dialog({
-        title: 'Skills & Components',
+      foundry.applications.api.DialogV2.prompt({
+        window: { title: 'Skills & Components' },
         content: `
           <p>Some skills have linked Components that are ways to specialize within that Skill. But some Components can be used with several Skills, allowing you to benefit from what you've learned across those skills. When you make a check with these skills, you do so along with a Component and add the lower of the two to your check. The table of Components is located below the skills — make sure you add those you want.</p>
           <p>"When you gain a rank in a skill with linked Components, you also gain a rank in one of those Components (one you already have ranks in or a different one). Instead of using a skill-point to buy a rank in a Skill, you may increase two Components by 1 each, or one Component by 2. Or, you may instead use your skill-point to raise a skill linked to Components by 2 ranks, but only if you had a Component at least 2 ranks higher than the skill, and you don't get any Component rank this way."</p>
         `,
-        buttons: { ok: { label: 'OK' } },
-        default: 'ok',
-      }).render(true);
+        ok: { label: 'OK' },
+      }).catch(() => {});
     }
   }
 
@@ -514,12 +513,13 @@ export class CyberBlueActor extends Actor {
 
   /**
    * Returns a Map from slug → minimum rank floor contributed by active
-   * Skill Chip AEs.  Only non-disabled, transferred effects are counted.
+   * Skill Chip AEs. Reads appliedEffects because the floor AE lives on the
+   * gear item (transfer: true) and never appears in actor.effects with
+   * legacyTransferral off.
    */
   _getSkillChipFloors() {
     const floors = new Map();
-    for (const effect of this.effects ?? []) {
-      if (effect.disabled) continue;
+    for (const effect of this.appliedEffects ?? []) {
       const slug = effect.getFlag?.('cyberpunk-blue', 'skillChipFloor');
       if (typeof slug === 'string' && slug) {
         floors.set(slug, Math.max(floors.get(slug) ?? 0, 3));
@@ -767,8 +767,9 @@ export class CyberBlueActor extends Actor {
     const threshold = this.system.resources.seriousWoundThreshold.value ?? 0;
     if (!(hp > 0 && hp < threshold)) return false;
     // Pain Editor (chipware) suppresses the Seriously Wounded penalty.
-    const hasPainEditor = this.effects.some(
-      (e) => !e.disabled && e.getFlag?.('cyberpunk-blue', 'painEditor'),
+    // The AE lives on the chip item (transfer: true), so read appliedEffects.
+    const hasPainEditor = (this.appliedEffects ?? []).some(
+      (e) => e.getFlag?.('cyberpunk-blue', 'painEditor'),
     );
     return !hasPainEditor;
   }

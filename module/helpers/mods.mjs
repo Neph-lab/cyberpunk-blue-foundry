@@ -34,18 +34,6 @@ export const WEAPON_MOD_FIELDS = [
   })),
 ];
 
-export function createItemModificationData(type = 'gearMod') {
-  return {
-    id: foundry.utils.randomID(),
-    type,
-    name: 'New Mod',
-    cost: '',
-    description: '',
-    targetWeaponIndex: -1,
-    weaponChanges: [],
-  };
-}
-
 export function createWeaponChangeData() {
   return {
     id: foundry.utils.randomID(),
@@ -53,85 +41,6 @@ export function createWeaponChangeData() {
     mode: 'override',
     value: '',
   };
-}
-
-function getWeaponAtIndex(system = {}, index) {
-  return Array.isArray(system.weapons) ? system.weapons[index] ?? null : null;
-}
-
-export function getModificationValidation(itemLike, mod) {
-  const itemType = itemLike?.type ?? null;
-  const system = itemLike?.system ?? {};
-
-  switch (mod.type) {
-    case 'gearMod':
-      return itemType === 'gear'
-        ? { valid: true, reason: '' }
-        : { valid: false, reason: 'Only valid on gear.' };
-    case 'cyberwareMod':
-      return itemType === 'cyberware'
-        ? { valid: true, reason: '' }
-        : { valid: false, reason: 'Only valid on cyberware.' };
-    case 'hardwareMod':
-      return system.isComputer
-        ? { valid: true, reason: '' }
-        : { valid: false, reason: 'Requires the item to be flagged as a Computer.' };
-    case 'weaponMod': {
-      if (!system.isWeapon || !Array.isArray(system.weapons) || !system.weapons.length) {
-        return { valid: false, reason: 'Requires at least one weapon on the item.' };
-      }
-
-      const targetWeapon = getWeaponAtIndex(system, Number(mod.targetWeaponIndex));
-      if (!targetWeapon) {
-        return { valid: false, reason: 'Requires a specific weapon selection.' };
-      }
-
-      // ── Scope installability ─────────────────────────────────────────────
-      // 'short' (pistols + SMGs), 'long' (SG/MG/AR/PR), 'sniper' (SR-only).
-      const scopeType = mod.scopeType ?? '';
-      if (scopeType) {
-        const wt = targetWeapon.type;
-        const SHORT_OK = new Set(['mediumPistol', 'heavyPistol', 'veryHeavyPistol', 'smg', 'heavySmg']);
-        const LONG_OK = new Set(['shotgun', 'machineGun', 'assaultRifle', 'precisionRifle']);
-        const SNIPER_OK = new Set(['sniperRifle']);
-        const okSet = scopeType === 'short' ? SHORT_OK : (scopeType === 'long' ? LONG_OK : SNIPER_OK);
-        if (!okSet.has(wt)) {
-          return { valid: false, reason: `Scope type "${scopeType}" not compatible with weapon type "${wt}".` };
-        }
-      }
-
-      // ── Compatibility flags on the mod ───────────────────────────────────
-      if (mod.requiresPowerWeapon && !targetWeapon.isPowerWeapon) {
-        return { valid: false, reason: 'Requires a Power Weapon.' };
-      }
-      if (mod.requiresSmartWeapon && !targetWeapon.isSmartWeapon) {
-        return { valid: false, reason: 'Requires a Smart Weapon.' };
-      }
-      if (mod.requiresTechWeapon && !targetWeapon.isTechWeapon) {
-        return { valid: false, reason: 'Requires a Tech Weapon.' };
-      }
-      if (mod.requiresLightMelee && targetWeapon.type !== 'lightMelee') {
-        return { valid: false, reason: 'Requires a Light Melee weapon.' };
-      }
-      if (mod.blockedOnPower && targetWeapon.isPowerWeapon) {
-        return { valid: false, reason: 'Cannot be installed on Power Weapons.' };
-      }
-      if (mod.blockedOnSmart && targetWeapon.isSmartWeapon) {
-        return { valid: false, reason: 'Cannot be installed on Smart Weapons.' };
-      }
-      if (mod.blockedOnTech && targetWeapon.isTechWeapon) {
-        return { valid: false, reason: 'Cannot be installed on Tech Weapons.' };
-      }
-
-      return { valid: true, reason: '' };
-    }
-    default:
-      return { valid: false, reason: 'Unknown modification type.' };
-  }
-}
-
-export function getModificationEffects(item, modId) {
-  return item.effects.contents.filter((effect) => effect.getFlag('cyberpunk-blue', 'modId') === modId);
 }
 
 function getWeaponModFieldDefinition(key) {
@@ -301,52 +210,3 @@ export function getEffectiveItemWeapons(itemLike, actor = null) {
   return weapons;
 }
 
-export async function syncItemModificationEffects(item, options = {}) {
-  if (!['gear', 'cyberware'].includes(item.type)) {
-    return;
-  }
-
-  const mods = item.system.mods ?? [];
-  const validationMap = new Map(mods.map((mod) => [mod.id, getModificationValidation(item, mod)]));
-  const updates = [];
-
-  for (const effect of item.effects.contents) {
-    const modId = effect.getFlag('cyberpunk-blue', 'modId');
-    if (!modId) {
-      continue;
-    }
-
-    const validation = validationMap.get(modId);
-    const autoState = effect.getFlag('cyberpunk-blue', 'autoModEffectState') ?? null;
-    if (!validation?.valid) {
-      if (!effect.disabled || autoState?.active !== true) {
-        updates.push({
-          _id: effect.id,
-          disabled: true,
-          'flags.cyberpunk-blue.autoModEffectState': {
-            active: true,
-            previousDisabled: effect.disabled === true,
-          },
-        });
-      }
-      continue;
-    }
-
-    if (autoState?.active === true) {
-      updates.push({
-        _id: effect.id,
-        disabled: autoState.previousDisabled === true,
-        'flags.cyberpunk-blue.autoModEffectState': null,
-      });
-    }
-  }
-
-  if (!updates.length) {
-    return;
-  }
-
-  await item.updateEmbeddedDocuments('ActiveEffect', updates, {
-    ...options,
-    cyberBlueSyncModEffects: true,
-  });
-}

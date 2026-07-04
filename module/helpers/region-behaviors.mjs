@@ -23,6 +23,7 @@ import { attachTokenToVehicle, detachTokenFromVehicle } from './vehicle-movement
 import { DRIVER_TOKEN_FLAG } from './vehicle-combat.mjs';
 import { VIS } from './visibility.mjs';
 import { applyDamageWithPermission } from './socket.mjs';
+import { getMetersPerGridUnit } from './targeting.mjs';
 
 /**
  * Access Point — placed in a meat-world scene.
@@ -673,9 +674,7 @@ export class CyberBlueHazardRegionBehavior extends foundry.data.regionBehaviors.
    */
   _inRegionMeters(token, movement) {
     const gridSize = canvas?.grid?.size ?? 100;
-    const gridDistance = canvas.scene?.grid?.distance ?? 1;
-    const units = (canvas.scene?.grid?.units ?? '').toLowerCase().trim();
-    const metersPerUnit = ['m', 'meter', 'meters'].includes(units) ? gridDistance : 2;
+    const metersPerUnit = getMetersPerGridUnit(canvas?.scene);
     try {
       const wpSource = (movement?.passed?.waypoints?.length ?? 0) >= 2
         ? movement.passed.waypoints

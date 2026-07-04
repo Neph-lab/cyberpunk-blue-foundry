@@ -50,8 +50,11 @@ export function onManageActiveEffect(event, owner) {
  */
 export function getActiveAEFlag(actor, flagKey) {
   let result = null;
-  for (const effect of actor.effects ?? []) {
-    if (effect.disabled) continue;
+  // appliedEffects, not effects: with legacyTransferral off, item-transferred
+  // AEs (TeleOptics, Targeting Scope, Pain Editor, …) never appear in
+  // actor.effects — they only surface here. appliedEffects already excludes
+  // disabled and suppressed effects.
+  for (const effect of actor.appliedEffects ?? []) {
     const val = effect.getFlag('cyberpunk-blue', flagKey);
     if (val === undefined || val === null || val === false) continue;
     if (typeof val === 'number') {

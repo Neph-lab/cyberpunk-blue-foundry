@@ -7,6 +7,7 @@ import { applyDamageWithPermission, rollCriticalInjuryWithPermission } from './s
 import { getActiveAEFlag } from './effects.mjs';
 import { computeVisibilityPenalty, makeElevatedPoint } from './visibility.mjs';
 import { playMediaEffect, DEFAULT_EXPLOSION_MEDIA, DEFAULT_SMOKE_MEDIA, createResidueMediaTile, sampleGroundElevation } from './media-effects.mjs';
+import { getPixelsPerMeter, getTokenCenter, rollTargetEvasion } from './targeting.mjs';
 
 // ── Explosion residue region ──────────────────────────────────────────────────
 
@@ -109,22 +110,6 @@ async function createResidueRegion(item, weapon, explosionCenter, spreadPx, pixe
   }
 }
 
-function getPixelsPerMeter() {
-  const gridSize = canvas.grid.size;
-  const gridDistance = canvas.scene.grid?.distance ?? 1;
-  const gridUnits = (canvas.scene.grid?.units ?? '').toLowerCase().trim();
-  const metersPerUnit = ['m', 'meter', 'meters'].includes(gridUnits) ? gridDistance : 2;
-  return gridSize / metersPerUnit;
-}
-
-function getTokenCenter(tokenDoc) {
-  const gridSize = canvas.grid.size;
-  return {
-    x: tokenDoc.x + (tokenDoc.width * gridSize) / 2,
-    y: tokenDoc.y + (tokenDoc.height * gridSize) / 2,
-  };
-}
-
 function isBlockedByWalls(origin, destination) {
   try {
     const RayCtor = foundry.canvas?.geometry?.Ray ?? Ray;
@@ -211,22 +196,6 @@ async function placeConeOverlay(ax, ay, spreadPx, halfDamagePx, angleDeg) {
     graphics.on('pointermove', onMove);
     graphics.on('pointerdown', onDown);
   });
-}
-
-async function rollTargetEvasion(targetActor) {
-  const rflx = targetActor.system?.stats?.rflx?.value ?? 0;
-  const rflxMod = targetActor.system?.stats?.rflx?.rollMod ?? 0;
-  const evasionRank = targetActor.system?.skills?.evasion?.rank
-    ?? targetActor.system?.skills?.athletics?.rank
-    ?? 0;
-  const formula = `1d10 + ${rflx} + ${evasionRank}${rflxMod ? ` + ${rflxMod}` : ''}`;
-  const roll = await new Roll(formula).evaluate();
-  await roll.toMessage({
-    speaker: ChatMessage.getSpeaker({ actor: targetActor }),
-    flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.EvasionRoll')}: ${targetActor.name}</h3><p>RFLX ${rflx} + ${game.i18n.localize('CYBER_BLUE.Combat.EvasionSkill')} ${evasionRank}</p></div>`,
-    rollMode: game.settings.get('core', 'rollMode'),
-  });
-  return roll;
 }
 
 // ─── Explosion helpers ──────────────────────────────────────────────────────

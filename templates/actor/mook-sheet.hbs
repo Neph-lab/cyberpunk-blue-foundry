@@ -140,6 +140,11 @@
                       <button type="button" class="roll-button cpb-roll-btn" data-action="mook-weapon-attack" data-item-id="{{w.itemId}}" data-weapon-index="{{w.weaponIndex}}" data-tooltip="{{w.roll.tooltip}}">
                         {{> "systems/cyberpunk-blue/templates/parts/roll-button-content.hbs" mod=w.roll.mod}}
                       </button>
+                      {{#if w.usesMagazine}}
+                        <button type="button" class="macro-button" data-action="mook-weapon-reload" data-item-id="{{w.itemId}}" data-weapon-index="{{w.weaponIndex}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Reload"}}">
+                          <i class="fas fa-rotate"></i>
+                        </button>
+                      {{/if}}
                     {{/if}}
                   </td>
                 </tr>

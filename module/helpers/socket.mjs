@@ -51,7 +51,10 @@ export function registerSocketHandlers() {
       return;
     }
 
-    if (!game.user.isGM) return;
+    // Only the ACTIVE GM executes the mutating requests below — running them on
+    // every GM client would double-apply damage/crits/effects whenever a second
+    // (or stale) GM session is connected.
+    if (game.user !== game.users.activeGM) return;
 
     switch (message.type) {
       case 'applyDamage': {
@@ -152,8 +155,7 @@ export function registerSocketHandlers() {
       }
       case 'netConnect': {
         // A player asked the GM to execute the architecture connection on their behalf.
-        // Guard against multi-GM double-execution (would create duplicate tokens).
-        if (game.user !== game.users.activeGM) return;
+        // (Multi-GM double-execution is already excluded by the activeGM gate above.)
         const { actorUuid, apSceneId, apRegionId, userId } = message;
         const actor = await fromUuid(actorUuid);
         if (!actor) return;

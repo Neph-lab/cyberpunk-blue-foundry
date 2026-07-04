@@ -5,6 +5,7 @@ const { Tabs } = foundry.applications.ux;
 import { getWeaponTypeDefinition } from '../helpers/combat.mjs';
 import { getMartialArtsDamage, MA_COMPONENTS, resolveMartialArtsAttack } from '../helpers/martial-arts.mjs';
 import { resolveWeaponAttack } from '../helpers/combat-resolution.mjs';
+import { reloadWeapon } from '../helpers/weapon-actions.mjs';
 import { buildActorEffectGroups, attachEffectsPanelListeners } from '../helpers/effects.mjs';
 import { getSkillCheckPreview, getWeaponAttackPreview } from '../helpers/roll-preview.mjs';
 
@@ -129,7 +130,7 @@ export class CyberBlueMookSheet extends HandlebarsApplicationMixin(ActorSheetV2)
           rof: w.rateOfFire ?? def.rateOfFire ?? 1,
           usesMagazine: !!(def.usesMagazine),
           ammoCurrent: w.ammoCurrent ?? 0,
-          ammoMax: w.ammoMax ?? 0,
+          ammoMax: w.magazine ?? 0,
           roll: getWeaponAttackPreview(this.document, item, w, i),
         });
       }
@@ -202,6 +203,9 @@ export class CyberBlueMookSheet extends HandlebarsApplicationMixin(ActorSheetV2)
     this.element.querySelectorAll('[data-action="mook-weapon-attack"]').forEach((btn) =>
       btn.addEventListener('click', this._onMookWeaponAttack.bind(this))
     );
+    this.element.querySelectorAll('[data-action="mook-weapon-reload"]').forEach((btn) =>
+      btn.addEventListener('click', this._onMookWeaponReload.bind(this))
+    );
     this.element.querySelectorAll('[data-action="mook-ma-attack"]').forEach((btn) =>
       btn.addEventListener('click', this._onMookMaAttack.bind(this))
     );
@@ -263,7 +267,7 @@ export class CyberBlueMookSheet extends HandlebarsApplicationMixin(ActorSheetV2)
   async _onEditProfileImage(event) {
     event.preventDefault();
     if (!this.document.isOwner && game.user.role < CONST.USER_ROLES.ASSISTANT) return;
-    const picker = new FilePicker({
+    const picker = new foundry.applications.apps.FilePicker.implementation({
       type: 'imagevideo',
       current: this.document.img || '',
       callback: async (path) => this.document.update({ img: path }),
@@ -277,6 +281,14 @@ export class CyberBlueMookSheet extends HandlebarsApplicationMixin(ActorSheetV2)
     const item = this.document.items.get(itemId);
     if (!item) return;
     await resolveWeaponAttack(this.document, item, Number(weaponIndex ?? 0));
+  }
+
+  async _onMookWeaponReload(event) {
+    event.preventDefault();
+    const { itemId, weaponIndex } = event.currentTarget.dataset;
+    const item = this.document.items.get(itemId);
+    if (!item) return;
+    await reloadWeapon(this.document, item, Number(weaponIndex ?? 0));
   }
 
   async _onMookMaAttack(event) {

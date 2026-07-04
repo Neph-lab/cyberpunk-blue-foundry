@@ -10,19 +10,12 @@
  * refreshTechChargeHighlights() — rebuild all highlights from current charge state.
  */
 
+import { getMetersPerPixel } from './targeting.mjs';
+
 const CHARGE_HIGHLIGHT_KEY = '_twChargeHighlight';
 const CHARGE_RANGE_METERS  = 15;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function getMetersPerPixel() {
-  if (!canvas?.scene || !canvas?.grid) return null;
-  const gridSize     = canvas.grid.size;
-  const gridDistance = canvas.scene.grid?.distance ?? 1;
-  const gridUnits    = (canvas.scene.grid?.units ?? '').toLowerCase().trim();
-  const metersPerUnit = ['m', 'meter', 'meters'].includes(gridUnits) ? gridDistance : 2;
-  return metersPerUnit / gridSize;
-}
 
 /** Distance in canvas-pixels between two token centers. */
 function tokenDistancePx(tokA, tokB) {

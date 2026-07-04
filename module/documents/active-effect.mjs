@@ -39,6 +39,7 @@ const AUTO_EFFECT_ICONS = Object.freeze({
   autoSeriousWound: 'systems/cyberpunk-blue/assets/icons/wt_SWT.svg',
   autoMortallyWounded: 'systems/cyberpunk-blue/assets/icons/wt_SWT.svg',
   dead: 'systems/cyberpunk-blue/assets/icons/wt_Death_Save.svg',
+  needsStabilization: 'icons/svg/blood.svg',
 });
 
 export class CyberBlueActiveEffect extends ActiveEffect {

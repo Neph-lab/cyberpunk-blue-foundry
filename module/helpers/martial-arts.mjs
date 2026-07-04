@@ -33,6 +33,7 @@ import {
   applyForcedCriticalInjuryWithPermission,
 } from './socket.mjs';
 import { playSfx } from './audio.mjs';
+import { getTarget, getDistanceMeters, rollTargetEvasion } from './targeting.mjs';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -52,12 +53,13 @@ export function getMartialArtsDamage(bodyValue) {
 
 /**
  * Extra MA damage dice from cyberware AEs (e.g. Big Knucks: +1d6).
- * Sums the `maExtraDamageDice` flag across all active effects on the actor.
+ * Sums the `maExtraDamageDice` flag across all applied effects — including
+ * item-transferred ones, which never appear in `actor.effects` now that
+ * legacyTransferral is off.
  */
 function getMaExtraDamageDice(actor) {
   let total = 0;
-  for (const effect of actor.effects ?? []) {
-    if (effect.disabled) continue;
+  for (const effect of actor.appliedEffects ?? []) {
     const val = effect.getFlag('cyberpunk-blue', 'maExtraDamageDice');
     if (typeof val === 'number' && val > 0) total += val;
   }
@@ -84,27 +86,6 @@ function getBestComponent(actor) {
     if (rank > bestRank) { bestRank = rank; bestSlug = slug; }
   }
   return { slug: bestSlug, rank: bestRank };
-}
-
-/** Return the first targeted token + actor, or null. */
-function getTarget() {
-  const token = game.user.targets.first() ?? null;
-  return { token, actor: token?.actor ?? null };
-}
-
-/** Distance in metres between actor's first token and a target token. */
-function getDistanceMeters(actor, targetToken) {
-  if (!canvas?.scene || !canvas?.grid || !targetToken) return null;
-  const src = actor.getActiveTokens()[0];
-  if (!src) return null;
-  const gs = canvas.grid.size;
-  const [ax, ay] = [src.document.x + src.document.width * gs / 2, src.document.y + src.document.height * gs / 2];
-  const [tx, ty] = [targetToken.document.x + targetToken.document.width * gs / 2, targetToken.document.y + targetToken.document.height * gs / 2];
-  const gridDist = Math.hypot(ax - tx, ay - ty) / gs;
-  const gridDistance = canvas.scene.grid?.distance ?? 1;
-  const gridUnits = (canvas.scene.grid?.units ?? '').toLowerCase().trim();
-  const metersPerUnit = ['m', 'meter', 'meters'].includes(gridUnits) ? gridDistance : 2;
-  return gridDist * metersPerUnit;
 }
 
 /** Effective SP after martial arts SP modifiers. */
@@ -252,7 +233,6 @@ export async function resolveMartialArtsAttack(attacker, componentSlug, {
   }
 
   const rawSP = allowArmor && targetActor ? (targetActor.system?.resources?.armor?.value ?? null) : null;
-  const targetRflx = targetActor?.system?.stats?.rflx?.value ?? 0;
 
   // Determine SP mode from component if not overridden
   const resolvedSpMode = spMode ?? (HALF_SP_COMPONENTS.has(componentSlug) ? 'half' : 'normal');
@@ -302,15 +282,7 @@ export async function resolveMartialArtsAttack(attacker, componentSlug, {
   // Evasion: always auto-roll; evasion result IS the DV (no target = no DV, auto-hit).
   let resolvedDV = null;
   if (targetActor) {
-    const rflxMod = targetActor.system?.stats?.rflx?.rollMod ?? 0;
-    const evasionRank = targetActor.system?.skills?.evasion?.rank ?? targetActor.system?.skills?.athletics?.rank ?? 0;
-    const evasionFormula = `1d10 + ${targetRflx} + ${evasionRank}${rflxMod ? ` + ${rflxMod}` : ''}`;
-    const evasionRoll = await new Roll(evasionFormula).evaluate();
-    await evasionRoll.toMessage({
-      speaker: ChatMessage.getSpeaker({ actor: targetActor }),
-      flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.EvasionRoll')}: ${targetActor.name}</h3></div>`,
-      rollMode: game.settings.get('core', 'rollMode'),
-    });
+    const evasionRoll = await rollTargetEvasion(targetActor);
     resolvedDV = evasionRoll.total;
   }
 
@@ -322,10 +294,13 @@ export async function resolveMartialArtsAttack(attacker, componentSlug, {
     dv: resolvedDV,
   });
 
-  // RoF tracking
+  // RoF tracking — key must match buildMartialArtsContext (`${actorId}::ma-N`, RoF 2).
   const attackerToken = attacker.getActiveTokens()[0];
-  if (attackerToken && game.combat?.started) {
-    recordCombatAttack(attackerToken.document.id, attacker.id, `ma-${maIndex}`);
+  const attackerCombatant = (attackerToken && game.combat?.started)
+    ? (game.combat.combatants.find((c) => c.tokenId === attackerToken.document.id) ?? null)
+    : null;
+  if (attackerCombatant) {
+    await recordCombatAttack(attackerCombatant, attacker.id, `ma-${maIndex}`, 2);
   }
 
   const hit = resolvedDV === null || attackRoll.total >= resolvedDV;
@@ -612,7 +587,10 @@ export async function resolveImprovisedWeapon(attacker, maIndex) {
 
   const attackRoll = await attacker.rollSkill({ skillSlug: 'martialArts', componentSlug: 'brawling', dv: dialogResult });
   const attackerToken = attacker.getActiveTokens()[0];
-  if (attackerToken && game.combat?.started) recordCombatAttack(attackerToken.document.id, attacker.id, `ma-${maIndex}`);
+  const attackerCombatant = (attackerToken && game.combat?.started)
+    ? (game.combat.combatants.find((c) => c.tokenId === attackerToken.document.id) ?? null)
+    : null;
+  if (attackerCombatant) await recordCombatAttack(attackerCombatant, attacker.id, `ma-${maIndex}`, 2);
   const hit = dialogResult === null || attackRoll.total >= dialogResult;
   if (!hit) return;
 
@@ -852,7 +830,10 @@ export async function resolveFlyingKick(attacker, maIndex) {
 
   const attackRoll = await attacker.rollSkill({ skillSlug: 'martialArts', componentSlug: 'taekwondo', dv: dialogResult });
   const attackerToken = attacker.getActiveTokens()[0];
-  if (attackerToken && game.combat?.started) recordCombatAttack(attackerToken.document.id, attacker.id, `ma-${maIndex}`);
+  const attackerCombatant = (attackerToken && game.combat?.started)
+    ? (game.combat.combatants.find((c) => c.tokenId === attackerToken.document.id) ?? null)
+    : null;
+  if (attackerCombatant) await recordCombatAttack(attackerCombatant, attacker.id, `ma-${maIndex}`, 2);
 
   const hit = dialogResult === null || attackRoll.total >= dialogResult;
   if (!hit) return;
@@ -919,7 +900,7 @@ export function buildMartialArtsContext(actor, rofState) {
       roll,
       damage,
       rateOfFire: 2,
-      attacksUsed: sameAttack ? rofState.count : 0,
+      attacksUsed: rofEntry?.used ?? 0,
       rofExhausted,
       rofLocked,
       attackDisabled: rofExhausted || rofLocked,

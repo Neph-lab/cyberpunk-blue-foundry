@@ -1736,11 +1736,16 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     const row = event.currentTarget.closest('[data-skill-row]');
     const modifierField = row?.querySelector('[data-field="modifier"]');
     const modifierValue = Number.parseInt(modifierField?.value ?? '0', 10);
+    // Optional per-row DV: when set, rollSkill posts success/failure vs it.
+    const dvField = row?.querySelector('[data-field="dv"]');
+    const dvRaw = (dvField?.value ?? '').trim();
+    const dvValue = dvRaw === '' ? null : Number.parseInt(dvRaw, 10);
 
     await this.document.rollSkill({
       skillSlug,
       componentSlug,
       modifier: Number.isNaN(modifierValue) ? 0 : modifierValue,
+      dv: Number.isFinite(dvValue) ? dvValue : null,
     });
   }
 
@@ -2272,7 +2277,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     }
 
     const current = this.document.img || '';
-    const picker = new FilePicker({
+    const picker = new foundry.applications.apps.FilePicker.implementation({
       type: 'imagevideo',
       current,
       callback: async (path) => {

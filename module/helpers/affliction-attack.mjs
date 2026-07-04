@@ -12,46 +12,14 @@
  * as their damage-dealing counterparts — see cone-attack.mjs.
  */
 
-import { buildWeaponUpdate, getWeaponTypeDefinition, COMBAT_CONFIG } from './combat.mjs';
+import { buildWeaponUpdate, getWeaponTypeDefinition } from './combat.mjs';
 import { getEffectiveItemWeapons } from './mods.mjs';
 import { getActiveAEFlag } from './effects.mjs';
 import { applyDamageWithPermission } from './socket.mjs';
+import { getTarget, getDistanceMeters, getDvForRange } from './targeting.mjs';
 
 /** Flag key written onto every affliction AE applied to an actor. */
 export const AFFLICTION_EFFECT_FLAG = 'isAffliction';
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-function getTarget() {
-  const token = game.user.targets.first() ?? null;
-  return { token, actor: token?.actor ?? null };
-}
-
-function getDistanceMeters(attacker, targetToken) {
-  if (!canvas?.scene || !canvas?.grid || !targetToken) return null;
-  const attackerToken = attacker.getActiveTokens()[0];
-  if (!attackerToken) return null;
-  const gridSize = canvas.grid.size;
-  const ax = attackerToken.document.x + (attackerToken.document.width * gridSize) / 2;
-  const ay = attackerToken.document.y + (attackerToken.document.height * gridSize) / 2;
-  const tx = targetToken.document.x + (targetToken.document.width * gridSize) / 2;
-  const ty = targetToken.document.y + (targetToken.document.height * gridSize) / 2;
-  const pixelDist = Math.hypot(ax - tx, ay - ty);
-  const gridUnitDist = pixelDist / gridSize;
-  const gridDistance = canvas.scene.grid?.distance ?? 1;
-  const gridUnits = (canvas.scene.grid?.units ?? '').toLowerCase().trim();
-  const metersPerUnit = ['m', 'meter', 'meters'].includes(gridUnits) ? gridDistance : 2;
-  return gridUnitDist * metersPerUnit;
-}
-
-function getDvForRange(definition, distanceMeters, rangeTableOverride = null) {
-  if (!definition.usesRangeTable && !rangeTableOverride) return null;
-  const breakpoints = COMBAT_CONFIG.rangeBreakpoints;
-  const bandIndex = breakpoints.slice(1).findIndex((bp) => distanceMeters < bp);
-  if (bandIndex === -1) return 0;
-  const table = rangeTableOverride ?? definition.rangeTable;
-  return table[bandIndex] ?? 0;
-}
 
 /**
  * Roll the target's affliction defense check.

@@ -762,6 +762,7 @@
                 <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Rank"}}</span>
                 <span>{{localize "CYBER_BLUE.Sheet.Labels.LinkedComponents"}}</span>
                 <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Modifier"}}</span>
+                <span class="numeric-column">{{localize "CYBER_BLUE.Combat.DV"}}</span>
                 <span class="numeric-column">{{localize "CYBER_BLUE.Sheet.Labels.Macro"}}</span>
               </div>
               {{#each group.skills as |skill|}}
@@ -781,6 +782,7 @@
                     {{/each}}
                   </div>
                   <input class="numeric-column" type="number" value="0" data-field="modifier" />
+                  <input class="numeric-column" type="number" value="" min="0" placeholder="—" data-field="dv" title="{{localize "CYBER_BLUE.Combat.DV"}}" />
                   <button type="button" class="macro-button" data-action="create-skill-macro" data-skill-slug="{{skill.slug}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.CreateSkillMacro"}}">
                     <i class="fas fa-scroll"></i>
                   </button>

@@ -54,6 +54,7 @@ import { ROLE_CATALOGUE } from './data/role-catalogue.mjs';
 import { ABILITY_CATALOGUE } from './data/ability-catalogue.mjs';
 import { LIFEPATH_CATALOGUE } from './data/lifepath-catalogue.mjs';
 import { registerSocketHandlers, applyDamageWithPermission } from './helpers/socket.mjs';
+import { getPixelsPerMeter, getTokenCenter } from './helpers/targeting.mjs';
 import { syncRoleGrantedItemGroups } from './helpers/world-init.mjs';
 import { refreshAllRicochetLines, clearRicochetLine } from './helpers/ricochet-canvas.mjs';
 import { refreshTechChargeHighlights, clearTechChargeHighlights } from './helpers/tech-charge-canvas.mjs';
@@ -225,29 +226,32 @@ Hooks.once('init', function () {
   CONFIG.RegionBehavior.dataModels['visibility'] = CyberBlueVisibilityRegionBehavior;
   CONFIG.RegionBehavior.dataModels['hazard']     = CyberBlueHazardRegionBehavior;
   CONFIG.RegionBehavior.typeLabels['visibility'] = 'CYBER_BLUE.RegionBehavior.Visibility.Label';
+  CONFIG.RegionBehavior.typeLabels['hazard']     = 'CYBER_BLUE.RegionBehavior.Hazard.Label';
 
-  Actors.registerSheet('cyberpunk-blue', CyberBlueActorSheet, {
+  // v13+ namespaces — the bare Actors/Items globals are deprecated aliases.
+  const { Actors: ActorsCollection, Items: ItemsCollection } = foundry.documents.collections;
+  ActorsCollection.registerSheet('cyberpunk-blue', CyberBlueActorSheet, {
     makeDefault: true,
     label: 'CYBER_BLUE.SheetLabels.Actor',
     types: ['character', 'npc'],
   });
-  Actors.registerSheet('cyberpunk-blue', CyberBlueMookSheet, {
+  ActorsCollection.registerSheet('cyberpunk-blue', CyberBlueMookSheet, {
     makeDefault: true,
     label: 'CYBER_BLUE.SheetLabels.Mook',
     types: ['mook'],
   });
-  Actors.registerSheet('cyberpunk-blue', CyberBlueProgramSheet, {
+  ActorsCollection.registerSheet('cyberpunk-blue', CyberBlueProgramSheet, {
     makeDefault: true,
     label: 'CYBER_BLUE.SheetLabels.Program',
     types: ['program'],
   });
-  Actors.registerSheet('cyberpunk-blue', CyberBlueVehicleSheet, {
+  ActorsCollection.registerSheet('cyberpunk-blue', CyberBlueVehicleSheet, {
     makeDefault: true,
     label: 'CYBER_BLUE.SheetLabels.Vehicle',
     types: ['vehicle'],
   });
 
-  Items.registerSheet('cyberpunk-blue', CyberBlueItemSheet, {
+  ItemsCollection.registerSheet('cyberpunk-blue', CyberBlueItemSheet, {
     makeDefault: true,
     label: 'CYBER_BLUE.SheetLabels.Item',
     types: ['role', 'ability', 'cyberware', 'gear', 'ammo', 'programExecutable', 'drug', 'mod', 'vehicleMod', 'vehicleSubsystem'],
@@ -281,6 +285,16 @@ Hooks.once('init', function () {
   });
 
   // ── System settings ────────────────────────────────────────────────────────
+
+  // Highest one-time-repair pass already applied to this world. Bump
+  // REPAIRS_VERSION when adding a new repair so it runs exactly once instead
+  // of re-scanning every item on every GM login.
+  game.settings.register('cyberpunk-blue', 'repairsVersion', {
+    scope: 'world',
+    config: false,
+    type: Number,
+    default: 0,
+  });
 
   // Per-user tooltip preference for stat/skill/component descriptions.
   game.settings.register('cyberpunk-blue', 'descriptionTooltips', {
@@ -560,12 +574,15 @@ Hooks.once('init', function () {
   return preloadHandlebarsTemplates();
 });
 
-const syncSeriousWoundEffect = (document, options = {}) => {
-  // Skip echoes from either wound-AE sync writing its own effect.
-  if (options?.cyberBlueSyncSeriousWound || options?.cyberBlueSyncMortallyWounded) {
-    return;
-  }
+// ── Sync-hook helpers ─────────────────────────────────────────────────────────
+// Nearly every document sync below follows the same shape: resolve the owning
+// Actor/Item from whatever document the hook fired on (the document itself, an
+// embedded Item, or an embedded ActiveEffect), skip echoes from the sync's own
+// writes via an options guard, filter by type, and run. These factories hold
+// that shape in one place.
 
+/** Resolve the owning CyberBlueActor from a hook document (Actor, Item, or AE). */
+const resolveActorFromHookDocument = (document) => {
   const actor = document instanceof Actor
     ? document
     : document?.parent instanceof Actor
@@ -573,10 +590,45 @@ const syncSeriousWoundEffect = (document, options = {}) => {
       : document?.parent?.parent instanceof Actor
         ? document.parent.parent
         : null;
+  return actor instanceof CyberBlueActor ? actor : null;
+};
 
-  if (!(actor instanceof CyberBlueActor)) {
+/** Resolve the owning CyberBlueItem from a hook document (Item or embedded AE). */
+const resolveItemFromHookDocument = (document) => {
+  const item = document instanceof Item
+    ? document
+    : document?.parent instanceof Item
+      ? document.parent
+      : null;
+  return item instanceof CyberBlueItem ? item : null;
+};
+
+/**
+ * Build a hook handler that resolves the owning Item, applies the standard
+ * guards (echo option, item type, optional exact name, compendium skip), and
+ * calls `run(item, options)`.
+ *
+ * Compendium items are skipped because they are locked and cannot have
+ * embedded documents updated from these hooks (the pack is re-locked before
+ * the async sync resolves); the catalogue sync maintains their effects instead.
+ */
+const makeItemSyncHook = ({ guardOption, type, name = null, run }) => (document, options = {}) => {
+  if (guardOption && options?.[guardOption]) return;
+  const item = resolveItemFromHookDocument(document);
+  if (!item || item.type !== type) return;
+  if (name && item.name !== name) return;
+  if (item.pack) return;
+  return run(item, options);
+};
+
+const syncSeriousWoundEffect = (document, options = {}) => {
+  // Skip echoes from either wound-AE sync writing its own effect.
+  if (options?.cyberBlueSyncSeriousWound || options?.cyberBlueSyncMortallyWounded) {
     return;
   }
+
+  const actor = resolveActorFromHookDocument(document);
+  if (!actor) return;
 
   // Keep both reactive wound markers (Seriously Wounded, Mortally Wounded) in sync.
   return Promise.all([
@@ -633,27 +685,11 @@ Hooks.on('combatTurn', async (combat, updateData, updateOptions) => {
   }
 });
 
-const syncCyberwarePsycheLossEffect = (document, options = {}) => {
-  if (options?.cyberBlueSyncPsycheLoss) {
-    return;
-  }
-
-  const item = document instanceof Item
-    ? document
-    : document?.parent instanceof Item
-      ? document.parent
-      : null;
-
-  if (!(item instanceof CyberBlueItem) || item.type !== 'cyberware') {
-    return;
-  }
-
-  // Skip compendium items — they are locked and cannot have embedded documents
-  // updated via this hook (the pack is re-locked before the async sync resolves).
-  if (item.pack) return;
-
-  return item.syncCyberwarePsycheLossEffect(options);
-};
+const syncCyberwarePsycheLossEffect = makeItemSyncHook({
+  guardOption: 'cyberBlueSyncPsycheLoss',
+  type: 'cyberware',
+  run: (item, options) => item.syncCyberwarePsycheLossEffect(options),
+});
 
 const promptCyberwarePsycheLoss = async (item, options = {}, userId = null) => {
   if (game.user.id !== userId) {
@@ -795,26 +831,11 @@ Hooks.on('deleteActiveEffect', syncCyberwarePsycheLossEffect);
 Hooks.on('createItem', onCreateCyberwarePsycheLoss);
 Hooks.on('updateItem', onUpdateCyberwarePsycheLoss);
 
-const syncCyberwareOperationalEffects = (document, options = {}) => {
-  if (options?.cyberBlueSyncOperationalEffects) {
-    return;
-  }
-
-  const item = document instanceof Item
-    ? document
-    : document?.parent instanceof Item
-      ? document.parent
-      : null;
-
-  if (!(item instanceof CyberBlueItem) || item.type !== 'cyberware') {
-    return;
-  }
-
-  // Skip compendium items — same reason as syncCyberwarePsycheLossEffect above.
-  if (item.pack) return;
-
-  return item.syncCyberwareOperationalEffects(options);
-};
+const syncCyberwareOperationalEffects = makeItemSyncHook({
+  guardOption: 'cyberBlueSyncOperationalEffects',
+  type: 'cyberware',
+  run: (item, options) => item.syncCyberwareOperationalEffects(options),
+});
 
 const syncCyberwareDisableEffects = (document, options = {}) => {
   if (options?.cyberBlueSyncCyberwareDisable) {
@@ -860,28 +881,11 @@ Hooks.on('deleteActiveEffect', syncCyberwareOperationalEffects);
 // ─── Gear AE state sync ───────────────────────────────────────────────────────
 // Disables item-level AEs when gear state is 'owned'; re-enables when carried/equipped.
 
-const syncGearEffectsHook = (document, options = {}) => {
-  if (options?.cyberBlueSyncGearEffects) {
-    return;
-  }
-
-  const item = document instanceof Item
-    ? document
-    : document?.parent instanceof Item
-      ? document.parent
-      : null;
-
-  if (!(item instanceof CyberBlueItem) || item.type !== 'gear') {
-    return;
-  }
-
-  // Gear state sync is only meaningful for actor-owned items.
-  // Compendium items have no actor context, and calling syncGearEffects on them
-  // would try to update AEs while the pack is locked (e.g. during _ensureArmorInGearPack).
-  if (item.pack) return;
-
-  return item.syncGearEffects(options);
-};
+const syncGearEffectsHook = makeItemSyncHook({
+  guardOption: 'cyberBlueSyncGearEffects',
+  type: 'gear',
+  run: (item, options) => item.syncGearEffects(options),
+});
 
 Hooks.on('createItem', syncGearEffectsHook);
 Hooks.on('updateItem', syncGearEffectsHook);
@@ -891,21 +895,12 @@ Hooks.on('updateItem', syncGearEffectsHook);
 // contains a validated skill or component slug.  Actors read the flag at roll
 // time via _getSkillChipFloors() to apply a minimum rank floor of 3.
 
-const syncSkillChipEffectHook = (document, options = {}) => {
-  if (options?.cyberBlueSyncSkillChip) {
-    return;
-  }
-
-  const item = document instanceof Item ? document : null;
-  if (!(item instanceof CyberBlueItem) || item.type !== 'gear' || item.name !== 'Skill Chip') {
-    return;
-  }
-
-  // Skip compendium items — same reason as syncCyberwarePsycheLossEffect above.
-  if (item.pack) return;
-
-  return item.syncSkillChipEffect(options);
-};
+const syncSkillChipEffectHook = makeItemSyncHook({
+  guardOption: 'cyberBlueSyncSkillChip',
+  type: 'gear',
+  name: 'Skill Chip',
+  run: (item, options) => item.syncSkillChipEffect(options),
+});
 
 Hooks.on('createItem', syncSkillChipEffectHook);
 Hooks.on('updateItem', syncSkillChipEffectHook);
@@ -980,18 +975,12 @@ const onUpdateActorPsyche = (actor, changed, options) => {
 
 Hooks.on('updateActor', onUpdateActorPsyche);
 
-const syncLeaderTeams = (document, options = {}) => {
+const syncLeaderTeams = (document, _options = {}) => {
   if (document instanceof Item && document.type !== 'role') {
     return;
   }
-  const actor = document instanceof Actor
-    ? document
-    : document instanceof Item && document.parent instanceof Actor
-      ? document.parent
-      : null;
-  if (!(actor instanceof CyberBlueActor)) {
-    return;
-  }
+  const actor = resolveActorFromHookDocument(document);
+  if (!actor) return;
   return syncActorLeaderRoles(actor);
 };
 
@@ -1495,19 +1484,12 @@ Hooks.on('combatTurn', async (combat, updateData) => {
     });
 
     // Find all tokens within 2m of the target
-    const gridSize = canvas.grid?.size ?? 100;
-    const scene = canvas.scene;
-    const gridDistance = scene?.grid?.distance ?? 1;
-    const gridUnits = (scene?.grid?.units ?? '').toLowerCase().trim();
-    const metersPerUnit = ['m', 'meter', 'meters'].includes(gridUnits) ? gridDistance : 2;
-    const blastRadiusPx = (2 / metersPerUnit) * gridSize;
-    const tx = targetToken.document.x + (targetToken.document.width * gridSize) / 2;
-    const ty = targetToken.document.y + (targetToken.document.height * gridSize) / 2;
+    const blastRadiusPx = 2 * getPixelsPerMeter();
+    const { x: tx, y: ty } = getTokenCenter(targetToken.document);
 
     for (const token of canvas.tokens.objects?.children ?? []) {
       if (!token.actor) continue;
-      const cx = token.document.x + (token.document.width * gridSize) / 2;
-      const cy = token.document.y + (token.document.height * gridSize) / 2;
+      const { x: cx, y: cy } = getTokenCenter(token.document);
       if (Math.hypot(cx - tx, cy - ty) > blastRadiusPx) continue;
       await applyDamageWithPermission(token.actor, chompRoll.total);
     }
@@ -1517,6 +1499,9 @@ Hooks.on('combatTurn', async (combat, updateData) => {
 // ── Combat turn marker ───────────────────────────────────────────────────────
 // Path to the system's animated "current actor" turn-marker video.
 const TURN_MARKER_SRC = 'systems/cyberpunk-blue/assets/effects/current-actor.webm';
+
+// Bump when adding a new one-time repair so it runs once on the next GM login.
+const REPAIRS_VERSION = 1;
 
 // Register a fully-static PIXI animation so the webm plays its own animation
 // without the core spin/pulse transforms fighting it.
@@ -1566,16 +1551,21 @@ Hooks.once('ready', async () => {
     console.warn('cyberpunk-blue | Could not set default turn marker', err);
   }
 
+  // One-time repairs are gated behind a stored version so already-repaired
+  // worlds don't pay for a full item/pack scan on every GM login.
+  const needsRepairs = game.settings.get('cyberpunk-blue', 'repairsVersion') < REPAIRS_VERSION;
+
   await ensureCritInjuryTables();
   await ensureVehicleCritTables();
   await ensureLostControlTables();
   await ensureVehicleCatalogue();
-  await migrateCostStrings();
+  if (needsRepairs) await migrateCostStrings();
   await ensureWeaponCatalogue();
   await ensureAmmoCatalogue();
   await ensureEquipmentCatalogue();
+  if (needsRepairs) await _pruneReclassifiedGear();
   await ensureRoleCatalogue();
-  await migrateRoleComponentTrainingSkill();
+  if (needsRepairs) await migrateRoleComponentTrainingSkill();
   await ensureAbilityCatalogue();
   await ensureLifepathCatalogue();
   await syncRoleLifepathLinks();
@@ -1602,16 +1592,21 @@ Hooks.once('ready', async () => {
   const cyberwareItems = allItems.filter((item) => item instanceof CyberBlueItem && item.type === 'cyberware');
   const gearItems = allItems.filter((item) => item instanceof CyberBlueItem && item.type === 'gear');
 
-  // Repair worlds that accumulated duplicate catalogue effects on items before
-  // the compendium-sync append-bug was fixed (collapses them to one each).
-  await cleanupDuplicateItemEffects();
+  if (needsRepairs) {
+    // Repair worlds that accumulated duplicate catalogue effects on items before
+    // the compendium-sync append-bug was fixed (collapses them to one each).
+    await cleanupDuplicateItemEffects();
 
-  // Repair drug Duration values that grew comma-separated from a duplicate input.
-  await repairDuplicatedDrugDurations();
+    // Repair drug Duration values that grew comma-separated from a duplicate input.
+    await repairDuplicatedDrugDurations();
 
-  // Backfill description text onto system effects created before descriptions
-  // were added (PSYCHE states, wound/death markers, critical injuries, …).
-  await backfillEffectDescriptions();
+    // Backfill description text onto system effects created before descriptions
+    // were added (PSYCHE states, wound/death markers, critical injuries, …).
+    await backfillEffectDescriptions();
+
+    await game.settings.set('cyberpunk-blue', 'repairsVersion', REPAIRS_VERSION);
+    console.log(`Cyberpunk Blue | One-time repairs pass ${REPAIRS_VERSION} completed.`);
+  }
 
   for (const item of cyberwareItems) {
     await item.syncCyberwarePsycheLossEffect({ cyberBlueSyncPsycheLoss: true });
@@ -2406,9 +2401,9 @@ async function _syncMissingMods(catalogue) {
 
 /**
  * Synchronise system fields of existing mod items in the weapon-mods compendium
- * against the current catalogue definition.  Detects changes to weaponChanges,
- * burstControlAmmoReduction, beginnerFriendly, and targetVitalsPenaltyReduction
- * so that catalogue updates propagate without a full pack wipe.
+ * against the current catalogue definition. Any field the catalogue entry
+ * specifies is compared and re-synced generically, so catalogue updates
+ * propagate without a full pack wipe or per-field bookkeeping.
  */
 async function _syncModEntries(catalogue) {
   const PACK_ID = 'cyberpunk-blue.weapon-mods';
@@ -2430,67 +2425,30 @@ async function _syncModEntries(catalogue) {
     const sys = doc.system;
     const defSys = def.system;
 
-    // Compare the fields that can change across catalogue updates
-    const weaponChangesChanged =
-      JSON.stringify(sys.weaponChanges ?? []) !== JSON.stringify(defSys.weaponChanges ?? []);
-    const burstChanged = (sys.burstControlAmmoReduction ?? 0) !== (defSys.burstControlAmmoReduction ?? 0);
-    const beginnerChanged = !!sys.beginnerFriendly !== !!defSys.beginnerFriendly;
-    const vitalsChanged = (sys.targetVitalsPenaltyReduction ?? 0) !== (defSys.targetVitalsPenaltyReduction ?? 0);
-    const trajectoryChanged = !!sys.trajectoryCalculations !== !!defSys.trajectoryCalculations;
-    const closeRangeChanged = !!sys.closeRangeBonus !== !!defSys.closeRangeBonus;
-    const steadyChanged = !!sys.steady !== !!defSys.steady;
-    const handlingComputerChanged = !!sys.handlingComputer !== !!defSys.handlingComputer;
-    const calibrationChanged = !!sys.calibration !== !!defSys.calibration;
-    const recoilBonusChanged = (sys.recoilBonus ?? 0) !== (defSys.recoilBonus ?? 0);
-    const recoilAFOnlyChanged = !!sys.recoilAFOnly !== !!defSys.recoilAFOnly;
-    // Batch 5 fields
-    const barrierPenChanged = !!sys.barrierPenetration !== !!defSys.barrierPenetration;
-    const improvedRicochetChanged = !!sys.improvedRicochet !== !!defSys.improvedRicochet;
-    // Batch 6 fields
-    const improvedChargeChanged = !!sys.improvedCharge !== !!defSys.improvedCharge;
-    const srCapacityChanged     = !!sys.srCapacity !== !!defSys.srCapacity;
-    // Batch 7 fields
-    const accidentalDischargeChanged = !!sys.accidentalDischarge !== !!defSys.accidentalDischarge;
-    // Batch 8 fields
-    const bayonetChanged = !!sys.bayonet !== !!defSys.bayonet;
-    // Batch 9 fields
-    const requiresLightMeleeChanged = !!sys.requiresLightMelee !== !!defSys.requiresLightMelee;
+    // Generic drift detection: any system field the CATALOGUE entry specifies
+    // that differs from the stored value is re-synced. Description/manufacturer
+    // keep their "only when the catalogue provides a value" guard below, and
+    // fields the catalogue omits are never touched. Adding a new mod field to
+    // the catalogue now propagates automatically — no per-field check needed.
+    const changedKeys = Object.keys(defSys ?? {}).filter((key) => {
+      if (key === 'description' || key === 'manufacturer') return false;
+      const catValue = defSys[key];
+      if (catValue === undefined) return false;
+      return JSON.stringify(catValue) !== JSON.stringify(sys[key]);
+    });
 
-    const modDataChanged = weaponChangesChanged || burstChanged || beginnerChanged || vitalsChanged ||
-        trajectoryChanged || closeRangeChanged || steadyChanged || handlingComputerChanged ||
-        calibrationChanged || recoilBonusChanged || recoilAFOnlyChanged ||
-        barrierPenChanged || improvedRicochetChanged ||
-        improvedChargeChanged || srCapacityChanged ||
-        accidentalDischargeChanged || bayonetChanged || requiresLightMeleeChanged;
     const modImgChanged = def.img && doc.img !== def.img;
     const catDescription = defSys?.description ?? '';
     const descriptionChanged = catDescription && sys.description !== catDescription;
     const catManufacturer = defSys?.manufacturer ?? '';
     const manufacturerChanged = catManufacturer && sys.manufacturer !== catManufacturer;
-    if (modDataChanged || modImgChanged || descriptionChanged || manufacturerChanged) {
+    if (changedKeys.length || modImgChanged || descriptionChanged || manufacturerChanged) {
       const update = { _id: doc.id };
       if (descriptionChanged) update['system.description'] = catDescription;
       if (manufacturerChanged) update['system.manufacturer'] = catManufacturer;
-      if (modDataChanged) Object.assign(update, {
-        'system.weaponChanges': defSys.weaponChanges ?? [],
-        'system.burstControlAmmoReduction': defSys.burstControlAmmoReduction ?? 0,
-        'system.beginnerFriendly': !!defSys.beginnerFriendly,
-        'system.targetVitalsPenaltyReduction': defSys.targetVitalsPenaltyReduction ?? 0,
-        'system.trajectoryCalculations': !!defSys.trajectoryCalculations,
-        'system.closeRangeBonus': !!defSys.closeRangeBonus,
-        'system.steady': !!defSys.steady,
-        'system.handlingComputer': !!defSys.handlingComputer,
-        'system.calibration': !!defSys.calibration,
-        'system.recoilBonus': defSys.recoilBonus ?? 0,
-        'system.recoilAFOnly': !!defSys.recoilAFOnly,
-        'system.barrierPenetration': !!defSys.barrierPenetration,
-        'system.improvedRicochet': !!defSys.improvedRicochet,
-        'system.improvedCharge': !!defSys.improvedCharge,
-        'system.srCapacity': !!defSys.srCapacity,
-        'system.accidentalDischarge': !!defSys.accidentalDischarge,
-        'system.bayonet': !!defSys.bayonet,
-        'system.requiresLightMelee': !!defSys.requiresLightMelee,
-      });
+      for (const key of changedKeys) {
+        update[`system.${key}`] = foundry.utils.deepClone(defSys[key]);
+      }
       if (modImgChanged) update.img = def.img;
       updates.push(update);
     }
@@ -2517,6 +2475,24 @@ function _rangeTablesEqual(a, b) {
     if ((Number(a?.[i]) || 0) !== (Number(b?.[i]) || 0)) return false;
   }
   return true;
+}
+
+const _RANGE_TABLE_FIELDS = new Set(['rangeTable', 'autofireRangeTable']);
+
+/**
+ * True when any field the CATALOGUE weapon entry specifies differs from the
+ * stored weapon entry. Generic on purpose: adding a new weapon-schema field to
+ * the catalogue makes it sync automatically — no per-field "batch" check to
+ * remember. Undefined catalogue values are skipped; range tables compare
+ * zero-padded so an absent table equals an all-zero one.
+ */
+function _weaponEntryDiffers(current, catalogueEntry) {
+  return Object.keys(catalogueEntry).some((key) => {
+    const catValue = catalogueEntry[key];
+    if (catValue === undefined) return false;
+    if (_RANGE_TABLE_FIELDS.has(key)) return !_rangeTablesEqual(current[key], catValue);
+    return JSON.stringify(catValue) !== JSON.stringify(current[key]);
+  });
 }
 
 /**
@@ -2546,110 +2522,15 @@ async function _syncWeaponEntries(catalogue) {
     const currentWeapons = doc.system.weapons ?? [];
     const catalogueWeapons = def.system?.weapons ?? [];
 
-    // Compare by weapon count only — if counts differ or the first entry's
-    // damageType changed (SS→AF merge), the entry is stale.
+    // Stale when the weapon count differs, or when ANY field the catalogue
+    // entry specifies differs from the stored entry. Fields the catalogue
+    // omits never force a rewrite, so schema-default fields are left alone.
+    // Range tables compare zero-padded (absent == all-zero) via _rangeTablesEqual.
     const countChanged = currentWeapons.length !== catalogueWeapons.length;
-    const typeChanged = (currentWeapons[0]?.damageType ?? '') !== (catalogueWeapons[0]?.damageType ?? '');
-    const autofireDamageChanged = (currentWeapons[0]?.autofireDamage ?? '') !== (catalogueWeapons[0]?.autofireDamage ?? '');
-    const critFlagsChanged =
-      !!currentWeapons[0]?.critSlicing !== !!catalogueWeapons[0]?.critSlicing ||
-      !!currentWeapons[0]?.critBlunt !== !!catalogueWeapons[0]?.critBlunt ||
-      !!currentWeapons[0]?.critCrushing !== !!catalogueWeapons[0]?.critCrushing ||
-      !!currentWeapons[0]?.critStun !== !!catalogueWeapons[0]?.critStun ||
-      !!currentWeapons[0]?.critDoublePick !== !!catalogueWeapons[0]?.critDoublePick;
+    const weaponFieldsChanged = !countChanged
+      && catalogueWeapons.some((cw, i) => _weaponEntryDiffers(currentWeapons[i] ?? {}, cw));
 
-    // Batch 5: new PW mechanic fields
-    const pwFieldsChanged = catalogueWeapons.some((cw, i) => {
-      const cur = currentWeapons[i] ?? {};
-      return (
-        (cur.targetedShotDamageDice ?? '') !== (cw.targetedShotDamageDice ?? '') ||
-        !!cur.armorPiercing !== !!(cw.armorPiercing) ||
-        !!cur.scatter !== !!(cw.scatter) ||
-        !!cur.shatteredProjectiles !== !!(cw.shatteredProjectiles) ||
-        (cur.shortAmmoFallbackDamage ?? '') !== (cw.shortAmmoFallbackDamage ?? '') ||
-        (cur.critOnBodyReq ?? 0) !== (cw.critOnBodyReq ?? 0) ||
-        (cur.targetVitalsPenalty ?? 8) !== (cw.targetVitalsPenalty ?? 8)
-      );
-    });
-    // Batch 6: TW charge mechanic fields
-    const twChargeFieldsChanged = catalogueWeapons.some((cw, i) => {
-      const cur = currentWeapons[i] ?? {};
-      return (
-        !!cur.cs3 !== !!cw.cs3 ||
-        (cur.cs3FallbackDamage ?? '') !== (cw.cs3FallbackDamage ?? '') ||
-        !!cur.chargeKeepsRof !== !!cw.chargeKeepsRof
-      );
-    });
-    // Batch 7: new weapon behaviour flags
-    const batch7FieldsChanged = catalogueWeapons.some((cw, i) => {
-      const cur = currentWeapons[i] ?? {};
-      return (
-        !!cur.vicious !== !!cw.vicious ||
-        !!cur.heavyRecoil !== !!cw.heavyRecoil ||
-        !!cur.shockwave !== !!cw.shockwave ||
-        !!cur.burningEdge !== !!cw.burningEdge ||
-        (cur.chargedAttackBonus ?? 0) !== (cw.chargedAttackBonus ?? 0)
-      );
-    });
-    // Batch 8: autoFireOn10, doubleLock, electricCharge, chompAmmo, halveSP
-    const batch8FieldsChanged = catalogueWeapons.some((cw, i) => {
-      const cur = currentWeapons[i] ?? {};
-      return (
-        !!cur.autoFireOn10 !== !!cw.autoFireOn10 ||
-        !!cur.doubleLock !== !!cw.doubleLock ||
-        !!cur.electricCharge !== !!cw.electricCharge ||
-        (cur.electricChargeMax ?? 0) !== (cw.electricChargeMax ?? 0) ||
-        !!cur.chompAmmo !== !!cw.chompAmmo ||
-        !!cur.halveSP !== !!cw.halveSP
-      );
-    });
-    // Batch 9: minimumAmmoToFire
-    const batch9FieldsChanged = catalogueWeapons.some((cw, i) => {
-      const cur = currentWeapons[i] ?? {};
-      return (cur.minimumAmmoToFire ?? 0) !== (cw.minimumAmmoToFire ?? 0);
-    });
-    // Batch 10: silence fields (silenceBuiltIn, silenceBuiltInDV)
-    const batch10FieldsChanged = catalogueWeapons.some((cw, i) => {
-      const cur = currentWeapons[i] ?? {};
-      return (
-        !!cur.silenceBuiltIn !== !!cw.silenceBuiltIn ||
-        (cur.silenceBuiltInDV ?? 0) !== (cw.silenceBuiltInDV ?? 0)
-      );
-    });
-    // Batch 11: weapon type change (e.g. mediumPistol → stunGun for Mámù)
-    const batch11FieldsChanged = catalogueWeapons.some((cw, i) => {
-      const cur = currentWeapons[i] ?? {};
-      return (cur.type ?? '') !== (cw.type ?? '');
-    });
-    // Batch 12: affliction fields + outerZoneResistBonus (new schema fields)
-    const batch12FieldsChanged = catalogueWeapons.some((cw, i) => {
-      const cur = currentWeapons[i] ?? {};
-      return (
-        (cur.afflictionPrimary ?? 'body') !== (cw.afflictionPrimary ?? 'body') ||
-        (cur.afflictionSkill ?? '') !== (cw.afflictionSkill ?? '') ||
-        (cur.afflictionDv ?? 13) !== (cw.afflictionDv ?? 13) ||
-        (cur.afflictionEffectId ?? '') !== (cw.afflictionEffectId ?? '') ||
-        (cur.outerZoneResistBonus ?? 2) !== (cw.outerZoneResistBonus ?? 2)
-      );
-    });
-    // Batch 13: isBeaconWeapon
-    const batch13FieldsChanged = catalogueWeapons.some((cw, i) => {
-      const cur = currentWeapons[i] ?? {};
-      return !!cur.isBeaconWeapon !== !!cw.isBeaconWeapon;
-    });
-    // Batch 14: range-band DV tables (Shoulder Arms floor(DV/10) reduction, etc.)
-    const rangeFieldsChanged = catalogueWeapons.some((cw, i) => {
-      const cur = currentWeapons[i] ?? {};
-      return !_rangeTablesEqual(cur.rangeTable, cw.rangeTable)
-        || !_rangeTablesEqual(cur.autofireRangeTable, cw.autofireRangeTable);
-    });
-    // Batch 14: firing-mode skill reassignment (e.g. SMGs moved to the handgun skill)
-    const skillChanged = catalogueWeapons.some((cw, i) => {
-      const cur = currentWeapons[i] ?? {};
-      return (cur.skill ?? '') !== (cw.skill ?? '');
-    });
-
-    const weaponDataChanged = countChanged || typeChanged || autofireDamageChanged || critFlagsChanged || pwFieldsChanged || twChargeFieldsChanged || batch7FieldsChanged || batch8FieldsChanged || batch9FieldsChanged || batch10FieldsChanged || batch11FieldsChanged || batch12FieldsChanged || batch13FieldsChanged || rangeFieldsChanged || skillChanged;
+    const weaponDataChanged = countChanged || weaponFieldsChanged;
     const weaponImgChanged = def.img && doc.img !== def.img;
     const catDescription = def.system?.description ?? '';
     const descriptionChanged = catDescription && doc.system.description !== catDescription;
@@ -3073,17 +2954,9 @@ async function _syncCyberwareEntries(catalogue) {
 
     const weaponCountChanged = currentWeapons.length !== catWeapons.length;
     const isWeaponChanged    = currentIsWeapon !== catIsWeapon;
-    // Also detect critDoublePick flag changes (e.g. Monowire)
-    const critDoublePickChanged = catWeapons.some((cw, i) =>
-      !!currentWeapons[i]?.critDoublePick !== !!cw.critDoublePick
-    );
-    // Range-band DV tables (Shoulder Arms floor(DV/10) reduction). No-op for the
-    // current all-melee cyberware, but keeps the rule uniform with the gear pack.
-    const rangeFieldsChanged = catWeapons.some((cw, i) => {
-      const cur = currentWeapons[i] ?? {};
-      return !_rangeTablesEqual(cur.rangeTable, cw.rangeTable)
-        || !_rangeTablesEqual(cur.autofireRangeTable, cw.autofireRangeTable);
-    });
+    // Field-level drift: any catalogue-specified weapon field that differs.
+    const weaponFieldsChanged = !weaponCountChanged
+      && catWeapons.some((cw, i) => _weaponEntryDiffers(currentWeapons[i] ?? {}, cw));
 
     // Compare effects (catalogue definition vs. doc's non-system-generated AEs)
     const catEffects = def.effects ?? [];
@@ -3111,7 +2984,7 @@ async function _syncCyberwareEntries(catalogue) {
 
     const update = { _id: doc.id };
     let needsUpdate = false;
-    if (weaponCountChanged || isWeaponChanged || critDoublePickChanged || rangeFieldsChanged) {
+    if (weaponCountChanged || isWeaponChanged || weaponFieldsChanged) {
       update['system.isWeapon'] = catIsWeapon;
       update['system.weapons']  = catWeapons;
       needsUpdate = true;
@@ -3286,10 +3159,8 @@ async function _syncGearEntries(catalogue) {
     // from the stored entry (e.g. a newly added field like consumableThrown, or a
     // changed shots/damage value). Only fields present in the catalogue entry are
     // compared, so schema-default fields the catalogue omits never force a rewrite.
-    const weaponFieldsChanged = !weaponCountChanged && catWeapons.some((cw, i) => {
-      const dw = currentWeapons[i] ?? {};
-      return Object.keys(cw).some((k) => JSON.stringify(cw[k]) !== JSON.stringify(dw[k]));
-    });
+    const weaponFieldsChanged = !weaponCountChanged
+      && catWeapons.some((cw, i) => _weaponEntryDiffers(currentWeapons[i] ?? {}, cw));
 
     const catEffects = def.effects ?? [];
     const docEffects = (doc.effects?.contents ?? []).filter((e) => !_isSystemGeneratedEffect(e));
@@ -3503,10 +3374,8 @@ async function ensureEquipmentCatalogue() {
     // Sync effects and weapons on already-populated gear pack entries
     await _syncGearEntries(EQUIPMENT_CATALOGUE);
 
-    // Remove gear-pack entries that were reclassified to another item type
-    // (cyberdeck Hardware MODs moved gear → computerMod; they live in the
-    // weapon-mods pack now). Prunes stale duplicates from already-seeded packs.
-    await _pruneReclassifiedGear();
+    // (Reclassified-gear pruning runs from the ready hook's one-time-repairs
+    // block — see _pruneReclassifiedGear.)
 
     // Sync effects and instructions on already-populated drug pack entries
     await _syncDrugEntries(DRUG_CATALOGUE);

@@ -650,8 +650,8 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
     const second = await _drawSecondCritResult(rollTable, hardcodedTable);
     if (second.entry && second.entry.key !== entry.key) {
       const pickedFirst = await new Promise((resolve) => {
-        new Dialog({
-          title: game.i18n.localize('CYBER_BLUE.CriticalInjury.MonowirePick'),
+        const dialog = new foundry.applications.api.DialogV2({
+          window: { title: game.i18n.localize('CYBER_BLUE.CriticalInjury.MonowirePick') },
           content: `<div class="cyberpunk-blue chat-card">
             <p>${game.i18n.localize('CYBER_BLUE.CriticalInjury.MonowirePickHint')}</p>
             <div style="display:flex;gap:0.75em;margin-top:0.5em">
@@ -665,13 +665,14 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
               </div>
             </div>
           </div>`,
-          buttons: {
-            first:  { label: baseName,        callback: () => resolve(true)  },
-            second: { label: second.baseName,  callback: () => resolve(false) },
-          },
-          default: 'first',
-          close: () => resolve(true),
-        }).render(true);
+          buttons: [
+            { action: 'first',  label: baseName,        default: true, callback: () => true },
+            { action: 'second', label: second.baseName, callback: () => false },
+          ],
+          submit: resolve,
+        });
+        dialog.addEventListener('close', () => resolve(true), { once: true });
+        dialog.render(true);
       });
       if (!pickedFirst) {
         entry       = second.entry;
