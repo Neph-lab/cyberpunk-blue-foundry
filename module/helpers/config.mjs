@@ -422,7 +422,7 @@ const MANUFACTURERS = [
   'Kang-Tao',
   'Kaukaz',
   'Kendachi',
-  'Kiroshi',
+  'Kiroshi Opticals',
   'KTech',
   'Lizzy-Wizzy',
   'Love Hub',

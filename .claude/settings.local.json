@@ -189,7 +189,8 @@
       "Bash(node --check module/helpers/combat.mjs)",
       "Bash(node --check module/data/weapon-schema.mjs)",
       "Bash(git --no-pager diff -- module/data/weapon-schema.mjs module/data/weapon-catalogue.mjs module/data/cyberware-catalogue.mjs module/helpers/combat.mjs module/cyberpunk-blue.mjs)",
-      "Bash(node --input-type=module -e \"import\\('./module/data/cyberware-catalogue.mjs'\\).then\\(\\(\\)=>console.log\\('cyberware OK'\\)\\); import\\('./module/data/equipment-catalogue.mjs'\\).then\\(\\(\\)=>console.log\\('equipment OK'\\)\\)\")"
+      "Bash(node --input-type=module -e \"import\\('./module/data/cyberware-catalogue.mjs'\\).then\\(\\(\\)=>console.log\\('cyberware OK'\\)\\); import\\('./module/data/equipment-catalogue.mjs'\\).then\\(\\(\\)=>console.log\\('equipment OK'\\)\\)\")",
+      "Bash(node --check module/helpers/config.mjs)"
     ]
   }
 }

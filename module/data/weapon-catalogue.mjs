@@ -7,7 +7,7 @@
  *
  * Excluded by design (per memory/weapon-cards-excluded.md):
  *   - Arasaka Onibi Plasma Caster (non-standard)
- *   - Softsys Microwaver-55 (EMP, not a weapon)
+ *   - SoftSys Microwaver-55 (EMP, not a weapon)
  *   - Arasaka Daikon NT Mantis Blades (cyberware, modelled separately)
  *   - Kendachi Permanent Edge (truncated source data)
  *   - Budget Arms Slaught-O-Matic (can't reload + melts)
@@ -235,7 +235,7 @@ const pistols = [
   weaponItem({ name: 'Darra Polytechnic DR-12 Quasar', manufacturer: 'Darra Polytechnic', cost: 'PR', imgPath: img(W_PISTOL, 'Darra Polytechnic DR-12 Quasar.png'),
     weapons: [entry({ ...HP_BASE, magazine: 12, tech: true, chargeType: 'hold', jamOnRoll: 1, jamFiresFirst: false, cs3: true, cs3FallbackDamage: '2d6' })],
     description: desc('Tech Weapon (HOLD charge), Cheap. Charged Shot 3 (CS3).') }),
-  weaponItem({ name: 'Malorian Arms Sonnet', manufacturer: 'Malorian Arms', cost: 'EX', imgPath: img(W_PISTOL, 'Maloran Arms Sonnet.png'),
+  weaponItem({ name: 'Malorian Arms Sonnet', manufacturer: 'Malorian Arms', cost: 'EX', imgPath: img(W_PISTOL, 'Malorian Arms Sonnet.png'),
     weapons: [
       entry({ ...HP_BASE, magazine: 12, smart: true }),
       entry({ type: 'heavyPistol', damage: '1d6', rateOfFire: 1, magazine: 2, hands: 1, concealable: true, rangeTable: R.pistol, shots: 1, smart: true, isBeaconWeapon: true }),

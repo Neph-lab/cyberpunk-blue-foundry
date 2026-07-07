@@ -385,7 +385,7 @@ export const EQUIPMENT_CATALOGUE = [
     description: 'Spacious and sturdy.',
   }),
   gear({
-    name: 'Binoculars', manufacturer: 'Miitech',
+    name: 'Binoculars', manufacturer: 'Militech',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/binoculars.png`, cost: 'CO',
     description: 'Magnifies up to ×5.',
   }),
@@ -684,7 +684,7 @@ export const EQUIPMENT_CATALOGUE = [
     effects: [reminder('Scent Perception +2 (situational)')],
   }),
   gear({
-    name: 'Pain Editor Chip', manufacturer: 'Miitech', imgPath: `${A_CHIPWARE}/pain-editor.png`,
+    name: 'Pain Editor Chip', manufacturer: 'Militech', imgPath: `${A_CHIPWARE}/pain-editor.png`,
     folder: 'Chipware', cost: 'EX',
     description: 'Chipware — equipped in a shard socket. Ignore <strong>Seriously Wounded</strong> penalties while installed.',
     effects: [{

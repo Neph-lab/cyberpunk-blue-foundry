@@ -231,7 +231,7 @@ export const CYBERWARE_CATALOGUE = [
     description: 'Replaces one eye. Can appear as desired. Perfect 20/20 vision. Provides 3 cyberoptic slots for extensions. Can be installed a second time (second eye) — the pair is renamed to Left/Right automatically.',
   }),
   cw({
-    name: 'Anti-Dazzle', manufacturer: 'Kiroshi',
+    name: 'Anti-Dazzle', manufacturer: 'Kiroshi Opticals',
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 1,
     cost: 'CO', facilities: 'mall', installationCost: 'CO', installationDv: 12,
@@ -257,7 +257,7 @@ export const CYBERWARE_CATALOGUE = [
     description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Single-shot exotic weapon concealed in the eye. Takes 1 minute to reload.</p>',
   }),
   cw({
-    name: 'Image Enhance', manufacturer: 'Kiroshi',
+    name: 'Image Enhance', manufacturer: 'Kiroshi Opticals',
     img: `systems/cyberpunk-blue/assets/items/cyberware/image-enchance.png`,
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 1,
@@ -323,7 +323,7 @@ export const CYBERWARE_CATALOGUE = [
     description: 'PAIRED (must be installed in both eyes). Multi-sensory MeatSpace AR overlay. Used by Netrunners, gamers, and corpos.',
   }),
   cw({
-    name: 'Wide Spectrum Optics', manufacturer: 'Kiroshi',
+    name: 'Wide Spectrum Optics', manufacturer: 'Kiroshi Opticals',
     img: `systems/cyberpunk-blue/assets/items/cyberware/wide-spectrum-optics.png`,
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 2,
@@ -432,7 +432,7 @@ export const CYBERWARE_CATALOGUE = [
     description: 'Full arm replacement. Provides 4 cyberarm slots for extensions.',
   }),
   cw({
-    name: 'Gorilla Arm', manufacturer: 'Miitech',
+    name: 'Gorilla Arm', manufacturer: 'Militech',
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'platform', slotsProvided: 3,
     cost: 'VEX', facilities: 'hospital', installationCost: 'EX', installationDv: 19,
@@ -521,7 +521,7 @@ export const CYBERWARE_CATALOGUE = [
     description: '<p style="color: var(--cpb-error);"><strong>Illegal without a permit.</strong></p><p>Mono-filament whip housed in the hand or forearm.</p><p><strong>1-HANDED MELEE WEAPON:</strong> <strong>3d6</strong> damage, RoF 2, no mod slots, 6m range. On a Critical Injury, roll the table twice and pick the preferred result.</p>',
   }),
   cw({
-    name: 'Projectile Launch System', manufacturer: 'Miitech',
+    name: 'Projectile Launch System', manufacturer: 'Militech',
     img: `systems/cyberpunk-blue/assets/items/cyberware/projectile-launch-system.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 2,
@@ -918,7 +918,7 @@ export const CYBERWARE_CATALOGUE = [
     effects: [ae('BODY becomes 12', [statOvr('body', 12)])],
   }),
   cw({
-    name: 'MultiOptic Mount', manufacturer: 'Kiroshi',
+    name: 'MultiOptic Mount', manufacturer: 'Kiroshi Opticals',
     img: `systems/cyberpunk-blue/assets/items/cyberware/MultiOptic-Mount.png`,
     folder: 'Borgware',
     cyberwareType: 'borgware', integration: 'standalone', slotsProvided: 5,
