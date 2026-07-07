@@ -723,7 +723,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Laptop', manufacturer: 'SoftSys',
-    folder: 'Architecture Hardware', cost: 'PR',
+    folder: 'Architecture Hardware', imgPath: `${A_GEAR}/laptop.png`, cost: 'PR',
     isComputer: true,
     computer: { nodes: 4, softwareSlots: 5 },
     description: 'Architecture Hardware. 4 nodes, 5 active program slots.',
@@ -751,14 +751,14 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Server', manufacturer: 'Microtech',
-    folder: 'Architecture Hardware', cost: 'VEX',
+    folder: 'Architecture Hardware', imgPath: `${A_GEAR}/server.png`, cost: 'VEX',
     isComputer: true,
     computer: { nodes: 8, softwareSlots: 11 },
     description: 'Architecture Hardware. 8 nodes, 11 active program slots.',
   }),
   gear({
     name: 'Server, High Capacity', manufacturer: 'Microtech',
-    folder: 'Architecture Hardware', cost: 'LUX',
+    folder: 'Architecture Hardware', imgPath: `${A_GEAR}/server-advanced.png`, cost: 'LUX',
     isComputer: true,
     computer: { nodes: 12, softwareSlots: 16 },
     description: 'Architecture Hardware. 12 nodes, 16 active program slots.',

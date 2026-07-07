@@ -286,6 +286,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Radiation Detector',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/radiation-detector.png`,
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 1,
     cost: 'VEX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -378,6 +379,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Level Dampener',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/level-dampener-cyberware.png`,
     folder: 'Cyberaudio',
     cyberwareType: 'cyberaudio', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'mall', installationCost: 'CO', installationDv: 12,
@@ -565,6 +567,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Techscanner (Cyberarm)',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/techscanner-cyberware.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 2,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -827,6 +830,7 @@ export const CYBERWARE_CATALOGUE = [
 
   cw({
     name: 'Dermal Display',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/subdermal-display.png`,
     folder: 'External Cyberware',
     cyberwareType: 'external', integration: 'standalone',
     cost: 'CO', facilities: 'mall', installationCost: 'CO', installationDv: 12,
