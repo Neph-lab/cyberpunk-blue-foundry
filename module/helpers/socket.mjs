@@ -359,11 +359,21 @@ export async function ablateArmorExtraWithPermission(targetActor) {
 // The player owns only their Hand (Observer on Deck/Pile), so every card move —
 // provisioning, dealing, meditating, and playing — runs on the GM.
 
+/**
+ * True if a GM is online to service a delegated Guide request. If not, warns the
+ * player so the action doesn't silently vanish.
+ */
+export function guideGmAvailable() {
+  if (game.users.activeGM) return true;
+  ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Role.Guide.NoGM'));
+  return false;
+}
+
 export async function ensureGuideCardsWithPermission(actor) {
   if (game.user.isGM) {
     const { ensureGuideCards } = await import('./guide-tarot.mjs');
     await ensureGuideCards(actor);
-  } else {
+  } else if (guideGmAvailable()) {
     emitToGM('guideProvision', { actorId: actor.id });
   }
 }
@@ -372,7 +382,7 @@ export async function dealGuideReadingWithPermission(actor) {
   if (game.user.isGM) {
     const { dealGuideReading } = await import('./guide-tarot.mjs');
     await dealGuideReading(actor);
-  } else {
+  } else if (guideGmAvailable()) {
     emitToGM('guideDeal', { actorId: actor.id });
   }
 }
@@ -381,7 +391,7 @@ export async function meditateGuideReadingWithPermission(actor) {
   if (game.user.isGM) {
     const { meditateGuideReading } = await import('./guide-tarot.mjs');
     await meditateGuideReading(actor);
-  } else {
+  } else if (guideGmAvailable()) {
     emitToGM('guideMeditate', { actorId: actor.id });
   }
 }

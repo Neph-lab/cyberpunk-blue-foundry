@@ -19,7 +19,7 @@
  *  - registerTarotHooks()     Patches Cards.prototype.playDialog for Guide hands.
  */
 
-import { emitToGM } from './socket.mjs';
+import { emitToGM, guideGmAvailable } from './socket.mjs';
 
 const TAROT_IMG_BASE = 'systems/cyberpunk-blue/assets/Tarot/';
 const CARD_BACK_IMG  = `${TAROT_IMG_BASE}card_back.png`;
@@ -592,7 +592,7 @@ async function _tarotPlayDialog(card) {
   if (game.user.isGM) {
     const actor = game.actors.get(actorId);
     if (actor) await playGuideCard(actor, card.id);
-  } else {
+  } else if (guideGmAvailable()) {
     emitToGM('guidePlay', { actorId, cardId: card.id });
   }
 }

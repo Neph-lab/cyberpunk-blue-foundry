@@ -417,6 +417,7 @@
         "DealHeading": "Guide — Reading Dealt",
         "MeditateHeading": "Guide — Meditation",
         "NoDeck": "No Guide Deck found. Click Create/Verify to set it up (GM only).",
+        "NoGM": "No GM is connected — a GM must be online to resolve your Guide reading.",
         "NoCompendiumDeck": "The Guide Tarot Deck compendium is empty — reload the world as GM to seed it.",
         "NoPlayerOwner": "{name} has no player owner; the GM manages this Guide's deck manually.",
         "NoMeditations": "No meditations remaining this session.",
