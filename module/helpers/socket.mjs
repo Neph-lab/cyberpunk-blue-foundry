@@ -175,6 +175,23 @@ export function registerSocketHandlers() {
         await disconnectFromArchitecture(actor, safe ?? true, { forUserId: userId });
         break;
       }
+      // ── Guide Role: native Cards operations (players are Observers of the
+      //    deck/pile and cannot move cards, so they delegate to the GM). ──
+      case 'guideProvision':
+      case 'guideDeal':
+      case 'guideMeditate':
+      case 'guidePlay': {
+        const guide = await import('./guide-tarot.mjs');
+        const actor = message.actorId
+          ? game.actors.get(message.actorId)
+          : (message.actorUuid ? await fromUuid(message.actorUuid) : null);
+        if (!(actor instanceof Actor)) return;
+        if (message.type === 'guideProvision') await guide.ensureGuideCards(actor);
+        else if (message.type === 'guideDeal') await guide.dealGuideReading(actor);
+        else if (message.type === 'guideMeditate') await guide.meditateGuideReading(actor);
+        else await guide.playGuideCard(actor, message.cardId);
+        break;
+      }
       default:
         console.warn(`Cyberpunk Blue | Unknown socket message type: ${message.type}`);
     }
@@ -335,6 +352,37 @@ export async function ablateArmorExtraWithPermission(targetActor) {
     if (currentSp > 0) await armor.update({ 'system.armor.currentSp': currentSp - 1 });
   } else {
     emitToGM('ablateArmorExtra', { actorUuid: targetActor.uuid });
+  }
+}
+
+// ─── Guide Role card operations ───────────────────────────────────────────────
+// The player owns only their Hand (Observer on Deck/Pile), so every card move —
+// provisioning, dealing, meditating, and playing — runs on the GM.
+
+export async function ensureGuideCardsWithPermission(actor) {
+  if (game.user.isGM) {
+    const { ensureGuideCards } = await import('./guide-tarot.mjs');
+    await ensureGuideCards(actor);
+  } else {
+    emitToGM('guideProvision', { actorId: actor.id });
+  }
+}
+
+export async function dealGuideReadingWithPermission(actor) {
+  if (game.user.isGM) {
+    const { dealGuideReading } = await import('./guide-tarot.mjs');
+    await dealGuideReading(actor);
+  } else {
+    emitToGM('guideDeal', { actorId: actor.id });
+  }
+}
+
+export async function meditateGuideReadingWithPermission(actor) {
+  if (game.user.isGM) {
+    const { meditateGuideReading } = await import('./guide-tarot.mjs');
+    await meditateGuideReading(actor);
+  } else {
+    emitToGM('guideMeditate', { actorId: actor.id });
   }
 }
 

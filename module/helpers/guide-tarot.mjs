@@ -1,20 +1,31 @@
 /**
- * Guide Role — Foundry Cards deck seeding and play-dialog integration.
+ * Guide Role — native Foundry Cards mechanics.
+ *
+ * The Guide ability runs entirely on Foundry's built-in Cards documents. Each
+ * player-owned Guide character gets three flagged stacks — a Deck (copy of the
+ * compendium deck), a Hand, and a "Fates" Pile — plus a "Guide Reading" hotbar
+ * macro. Every stack/macro carries flags['cyberpunk-blue'].guide = { actorId, kind }
+ * so lookups are idempotent.
+ *
+ * Because the player is only Observer on the Deck and Pile (Owner on the Hand),
+ * all card movement runs on the GM: dealing, meditating, and playing are
+ * delegated via helpers/socket.mjs (emitToGM). Only the sole meditation counter
+ * (guide.meditationsUsed) is still stored as an actor flag.
  *
  * Provides:
- *  - ensureTarotDeck()      Seeds the cyberpunk-blue.tarot-deck compendium on first GM load.
- *  - registerTarotHooks()   Patches Cards.prototype.playDialog so that playing a card from
- *                           a Guide-flagged hand shows the card description and triggers effects.
- *
- * The actor-sheet flag-based deal/meditate system (guide.reading, guide.deck, guide.meditationsUsed)
- * continues to handle the actor-level reading state. This module adds the visual card-object layer
- * that the GM can use via Foundry's native Cards interface (hands, piles, card sheets).
+ *  - ensureTarotDeck()        Seeds the cyberpunk-blue.tarot-deck compendium on first GM load.
+ *  - ensureGuideCards(actor)  Idempotently provisions Deck/Hand/Pile/macro/hotbar (GM).
+ *  - dealGuideReading / meditateGuideReading / playGuideCard  Card operations (GM).
+ *  - registerTarotHooks()     Patches Cards.prototype.playDialog for Guide hands.
  */
+
+import { emitToGM } from './socket.mjs';
 
 const TAROT_IMG_BASE = 'systems/cyberpunk-blue/assets/Tarot/';
 const CARD_BACK_IMG  = `${TAROT_IMG_BASE}card_back.png`;
 const TAROT_PACK_ID  = 'cyberpunk-blue.tarot-deck';
 const GUIDE_FLAG     = 'cyberpunk-blue';
+const GUIDE_FOLDER   = 'Guide Decks';
 
 // ── Card definitions ──────────────────────────────────────────────────────────
 
@@ -235,102 +246,355 @@ export async function ensureTarotDeck() {
   }
 }
 
+// ── Per-character Cards provisioning (Deck / Hand / Pile / Macro) ──────────────
+
+/** Find a Guide-flagged Cards stack ('deck' | 'hand' | 'pile') for an actor. */
+export function findGuideStack(actor, kind) {
+  if (!actor) return null;
+  return game.cards.find((c) => {
+    const f = c.getFlag(GUIDE_FLAG, 'guide');
+    return f?.actorId === actor.id && f?.kind === kind;
+  }) ?? null;
+}
+
+/** The first non-GM user who owns the actor, or null (NPC / GM-only characters). */
+export function getGuidePlayerUser(actor) {
+  if (!(actor instanceof Actor)) return null;
+  return game.users.find((u) => !u.isGM && actor.testUserPermission(u, 'OWNER')) ?? null;
+}
+
+/** Guide-role rank on the actor (0 if none). */
+function _guideRoleRank(actor) {
+  const role = actor.items.find((i) => i.type === 'role' && i.name === 'Guide');
+  return Math.max(Number(role?.system?.rank) || 0, 0);
+}
+
+/** Cyberware lock info: high-numbered arcana lock when PSYCHE max drops below 60. */
+function _guideLockInfo(actor) {
+  const psycheMax = actor.system?.resources?.psyche?.max ?? 60;
+  const lockedCount = Math.max(0, Math.floor((60 - psycheMax) / 10));
+  return { lockedCount, availableCards: 22 - lockedCount };
+}
+
+function _meditationsMax(rank) {
+  return 1 + (rank >= 5 ? 1 : 0) + (rank >= 10 ? 1 : 0);
+}
+
+function _shuffleArr(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function _ownership(userId, level) {
+  return { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE, [userId]: level };
+}
+
+async function _ensureGuideFolder() {
+  let folder = game.folders.find((f) => f.type === 'Cards' && !f.folder && f.name === GUIDE_FOLDER);
+  if (!folder) {
+    folder = await Folder.create({ name: GUIDE_FOLDER, type: 'Cards', color: '#5ef2c0' });
+  }
+  return folder;
+}
+
+/** Compendium document id of the seeded Guide Tarot Deck. */
+async function _compendiumDeckId() {
+  const pack = game.packs.get(TAROT_PACK_ID);
+  if (!pack) return null;
+  await pack.getIndex();
+  const entry = pack.index.find((e) => e.type === 'deck') ?? pack.index.contents[0];
+  return entry?._id ?? null;
+}
+
+function _guideReadingMacroCommand(actorId) {
+  return [
+    `const hand = game.cards.find((c) => {`,
+    `  const f = c.getFlag('cyberpunk-blue', 'guide');`,
+    `  return f?.actorId === '${actorId}' && f?.kind === 'hand';`,
+    `});`,
+    `if (hand) hand.sheet.render(true);`,
+    `else ui.notifications.warn('No Guide hand found — ask your GM to set up your Guide deck.');`,
+  ].join('\n');
+}
+
+async function _assignMacroToHotbar(user, macro) {
+  const hotbar = user.hotbar ?? {};
+  if (Object.values(hotbar).includes(macro.id)) return; // already placed
+  let slot = null;
+  for (let i = 1; i <= 50; i++) {
+    if (!hotbar[i]) { slot = i; break; }
+  }
+  if (slot === null) return; // hotbar full
+  await user.assignHotbarMacro(macro, slot);
+}
+
+/**
+ * Provision (idempotently) the native Cards documents, macro, and hotbar entry
+ * for a player-owned Guide character. GM-only; delegate from players via
+ * ensureGuideCardsWithPermission (helpers/socket.mjs).
+ */
+export async function ensureGuideCards(actor) {
+  if (!game.user.isGM || !(actor instanceof Actor)) return;
+
+  const player = getGuidePlayerUser(actor);
+  if (!player) {
+    // NPC / GM-only Guide — the GM manages the deck manually.
+    ui.notifications.info(game.i18n.format('CYBER_BLUE.Role.Guide.NoPlayerOwner', { name: actor.name }));
+    return;
+  }
+
+  const OWNER    = CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER;
+  const OBSERVER = CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER;
+  const folder   = await _ensureGuideFolder();
+
+  // ── Deck (copy of the compendium deck; player is Observer) ──
+  let deck = findGuideStack(actor, 'deck');
+  if (!deck) {
+    const pack = game.packs.get(TAROT_PACK_ID);
+    const deckId = await _compendiumDeckId();
+    if (!pack || !deckId) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Role.Guide.NoCompendiumDeck'));
+      return;
+    }
+    deck = await game.cards.importFromCompendium(pack, deckId, { name: `${actor.name}'s Guide Deck` });
+    await deck.update({
+      folder: folder.id,
+      ownership: _ownership(player.id, OBSERVER),
+      flags: { [GUIDE_FLAG]: { guide: { actorId: actor.id, kind: 'deck' } } },
+    });
+  }
+
+  // ── Hand (named for the character; player is Owner) ──
+  let hand = findGuideStack(actor, 'hand');
+  if (!hand) {
+    hand = await Cards.create({
+      name: actor.name,
+      type: 'hand',
+      img: CARD_BACK_IMG,
+      folder: folder.id,
+      ownership: _ownership(player.id, OWNER),
+      flags: { [GUIDE_FLAG]: { guide: { actorId: actor.id, kind: 'hand' } } },
+    });
+  }
+
+  // ── Pile "<Char>'s Fates" (player is Observer) ──
+  let pile = findGuideStack(actor, 'pile');
+  if (!pile) {
+    pile = await Cards.create({
+      name: `${actor.name}'s Fates`,
+      type: 'pile',
+      img: CARD_BACK_IMG,
+      folder: folder.id,
+      ownership: _ownership(player.id, OBSERVER),
+      flags: { [GUIDE_FLAG]: { guide: { actorId: actor.id, kind: 'pile' } } },
+    });
+  }
+
+  // ── "Guide Reading" macro that opens the character's Hand ──
+  let macro = game.macros.find((m) => m.getFlag(GUIDE_FLAG, 'guide')?.actorId === actor.id);
+  if (!macro) {
+    macro = await Macro.create({
+      name: 'Guide Reading',
+      type: 'script',
+      img: CARD_BACK_IMG,
+      command: _guideReadingMacroCommand(actor.id),
+      ownership: _ownership(player.id, OWNER),
+      flags: { [GUIDE_FLAG]: { guide: { actorId: actor.id } } },
+    });
+  }
+
+  // ── Place macro in the player's first free hotbar slot ──
+  if (macro) await _assignMacroToHotbar(player, macro);
+
+  ui.notifications.info(game.i18n.format('CYBER_BLUE.Role.Guide.Provisioned', { name: actor.name }));
+}
+
+// ── Reading operations (deal / meditate / play) — GM-side ─────────────────────
+
+/** Gather every card dealt from this deck (into the hand/pile) back into it. */
+async function _recallDeck(deck) {
+  // Cards#recall (renamed from reset in v10) returns all of the deck's cards
+  // from wherever they were dealt and clears their drawn state.
+  await deck.recall({ chatNotification: false });
+}
+
+/**
+ * Random ids of not-yet-drawn, unlocked cards in the deck.
+ * `availableCount` = 22 − lockedCount; cards with tarotNumber ≥ availableCount
+ * are locked out (highest arcana). Only draws from `deck.availableCards` so a
+ * card already dealt into the hand is never dealt twice.
+ */
+function _pickUnlockedIds(deck, availableCount, count) {
+  const pool = deck.availableCards.filter(
+    (c) => (c.getFlag(GUIDE_FLAG, 'tarotNumber') ?? 99) < availableCount,
+  );
+  return _shuffleArr([...pool]).slice(0, count).map((c) => c.id);
+}
+
+/** Shared logic for Deal a Reading (meditate=false) and Meditate (meditate=true). */
+async function _performReading(actor, { meditate }) {
+  const deck = findGuideStack(actor, 'deck');
+  const hand = findGuideStack(actor, 'hand');
+  if (!deck || !hand) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Role.Guide.NoDeck'));
+    return;
+  }
+
+  const rank = _guideRoleRank(actor);
+  const { lockedCount, availableCards } = _guideLockInfo(actor);
+  const drawCount = Math.min(rank, availableCards);
+  const meditationsMax = _meditationsMax(rank);
+  let meditationsUsed = actor.getFlag(GUIDE_FLAG, 'guide.meditationsUsed') ?? 0;
+
+  if (meditate && meditationsUsed >= meditationsMax) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Role.Guide.NoMeditations'));
+    return;
+  }
+
+  await _recallDeck(deck);
+  await deck.shuffle({ chatNotification: false });
+  const ids = _pickUnlockedIds(deck, availableCards, drawCount);
+  if (ids.length) await deck.pass(hand, ids, { chatNotification: false });
+
+  meditationsUsed = meditate ? meditationsUsed + 1 : 0;
+  await actor.setFlag(GUIDE_FLAG, 'guide.meditationsUsed', meditationsUsed);
+
+  _postReadingChat(actor, hand, { meditate, lockedCount, drawCount, availableCards, meditationsUsed, meditationsMax });
+}
+
+export function dealGuideReading(actor) {
+  if (!game.user.isGM) return;
+  return _performReading(actor, { meditate: false });
+}
+
+export function meditateGuideReading(actor) {
+  if (!game.user.isGM) return;
+  return _performReading(actor, { meditate: true });
+}
+
+/**
+ * Play a card from the character's Hand: route it through the Fates pile
+ * (firing the effect / chat card), deal a replacement, and return the played
+ * card to the deck. GM-side.
+ */
+export async function playGuideCard(actor, cardId) {
+  if (!game.user.isGM || !(actor instanceof Actor)) return;
+  const deck = findGuideStack(actor, 'deck');
+  const hand = findGuideStack(actor, 'hand');
+  const pile = findGuideStack(actor, 'pile');
+  if (!deck || !hand || !pile) return;
+
+  const card = hand.cards.get(cardId);
+  if (!card) return;
+
+  const tarotNum   = card.getFlag(GUIDE_FLAG, 'tarotNumber') ?? -1;
+  const automation = card.getFlag(GUIDE_FLAG, 'automation');
+  const cardDef    = TAROT_CARDS.find((c) => c.n === tarotNum) ?? null;
+
+  // 1. Hand → Fates. pass() creates a fresh Card in the destination.
+  const [played] = await hand.pass(pile, [cardId], { chatNotification: false });
+
+  // 2. Trigger the effect / post the chat card.
+  if (automation) {
+    await _applyTarotEffect(automation, actor, cardDef);
+  } else if (cardDef) {
+    _postChatCard(null, cardDef, actor);
+  }
+
+  // 3. Deal a replacement from the deck to the hand.
+  const { availableCards } = _guideLockInfo(actor);
+  const [replId] = _pickUnlockedIds(deck, availableCards, 1);
+  if (replId) await deck.pass(hand, [replId], { chatNotification: false });
+
+  // 4. Return the played card from Fates to its home deck (Card#recall clears
+  //    the deck original's drawn state and deletes the pile copy).
+  if (played) await played.recall({ chatNotification: false });
+}
+
+/** Chat summary of a freshly dealt reading. */
+function _postReadingChat(actor, hand, info) {
+  const names = hand.cards
+    .map((c) => ({ n: c.getFlag(GUIDE_FLAG, 'tarotNumber') ?? 0, name: c.name }))
+    .sort((a, b) => a.n - b.n)
+    .map((c) => `${c.n}. ${c.name}`)
+    .join(', ');
+  const heading = info.meditate
+    ? game.i18n.localize('CYBER_BLUE.Role.Guide.MeditateHeading')
+    : game.i18n.localize('CYBER_BLUE.Role.Guide.DealHeading');
+  const medLine = info.meditate
+    ? `<p><em>${game.i18n.localize('CYBER_BLUE.Role.Guide.Meditate')}: ${info.meditationsUsed}/${info.meditationsMax}</em></p>`
+    : '';
+  const lockLine = info.lockedCount > 0
+    ? `<p><em>${info.lockedCount} ${game.i18n.localize('CYBER_BLUE.Role.Guide.Locked')} (${info.availableCards} ${game.i18n.localize('CYBER_BLUE.Role.Guide.Available')}).</em></p>`
+    : '';
+  ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: `<div class="cyberpunk-blue chat-card">
+      <h3><i class="fas fa-cards-blank"></i> ${heading}</h3>
+      ${lockLine}
+      <p><strong>${game.i18n.localize('CYBER_BLUE.Role.Guide.Reading')}:</strong> ${names || '—'}</p>
+      ${medLine}
+    </div>`,
+  });
+}
+
 // ── Play-dialog patch ─────────────────────────────────────────────────────────
 
 /**
- * Patches Cards.prototype.playDialog so that playing any card whose flags carry
- * a tarotNumber shows a custom dialog with the card description instead of
- * Foundry's default name+image-only dialog. No hand setup or flags required —
- * any hand that happens to contain tarot cards gets the enhanced dialog.
+ * Patches Cards.prototype.playDialog so that playing a card from a Guide Hand
+ * shows the tarot card's meaning/trigger/effect and, on confirm, routes the
+ * play through the GM (players are only Observers of the deck/pile and cannot
+ * move cards themselves). Non-Guide stacks fall through to Foundry's default.
  */
 export function registerTarotHooks() {
   const _orig = Cards.prototype.playDialog;
 
   Cards.prototype.playDialog = async function(card, destinations) {
+    const isGuideHand = this.getFlag?.(GUIDE_FLAG, 'guide')?.kind === 'hand';
     const tarotNum = card?.getFlag?.(GUIDE_FLAG, 'tarotNumber');
-    if (tarotNum === undefined || tarotNum === null) {
+    if (!isGuideHand || tarotNum === undefined || tarotNum === null) {
       return _orig.call(this, card, destinations);
     }
-    return _tarotPlayDialog.call(this, card, destinations);
+    return _tarotPlayDialog.call(this, card);
   };
 }
 
 // ── Custom play dialog ────────────────────────────────────────────────────────
 
-async function _tarotPlayDialog(card, destinations) {
-  // Collect candidate destination piles
-  const piles = (destinations?.length ? destinations : game.cards.filter(c => c.type === 'pile'))
-    .filter(p => p.id !== this.id);
-
-  if (!piles.length) {
-    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Role.Guide.NoPile'));
-    return;
-  }
-
-  // Card face content
+async function _tarotPlayDialog(card) {
+  const actorId = this.getFlag(GUIDE_FLAG, 'guide')?.actorId;
   const face = card.faces?.[card.face ?? 0] ?? {};
   const faceImg  = face.img  || card.back?.img || CARD_BACK_IMG;
   const faceText = face.text || '';
   const cardNum  = card.getFlag(GUIDE_FLAG, 'tarotNumber') ?? '?';
 
-  // Destination selector (hidden if only one pile)
-  const destOptions = piles.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-  const destHtml = piles.length > 1
-    ? `<label style="display:flex;gap:.5rem;align-items:center;margin-top:.75rem;">
-         <span style="white-space:nowrap;">${game.i18n.localize('CYBER_BLUE.Role.Guide.PlayTo')}:</span>
-         <select name="dest" style="flex:1;">${destOptions}</select>
-       </label>`
-    : `<input type="hidden" name="dest" value="${piles[0].id}" />`;
-
-  const chosenDestId = await foundry.applications.api.DialogV2.prompt({
+  const confirmed = await foundry.applications.api.DialogV2.prompt({
     window: { title: `${game.i18n.localize('CYBER_BLUE.Role.Guide.Play')}: ${cardNum}. ${card.name}` },
     content: `<div class="cyberpunk-blue tarot-play-dialog">
       <div class="tarot-play-card-image">
         <img class="tarot-play-img" src="${faceImg}" />
       </div>
       <div class="tarot-play-description">${faceText}</div>
-      <div class="tarot-play-destination">${destHtml}</div>
     </div>`,
     ok: {
       label: game.i18n.localize('CYBER_BLUE.Role.Guide.PlayCard'),
-      callback: (_e, btn) => btn.form.elements.dest.value,
+      callback: () => true,
     },
     rejectClose: false,
   });
 
-  if (!chosenDestId) return;
-  const dest = game.cards.get(chosenDestId);
-  if (!dest) return;
+  if (!confirmed) return;
 
-  // Pass the card
-  await this.pass(dest, [card.id]);
-
-  // Identify the Guide actor: prefer the current user's character if it has a Guide role,
-  // otherwise any character actor they own with a Guide role.
-  const guideActor = _findGuideActor();
-
-  const tarotNum = card.getFlag(GUIDE_FLAG, 'tarotNumber') ?? -1;
-  const cardDef  = TAROT_CARDS.find(c => c.n === tarotNum);
-  const automation = card.getFlag(GUIDE_FLAG, 'automation');
-
-  if (automation) {
-    await _applyTarotEffect(automation, guideActor, cardDef);
-  } else if (cardDef) {
-    _postChatCard(card, cardDef, guideActor);
+  if (game.user.isGM) {
+    const actor = game.actors.get(actorId);
+    if (actor) await playGuideCard(actor, card.id);
+  } else {
+    emitToGM('guidePlay', { actorId, cardId: card.id });
   }
-}
-
-/** Find the Guide actor for the current user (owns a character with a Guide role). */
-function _findGuideActor() {
-  const character = game.user.character;
-  if (character && character.items.some(i => i.type === 'role' && i.name === 'Guide')) {
-    return character;
-  }
-  return game.actors.find(a =>
-    a.type === 'character'
-    && a.isOwner
-    && a.items.some(i => i.type === 'role' && i.name === 'Guide')
-  ) ?? null;
 }
 
 // ── Effect dispatcher ─────────────────────────────────────────────────────────

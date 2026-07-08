@@ -577,20 +577,40 @@
                     </div>
                   {{/if}}
 
-                  {{!-- Guide: Tarot Reading --}}
+                  {{!-- Guide: native Foundry Cards (Deck / Hand / Pile) --}}
                   {{#if feature.roleMechanics.canGuide}}
                     <div class="role-mechanic-row role-guide-row">
                       <div class="role-guide-controls">
-                        <button type="button" data-action="role-guide-deal" class="role-action-btn">
-                          <i class="fas fa-layer-group"></i>
-                          {{localize "CYBER_BLUE.Role.Guide.DealReading"}} ({{feature.roleMechanics.guide.guideRank}} {{localize "CYBER_BLUE.Role.Guide.Cards"}})
-                        </button>
-                        {{#if feature.roleMechanics.guide.canMeditate}}
-                          <button type="button" data-action="role-guide-meditate" class="role-action-btn"
-                            title="{{localize "CYBER_BLUE.Role.Guide.LockedTitle"}}">
-                            <i class="fas fa-spa"></i>
-                            {{localize "CYBER_BLUE.Role.Guide.Meditate"}}
-                            ({{feature.roleMechanics.guide.meditationsLeft}}/{{feature.roleMechanics.guide.meditationsMax}})
+                        {{#if feature.roleMechanics.guide.hasDeck}}
+                          <button type="button" data-action="role-guide-open-deck" class="role-action-btn">
+                            <i class="fas fa-layer-group"></i>
+                            {{localize "CYBER_BLUE.Role.Guide.OpenDeck"}}
+                          </button>
+                          <button type="button" data-action="role-guide-open-hand" class="role-action-btn">
+                            <i class="fas fa-hand-sparkles"></i>
+                            {{localize "CYBER_BLUE.Role.Guide.OpenHand"}}
+                          </button>
+                          <button type="button" data-action="role-guide-deal" class="role-action-btn">
+                            <i class="fas fa-clone"></i>
+                            {{localize "CYBER_BLUE.Role.Guide.DealReading"}} ({{feature.roleMechanics.guide.guideRank}} {{localize "CYBER_BLUE.Role.Guide.Cards"}})
+                          </button>
+                          {{#if feature.roleMechanics.guide.canMeditate}}
+                            <button type="button" data-action="role-guide-meditate" class="role-action-btn"
+                              title="{{localize "CYBER_BLUE.Role.Guide.LockedTitle"}}">
+                              <i class="fas fa-spa"></i>
+                              {{localize "CYBER_BLUE.Role.Guide.Meditate"}}
+                              ({{feature.roleMechanics.guide.meditationsLeft}}/{{feature.roleMechanics.guide.meditationsMax}})
+                            </button>
+                          {{/if}}
+                          <button type="button" data-action="role-guide-ensure" class="role-action-btn role-action-btn-sm"
+                            title="{{localize "CYBER_BLUE.Role.Guide.VerifyTitle"}}">
+                            <i class="fas fa-rotate"></i>
+                            {{localize "CYBER_BLUE.Role.Guide.Verify"}}
+                          </button>
+                        {{else}}
+                          <button type="button" data-action="role-guide-ensure" class="role-action-btn">
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                            {{localize "CYBER_BLUE.Role.Guide.CreateDeck"}}
                           </button>
                         {{/if}}
                         {{#if feature.roleMechanics.guide.lockedCount}}
@@ -599,21 +619,6 @@
                           </span>
                         {{/if}}
                       </div>
-                      {{#if feature.roleMechanics.guide.hasReading}}
-                        <div class="role-guide-reading">
-                          <span class="role-mechanic-label">{{localize "CYBER_BLUE.Role.Guide.Reading"}} ({{feature.roleMechanics.guide.deckSize}} {{localize "CYBER_BLUE.Role.Guide.InDeck"}}):</span>
-                          <div class="role-guide-cards">
-                            {{#each feature.roleMechanics.guide.reading as |card|}}
-                              <div class="role-guide-card">
-                                <span class="role-guide-card-name">{{card.index}}. {{card.name}}</span>
-                                <button type="button" data-action="role-guide-play" data-card-index="{{card.index}}" class="role-action-btn role-action-btn-sm" title="{{localize "CYBER_BLUE.Role.Guide.PlayCard"}}">
-                                  <i class="fas fa-play"></i>
-                                </button>
-                              </div>
-                            {{/each}}
-                          </div>
-                        </div>
-                      {{/if}}
                     </div>
                   {{/if}}
                 </div>

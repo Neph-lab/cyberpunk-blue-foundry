@@ -25,6 +25,12 @@ import { resolveWeaponAttack, resolveAutofireAttack, resolveDoubleLockAttack } f
 import { refreshAllRicochetLines } from '../helpers/ricochet-canvas.mjs';
 import { reloadWeapon, toggleWeaponCharge, toggleWeaponRicochet } from '../helpers/weapon-actions.mjs';
 import { playUiSound } from '../helpers/audio.mjs';
+import { findGuideStack } from '../helpers/guide-tarot.mjs';
+import {
+  ensureGuideCardsWithPermission,
+  dealGuideReadingWithPermission,
+  meditateGuideReadingWithPermission,
+} from '../helpers/socket.mjs';
 import { buildActorEffectGroups } from '../helpers/effects.mjs';
 import { getSkillCheckPreview, getWeaponAttackPreview, signedModifier } from '../helpers/roll-preview.mjs';
 import { startInstructions, advanceInstructions, getInstructionContext } from '../helpers/instructions.mjs';
@@ -57,24 +63,6 @@ import {
   resolvePressurePointStrike,
   resolveFlyingKick,
 } from '../helpers/martial-arts.mjs';
-
-/** Major arcana cards available to Guide (indices 0–21). */
-const GUIDE_CARDS = [
-  'The Fool', 'The Magician', 'The High Priestess', 'The Empress', 'The Emperor',
-  'The Hierophant', 'The Lovers', 'The Chariot', 'Strength', 'The Hermit',
-  'Wheel of Fortune', 'Justice', 'The Hanged Man', 'Death', 'Temperance',
-  'The Devil', 'The Tower', 'The Star', 'The Moon', 'The Sun', 'Judgement', 'The World',
-];
-
-/** Fisher-Yates shuffle; returns a new array. */
-function shuffleArray(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
 
 function sortEmbeddedDocuments(left, right) {
   return (left.sort ?? 0) - (right.sort ?? 0) || left.name.localeCompare(right.name);
@@ -698,8 +686,6 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         const lockedCount = Math.max(0, Math.floor((60 - psycheMax) / 10));
         const meditationsMax = 1 + (roleRank >= 5 ? 1 : 0) + (roleRank >= 10 ? 1 : 0);
         const meditationsUsed = this.document.getFlag('cyberpunk-blue', 'guide.meditationsUsed') ?? 0;
-        const readingRaw = this.document.getFlag('cyberpunk-blue', 'guide.reading') ?? [];
-        const deckRaw = this.document.getFlag('cyberpunk-blue', 'guide.deck') ?? [];
         roleMechanics.canGuide = true;
         roleMechanics.guide = {
           guideRank:       roleRank,
@@ -707,10 +693,8 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
           meditationsMax,
           meditationsUsed,
           meditationsLeft: Math.max(0, meditationsMax - meditationsUsed),
-          canMeditate:     meditationsUsed < meditationsMax && readingRaw.length > 0,
-          hasReading:      readingRaw.length > 0,
-          deckSize:        deckRaw.length,
-          reading:         readingRaw.map((idx) => ({ index: idx, name: GUIDE_CARDS[idx] ?? `Card ${idx}` })),
+          canMeditate:     meditationsUsed < meditationsMax,
+          hasDeck:         !!findGuideStack(this.document, 'deck'),
         };
       }
 
@@ -1366,14 +1350,20 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     this.element.querySelectorAll('[data-action="role-fixer-haggle"]').forEach((button) => {
       button.addEventListener('click', this._onFixerHaggle.bind(this));
     });
+    this.element.querySelectorAll('[data-action="role-guide-ensure"]').forEach((button) => {
+      button.addEventListener('click', this._onGuideEnsure.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="role-guide-open-deck"]').forEach((button) => {
+      button.addEventListener('click', this._onGuideOpenStack.bind(this, 'deck'));
+    });
+    this.element.querySelectorAll('[data-action="role-guide-open-hand"]').forEach((button) => {
+      button.addEventListener('click', this._onGuideOpenStack.bind(this, 'hand'));
+    });
     this.element.querySelectorAll('[data-action="role-guide-deal"]').forEach((button) => {
       button.addEventListener('click', this._onGuideDeal.bind(this));
     });
     this.element.querySelectorAll('[data-action="role-guide-meditate"]').forEach((button) => {
       button.addEventListener('click', this._onGuideMeditate.bind(this));
-    });
-    this.element.querySelectorAll('[data-action="role-guide-play"]').forEach((button) => {
-      button.addEventListener('click', this._onGuidePlayCard.bind(this));
     });
     this.element.querySelectorAll('[data-action="specialty-rank-change"]').forEach((button) => {
       button.addEventListener('click', this._onSpecialtyRankChange.bind(this));
@@ -3002,116 +2992,34 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     });
   }
 
-  /** Deal a fresh Reading at the start of a session (or re-deal). Resets meditations. */
-  async _onGuideDeal(event) {
+  /** Verify/create the character's Guide Deck, Hand, Pile, macro, and hotbar entry. */
+  async _onGuideEnsure(event) {
     event.preventDefault();
-    const actor = this.document;
-    const guideRole = actor.items.find((i) => i.type === 'role' && i.name === 'Guide');
-    if (!guideRole) return;
-    const rank = Number(guideRole.system.rank) || 0;
-    const psycheMax = actor.system.resources?.psyche?.max ?? 60;
-    const lockedCount = Math.max(0, Math.floor((60 - psycheMax) / 10));
-    const availableCards = 22 - lockedCount;
-    const drawCount = Math.min(rank, availableCards);
-
-    // Build and shuffle a deck of available cards (lock the highest-numbered ones)
-    const allIndices = Array.from({ length: 22 }, (_, i) => i);
-    const unlockedIndices = allIndices.slice(0, availableCards);
-    const shuffled = shuffleArray(unlockedIndices);
-    const reading = shuffled.slice(0, drawCount);
-    const deck    = shuffled.slice(drawCount);
-
-    await actor.setFlag('cyberpunk-blue', 'guide.reading', reading);
-    await actor.setFlag('cyberpunk-blue', 'guide.deck',    deck);
-    await actor.setFlag('cyberpunk-blue', 'guide.meditationsUsed', 0);
-
-    const cardNames = reading.map((i) => `${i}. ${GUIDE_CARDS[i]}`).join(', ');
-    ChatMessage.create({
-      speaker: ChatMessage.getSpeaker({ actor }),
-      content: `<div class="cyberpunk-blue chat-card">
-        <h3>Guide Reading Dealt</h3>
-        <p>${lockedCount > 0 ? `<em>${lockedCount} card(s) locked due to cyberware.</em> ` : ''}Drawing ${drawCount} of ${availableCards} available cards.</p>
-        <p><strong>Reading:</strong> ${cardNames}</p>
-        <p><em>Deck: ${deck.length} card(s) remaining.</em></p>
-      </div>`,
-    });
+    await ensureGuideCardsWithPermission(this.document);
+    this.render(false);
   }
 
-  /** Meditate: reshuffle all held + deck cards and deal a new Reading. */
-  async _onGuideMeditate(event) {
+  /** Open the character's Guide Deck or Hand document sheet. */
+  async _onGuideOpenStack(kind, event) {
     event.preventDefault();
-    const actor = this.document;
-    const guideRole = actor.items.find((i) => i.type === 'role' && i.name === 'Guide');
-    if (!guideRole) return;
-    const rank = Number(guideRole.system.rank) || 0;
-    const meditationsMax = 1 + (rank >= 5 ? 1 : 0) + (rank >= 10 ? 1 : 0);
-    const meditationsUsed = actor.getFlag('cyberpunk-blue', 'guide.meditationsUsed') ?? 0;
-    if (meditationsUsed >= meditationsMax) {
-      ui.notifications.warn('No meditations remaining this session.');
+    const stack = findGuideStack(this.document, kind);
+    if (!stack) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Role.Guide.NoDeck'));
       return;
     }
-    const psycheMax = actor.system.resources?.psyche?.max ?? 60;
-    const lockedCount = Math.max(0, Math.floor((60 - psycheMax) / 10));
-    const availableCards = 22 - lockedCount;
-    const drawCount = Math.min(rank, availableCards);
-
-    const currentReading = actor.getFlag('cyberpunk-blue', 'guide.reading') ?? [];
-    const currentDeck    = actor.getFlag('cyberpunk-blue', 'guide.deck')    ?? [];
-    const allCurrent = [...currentReading, ...currentDeck];
-    const shuffled = shuffleArray(allCurrent);
-    const reading = shuffled.slice(0, drawCount);
-    const deck    = shuffled.slice(drawCount);
-    const newMeditationsUsed = meditationsUsed + 1;
-
-    await actor.setFlag('cyberpunk-blue', 'guide.reading', reading);
-    await actor.setFlag('cyberpunk-blue', 'guide.deck',    deck);
-    await actor.setFlag('cyberpunk-blue', 'guide.meditationsUsed', newMeditationsUsed);
-
-    const cardNames = reading.map((i) => `${i}. ${GUIDE_CARDS[i]}`).join(', ');
-    ChatMessage.create({
-      speaker: ChatMessage.getSpeaker({ actor }),
-      content: `<div class="cyberpunk-blue chat-card">
-        <h3>Guide Meditates</h3>
-        <p>Reshuffled and dealt a new Reading (meditation ${newMeditationsUsed}/${meditationsMax}).</p>
-        <p><strong>New Reading:</strong> ${cardNames}</p>
-      </div>`,
-    });
+    stack.sheet.render(true);
   }
 
-  /** Play a card from the Reading; draw a replacement from the deck, shuffle played card back in. */
-  async _onGuidePlayCard(event) {
+  /** Deal a fresh Reading (recall all, shuffle, deal rank cards). GM-delegated. */
+  async _onGuideDeal(event) {
     event.preventDefault();
-    const actor = this.document;
-    const cardIndex = parseInt(event.currentTarget.dataset.cardIndex, 10);
-    if (!Number.isFinite(cardIndex)) return;
+    await dealGuideReadingWithPermission(this.document);
+  }
 
-    const reading = [...(actor.getFlag('cyberpunk-blue', 'guide.reading') ?? [])];
-    const deck    = [...(actor.getFlag('cyberpunk-blue', 'guide.deck')    ?? [])];
-    const pos = reading.indexOf(cardIndex);
-    if (pos === -1) return;
-
-    // Remove played card from reading, shuffle it back into deck, draw one replacement
-    reading.splice(pos, 1);
-    const newDeck = shuffleArray([...deck, cardIndex]);
-    let newReading = [...reading];
-    if (newDeck.length > 0) {
-      newReading = [...reading, newDeck.shift()];
-    }
-
-    await actor.setFlag('cyberpunk-blue', 'guide.reading', newReading);
-    await actor.setFlag('cyberpunk-blue', 'guide.deck',    newDeck);
-
-    const cardName = GUIDE_CARDS[cardIndex] ?? `Card ${cardIndex}`;
-    const drawnName = newReading.length > reading.length
-      ? (GUIDE_CARDS[newReading.at(-1)] ?? `Card ${newReading.at(-1)}`)
-      : null;
-    ChatMessage.create({
-      speaker: ChatMessage.getSpeaker({ actor }),
-      content: `<div class="cyberpunk-blue chat-card">
-        <h3>Guide plays: ${cardIndex}. ${cardName}</h3>
-        ${drawnName ? `<p>Drew <strong>${drawnName}</strong> as replacement. Reading: ${newReading.map((i) => `${i}. ${GUIDE_CARDS[i]}`).join(', ')}.</p>` : '<p>Deck is empty — no replacement drawn.</p>'}
-      </div>`,
-    });
+  /** Meditate: re-deal within the session's meditation limit. GM-delegated. */
+  async _onGuideMeditate(event) {
+    event.preventDefault();
+    await meditateGuideReadingWithPermission(this.document);
   }
 
   async _onExecutableInstall(event) {

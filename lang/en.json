@@ -399,17 +399,28 @@
         "ChosenOptions": "Chosen"
       },
       "Guide": {
-        "DealReading": "Deal Reading",
+        "DealReading": "Deal a Reading",
         "Meditate": "Meditate",
         "Reading": "Reading",
         "InDeck": "in deck",
+        "Available": "available",
         "Locked": "locked",
         "LockedTitle": "Cards locked due to cyberware (PSYCHE max below 60)",
-        "PlayCard": "Play card (draw replacement from deck)",
+        "PlayCard": "Play this card",
         "Cards": "cards",
         "Play": "Play",
-        "PlayTo": "Play to",
-        "NoPile": "No pile available. Ask your GM to create a Cards pile for the reading."
+        "OpenDeck": "Open Deck",
+        "OpenHand": "Open Hand",
+        "CreateDeck": "Create Guide Deck",
+        "Verify": "Verify",
+        "VerifyTitle": "Check the Guide Deck, Hand, Pile, and macro exist — create any that are missing",
+        "DealHeading": "Guide — Reading Dealt",
+        "MeditateHeading": "Guide — Meditation",
+        "NoDeck": "No Guide Deck found. Click Create/Verify to set it up (GM only).",
+        "NoCompendiumDeck": "The Guide Tarot Deck compendium is empty — reload the world as GM to seed it.",
+        "NoPlayerOwner": "{name} has no player owner; the GM manages this Guide's deck manually.",
+        "NoMeditations": "No meditations remaining this session.",
+        "Provisioned": "Guide deck, hand, pile, and reading macro are ready for {name}."
       }
     },
     "Effect": {

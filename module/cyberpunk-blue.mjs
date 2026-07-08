@@ -42,7 +42,7 @@ import {
 import * as models from './data/_module.mjs';
 import { CRITICAL_INJURY_FLAG, buildCritBodyTableData, buildCritHeadTableData } from './helpers/critical-injury.mjs';
 import { MACRO_CATALOGUE } from './helpers/critical-injury-macros.mjs';
-import { ensureTarotDeck, registerTarotHooks } from './helpers/guide-tarot.mjs';
+import { ensureTarotDeck, registerTarotHooks, ensureGuideCards, getGuidePlayerUser } from './helpers/guide-tarot.mjs';
 import { WEAPON_CATALOGUE } from './data/weapon-catalogue.mjs';
 import { MOD_CATALOGUE } from './data/mod-catalogue.mjs';
 import { EQUIPMENT_CATALOGUE } from './data/equipment-catalogue.mjs';
@@ -1032,6 +1032,18 @@ const syncRoleConditionEffects = (document, ...hookArgs) => {
 };
 Hooks.on('createItem', syncRoleConditionEffects);
 Hooks.on('updateItem', syncRoleConditionEffects);
+
+// ─── Guide Role: auto-provision native Cards on role add ──────────────────────
+// When a Guide Role is added to a player-owned character, the active GM
+// provisions the character's Deck / Hand / Pile / macro. Runs on the GM only
+// (regardless of who added the role) since world Cards need GM permission.
+Hooks.on('createItem', (item, _data, _options, _userId) => {
+  if (game.user !== game.users.activeGM) return;
+  if (!(item instanceof Item) || item.type !== 'role' || item.name !== 'Guide') return;
+  if (!(item.parent instanceof CyberBlueActor)) return;
+  if (!getGuidePlayerUser(item.parent)) return; // NPC / GM-only — managed manually
+  return ensureGuideCards(item.parent);
+});
 Hooks.on('deleteItem', syncRoleConditionEffects);
 
 // Also re-sync when an AE on a role item changes (condition flags edited).
