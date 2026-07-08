@@ -1696,6 +1696,10 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   grid-template-columns: minmax(120px, 1fr) minmax(160px, 1.2fr) minmax(80px, 0.8fr);
 }
 
+.cyberpunk-blue .role-guide-row {
+  grid-template-columns: repeat(auto-fill, minmax(max-content,19%));
+}
+
 .cyberpunk-blue .role-focus-summary {
   display: flex;
   flex-wrap: wrap;
