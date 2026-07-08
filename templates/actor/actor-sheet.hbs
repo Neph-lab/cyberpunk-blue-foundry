@@ -580,45 +580,43 @@
                   {{!-- Guide: native Foundry Cards (Deck / Hand / Pile) --}}
                   {{#if feature.roleMechanics.canGuide}}
                     <div class="role-mechanic-row role-guide-row">
-                      <div class="role-guide-controls">
-                        {{#if feature.roleMechanics.guide.hasDeck}}
-                          <button type="button" data-action="role-guide-open-deck" class="role-action-btn">
-                            <i class="fas fa-layer-group"></i>
-                            {{localize "CYBER_BLUE.Role.Guide.OpenDeck"}}
-                          </button>
-                          <button type="button" data-action="role-guide-open-hand" class="role-action-btn">
-                            <i class="fas fa-hand-sparkles"></i>
-                            {{localize "CYBER_BLUE.Role.Guide.OpenHand"}}
-                          </button>
-                          <button type="button" data-action="role-guide-deal" class="role-action-btn">
-                            <i class="fas fa-clone"></i>
-                            {{localize "CYBER_BLUE.Role.Guide.DealReading"}} ({{feature.roleMechanics.guide.guideRank}} {{localize "CYBER_BLUE.Role.Guide.Cards"}})
-                          </button>
-                          {{#if feature.roleMechanics.guide.canMeditate}}
-                            <button type="button" data-action="role-guide-meditate" class="role-action-btn"
-                              title="{{localize "CYBER_BLUE.Role.Guide.LockedTitle"}}">
-                              <i class="fas fa-spa"></i>
-                              {{localize "CYBER_BLUE.Role.Guide.Meditate"}}
-                              ({{feature.roleMechanics.guide.meditationsLeft}}/{{feature.roleMechanics.guide.meditationsMax}})
-                            </button>
-                          {{/if}}
-                          <button type="button" data-action="role-guide-ensure" class="role-action-btn role-action-btn-sm"
-                            title="{{localize "CYBER_BLUE.Role.Guide.VerifyTitle"}}">
-                            <i class="fas fa-rotate"></i>
-                            {{localize "CYBER_BLUE.Role.Guide.Verify"}}
-                          </button>
-                        {{else}}
-                          <button type="button" data-action="role-guide-ensure" class="role-action-btn">
-                            <i class="fas fa-wand-magic-sparkles"></i>
-                            {{localize "CYBER_BLUE.Role.Guide.CreateDeck"}}
+                      {{#if feature.roleMechanics.guide.hasDeck}}
+                        <button type="button" data-action="role-guide-open-deck" class="role-action-btn">
+                          <i class="fas fa-layer-group"></i>
+                          {{localize "CYBER_BLUE.Role.Guide.OpenDeck"}}
+                        </button>
+                        <button type="button" data-action="role-guide-open-hand" class="role-action-btn">
+                          <i class="fas fa-hand-sparkles"></i>
+                          {{localize "CYBER_BLUE.Role.Guide.OpenHand"}}
+                        </button>
+                        <button type="button" data-action="role-guide-deal" class="role-action-btn">
+                          <i class="fas fa-clone"></i>
+                          {{localize "CYBER_BLUE.Role.Guide.DealReading"}} ({{feature.roleMechanics.guide.guideRank}} {{localize "CYBER_BLUE.Role.Guide.Cards"}})
+                        </button>
+                        {{#if feature.roleMechanics.guide.canMeditate}}
+                          <button type="button" data-action="role-guide-meditate" class="role-action-btn"
+                            title="{{localize "CYBER_BLUE.Role.Guide.LockedTitle"}}">
+                            <i class="fas fa-spa"></i>
+                            {{localize "CYBER_BLUE.Role.Guide.Meditate"}}
+                            ({{feature.roleMechanics.guide.meditationsLeft}}/{{feature.roleMechanics.guide.meditationsMax}})
                           </button>
                         {{/if}}
-                        {{#if feature.roleMechanics.guide.lockedCount}}
-                          <span class="role-guide-locked" title="{{localize "CYBER_BLUE.Role.Guide.LockedTitle"}}">
-                            <i class="fas fa-lock"></i> {{feature.roleMechanics.guide.lockedCount}} {{localize "CYBER_BLUE.Role.Guide.Locked"}}
-                          </span>
-                        {{/if}}
-                      </div>
+                        <button type="button" data-action="role-guide-ensure" class="role-action-btn role-action-btn-sm"
+                          title="{{localize "CYBER_BLUE.Role.Guide.VerifyTitle"}}">
+                          <i class="fas fa-rotate"></i>
+                          {{localize "CYBER_BLUE.Role.Guide.Verify"}}
+                        </button>
+                      {{else}}
+                        <button type="button" data-action="role-guide-ensure" class="role-action-btn">
+                          <i class="fas fa-wand-magic-sparkles"></i>
+                          {{localize "CYBER_BLUE.Role.Guide.CreateDeck"}}
+                        </button>
+                      {{/if}}
+                      {{#if feature.roleMechanics.guide.lockedCount}}
+                        <span class="role-guide-locked" title="{{localize "CYBER_BLUE.Role.Guide.LockedTitle"}}">
+                          <i class="fas fa-lock"></i> {{feature.roleMechanics.guide.lockedCount}} {{localize "CYBER_BLUE.Role.Guide.Locked"}}
+                        </span>
+                      {{/if}}
                     </div>
                   {{/if}}
                 </div>
