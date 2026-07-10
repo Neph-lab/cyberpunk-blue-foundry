@@ -1254,7 +1254,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 
 .cyberpunk-blue .skill-table-container .skill-row {
-  grid-template-columns: 78px minmax(120px, 1.2fr) 64px 56px minmax(220px, 2fr) 56px 56px 40px;
+  grid-template-columns: 78px minmax(120px, 1.2fr) 64px 56px minmax(220px, 2fr) 56px 40px;
 }
 
 .cyberpunk-blue .skill-row > input.numeric-column {
