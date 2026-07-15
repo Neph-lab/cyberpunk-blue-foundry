@@ -276,7 +276,7 @@ const shotguns = [
       sgShell({ damage: '4d6', magazine: 32, shots: 8, smart: true, minimumAmmoToFire: 8 }),
     ],
     description: desc('<p>Smart Weapon.</p><p><strong>SHELL-ONLY:</strong> <strong>4d6</strong> in 8/8m cone; consumes 8 shells per attack; will not fire with fewer than 8 loaded. No slug mode. Muzzle cannot be modified.</p>') }),
-  weaponItem({ name: 'Rostovic DB-2 Satara', manufacturer: 'Rostovic', cost: 'EX', imgPath: img(W_SHOTGUN, 'Rostovic DB-2 Satara.png'),
+  weaponItem({ name: 'Rostovic DB-2 Satara', manufacturer: 'Rostović', cost: 'EX', imgPath: img(W_SHOTGUN, 'Rostovic DB-2 Satara.png'),
     weapons: [
       sgSlug({ magazine: 2, tech: true, chargeType: 'keep' }),
       sgShell({ magazine: 2, tech: true, chargeType: 'keep' }),
@@ -306,24 +306,24 @@ const shotguns = [
       sgShell({ magazine: 2 }),
     ],
     description: desc('<p>Power Weapon.</p><p><strong>ARMOR PIERCING:</strong> when this attack would ablate 1 SP, ablates 2 instead.</p>') }),
-  weaponItem({ name: 'Rostovic DB-2 Testera', manufacturer: 'Rostovic', cost: 'PR', imgPath: img(W_SHOTGUN, 'Rostovic DB-2 Testera.png'),
+  weaponItem({ name: 'Rostovic DB-2 Testera', manufacturer: 'Rostović', cost: 'PR', imgPath: img(W_SHOTGUN, 'Rostovic DB-2 Testera.png'),
     weapons: [
       sgSlug({ damage: '5d6+3', magazine: 2, power: true }),
       sgShell({ magazine: 2, shellDvModifier: -1 }),
     ],
     description: desc('<p>Power Weapon.</p><p><strong>INACCURATE:</strong> <strong>-1</strong> to all attacks (apply manually). Shell mode <strong style="color: var(--cpb-accent);">DV = Attack-1</strong>.</p>') }),
-  weaponItem({ name: 'Rostovic DB-4 Palica', manufacturer: 'Rostovic', cost: 'EX', imgPath: img(W_SHOTGUN, 'Rostovic DB-4 Palica.png'),
+  weaponItem({ name: 'Rostovic DB-4 Palica', manufacturer: 'Rostović', cost: 'EX', imgPath: img(W_SHOTGUN, 'Rostovic DB-4 Palica.png'),
     weapons: [
       sgSlug({ magazine: 3, smart: true }),
     ],
     description: desc('Smart Weapon. Slug-only (no shell mode).') }),
-  weaponItem({ name: 'Rostovic DB-4 Igla', manufacturer: 'Rostovic', cost: 'PR', imgPath: img(W_SHOTGUN, 'Rostovic DB-4 Igla.png'),
+  weaponItem({ name: 'Rostovic DB-4 Igla', manufacturer: 'Rostović', cost: 'PR', imgPath: img(W_SHOTGUN, 'Rostovic DB-4 Igla.png'),
     weapons: [
       sgSlug({ magazine: 2, power: true }),
       sgShell({ magazine: 2, shellDvModifier: -1 }),
     ],
     description: desc('<p>Power Weapon. Shell mode <strong style="color: var(--cpb-accent);">DV = Attack-1</strong>.</p>') }),
-  weaponItem({ name: 'Rostovic BT-1 Pelrun', manufacturer: 'Rostovic', cost: 'EX', imgPath: img(W_SHOTGUN, 'Rostovic BT-1 Perun.png'),
+  weaponItem({ name: 'Rostovic BT-1 Pelrun', manufacturer: 'Rostović', cost: 'EX', imgPath: img(W_SHOTGUN, 'Rostovic BT-1 Perun.png'),
     weapons: [
       sgSlug({ magazine: 5, tech: true, chargeType: 'hold', cs3: true, cs3FallbackDamage: '4d6' }),
       sgShell({ magazine: 5, tech: true, chargeType: 'hold', cs3: true, cs3FallbackDamage: '3d6' }),
@@ -455,7 +455,7 @@ const snipers = [
     ],
     description: desc('<p>Smart Weapon.</p><p><strong>DART MODE:</strong> silent smart dart (<strong style="color: var(--cpb-accent);">DV10</strong> to hear), <strong>4d6</strong> + toxin payload (<strong>+2</strong> dmg on penetration). Replacement darts €$50 per 10.</p>') }),
 
-  weaponItem({ name: 'Rostovic Kolac', manufacturer: 'Rostovic', cost: 'EX', imgPath: img(W_ROOT, 'Rostovic Kolac.png'),
+  weaponItem({ name: 'Rostovic Kolac', manufacturer: 'Rostović', cost: 'EX', imgPath: img(W_ROOT, 'Rostovic Kolac.png'),
     weapons: [entry({ ...PR_BASE, damage: '6d6', power: true, heavyRecoil: true })],
     description: desc('<p>Power Weapon.</p><p><strong>HEAVY RECOIL:</strong> a user with <strong>BODY</strong> < 8 takes <strong>1d6</strong> directly to HP when firing.</p>') }),
   weaponItem({ name: 'Militech M-179 Achilles', manufacturer: 'Militech', cost: 'EX', imgPath: img(W_ROOT, 'Militech M-179 Achilles.png'),

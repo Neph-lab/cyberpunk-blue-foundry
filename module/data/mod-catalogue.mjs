@@ -229,7 +229,7 @@ const rifleMuzzleBreaks = [
   modItem({ name: 'Arasaka RC-7 Aswang', manufacturer: 'Arasaka', cost: 'PR', imgPath: img(M_MUZZLE, 'Arasaka RC-7 Aswang.png'),
     system: { blockedOnTech: true, lostForce: true, recoilBonus: 1, synergyBrand: 'Arasaka', synergyDiceThreshold: 4 },
     description: desc('<p>AR/SMG muzzle break (not Tech). Lost Force. <strong>+1</strong> attacks.</p><p><strong>SYNERGY:</strong> <strong>+1</strong> dmg from Arasaka weapon; <strong>+1</strong> more if ≥4 damage dice.</p>') }),
-  modItem({ name: 'Rostovic RC-7 Strigoi', manufacturer: 'Rostovic', cost: 'CO', imgPath: img(M_MUZZLE, 'Rostovic RC-7 Strigoi.png'),
+  modItem({ name: 'Rostovic RC-7 Strigoi', manufacturer: 'Rostović', cost: 'CO', imgPath: img(M_MUZZLE, 'Rostovic RC-7 Strigoi.png'),
     system: { blockedOnTech: true, lostForce: true, recoilBonus: 1, recoilAFOnly: true, accidentalDischarge: true },
     description: desc('<p>AR/SMG muzzle break (not Tech). Lost Force. <strong>+1</strong> on autofire attacks only.</p><p><strong>ACCIDENTAL DISCHARGE:</strong> on a single shot with an odd attack die, the weapon uses 2× ammo (if available) and deals <strong>+1</strong> damage per die.</p>') }),
   modItem({ name: 'Nokota RC-7 Zaar', manufacturer: 'Nokota', cost: 'CO', imgPath: img(M_MUZZLE, 'Nokota RC-7 Zaar.png'),
@@ -305,7 +305,7 @@ const attachments = [
 // ═══════════════════════════════════════════════════════════════════════════
 
 const underBarrels = [
-  modItem({ name: 'Rostovic BP-2 Plujka', manufacturer: 'Rostovic', cost: 'PR', imgPath: img(M_ROOT, 'Rostovic BP-2 Plujka.png'),
+  modItem({ name: 'Rostovic BP-2 Plujka', manufacturer: 'Rostović', cost: 'PR', imgPath: img(M_ROOT, 'Rostovic BP-2 Plujka.png'),
     system: { modSlots: 2 },
     description: desc('<p>Under-Barrel Shotgun (AR or SG host, 2 mod slots).</p><p><strong>STATS:</strong> <strong>5d6</strong> / RoF 1 / 1 ammo / RCL 2 / range 13,15,20,25,30,35. PW + JAM.</p><p><strong>SHELL MODE:</strong> <strong style="color: var(--cpb-accent);">DV11</strong>, <strong>3d6</strong> in 8/8m cone.</p>') }),
   modItem({ name: 'Constitutional Arms Cavalry', manufacturer: 'Constitutional Arms', cost: 'EX', imgPath: img(M_ROOT, 'Constitutional Arms Cavalry.png'),
