@@ -500,7 +500,7 @@ const melee = [
   weaponItem({ name: 'Militech M2 Combat Knife', manufacturer: 'Militech', cost: 'C', imgPath: img(W_MELEE, 'militech combat knife.png'),
     weapons: [lmw()],
     description: desc('Standard combat knife.') }),
-  weaponItem({ name: 'Scalpel', manufacturer: '', cost: 'C',
+  weaponItem({ name: 'Scalpel', manufacturer: '', cost: 'C', imgPath: img(W_MELEE, 'scalpel.png'),
     weapons: [lmw()],
     description: desc('Small but very sharp.') }),
 

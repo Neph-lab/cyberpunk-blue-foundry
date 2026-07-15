@@ -232,6 +232,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Anti-Dazzle', manufacturer: 'Kiroshi Opticals',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/anti-dazzle.png`,
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 1,
     cost: 'CO', facilities: 'mall', installationCost: 'CO', installationDv: 12,
@@ -278,6 +279,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'MicroVideo',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/microvideo.png`,
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 2,
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -306,6 +308,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'TeleOptics',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/teleoptics.png`,
     folder: 'Cyberoptics',
     cyberwareType: 'cyberoptics', integration: 'extension', slotsUsed: 1,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -388,6 +391,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Radio / Music Player (Cyberaudio)',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/music-player-cyberware.png`,
     folder: 'Cyberaudio',
     cyberwareType: 'cyberaudio', integration: 'extension', slotsUsed: 1,
     cost: 'CO', facilities: 'mall', installationCost: 'CO', installationDv: 14,
@@ -542,6 +546,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Scratchers',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/scratchers.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 1,
     cost: 'CO', facilities: 'mall', installationCost: 'CO', installationDv: 13,
@@ -577,6 +582,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Tool Hand',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/tool-hand.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 15,
@@ -585,6 +591,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Wolvers',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/wolvers.png`,
     folder: 'Cyberarms',
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 1,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
