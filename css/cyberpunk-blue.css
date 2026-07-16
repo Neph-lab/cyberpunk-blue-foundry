@@ -3,51 +3,31 @@
 ================================================== */
 @import url('./colors_and_type.css');
 
-/* ==================================================
+/* #region Primitives ——————— */
+/* ===============================================
 SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace the previous border-radius vocabulary. Every component that uses clip-path applies the fake-border technique: outer element = border colour, ::before = 1px-inset inner fill, clip-path: inherit keeps the shapes in register. See README in design handoff.
-
-REFERENCE LIBRARY — the .cpb-shape--*, .cpb-frame--* and .cpb-btn--* families below are a complete, intentional primitive toolkit. Not every variant is referenced by the current templates; the unused ones are kept on purpose for reuse and are NOT dead code. Do not prune them on a usage scan alone.
 ================================================== */
 
 /* Default: TR + BL chamfered (forward-leaning / interactive). */
-.cpb-shape,
-.cpb-shape--tr-bl {
+.cpb-shape, .cpb-shape--tr-bl {
   --c: var(--cpb-cut-sm);
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0, 100% var(--c),
-    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
-  );
+  clip-path: var(--cpb-shape-tr-bl);
 }
-
 /* Mirrored: TL + BR chamfered (passive / readout). */
 .cpb-shape--tl-br {
   --c: var(--cpb-cut-sm);
-  clip-path: polygon(
-    var(--c) 0, 100% 0, 100% calc(100% - var(--c)),
-    calc(100% - var(--c)) 100%, 0 100%, 0 var(--c)
-  );
+  clip-path: var(--cpb-shape-tl-br);
 }
-
 /* Hex: all four corners chamfered (data plate / stat block). */
 .cpb-shape--hex {
   --c: var(--cpb-cut-sm);
-  clip-path: polygon(
-    var(--c) 0, calc(100% - var(--c)) 0,
-    100% var(--c), 100% calc(100% - var(--c)),
-    calc(100% - var(--c)) 100%, var(--c) 100%,
-    0 calc(100% - var(--c)), 0 var(--c)
-  );
+  clip-path: var(--cpb-shape--hex);
 }
-
 /* Card: TL + TR chamfered, flat bottom (docked panel). */
 .cpb-shape--card {
   --c: var(--cpb-cut-md);
-  clip-path: polygon(
-    var(--c) 0, calc(100% - var(--c)) 0,
-    100% var(--c), 100% 100%, 0 100%, 0 var(--c)
-  );
+  clip-path: var(--cpb-shape--card);
 }
-
 /* Panel: large TR + BL chamfer, small step at TL. */
 .cpb-shape--panel {
   --c: var(--cpb-cut-lg);
@@ -59,112 +39,44 @@ REFERENCE LIBRARY — the .cpb-shape--*, .cpb-frame--* and .cpb-btn--* families 
     0 var(--s), var(--s) var(--s)
   );
 }
-
 /* Panel (no step): simple TR + BL, large chamfer. */
 .cpb-shape--panel-clean {
   --c: var(--cpb-cut-lg);
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0, 100% var(--c),
-    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
-  );
+  clip-path: var(--cpb-shape-tr-bl);
 }
-
 /* Notch TR: one corner cut, three square. */
 .cpb-shape--notch-tr {
   --c: var(--cpb-cut-sm);
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0,
-    100% var(--c), 100% 100%, 0 100%
-  );
+  clip-path: var(--cpb-shape--notch-tr);
 }
-
 /* Tag: pointed left, flat right (status flags). */
 .cpb-shape--tag {
   --c: 8px;
-  clip-path: polygon(
-    var(--c) 0, 100% 0,
-    100% 100%, var(--c) 100%, 0 50%
-  );
+  clip-path: var(--cpb-shape-tag-left);
 }
-
 /* Tag (right-pointing). */
 .cpb-shape--tag-r {
   --c: 8px;
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0,
-    100% 50%, calc(100% - var(--c)) 100%, 0 100%
-  );
+  clip-path: var(--cpb-shape--tag-right);
 }
-
 /* Arrow: right-pointing chevron (primary action / forward CTA). */
 .cpb-shape--arrow {
   --c: 10px;
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0,
-    100% 50%, calc(100% - var(--c)) 100%, 0 100%
-  );
+  clip-path: var(--cpb-shape--arrow-right);
 }
-
 /* Checkbox marker shape: TR only cut. */
 .cpb-shape--check {
   --c: 4px;
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0,
-    100% var(--c), 100% 100%, 0 100%
-  );
+  clip-path: var(--cpb-shape--check);
 }
-
 /* Radio shape: all four corners (diamond-like). */
 .cpb-shape--radio {
   --c: 5px;
-  clip-path: polygon(
-    var(--c) 0, calc(100% - var(--c)) 0,
-    100% var(--c), 100% calc(100% - var(--c)),
-    calc(100% - var(--c)) 100%, var(--c) 100%,
-    0 calc(100% - var(--c)), 0 var(--c)
-  );
+  clip-path: polygon( 50% 0, 100% 50%, 50% 100%, 0 50% );
 }
+/* #endregion */
 
-.cpb-divider--header {
-  --d-h: 24px;
-  --d-bar: 6px;
-  --d-label-w: 200px;
-  --d-foot: 60px;
-  --d-slope: 10px;
-  appearance: none;
-  margin: 0;
-  border: 0;
-  background: transparent;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  clip-path: none;
-  width: 100%;
-}
-.cpb-divider--header::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 240, 255, 0.55);
-  clip-path: polygon(0% 0%, 100% 0%, 100% var(--d-bar), calc(50% + var(--d-label-w) / 2) var(--d-bar), calc(50% + var(--d-label-w) / 2 - var(--d-slope)) 100%, calc(50% - var(--d-label-w) / 2 + var(--d-slope)) 100%, calc(50% - var(--d-label-w) / 2) var(--d-bar), 0% var(--d-bar));
-}
-.cpb-divider--header > span {
-    position: relative;
-    z-index: 1;
-    margin-top: var(--d-bar);
-    height: calc(var(--d-h) - var(--d-bar));
-    display: inline-flex;
-    align-items: center;
-    padding: 0 22px;
-    font-family: var(--cpb-font-mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--cpb-bg-solid-top);
-    font-weight: 700;
-}
-
+/* #region General setup */
 /* ─── .cpb-frame helper ──────────────────────────────────────
    Pairs with any .cpb-shape--* to paint a 1px hairline border
    + interior fill, working around the border+clip-path limit.
@@ -176,6 +88,7 @@ REFERENCE LIBRARY — the .cpb-shape--*, .cpb-frame--* and .cpb-btn--* families 
    Reference library: unused .cpb-frame--* modifiers are kept
    intentionally for reuse (not dead code).
    ─────────────────────────────────────────────────────────── */
+/* #region Frames */
 .cpb-frame {
   position: relative;
   background: var(--cpb-frame-border, var(--cpb-panel-border));
@@ -190,13 +103,11 @@ REFERENCE LIBRARY — the .cpb-shape--*, .cpb-frame--* and .cpb-btn--* families 
   z-index: 0;
 }
 .cpb-frame > * { position: relative; z-index: 1; }
-
 .cpb-frame:hover,
 .cpb-frame:focus-visible,
 .cpb-frame--active { --cpb-frame-border: var(--cpb-accent); outline: none; }
 .cpb-frame:focus-visible::before,
 .cpb-frame--active::before { background: var(--cpb-accent-wash-soft); }
-
 .cpb-frame--lime  { --cpb-frame-border: var(--cpb-accent-strong-border); }
 .cpb-frame--warm  { --cpb-frame-border: var(--cpb-accent-warm-border); }
 .cpb-frame--warn  { --cpb-frame-border: var(--cpb-warning); }
@@ -217,11 +128,12 @@ REFERENCE LIBRARY — the .cpb-shape--*, .cpb-frame--* and .cpb-btn--* families 
 }
 .cpb-brackets::before { top: 4px; left: 4px; border-top: 1.5px solid var(--cpb-accent); border-left: 1.5px solid var(--cpb-accent); }
 .cpb-brackets::after  { bottom: 4px; right: 4px; border-bottom: 1.5px solid var(--cpb-accent); border-right: 1.5px solid var(--cpb-accent); }
+/* #endregion */
 
 /* =================================================
    GENERAL / ROOT VARIABLES & PROPERTIES
 ================================================== */
-
+/* #region Overrides */
 :root, body, .window-app, .application {
   scrollbar-color: var(--scrollbar-color) !important;
   --cpb-shadow: 0 0 7px rgba(110, 0, 255, 0.4);
@@ -243,8 +155,6 @@ REFERENCE LIBRARY — the .cpb-shape--*, .cpb-frame--* and .cpb-btn--* families 
   --input-text-color: var(--cpb-accent);
   --input-placeholder-color: var(--cpb-muted);
 }
-
-/* Overrides */
 #sidebar-content section.sidebar-tab, .application .window-content, #sidebar-content section.sidebar-tab button, .application .window-content button, .flexcol button.ui-control, input[type=radio], input[type=checkbox] {
   --color-text-emphatic: var(--cpb-accent);
   --color-text-primary: var(--cpb-text);
@@ -303,7 +213,6 @@ REFERENCE LIBRARY — the .cpb-shape--*, .cpb-frame--* and .cpb-btn--* families 
   --input-placeholder-color: var(--cpb-muted);
   --input-focus-outline-color: var(--cpb-accent);
 }
-
 .cyberpunk-blue input[type=checkbox] {
   --c: 5px;
   clip-path: polygon(
@@ -312,29 +221,24 @@ REFERENCE LIBRARY — the .cpb-shape--*, .cpb-frame--* and .cpb-btn--* families 
     calc(100% - var(--c)) 100%, var(--c) 100%,
     0 calc(100% - var(--c)), 0 var(--c) );
 }
+/* #endregion */
+/* #endregion */
 
-
-/* ==================================================
-GENERAL ELEMENTS
-================================================== */
-
+/* #region GENERAL ELEMENTS —————————————————————— */
+/* #region Base HTML sections */
 body {
   font-family: 'Share Tech', monospace;
 }
-
 *, div, section {
   scrollbar-color: var(--scrollbar-color) !important;
 }
-
 h1, h2, h3, h4, h5, h6 {
   color: var(--cpb-accent-strong);
   font-weight: 300;
 }
-
 .journal-entry-pages h1 {
   font-family: var(--cpb-font-display);
 }
-
 .journal-entry-pages h2,
 .journal-entry-pages h3,
 .journal-entry-pages h4,
@@ -344,19 +248,12 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--cpb-accent);
   border: none;
 }
-
 .sheet.journal-entry.application .journal-sidebar .toc li.category strong {
   font-weight: 300;
 }
+/* #endregion */
 
-.dice-roll .dice-formula,
-.dice-roll .dice-total {
-  color: var(--cpb-accent-strong);
-  border: 0 solid transparent;
-  border-radius: 0;
-  box-shadow: none;
-}
-
+/* #region Foundry normalization */
 section.tab.sidebar-tab,
 section.chat-sidebar:not(.sidebar-popout),
 #chat.chat-sidebar,
@@ -365,6 +262,28 @@ section.chat-sidebar:not(.sidebar-popout),
   background-color: transparent;
   background: var(--cpb-bg);
 }
+
+/* #region Chat */
+.chat-message .message-header .message-metadata {
+  color: var(--cpb-muted);
+  font-size: var(--cpb-fs-sm);
+}
+.dice-roll .dice-formula,
+.dice-roll .dice-total {
+  color: var(--cpb-accent-strong);
+  border: 0 solid transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+/* Chat card success/failure coloring */
+.cyberpunk-blue .chat-card .cpb-success { color: #4cff8a; }
+.cyberpunk-blue .chat-card .cpb-failure { color: #ff4c4c; }
+.cyberpunk-blue .chat-card .cpb-gm-note {
+  font-size: var(--font-size-10, 10px);
+  color: #888;
+  font-style: italic;
+}
+/* #endregion */
 
 #settings > section.documentation a.button {
   --button-hover-background-color: var(--cpb-accent);
@@ -375,16 +294,10 @@ section.chat-sidebar:not(.sidebar-popout),
   color: var(--cpb-accent);
   border: var(--cpb-border);
 }
-
 #settings > section.documentation a.button:hover {
   background: var(--cpb-accent);
   border: var(--cpb-border);
   color: var(--cpb-bg-solid-top);
-}
-
-.chat-message .message-header .message-metadata {
-  color: var(--cpb-muted);
-  font-size: var(--cpb-fs-sm);
 }
 
 .sidebar-tab h2.divider,
@@ -398,7 +311,6 @@ section.chat-sidebar:not(.sidebar-popout),
   font-size: 1.2rem;
   margin-top: 1rem;
 }
-
 .sidebar-tab h2.divider::before,
 .sidebar-tab h3.divider::before,
 .sidebar-tab h4.divider::before,
@@ -410,7 +322,6 @@ section.chat-sidebar:not(.sidebar-popout),
     border-top: 2px ridge var(--cpb-accent-strong);
     mask-image: linear-gradient(90deg, transparent 0%, black 100%);
 }
-
 .sidebar-tab h2.divider::after,
 .sidebar-tab h3.divider::after,
 .sidebar-tab h4.divider::after,
@@ -423,85 +334,63 @@ section.chat-sidebar:not(.sidebar-popout),
     mask-image: linear-gradient(90deg, black 0%, transparent 100%);
 }
 
+/* #region Directories*/
+.directory li.directory-item {
+  border-top: 0;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.08);
+}
+.directory li.directory-item:hover,
+.directory li.directory-item.active { background: var(--cpb-accent-wash-soft); }
+.directory li.directory-header { border-bottom: 1px solid var(--cpb-accent-wash-border); }
+/* #endregion */
+
+/* Sidebar tab buttons (icons along the right rail) */
+#sidebar-tabs .item {
+  color: var(--cpb-muted);
+  transition: color var(--cpb-dur) var(--cpb-ease);
+}
+#sidebar-tabs .item:hover,
+#sidebar-tabs .item.active { color: var(--cpb-accent); }
+
+/* #region Foundry application window header */
+.application .window-header {
+  background: var(--cpb-bg);
+  border-bottom: 1px solid var(--cpb-accent-wash-border);
+}
+.application .window-header button {
+  font-family: var(--_fa-family);
+}
+.application .window-header button::before {
+  content: var(--fa) / "";
+  font-family: var(--_fa-family);
+}
+/* #endregion */
+
+/* Remove border-radius from Foundry's own controls */
+.form-group input,
+.form-group select,
+.form-group textarea { border-radius: 0; }
+/* #endregion */
+
+/* #region Cyberpunk Blue window set-up */
 .window-app {
   font-family: var(--cpb-font-body);
   scrollbar-color: var(--scrollbar-color) !important;
 }
-
 .application .window-header .window-title {
   font-size: 1.1rem;
   font-weight: 900;
   color: var(--cpb-accent);
   font-family: var(--cpb-font-mono);
 }
-
 .application {
   color: var(--cpb-text);
   background: var(--cpb-bg);
 }
-
 .cyberpunk-blue {
   color: var(--cpb-text);
   scrollbar-color: var(--scrollbar-color) !important;
 }
-
-.cyberpunk-blue input,
-.cyberpunk-blue button,
-.cyberpunk-blue textarea,
-.cyberpunk-blue select {
-  font-family: var(--cpb-font-mono);
-}
-
-.cyberpunk-blue input[type=text],
-.cyberpunk-blue input[type=number] {
-  border: 1px solid rgba(141, 227, 255, 0.2);
-  --c: var(--cpb-cut-sm);
-  clip-path: var(--cpb-shape--notch-tr);
-  background: var(--cpb-panel-deeper);
-  color: var(--cpb-text);
-  font-size: var(--cpb-fs-body);
-  text-align: center;
-  min-width: 34px;
-  min-height: 34px;
-  padding: 0.35rem 0.55rem;
-}
-
-.cyberpunk-blue input[type=text] {
-  text-align: left;
-}
-
-/* Only the active (open) editor gets a resize handle and scroll region.
-   While toggled-inactive, a prose-mirror just shows the enriched HTML. */
-.cyberpunk-blue .prosemirror.active, .cyberpunk-blue prose-mirror.active {
-  resize: vertical;
-  overflow-y: scroll;
-}
-
-/* Non-editors see a disabled prose-mirror: hide its edit (pencil) button so the
-   field reads as plain enriched text. */
-.cyberpunk-blue prose-mirror[disabled] > button.toggle {
-  display: none;
-}
-
-/* While toggled-inactive, an editor just displays enriched HTML. Core locks the
-   box to --min-height (150px) and absolutely-positions .editor-content, so the
-   content can neither shrink the box when short nor grow it when long. Restore
-   normal flow so the read-only view sizes to exactly its content (with a small
-   floor so an empty field stays clickable). */
-.cyberpunk-blue prose-mirror.inactive {
-  --min-height: 0px;
-  min-height: 1.5em;
-}
-.cyberpunk-blue prose-mirror.inactive > .editor-content {
-  position: static;
-  inset: auto;
-  overflow: visible;
-}
-
-/* ==================================================
-   .SHEET
-================================================== */
-
 .cyberpunk-blue .window-content,
 .cyberpunk-blue.sheet.actor,
 .cyberpunk-blue.sheet.item {
@@ -515,2309 +404,67 @@ section.chat-sidebar:not(.sidebar-popout),
   height: 100%;
   padding: 1rem;
 }
+/* #endregion */
 
-.cyberpunk-blue .sheet-header {
-  align-items: end;
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: 200px minmax(0, 1fr);
-}
-
-.cyberpunk-blue .profile-img {
-  aspect-ratio: 1;
-  border: none;
-  margin: 0 1rem 1rem 0;
-  box-shadow: none;
-  object-fit: contain;
-  max-width: 200px;
-  max-height: 300px;
-}
-
-.cyberpunk-blue .header-fields {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 0.35rem;
-}
-
-.cyberpunk-blue .header-stats-row {
-  margin-top: 1rem;
-  display: flex;
-  align-items: flex-end;
-  gap: 0.5rem;
-}
-
-.cyberpunk-blue .header-stats {
-  display: grid;
-  gap: 0.35rem;
-  grid-template-columns: repeat(5, minmax(72px, 1fr));
-}
-
-.cyberpunk-blue .header-stat {
-  align-items: center;
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  max-width: 10rem;
-}
-
-.cyberpunk-blue .stat-icon {
-  filter: invert(1);
-  height: 4rem;
-  opacity: 0.85;
-  width: 4rem;
-}
-
-.cyberpunk-blue .stat-icon-sm {
-  filter: invert(1);
-  height: 3rem;
-  opacity: 0.85;
-  width: 3rem;
-}
-
-.cyberpunk-blue .header-money {
-  justify-self: end;
-  align-items: center;
-  display: flex;
-  flex-direction: row;
-  min-width: 5.5rem;
-}
-
-.cyberpunk-blue .header-money .stat-short {
-  color: var(--cpb-accent-strong);
-  background-color: var(--cpb-accent-strong-wash);
-  padding: 0.35rem;
-  font-size: 1.5rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  white-space: nowrap;
-  padding: 0.2rem 1rem .2rem 1.2rem;
-  --c: 8px;
-  clip-path: polygon(
-    var(--c) 0, 100% 0,
-    100% 100%, var(--c) 100%, 0 50%
-  );
-}
-
-.cyberpunk-blue .header-money input {
-  text-align: right;
-  border-color: var(--cpb-accent-strong-border);
-  width: 6rem;
-}
-
-.cyberpunk-blue .charname {
-  border: 0;
-  margin: 0;
-}
-
-.cyberpunk-blue .charname input {
-  font-size: 2rem;
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  min-height: 54px;
-  border: none;
-  border-bottom: 1px solid var(--cpb-accent);
-  background: none;
-}
-
-.cyberpunk-blue .hint {
-  color: var(--cpb-muted);
-  font-size: var(--cpb-fs-sm);
-}
-
-.cyberpunk-blue .sheet-body {
-  min-height: 0;
-  overflow: auto;
-}
-
-.cyberpunk-blue .sheet-body .tab {
-  display: none;
-}
-
-.cyberpunk-blue .sheet-body .tab.active {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* Generic in-template icon. Drop a <span class="cpb-icon" style="--cpb-icon: url('/systems/...')"></span>
-   anywhere icon art is wanted; the mask-backed background uses currentColor, so the icon
-   tracks the surrounding text color including hover/active states.
-   .cpb-tab-icon is the larger variant used inside sheet tabs.
-   NOTE: the url() must be root-absolute (leading slash). The var() is substituted inside this
-   stylesheet, so a relative path would resolve against this file's /css/ dir and 404. */
-.cyberpunk-blue .cpb-icon,
-.cyberpunk-blue .cpb-tab-icon {
-  background-color: currentColor;
-  display: inline-block;
-  flex-shrink: 0;
-  -webkit-mask: var(--cpb-icon) center / contain no-repeat;
-          mask: var(--cpb-icon) center / contain no-repeat;
-  vertical-align: -0.2em;
-}
-
-.cyberpunk-blue .cpb-icon {
-  width: 1.1em;
-  height: 1.1em;
-}
-
-.cyberpunk-blue .cpb-tab-icon {
-  width: 1.4rem;
-  height: 1.4rem;
-  margin-right: var(--cpb-space-2);
-  vertical-align: -0.35rem;
-}
-
-.cyberpunk-blue .sheet-panel:has(.cpb-divider--header) {
-  padding-top: 0 !important;
-}
-
-/* =====================================================
-SHEET COMPONENTS: STATS, RESOURCES, GRIDS
-================================================== */
-.cyberpunk-blue .header-stat .stat-short {
-  color: var(--cpb-accent-strong);
-  font-size: 1.5rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-align: center;
-}
-
-.cyberpunk-blue .numeric-column,
-.cyberpunk-blue .embedded-rank,
-.cyberpunk-blue .skill-stat,
-.cyberpunk-blue .resource-fields input {
-  text-align: center;
-}
-
-.cyberpunk-blue .resource-fields {
-  display: grid;
-  gap: 0.35rem;
-  grid-template-columns: 1fr min-content 1fr;
-  align-items: center;
-}
-
-/* ==================================================
-   SHEET COMPONENTS: HEALTH SYSTEM
-================================================== */
-
-/* ── Effects panel (all Active Effects applied to the actor) ───────────────── */
-.cyberpunk-blue .effects-panel {
-  grid-column: span 3;
-  text-align: left;
-}
-
-.cyberpunk-blue .effects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 0.25rem;
-  align-items: start;
-  width: 100%;
-}
-
-.cyberpunk-blue .effect-cell {
-  align-items: center;
-  display: flex;
-  gap: 2px;
-  min-width: 0;
-  padding: 0;
-  text-align: left;
-}
-
-/* The open button carries the icon + label and fills the cell. */
-.cyberpunk-blue .effect-open {
-  align-items: center;
-  background: transparent;
-  border: 1px solid transparent;
-  cursor: pointer;
-  display: grid;
-  flex: 1;
-  gap: 0.4rem;
-  grid-template-columns: 18px minmax(0, 1fr) auto;
-  justify-items: start;
-  min-width: 0;
-  padding: 0.15rem 0.3rem;
-  text-align: left;
-  clip-path: none;
-}
-
-.cyberpunk-blue .effect-open::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: none;
-  clip-path: inherit;
-}
-
-.cyberpunk-blue .effect-open:hover {
-  border-color: var(--cpb-frame-border, rgba(255, 255, 255, 0.25));
-}
-
-.cyberpunk-blue .effect-icon {
-  height: 18px;
-  width: 18px;
-}
-
-.cyberpunk-blue .effect-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.cyberpunk-blue .effect-duration {
-  font-size: var(--font-size-10, 0.7rem);
-  opacity: 0.7;
-  display: none;
-}
-
-/* Same-named effects collapse under an expandable header. */
-.cyberpunk-blue .effect-group {
-  grid-column: 1 / -1;
-}
-
-.cyberpunk-blue .effect-group > summary {
-  cursor: pointer;
-  list-style: none;
-}
-
-.cyberpunk-blue .effect-group > summary::-webkit-details-marker {
-  display: none;
-}
-
-.cyberpunk-blue .effect-group-summary {
-  display: flex;
-  gap: 0.4rem;
-  align-items: center;
-  padding: 0.15rem 0.3rem;
-}
-
-.cyberpunk-blue .effect-group-summary::before {
-  content: "\25B8"; /* ▸ collapsed */
-  flex: 0 0 auto;
-  font-size: 0.7rem;
-  opacity: 0.7;
-}
-
-.cyberpunk-blue .effect-group[open] > .effect-group-summary::before {
-  content: "\25BE"; /* ▾ expanded */
-}
-
-.cyberpunk-blue .effect-group-summary .effect-icon {
-  flex: 0 0 auto;
-}
-
-.cyberpunk-blue .effect-group-summary .effect-name {
-  flex: 1 1 auto;
-}
-
-.cyberpunk-blue .effect-count {
-  font-size: var(--font-size-10, 0.7rem);
-  font-weight: 700;
-  opacity: 0.75;
-}
-
-.cyberpunk-blue .effect-group-members {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 0.2rem;
-  padding: 0.15rem 0 0.15rem 0.85rem;
-}
-
-/* Critical-condition effects (low HP / low PSYCHE / Critical Injury): icon + text in error red.
-   The <button> resets `color`, so the text colour must be set on the button/label
-   explicitly rather than relying on inheritance from the cell. */
-.cyberpunk-blue .effect-cell.is-error,
-.cyberpunk-blue .effect-cell.is-error .effect-open,
-.cyberpunk-blue .effect-cell.is-error .effect-name,
-.cyberpunk-blue .effect-cell.is-error .effect-icon,
-.cyberpunk-blue .effect-group.is-error > .effect-group-summary,
-.cyberpunk-blue .effect-group.is-error > .effect-group-summary .effect-name,
-.cyberpunk-blue .effect-group.is-error > .effect-group-summary .effect-icon {
-  color: var(--cpb-error); /* masked .cpb-icon tracks currentColor */
-}
-
-.cyberpunk-blue .health-value {
+/* #region Form element defaults */
+.cyberpunk-blue input,
+.cyberpunk-blue button,
+.cyberpunk-blue textarea,
+.cyberpunk-blue select,
+.cyberpunk-blue .button { font-family: var(--cpb-font-mono); }
+.cyberpunk-blue input[type=text],
+.cyberpunk-blue input[type=number] {
+  border: 1px solid rgba(141, 227, 255, 0.2);
+  --c: var(--cpb-cut-sm);
+  clip-path: var(--cpb-shape--notch-tr);
+  background: var(--cpb-panel-deeper);
   color: var(--cpb-text);
-  font-size: 1.4rem;
-  font-weight: 700;
-}
-
-/* ==================================================
-   SHEET COMPONENTS: SKILLS & ABILITIES
-================================================== */
-
-.cyberpunk-blue .skill-table,
-.cyberpunk-blue .component-table,
-.cyberpunk-blue .embedded-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.cyberpunk-blue .skill-table {
-  column-gap: 1rem;
-  columns: 2 520px;
-}
-
-.cyberpunk-blue .skill-table > * {
-  break-inside: avoid;
-}
-
-.cyberpunk-blue .skill-row,
-.cyberpunk-blue .component-row,
-.cyberpunk-blue .embedded-row {
-  align-items: center;
-  background: var(--cpb-panel);
-  border: none;
-  display: grid;
-  gap: 0.5rem;
-  padding: 0.1rem;
-}
-
-.cyberpunk-blue .skill-header,
-.cyberpunk-blue .component-header,
-.cyberpunk-blue .embedded-header {
-  color: var(--cpb-accent);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.cyberpunk-blue .skill-header .numeric-column,
-.cyberpunk-blue .component-header .numeric-column,
-.cyberpunk-blue .embedded-header .numeric-column {
-  justify-self: center;
+  font-size: var(--cpb-fs-body);
   text-align: center;
-}
-
-.cyberpunk-blue .skill-row input[type=text],
-.cyberpunk-blue .skill-row input[type=number],
-.cyberpunk-blue .component-row input[type=text],
-.cyberpunk-blue .component-row input[type=number],
-.cyberpunk-blue .embedded-row input[type=text],
-.cyberpunk-blue .embedded-row input[type=number],
-.cyberpunk-blue .ability-row input[type=text],
-.cyberpunk-blue .ability-row input[type=number] {
-  border: none;
-  background-color: transparent;
-  background: none;
-  color: var(--cpb-text);
-  font-size: 1rem;
-  min-height: 14px;
-  padding: 0.1rem 0.2rem;
-}
-
-.cyberpunk-blue .skill-row input[type=text],
-.cyberpunk-blue .component-row input[type=text],
-.cyberpunk-blue .embedded-row input[type=text],
-.cyberpunk-blue .ability-row input[type=text] {
-  text-align: left;
-}
-
-.cyberpunk-blue .skill-row input[type=number],
-.cyberpunk-blue .component-row input[type=number],
-.cyberpunk-blue .embedded-row input[type=number],
-.cyberpunk-blue .ability-row input[type=number] {
-  text-align: center;
-}
-
-.cyberpunk-blue .component-row {
-  grid-template-columns: minmax(120px, 1fr) 72px minmax(160px, 1.4fr) 42px;
-}
-
-.cyberpunk-blue .embedded-row {
-  grid-template-columns: minmax(180px, 1.4fr) 70px minmax(160px, 1fr) minmax(240px, 1.5fr);
-}
-
-.cyberpunk-blue .ability-row {
-  grid-template-columns: minmax(180px, 1.2fr) 80px minmax(140px, 1fr) minmax(220px, 1.4fr) minmax(160px, 0.8fr);
-}
-
-.cyberpunk-blue .ability-single-sheet {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.cyberpunk-blue .ability-header {
-  align-items: end;
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) minmax(240px, 3fr);
-}
-
-.cyberpunk-blue .ability-header.single-rank {
-  grid-template-columns: minmax(160px, 1fr) minmax(240px, 3fr);
-}
-
-.cyberpunk-blue .ability-note-field {
-  min-width: 0;
-}
-
-/* =================================================
-   SHEET COMPONENTS: EMBEDDED ITEMS & PANELS
-================================================== */
-
-.cyberpunk-blue .component-pill-list,
-.cyberpunk-blue .panel-header,
-.cyberpunk-blue .item-meta-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-.cyberpunk-blue .item-meta-row label {
-  display: flex;
-  flex-flow: column;
-}
-
-.cyberpunk-blue .manufacturer-field {
-  min-width: min(100%, 18rem);
-}
-
-.cyberpunk-blue .manufacturer-input-row {
-  align-items: center;
-  display: flex;
-  gap: 0.45rem;
-}
-
-.cyberpunk-blue .manufacturer-logo {
-  /* Logo SVGs are authored as black-on-transparent (unified item-art palette).
-     Sheets render on a dark background, so invert to white at display time. */
-  filter: invert(1);
-  height: 35px;
-  object-fit: contain;
-  width: unset;
-}
-
-.cyberpunk-blue .embedded-entry {
-  break-inside: avoid;
-  display: flex;
-  flex-direction: column;
-}
-
-.cyberpunk-blue .embedded-description {
-  background: var(--cpb-panel);
-  color: white;
-  font-size: 0.9rem;
-  padding: 0.55rem 0.7rem 0.7rem;
-}
-
-.cyberpunk-blue .embedded-entry.is-disabled {
-  opacity: 0.5;
-}
-
-.cyberpunk-blue .embedded-controls {
-  display: flex;
-  flex-wrap: nowrap;
-}
-
-.cyberpunk-blue .embedded-controls button[title="Edit"] {
-  display: none;
-}
-
-.cyberpunk-blue .panel-header {
-  align-items: center;
-  justify-content: space-between;
-}
-
-.cyberpunk-blue .component-add {
-  display: flex;
-  break-inside: avoid;
-  flex-wrap: nowrap;
-}
-
-.cyberpunk-blue .component-add select {
-  border: 1px solid var(--cpb-accent);
-  background: var(--cpb-panel);
-  color: var(--cpb-text);
-  min-height: 34px;
-  padding: 0.35rem 0.7rem;
-}
-
-.cyberpunk-blue .component-links,
-.cyberpunk-blue .embedded-summary {
-  color: white;
-  font-size: 0.85rem;
-}
-
-.cyberpunk-blue .embedded-name {
-  align-items: center;
-  background: none;
-  border: 0;
-  display: flex;
-  gap: 0.65rem;
-  justify-content: flex-start;
-  padding: 0;
-  width: 100%;
-}
-
-.cyberpunk-blue .embedded-name-text {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  min-width: 0;
-}
-
-.cyberpunk-blue .manufacturer-summary,
-.cyberpunk-blue .embedded-note {
-  color: white;
-  font-size: 0.8rem;
-}
-
-.cyberpunk-blue .manufacturer-summary {
-  align-items: center;
-  display: inline-flex;
-  gap: 0.35rem;
-}
-
-.cyberpunk-blue .manufacturer-summary .manufacturer-logo {
-  height: unset;
-  width: unset;
-  max-width: 70px;
-  max-height: 15px;
-  object-fit: contain;
-}
-
-.manufacturer-summary img + span {
-  display: none;
-}
-
-.cyberpunk-blue .embedded-name img {
-  border: none;
-  height: 38px;
-  object-fit: cover;
-  width: 38px;
-}
-
-.cyberpunk-blue .embedded-controls button,
-.cyberpunk-blue .panel-header > button,
-.cyberpunk-blue .component-add button,
-.cyberpunk-blue .component-row button {
   min-width: 34px;
+  min-height: 34px;
   padding: 0.35rem 0.55rem;
 }
-
-.cyberpunk-blue .embedded-controls i,
-.cyberpunk-blue .panel-header i,
-.cyberpunk-blue .component-add i,
-.cyberpunk-blue .component-row i {
-  pointer-events: none;
-}
-
-.cyberpunk-blue .table.embedded-table {
-  border-collapse: separate;
-  border-spacing: 0 2px;
-  display: table;
-  table-layout: auto;
-  width: 100%;
-}
-
-.cyberpunk-blue table.embedded-table th,
-.cyberpunk-blue table.embedded-table td {
-  background: var(--cpb-panel);
-  padding: 0.35rem 0.45rem;
-  vertical-align: middle;
-}
-
-.cyberpunk-blue table.embedded-table th {
-  color: var(--cpb-accent);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.cyberpunk-blue table.embedded-table th.numeric-column,
-.cyberpunk-blue table.embedded-table th.column-controls {
-  text-align: center;
-}
-
-.cyberpunk-blue table.embedded-table td .embedded-controls {
-  justify-content: flex-start;
-}
-
-.cyberpunk-blue table.embedded-table td input[type=number] {
-  width: 100%;
-}
-
-.cyberpunk-blue table.embedded-table tbody tr:nth-child(even) td {
-  background: var(--cpb-table-alt-bg);
-}
-
-.cyberpunk-blue .embedded-table .column-compact,
-.cyberpunk-blue .embedded-table .column-controls,
-.cyberpunk-blue .embedded-table th.numeric-column,
-.cyberpunk-blue .embedded-table td.numeric-column {
-  white-space: nowrap;
-  width: 3rem;
-}
-
-.cyberpunk-blue .panel-header.panel-actions {
-  justify-content: flex-end;
-}
-
-.cyberpunk-blue .cyberware-header {
-  align-items: end;
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-}
-
-.cyberpunk-blue .cyberware-sheet {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.cyberpunk-blue .cyberware-detail-grid {
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-}
-
-.cyberpunk-blue .checkbox-label,
-.cyberpunk-blue .compact-field,
-.cyberpunk-blue .platform-select {
-  min-width: 3rem;
-}
-
-.cyberpunk-blue .cyberware-group:first-child {
-  margin-top: 1rem;
-}
-
-.cyberpunk-blue .cyberware-row {
-  grid-template-columns: minmax(180px, 1.4fr) minmax(110px, 0.8fr) 72px minmax(160px, 1fr) 80px minmax(180px, 1fr);
-}
-
-.cyberpunk-blue .cyberware-sheet.is-disabled .sheet-panel:not(.status-disabled) {
-  opacity: 0.7;
-}
-
-.cyberpunk-blue .combat-layout,
-.cyberpunk-blue .weapon-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.cyberpunk-blue .weapon-block {
-  border: 1px solid var(--cpb-panel-border);
-  padding: 0.85rem;
-}
-
-.cyberpunk-blue .weapon-grid {
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-}
-
-.cyberpunk-blue .sheet-status {
-  align-items: center;
-  display: flex;
-  gap: 0.6rem;
-}
-
-.cyberpunk-blue .status-disabled {
-  border-color: var(--cpb-warning);
-  color: var(--cpb-warning);
-}
-
-.cyberpunk-blue .lifepath-layout {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.cyberpunk-blue .lifepath-layout > .sheet-panel {
-  flex: 1 1 auto;
-  width: 20rem;
-  min-width: min(100%, 30rem);
-}
-
-/* Columns-only wrapper: flows skill categories into columns when the sheet is wide
-   enough, single column when narrow. Intentionally not a .sheet-panel itself. */
-.cyberpunk-blue .skill-category-grid {
-  margin-top: 1rem;
-  align-items: start;
-  columns: 3 44rem;
-  gap: 1rem;
-}
-
-.cyberpunk-blue .skill-table-container {
-  display: flex;
-  flex-direction: column;
-}
-
-.cyberpunk-blue .skill-row {
-  grid-template-columns: 78px minmax(120px, 1.2fr) 64px 56px minmax(220px, 2fr) 56px;
-}
-
-.cyberpunk-blue .skill-table-container .skill-row {
-  grid-template-columns: 78px minmax(120px, 1.2fr) 64px 56px minmax(220px, 2fr) 56px 40px;
-}
-
-.cyberpunk-blue .skill-row > input.numeric-column {
-  width: 100%;
-}
-
-.cyberpunk-blue .skill-row .macro-button {
-  align-items: center;
-  background: rgba(141, 227, 255, 0.08);
-  border-color: rgba(141, 227, 255, 0.24);
-  color: var(--cpb-accent);
-  display: inline-flex;
-  justify-content: center;
-  justify-self: center;
-  padding-inline: 0;
-  width: 100%;
-}
-
-.cyberpunk-blue .skill-table-container > .skill-row:nth-child(even),
-.cyberpunk-blue .component-entries > .component-row:nth-child(even),
-.cyberpunk-blue .embedded-entries > .embedded-row:nth-child(even),
-.cyberpunk-blue .embedded-entries > .embedded-entry:nth-child(even) {
-  background: var(--cpb-table-alt-bg);
-}
-
-/* Each category is its own .sheet-panel inside the grid; the grid gap controls
-   vertical rhythm, so drop the panel's default top margin. */
-.cyberpunk-blue .skill-category {
-  margin-bottom: 1rem;
-  break-inside: avoid;
-}
-
-.cyberpunk-blue .skill-category > .cpb-divider--header {
-  margin-bottom: 0.35rem;
-}
-
-.cyberpunk-blue .notes-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
-}
-
-.cyberpunk-blue .notes-grid .prosemirror.active {
-  min-height: 400px;
-}
-
-.cyberpunk-blue .traits-grid {
-  gap: 1rem;
-  display: grid;
-  grid-template-columns: min-content minmax(auto, 2fr);
-}
-
-.cyberpunk-blue .traits-grid .sheet-panel > .embedded-table {
-  margin-top: 0;
-}
-
-.cyberpunk-blue .traits-role-panel {
-  width: max-content;
-}
-
-.cyberpunk-blue .traits-role-panel .embedded-table {
-  width: auto;
-}
-
-.cyberpunk-blue .traits-ability-panel {
-  min-width: 0;
-}
-
-.cyberpunk-blue .roles-controls-column {
-  width: 9.5rem;
-}
-
-.cyberpunk-blue .abilities-note-column {
-  width: auto;
-}
-
-.cyberpunk-blue table.embedded-table td {
-  overflow: hidden;
-}
-
-.cyberpunk-blue table.embedded-table td .embedded-summary,
-.cyberpunk-blue .inventory-row .embedded-summary {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.cyberpunk-blue .quick-stats-row {
-  margin-top: 1rem;
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-}
-
-.cyberpunk-blue .armor-inline-field .resource-fields,
-.cyberpunk-blue .compact-resource {
-  align-items: center;
-  min-height: 38px;
-  margin-top: auto;
-}
-
-.cyberpunk-blue .compact-resource input {
-  min-width: 3rem;
-}
-
-.cyberpunk-blue .inventory-header {
-  margin-top: 1rem;
-  align-items: flex-start;
-  display: flex;
-  gap: 0.75rem;
-}
-
-/* Ammo pills row */
-.cyberpunk-blue .ammo-pills {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 0.4rem;
-}
-
-.cyberpunk-blue .ammo-pill, .cyberpunk-blue .ammo-pill button {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  border-radius: 6px;
-  background: var(--cpb-accent-warm-wash);
-  color: var(--cpb-text);
-}
-
-.cyberpunk-blue .ammo-pill:hover, .cyberpunk-blue .ammo-pill button:hover, .cyberpunk-blue .ammo-pill button:hover::before {
-  background: var(--cpb-accent-warm);
-  color: var(--cpb-bg-solid-top);
-}
-
-.cyberpunk-blue .ammo-pill-name {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
+.cyberpunk-blue input[type=text] {
   text-align: left;
-  line-height: 1.2;
-  width: 100%;
-  white-space: nowrap;
 }
-
-.cyberpunk-blue .ammo-pill-name img {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  border: none;
-}
-
-.cyberpunk-blue .ammo-pill-qty {
-  max-width: 3rem;
-  min-width: 2rem;
-  border: none !important;
-  box-shadow: none !important;
-  outline: none !important;
-  text-align: center;
-  font-size: 0.85em;
-}
-
-.cyberpunk-blue .ammo-pill-qty:focus {
-  border: none !important;
-  box-shadow: none !important;
-  outline: none !important;
-}
-
-.cyberpunk-blue .inventory-row {
-  grid-template-columns: minmax(180px, 1.2fr) 70px minmax(220px, 1.6fr) 80px minmax(220px, 1fr);
-}
-
-.cyberpunk-blue .instruction-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cyberpunk-blue .inventory-row .embedded-summary {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.cyberpunk-blue .inventory-row input[type=number] {
-  width: 100%;
-}
-
-.cyberpunk-blue .combat-weapon-table .numeric-column button {
-  width: 100%;
-}
-
-.cyberpunk-blue .weapon-mod-dots {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.15rem;
-  margin-top: 0.1rem;
-}
-
-.cyberpunk-blue .weapon-mod-dot {
-  font-size: 0.45rem;
-  color: var(--color-text-light-6);
-}
-
-.cyberpunk-blue .checkbox-bottom {
-  align-self: end;
-}
-
-.cyberpunk-blue .item-meta-row .compact-field {
-  max-width: 8rem;
-}
-
-.cyberpunk-blue .cost-field {
-  min-width: min(100%, 16rem);
-}
-
-.cyberpunk-blue .item-meta-row .ammo-type-grid {
-  display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-}
-
-.cyberpunk-blue .item-meta-row .ammo-type-grid .checkbox-label {
-  display: grid;
-  grid-template-columns: min-content max-content;
-  align-items: center;
-  gap: .2rem;
-}
-
-.cyberpunk-blue .item-meta-row .checkbox-label {
-  margin-left: 0.35rem;
-}
-
-.cyberpunk-blue .armor-inline-field {
-  min-width: min(100%, 16rem);
-}
-
-.cyberpunk-blue .weapon-grid .checkbox-label {
-  align-self: end;
-}
-
-.cyberpunk-blue .weapon-damage-type-group {
-  border: 1px solid var(--cpb-panel-border);
-  border-radius: 4px;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0.4rem 0.6rem;
-  grid-column: 1 / -1;
-}
-
-.cyberpunk-blue .weapon-damage-type-group legend {
-  font-size: 0.75em;
-  font-weight: 600;
-  opacity: 0.7;
-  padding: 0 0.25rem;
-  text-transform: uppercase;
-}
-
-.cyberpunk-blue .weapon-subfields {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 0.75rem;
-  padding: 0.5rem;
-  background: var(--cpb-panel);
-  border: 1px solid var(--cpb-panel-border);
-  border-radius: 4px;
-}
-
-.cyberpunk-blue .weapon-subfields .weapon-range-table-wrap {
-  flex: 1 1 100%;
-  margin-top: 0;
-}
-
-.cyberpunk-blue .weapon-range-table-wrap {
-  margin-top: 0.9rem;
-  overflow-x: auto;
-}
-
-.cyberpunk-blue .weapon-range-table {
-  border-collapse: collapse;
-  display: table;
-  min-width: 32rem;
-  table-layout: fixed;
-  width: 100%;
-  gap: 0.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
-  margin-top: 0.9rem;
-}
-
-.cyberpunk-blue .weapon-range-table th,
-.cyberpunk-blue .weapon-range-table td {
-  background: var(--cpb-panel);
-  border: 1px solid var(--cpb-panel-border);
-  padding: 0.25rem;
-  text-align: center;
-}
-
-.cyberpunk-blue .weapon-range-table td.is-blocked,
-.cyberpunk-blue .weapon-range-table td.is-blocked input {
-  background: #000;
-  color: #000;
-}
-
-.cyberpunk-blue .weapon-range-table input {
-  min-height: 30px;
-  width: 100%;
-}
-
-.cyberpunk-blue .readonly-value,
-.cyberpunk-blue .readonly-icon,
-.cyberpunk-blue .manufacturer-display {
-  align-items: center;
-  color: var(--cpb-text);
-  display: inline-flex;
-  min-height: 34px;
-}
-
-.cyberpunk-blue .readonly-value {
-  padding: 0.35rem 0.1rem;
-}
-
-.cyberpunk-blue .manufacturer-display {
-  gap: 0.45rem;
-}
-
-.cyberpunk-blue .mod-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.cyberpunk-blue .mod-card {
-  border: 1px solid var(--cpb-panel-border);
-  padding: 0.85rem;
-}
-
-.cyberpunk-blue .mod-card.is-invalid .state-chip {
-  border-color: var(--cpb-error);
-  color: var(--cpb-error);
-}
-
-.cyberpunk-blue .mod-heading {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-.cyberpunk-blue .weapon-change-list,
-.cyberpunk-blue .mod-effect-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.cyberpunk-blue .weapon-change-row,
-.cyberpunk-blue .mod-effect-row {
-  align-items: center;
-  display: grid;
-  gap: 0.5rem;
-  grid-template-columns: minmax(120px, 1fr) minmax(110px, 0.9fr) minmax(90px, 0.8fr) 42px;
-}
-
-.cyberpunk-blue .mod-effect-name {
-  align-items: center;
-  display: inline-flex;
-  gap: 0.45rem;
-}
-
-.cyberpunk-blue .mod-effect-name img {
-  height: 20px;
-  width: 20px;
-}
-
-/* ── Role AE condition row ──────────────────── */
-
-.cyberpunk-blue .effect-condition-row {
-  align-items: center;
-  background: rgba(0, 0, 0, 0.15);
-  border-bottom: 1px solid var(--cpb-border);
-  color: var(--cpb-muted);
-  display: flex;
-  font-size: 0.75rem;
-  gap: 0.4rem;
-  padding: 0.1rem 0.5rem 0.1rem 2rem;
-}
-
-.cyberpunk-blue .effect-condition-row .condition-summary.active {
-  color: var(--cpb-accent);
-}
-
-.cyberpunk-blue .effect-condition-btn {
-  cursor: pointer;
-  opacity: 0.5;
-  padding: 0 0.25rem;
-  transition: opacity 0.15s;
-}
-
-.cyberpunk-blue .effect-condition-btn:hover,
-.cyberpunk-blue .effect-condition-btn.cpb-condition-active {
-  color: var(--cpb-accent);
-  opacity: 1;
-}
-
-.cyberpunk-blue .role-config-block,
-.cyberpunk-blue .role-grant-groups,
-.cyberpunk-blue .role-reference-list,
-.cyberpunk-blue .role-grant-summary-list,
-.cyberpunk-blue .team-member-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.cyberpunk-blue .role-overview-panel {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 1rem;
-}
-
-.cyberpunk-blue .role-overview-feature {
-  display: flex;
-  flex-direction: column;
-  gap: var(--cpb-space-2);
-}
-
-.cyberpunk-blue .role-overview-feature .role-mechanic-row {
-  display: grid;
-  gap: 0.5rem;
-  grid-template-columns: minmax(120px, 1fr) minmax(160px, 1.2fr) minmax(80px, 0.8fr);
-}
-
-.cyberpunk-blue .role-guide-row {
-  grid-template-columns: repeat(auto-fill, minmax(max-content,19%));
-}
-
-.cyberpunk-blue .role-focus-summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.cyberpunk-blue .role-reference-row {
-  align-items: end;
-  display: grid;
-  gap: 0.5rem;
-  grid-template-columns: minmax(180px, 1.5fr) minmax(120px, 1fr) 42px 42px;
-}
-
-.cyberpunk-blue .role-grant-group,
-.cyberpunk-blue .role-config-block,
-.cyberpunk-blue .role-overview-feature {
-  padding: 0.8rem;
-}
-
-.cyberpunk-blue .role-grant-summary,
-.cyberpunk-blue .specialty-summary-list {
-  columns: 3 450px;
-  gap: 1rem;
-}
-
-.cyberpunk-blue .specialty-summary-list > * {
-  break-inside: avoid;
-}
-
-.cyberpunk-blue .specialty-header {
-  margin-top: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.cyberpunk-blue .specialty-name {
-  font-size: 1rem;
-  font-weight: var(--cpb-fw-bold);
-  color: var(--cpb-accent-warm);
-}
-
-.cyberpunk-blue .specialty-rank-controls {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.cyberpunk-blue .role-overview-feature .protean-tactic-list {
-  columns: 5 300px;
-}
-
-.cyberpunk-blue .protean-tactic-list > * {
-  break-inside: avoid;
-}
-
-.cyberpunk-blue .protean-tactic-list .protean-tactic {
-  background: var(--cpb-panel);
-  padding: 0.45rem;
-  display: grid;
-  grid-template-columns: minmax(300px, auto) max-content;
-  gap: .5rem;
-}
-
-.cyberpunk-blue .protean-tactic-list .protean-tactic + .protean-tactic {
-  margin-top: 0.5rem;
-}
-
-.cyberpunk-blue .protean-tactic .protean-tactic-name {
-  font-weight: 600;
-  order: 2;
-  text-align: end;
-}
-
-.cyberpunk-blue .protean-tactic .protean-tactic-description {
-  font-size: 0.9rem;
-  order: 3;
-  grid-column: 1 / span 2;
-}
-
-.cyberpunk-blue .protean-tactic .protean-tactic-points {
-  font-size: 0.75rem;
-  font-weight: 700;
-  order: 1;
-}
-
 .cyberpunk-blue .checkbox-group {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
 }
-
 .cyberpunk-blue .checkbox-group .checkbox {
   align-items: center;
   display: flex;
   gap: 0.45rem;
 }
-
-.cyberpunk-blue .team-member-list {
-  flex-direction: row;
-  flex-wrap: wrap;
-}
-
-.cyberpunk-blue .team-member-link {
-  min-width: 180px;
-}
-
-@media (max-width: 900px) {
-  .cyberpunk-blue .notes-grid,
-  .cyberpunk-blue .header-stats {
-    grid-template-columns: 1fr;
-  }
-  .cyberpunk-blue .header-stats-row {
-    flex-wrap: wrap;
-  }
-  .cyberpunk-blue .skill-row,
-  .cyberpunk-blue .skill-table-container .skill-row,
-  .cyberpunk-blue .component-row,
-  .cyberpunk-blue .embedded-row {
-    grid-template-columns: 1fr;
-  }
-
-  .cyberpunk-blue .ability-header,
-  .cyberpunk-blue .ability-header.single-rank,
-  .cyberpunk-blue .cyberware-header {
-    grid-template-columns: 1fr;
-  }
-
-  .cyberpunk-blue .inventory-row,
-  .cyberpunk-blue .weapon-change-row,
-  .cyberpunk-blue .mod-effect-row {
-    grid-template-columns: 1fr;
-  }
-  .cyberpunk-blue .role-reference-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Future Possibilities folding section */
-.cyberpunk-blue .future-possibilities summary {
-  cursor: pointer;
-  list-style: none;
-  user-select: none;
-}
-
-.cyberpunk-blue .future-possibilities summary h3 {
-  display: inline;
-  font-size: var(--font-size-14);
-  color: var(--color-text-light-6);
-}
-
-.cyberpunk-blue .future-possibilities .future-section {
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--cpb-border);
-}
-
-.cyberpunk-blue .future-possibilities .future-section h4 {
-  font-size: var(--font-size-12);
-  color: var(--color-text-light-6);
-  margin-bottom: 0.25rem;
-}
-
-/* ==================================================
-   CHARACTER CREATION WIZARD
-================================================== */
-
-/* Sheet highlight border */
-.cyberpunk-blue .char-creation-highlight {
-  outline: 3px solid var(--cpb-accent);
-  outline-offset: 2px;
-}
-
-/* Sheet banner */
-.cyberpunk-blue .cc-sheet-banner {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.75rem;
-  background: rgba(39, 176, 255, 0.12);
-  border-bottom: 1px solid var(--cpb-accent);
-  font-size: var(--font-size-12);
-  color: var(--cpb-accent);
-}
-
-.cyberpunk-blue .cc-sheet-banner span {
-  flex: 1;
-}
-
-.cyberpunk-blue .cc-sheet-banner button {
-  padding: 0.2rem 0.6rem;
-  font-size: var(--font-size-11);
-}
-
-.cyberpunk-blue .cc-begin-banner {
-  justify-content: flex-end;
-  background: transparent;
-  border-bottom: none;
-}
-
-/* Wizard window */
-.character-creation-wizard .cc-wizard {
-  padding: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  min-height: 0;
-  overflow-y: auto;
-}
-
-/* Progress dots */
-.character-creation-wizard .cc-progress {
-  display: flex;
-  gap: 0.25rem;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-/* Content area */
-.character-creation-wizard .cc-content {
-  flex: 1;
-}
-
-.character-creation-wizard .cc-step-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.character-creation-wizard .cc-intro {
-  font-size: var(--font-size-16);
-  text-align: center;
-  color: var(--cpb-accent-strong);
-  padding: 1rem 0;
-}
-
-/* Lifepath */
-.character-creation-wizard .cc-table-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.character-creation-wizard .cc-roll-btn {
-  text-align: left;
-  padding: 0.4rem 0.75rem;
-}
-
-.character-creation-wizard .cc-roll-all {
-  --btn-tint: var(--cpb-accent-strong);
-  --btn-tint-border: var(--cpb-accent-strong-border);
-  color: var(--cpb-accent-strong);
-}
-
-/* Stats */
-.character-creation-wizard .cc-stat-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.character-creation-wizard .cc-stat-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.character-creation-wizard .cc-stat-label {
-  width: 4rem;
-  font-size: var(--font-size-12);
-  color: var(--cpb-accent);
-  font-weight: bold;
-}
-
-.character-creation-wizard .cc-stat-btn {
-  width: 1.8rem;
-  height: 1.8rem;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.character-creation-wizard .cc-stat-value {
-  width: 2rem;
-  text-align: center;
-  font-size: var(--font-size-16);
-  font-weight: bold;
-  color: var(--cpb-accent-strong);
-}
-
-/* Secondary text blocks */
-.character-creation-wizard .cc-text-blocks {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  font-size: var(--font-size-12);
-  max-height: 280px;
-  overflow-y: auto;
-}
-
-/* Languages */
-.character-creation-wizard .cc-language-input input {
-  width: 100%;
-  direction: ltr;
-}
-
-/* Ability list */
-.character-creation-wizard .cc-ability-upgrade {
-  --btn-tint: var(--cpb-accent-strong);
-  --btn-tint-border: var(--cpb-accent-strong-border);
-  color: var(--cpb-accent-strong);
-  text-align: left;
-  padding: 0.4rem 0.75rem;
-}
-
-.character-creation-wizard .cc-ability-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  max-height: 280px;
-  overflow-y: auto;
-}
-
-.character-creation-wizard .cc-ability-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.3rem 0;
-  border-bottom: 1px solid var(--cpb-border);
-}
-
-.character-creation-wizard .cc-ability-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.character-creation-wizard .cc-ability-name {
-  font-size: var(--font-size-12);
-  color: var(--color-text-light-1);
-}
-
-.character-creation-wizard .cc-ability-maxrank,
-.character-creation-wizard .cc-ability-note {
-  font-size: var(--font-size-10);
-  color: var(--color-text-light-6);
-}
-
-/* New Language row in ability list */
-.character-creation-wizard .cc-new-language-row {
-  border-top: 1px dashed var(--cpb-border);
-  padding-top: 0.3rem;
-  margin-top: 0.1rem;
-}
-
-.character-creation-wizard .cc-new-language-input {
-  width: 100%;
-  font-size: var(--font-size-12);
-  padding: 0.15rem 0.3rem;
-  border: 1px solid var(--cpb-border);
-  border-radius: 3px;
-  background: var(--color-bg-input, #fff);
-  color: var(--color-text-input, #333);
-}
-
-/* Role list */
-.character-creation-wizard .cc-role-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.character-creation-wizard .cc-role-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.3rem 0.5rem;
-  border: 1px solid var(--cpb-border);
-  border-radius: 3px;
-}
-
-.character-creation-wizard .cc-role-name {
-  flex: 1;
-  font-size: var(--font-size-13);
-  color: var(--cpb-accent);
-}
-
-/* Note text */
-.character-creation-wizard .cc-sheet-note {
-  font-size: var(--font-size-12);
-  color: var(--cpb-accent);
-  font-style: italic;
-}
-
-/* Footer navigation */
-.character-creation-wizard .cc-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--cpb-border);
-  margin-top: 0.25rem;
-}
-
-.character-creation-wizard .cc-btn-primary {
-  --btn-tint: var(--cpb-accent-strong);
-  --btn-tint-border: var(--cpb-accent-strong-border);
-  color: var(--cpb-accent-strong);
-}
-
-.character-creation-wizard .cc-btn-secondary {
-  opacity: 0.75;
-}
-
-.character-creation-wizard .cc-btn-small {
-  padding: 0.2rem 0.5rem;
-  font-size: var(--font-size-11);
-  white-space: nowrap;
-}
-
-/* ── Mods Tab ─────────────────────────────────── */
-
-.cyberpunk-blue .embedded-mods-panel .embedded-mod-import-row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  padding: 0.5rem 0 0;
-}
-
-.cyberpunk-blue .embedded-mods-panel .embedded-mod-import-row input {
-  flex: 1;
-  font-size: var(--font-size-11);
-}
-
-.cyberpunk-blue .embedded-mod-card {
-  margin-top: 0.5rem;
-}
-
-.cyberpunk-blue .mod-note {
-  font-style: italic;
-  opacity: 0.8;
-  font-size: var(--font-size-12);
-  margin: 0.25rem 0;
-}
-
-.cyberpunk-blue .mod-description {
-  font-size: var(--font-size-12);
-  margin: 0.25rem 0;
-}
-
-.cyberpunk-blue .mod-changes {
-  margin-top: 0.5rem;
-}
-
-.cyberpunk-blue .mod-changes-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--font-size-11);
-}
-
-.cyberpunk-blue .mod-changes-table th,
-.cyberpunk-blue .mod-changes-table td {
-  padding: 2px 6px;
-  border-bottom: 1px solid var(--cpb-panel-border);
-  text-align: left;
-}
-
-.cyberpunk-blue .mod-effect-row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  padding: 0.25rem 0;
-  border-top: 1px solid var(--cpb-panel-border);
-  grid-template-columns: minmax(160px, 1fr) auto;
-}
-
-.cyberpunk-blue .mod-effect-icon {
-  height: 16px;
-  width: 16px;
-  object-fit: contain;
-  vertical-align: middle;
-  margin-right: 4px;
-}
-
-.cyberpunk-blue .mod-effect-label {
-  font-size: var(--font-size-12);
-}
-
-/* ── Computer config fields ───────────────────── */
-.cyberpunk-blue .computer-fields-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 12px;
-  align-items: center;
-  padding: 4px 0;
-}
-
-/* ── Netrunner tab ────────────────────────────── */
-.cyberpunk-blue .netrunner-components-row {
-  margin-top: 1rem;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-evenly;
-  gap: var(--cpb-space-3);
-}
-
-.cyberpunk-blue .netrunner-comp-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 4px;
-  gap: 6px;
-} 
-
-.cyberpunk-blue .netrunner-comp-name {
-  text-transform: uppercase;
-  font-size: var(--cpb-fs-h3);
-  color: var(--cpb-accent-warm);
-}
-
-.cyberpunk-blue .netrunner-comp-mod {
-  font-size: var(--cpb-fs-body);
-  color: var(--cpb-text);
-  white-space: nowrap;
-}
-
-.cyberpunk-blue .netrunner-comp-uses {
-  display: flex;
-  flex-direction: column;
-  gap: var(--cpb-space-1);
-}
-
-/* Computers list */
-.cyberpunk-blue .netrunner-computers-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
-}
-
-.cyberpunk-blue .netrunner-computer-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .5rem;
-  padding: .5rem .35rem;
-  background: var(--cpb-accent-warm-border);
-  --c: var(--cpb-cut-lg);
-  --s: calc(var(--c) * 0.45);
-  clip-path: var(--cpb-shape--panel);
-}
-
-.cyberpunk-blue .netrunner-computer-card::before {
-  content: "";
-  position: absolute;
-  inset: var(--cpb-stroke);
-  background: var(--cpb-panel);
-  clip-path: inherit;
-  z-index: 0;
-}
-
-.cyberpunk-blue .netrunner-computer-card > * {
-  position: relative;
-  z-index: 1;
-}
-
-.cyberpunk-blue .netrunner-computer-name {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.35rem;
-  font-weight: bold;
-  font-size: var(--cpb-fs-h3);
-  transform: uppercase;
-}
-
-.cyberpunk-blue .netrunner-computer-name img.item-img {
-  max-width: 8rem;
-  max-height: 8rem;
-  object-fit: contain;
-}
-
-.cyberpunk-blue .netrunner-computer-stats {
-  display: flex;
-  gap: .5rem;
-}
-
-.cyberpunk-blue .netrunner-computer-programs {
-  display: flex;
-  gap: .5rem;
-  list-style: none;
-  align-items: center;
-  justify-content: center;
-}
-
-.cyberpunk-blue .netrunner-computer-programs li {
-  padding: 0.25rem 0.5rem;
-  background: var(--cpb-accent-warm-wash);
-  border: 1px solid var(--cpb-accent-warm-border);
-  white-space: nowrap;
-  border-radius: 3px;
-}
-
-.cyberpunk-blue .net-connection-row {
-  width: 100%;
-}
-
-/* Executable item sheet — linked program actor */
-.cyberpunk-blue .gm-only-panel {
-  background: rgba(180, 140, 0, 0.08);
-  border: 1px solid rgba(180, 140, 0, 0.3);
-  border-radius: 4px;
-  padding: var(--cpb-space-2) var(--cpb-space-3);
-  margin-bottom: var(--cpb-space-2);
-}
-
-.cyberpunk-blue .program-actor-link {
-  display: flex;
-  align-items: center;
-  gap: var(--cpb-space-2);
-  font-size: var(--cpb-fs-sm);
-}
-
-.cyberpunk-blue .program-actor-link .label {
-  color: var(--cpb-muted);
-  white-space: nowrap;
-}
-
-.cyberpunk-blue .program-actor-link a {
-  color: var(--cpb-accent-strong);
-  text-decoration: none;
-}
-
-.cyberpunk-blue .program-actor-link a:hover {
-  text-decoration: underline;
-}
-
-/* Executable tables */
-.cyberpunk-blue .netrunner-exe-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--font-size-12);
-}
-
-.cyberpunk-blue .netrunner-exe-table th {
-  text-align: center;
-  padding: 2px 4px;
-  border-bottom: 1px solid var(--cpb-border, #aaa);
-  font-size: var(--font-size-11);
-  font-weight: bold;
-  white-space: nowrap;
-}
-
-.cyberpunk-blue .netrunner-exe-table td {
-  padding: 2px 4px;
-  text-align: center;
-  vertical-align: middle;
-  border-bottom: 1px solid var(--cpb-border, #ddd);
-}
-
-.cyberpunk-blue .netrunner-exe-table .exe-name-col {
-  text-align: left;
-  min-width: 100px;
-}
-
-.cyberpunk-blue .exe-computer-name {
-  display: block;
-  font-size: var(--font-size-10);
-}
-
-.cyberpunk-blue .exe-rez-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-}
-
-.cyberpunk-blue .exe-rez-input {
-  width: 36px;
-  text-align: center;
-  padding: 0 2px;
-}
-
-.cyberpunk-blue .exe-roll-btn {
-  padding: 1px 6px;
-  font-size: var(--font-size-11);
-  cursor: pointer;
-  border: 1px solid var(--cpb-border, #bbb);
-  border-radius: 3px;
-  white-space: nowrap;
-}
-
-.cyberpunk-blue .exe-action-btn {
-  padding: 2px 6px;
-  font-size: var(--font-size-12);
-  cursor: pointer;
-}
-
-/* ─── Netrunning: NET actions counter & attack panel ────────────────────────── */
-
-.cyberpunk-blue .net-actions-counter {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 3px;
-  font-size: var(--font-size-12);
-  background: var(--cpb-panel-bg, #e8e8e0);
-  border: 1px solid var(--cpb-border, #bbb);
-  color: var(--color-text-dark-primary, #222);
-}
-
-.cyberpunk-blue .net-actions-counter.net-actions-exhausted {
-  background: #ffe0e0;
-  border-color: #c00;
-  color: #900;
-}
-
-.cyberpunk-blue .program-link-row {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  padding: 0.3rem 0.5rem;
-  margin: 0.25rem 0;
-  border: 1px solid var(--cpb-accent-strong-border, #444);
-  border-radius: 3px;
-  background: rgba(0, 0, 0, 0.15);
-  font-size: 0.85rem;
-}
-
-.cyberpunk-blue .program-link-row input[name="executableUuidInput"] {
-  flex: 1 1 12rem;
-  min-width: 8rem;
-}
-
-.cyberpunk-blue .program-link-row .program-link-label strong {
-  color: var(--cpb-accent-strong);
-}
-
-.cyberpunk-blue .program-link-row .program-link-broken {
-  color: var(--color-level-warning, #d9a400);
-}
-
-.cyberpunk-blue .program-link-row .hint {
-  flex-basis: 100%;
-  font-size: 0.75rem;
-  color: var(--color-text-light-6);
-  margin: 0;
-}
-
-.cyberpunk-blue .program-error-banner {
-  background: #330000;
-  color: #ff4444;
-  border: 2px solid #ff0000;
-  border-radius: 4px;
-  padding: 6px 10px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.cyberpunk-blue .program-attack-panel {
-  border: 2px solid var(--cpb-border, #bbb);
-  border-radius: 4px;
-  padding: 6px 10px;
-  margin-bottom: 6px;
-}
-
-.cyberpunk-blue .program-attack-row {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-
-.cyberpunk-blue .program-attack-function {
-  font-size: var(--font-size-12);
-  padding: 4px 6px;
-  background: var(--cpb-panel-bg, #e8e8e0);
-  border-radius: 3px;
-}
-
-/* ─── Critical Injury Chat Card ─────────────────────────────────────────────── */
-
-.cyberpunk-blue .critical-injury-card {
-  padding: 0.5rem;
-}
-
-.cyberpunk-blue .critical-injury-header {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: var(--font-size-14);
-  font-weight: bold;
-  border-bottom: 2px solid #8b0000;
-  padding-bottom: 0.3rem;
-  margin-bottom: 0.5rem;
-  color: #8b0000;
-}
-
-.cyberpunk-blue .crit-table-label {
-  flex: 1;
-}
-
-.cyberpunk-blue .crit-target-name {
-  font-style: italic;
-  color: var(--color-text-dark-secondary, #555);
-}
-
-.cyberpunk-blue .critical-injury-roll {
-  font-size: var(--font-size-12);
-  color: var(--color-text-dark-secondary, #555);
-  margin-bottom: 0.25rem;
-}
-
-.cyberpunk-blue .critical-injury-name {
-  font-size: var(--font-size-14);
-  font-weight: bold;
-  margin-bottom: 0.25rem;
-}
-
-.cyberpunk-blue .critical-injury-desc {
-  font-size: var(--font-size-12);
-  margin-bottom: 0.4rem;
-  line-height: 1.4;
-}
-
-.cyberpunk-blue .crit-mortal-warning {
-  color: #8b0000;
-  font-size: var(--font-size-12);
-  font-weight: bold;
-  margin-bottom: 0.25rem;
-}
-
-.cyberpunk-blue .critical-injury-actions {
-  margin-top: 0.4rem;
-}
-
-.cyberpunk-blue .remove-critical-injury {
-  font-size: var(--font-size-12);
-  padding: 2px 8px;
-  cursor: pointer;
-  border: 1px solid #8b0000;
-  border-radius: 3px;
-  color: #8b0000;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.cyberpunk-blue .remove-critical-injury:hover {
-  background: #8b0000;
-  color: #fff;
-}
-
-/* ─── Confirm Dialog: Crit block ─────────────────────────────────────────────── */
-
-.cyberpunk-blue .crit-dice-note {
-  color: #8b0000;
-  font-weight: bold;
-  font-size: var(--font-size-12);
-  margin-bottom: 0.3rem;
-}
-
-/* ─── Health Effects: critical injury delete button ─────────────────────────── */
-
-.cyberpunk-blue .effect-cell.is-critical-injury .effect-open {
-  border-color: #8b000044;
-}
-
-.cyberpunk-blue .effect-cell.is-mortal .effect-open {
-  border-color: #8b0000;
-}
-
-.cyberpunk-blue .effect-mortal-badge {
-  color: #8b0000;
-  font-size: var(--font-size-11);
-  flex-shrink: 0;
-}
-
-.cyberpunk-blue .health-effect-delete {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  background: transparent;
-  border: 1px solid #8b0000;
-  color: #8b0000;
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: var(--font-size-10);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cyberpunk-blue .health-effect-delete:hover {
-  background: #8b0000;
-  color: #fff;
-}
-
-/* ─── Weapon Table: Target Vitals column ──────── */
-
-.cyberpunk-blue .target-vitals-cell {
-  text-align: center;
-}
-
-.cyberpunk-blue .target-vitals-label {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.cyberpunk-blue .target-vitals-label input[type="checkbox"] {
-  width: 14px;
-  height: 14px;
-  cursor: pointer;
-  accent-color: #8b0000;
-}
-
-.cyberpunk-blue .target-vitals-note {
-  color: #8b0000;
-  font-size: var(--font-size-11);
-  margin-bottom: 0.2rem;
-}
-
-/* ─── Weapon Table: jammed state ─────────────── */
-
-/* ─── Weapon Table: calibration button ────────── */
-
-.cyberpunk-blue .weapon-calibrate-btn:hover {
-  background: var(--cpb-accent);
-  color: #000;
-}
-
-.cyberpunk-blue .weapon-calibrate-btn.calibration-active {
-  background: var(--cpb-accent);
-  color: #000;
-  font-weight: bold;
-}
-
-/* ─── Weapon Table: ricochet button ───────────── */
-
-.cyberpunk-blue .weapon-ricochet-btn:hover {
-  background: #44aaff;
-  color: #000;
-}
-
-.cyberpunk-blue .weapon-ricochet-btn.ricochet-active {
-  background: #44aaff;
-  color: #000;
-  font-weight: bold;
-}
-
-/* ─── Tech Weapon Charge button ──────────────── */
-
-.cyberpunk-blue .weapon-charge-btn:hover {
-  background: #00d4ff;
-  color: #000;
-}
-
-.cyberpunk-blue .weapon-charge-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* ─── Martial Arts ────────────────────────────── */
-
-.cyberpunk-blue .ma-specials-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.cyberpunk-blue .ma-special-btn {
-  width: 100%;
-}
-
-/* ─── Combat state panel (in the combat tracker sidebar) ──────────────────── */
-
-.cyber-blue-combat-panel .cbcp-name {
-  font-size: var(--font-size-12);
-  font-weight: bold;
-  color: var(--cpb-accent);
-  margin-bottom: 5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cyber-blue-combat-panel .cbcp-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 4px;
-}
-
-.cyber-blue-combat-panel .cbcp-label {
-  min-width: 42px;
-  color: #aaa;
-  font-size: var(--font-size-10);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* Movement progress bar */
-.cyber-blue-combat-panel .cbcp-bar-wrap {
-  flex: 1;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.cyber-blue-combat-panel .cbcp-bar {
-  height: 100%;
-  background: var(--cpb-accent);
-  border-radius: 3px;
-  transition: width 0.25s ease;
-  min-width: 2px;
-}
-
-.cyber-blue-combat-panel .cbcp-value {
-  min-width: 54px;
-  text-align: right;
-  font-size: var(--font-size-10);
-  color: #bbb;
-}
-
-/* Action state label */
-.cyber-blue-combat-panel .cbcp-action-state {
-  font-size: var(--font-size-11);
-  font-weight: bold;
-}
-.cyber-blue-combat-panel .cbcp-action-state.available {
-  color: #4cff8a;
-}
-.cyber-blue-combat-panel .cbcp-action-state.used {
-  color: #888;
-  text-decoration: line-through;
-}
-
-/* Sprint button */
-/* ── Guide Tarot play dialog ──────────────────── */
-.tarot-play-dialog {
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
-  padding: .5rem 0;
-}
-
-.tarot-play-card-image {
-  display: flex;
-  justify-content: center;
-}
-
-.tarot-play-img {
-  width: 240px;
-  max-width: 100%;
-  border-radius: 6px;
-  border: 1px solid var(--color-border-dark, #999);
-}
-
-.tarot-play-description {
-  font-size: .85rem;
-  line-height: 1.6;
-}
-
-.tarot-play-destination {
-  margin-top: .25rem;
-}
-
-/* ============================================================
-   DESIGN SYSTEM v2 — CHAMFERED SHAPE LANGUAGE
-   All overrides below replace border-radius + border with the
-   clip-path fake-border technique. Order matters: these rules
-   appear after the base styles and win on equal specificity.
-   ============================================================ */
-
-/* ── .cpb-btn — design-system button class ───────────────────
-   Tint system: --btn-tint / --btn-tint-border / --btn-fill.
-   Variants override these tokens; card scopes cascade them.
-
-   Fake-border technique: the element itself is painted in the
-   border tint colour; a ::before pseudo fills the interior one
-   pixel smaller with clip-path: inherit, revealing a 1 px ring
-   that perfectly follows the chamfered polygon shape. The pseudo
-   uses z-index: -1 so it renders above the element background
-   but below all text/content within the isolation stacking context.
-   Reference library: unused .cpb-btn--* variants are kept
-   intentionally for reuse (not dead code).
-   ─────────────────────────────────────────────────────────── */
-.cpb-btn {
+/* #endregion */
+
+/* #region Buttons */
+/* Scoped to .cyberpunk-blue so Foundry's own UI buttons are untouched. */
+/* #region Button base */
+.cyberpunk-blue button,
+.cyberpunk-blue .button {
   --btn-tint: var(--cpb-accent);
-  --btn-tint-border: var(--cpb-accent-wash-border);
   --btn-fill: rgba(8, 16, 26, 0.92);
+  --btn-tint-border: var(--cpb-accent-wash-border);
   --stripe-color: var(--btn-tint);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cpb-space-3);
   position: relative;
   isolation: isolate;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
   --c: var(--cpb-cut-sm);
   background: var(--btn-tint-border);
   color: var(--cpb-text);
-  font-family: var(--cpb-font-mono);
-  font-size: 0.85rem;
-  letter-spacing: 0.08em;
+  font-size: var(--cpb-fs-xs);
+  letter-spacing: var(--cpb-tracking-2);
   text-transform: uppercase;
   cursor: pointer;
-  padding: 0.55rem calc(0.95rem + var(--cpb-stripe) + 6px) 0.55rem 0.95rem;
+  padding: 0.35rem calc(0.75rem + var(--cpb-stripe) + 6px) 0.35rem 0.75rem;
+  white-space: nowrap;
+  border-radius: 0;
   clip-path: polygon(
     0 0, calc(100% - var(--c)) 0, 100% var(--c),
     100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
@@ -2826,16 +473,18 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
               color var(--cpb-dur) var(--cpb-ease),
               transform var(--cpb-dur) var(--cpb-ease);
 }
-.cpb-btn::before {
+.cyberpunk-blue button::before,
+.cyberpunk-blue .button::before {
   content: "";
   position: absolute;
-  inset: 1px;
+  inset: var(--cpb-stroke);
   background: var(--btn-fill);
   clip-path: inherit;
   z-index: -1;
   transition: background var(--cpb-dur) var(--cpb-ease);
 }
-.cpb-btn::after {
+.cyberpunk-blue button::after,
+.cyberpunk-blue .roll-button::after {
   content: "";
   position: absolute;
   left: 4px; top: 6px; bottom: 6px;
@@ -2843,60 +492,49 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   background: var(--stripe-color);
   transition: background var(--cpb-dur) var(--cpb-ease);
 }
-.cpb-btn:hover, .cpb-btn:focus-visible {
+.cyberpunk-blue button:hover,
+.cyberpunk-blue button:focus,
+.cyberpunk-blue .button:hover,
+.cyberpunk-blue .button:focus {
   color: var(--cpb-bg-solid-top);
   font-weight: 700;
   transform: translateY(-1px);
   outline: none;
 }
-.cpb-btn:hover::before, .cpb-btn:focus-visible::before {
-  background: var(--btn-tint);
-}
-.cpb-btn:hover::after, .cpb-btn:focus-visible::after {
-  background: var(--cpb-bg-solid-top);
-}
-.cpb-btn:active {
-  transform: translateY(0);
-}
-.cpb-btn[disabled], .cpb-btn--disabled {
+.cyberpunk-blue button:hover::before,
+.cyberpunk-blue button:focus::before,
+.cyberpunk-blue .button:hover::before,
+.cyberpunk-blue .button:focus::before { background: var(--btn-tint); }
+.cyberpunk-blue button:hover::after,
+.cyberpunk-blue button:focus::after,
+.cyberpunk-blue .button:hover::after,
+.cyberpunk-blue .button:focus::after { background: var(--cpb-bg-solid-top);}
+.cyberpunk-blue button:active,
+.cyberpunk-blue .button:active { transform: translateY(0); }
+.cyberpunk-blue button[disabled],
+.cyberpunk-blue button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
   transform: none;
 }
-.cpb-btn[disabled]:hover {
+.cyberpunk-blue button[disabled]:hover,
+.cyberpunk-blue button:disabled:hover {
   color: var(--cpb-text);
   transform: none;
 }
-.cpb-btn[disabled]:hover::before {
-  background: var(--btn-fill);
-}
-
-/* Roll — lime (dice). */
-.cpb-btn--roll {
-  --btn-tint: var(--cpb-accent-strong);
-  --btn-tint-border: var(--cpb-accent-strong-border);
-  --btn-fill: var(--cpb-accent-strong-wash);
-  color: var(--cpb-accent-strong);
-}
-
-/* Atk — warm violet (attack rolls). */
-.cpb-btn--atk {
-  --btn-tint: var(--cpb-accent-warm);
-  --btn-tint-border: var(--cpb-accent-warm-border);
-  --btn-fill: var(--cpb-accent-warm-wash);
-  color: var(--cpb-accent);
-}
+.cyberpunk-blue button[disabled]:hover::before,
+.cyberpunk-blue button:disabled:hover::before { background: var(--btn-fill); }
+/* #endregion */
 
 /* Ghost — low emphasis. */
-.cpb-btn--ghost {
+.button--ghost {
   --btn-tint: var(--cpb-accent);
   --btn-tint-border: rgba(0, 240, 255, 0.18);
   --btn-fill: rgba(2, 4, 8, 0.85);
   color: var(--cpb-muted);
 }
-
-/* Solid — primary (always filled). */
-.cpb-btn--solid {
+/* #region Solid — primary (always filled). For confirmations. */
+.button--solid {
   --btn-tint: var(--cpb-accent);
   --btn-fill: var(--cpb-accent);
   --stripe-color: var(--cpb-bg-solid-top);
@@ -2904,22 +542,15 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   font-weight: 700;
 }
 .cpb-btn--solid:hover::before,
-.cpb-btn--solid:focus-visible::before {
-  background: color-mix(in oklab, var(--cpb-accent) 80%, white);
-}
+.cpb-btn--solid:focus-visible::before { background: color-mix(in oklab, var(--cpb-accent) 80%, white); }
+/* #endregion */
 
-/* Arrow — chevron forward CTA. */
-.cpb-btn--arrow {
-  --c: 14px;
-  padding-right: calc(0.95rem + var(--c));
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0,
-    100% 50%, calc(100% - var(--c)) 100%, 0 100%
-  );
+/* #region Button groups — peg/notch interlocked. */
+.cpb-btn-group {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 4px;
 }
-
-/* Button groups — peg/notch interlocked. */
-.cpb-btn-group { display: inline-flex; align-items: stretch; gap: 4px; }
 .cpb-btn-group .cpb-btn::after { display: none; }
 .cpb-btn-group .cpb-btn {
   --peg-w: 5px; --peg-h: 8px; --notch-w: 5px; --notch-h: 9px;
@@ -2960,84 +591,15 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
     100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
   );
 }
-
-/* ── Base button override ─────────────────────────────────── */
-/* Scoped to .cyberpunk-blue so Foundry's own UI buttons are untouched.
-   Same ::before fake-border approach as .cpb-btn. */
-.cyberpunk-blue button,
-.cyberpunk-blue .button {
-  --btn-tint: var(--cpb-accent);
-  --btn-fill: rgba(8, 16, 26, 0.92);
-  position: relative;
-  isolation: isolate;
-  --c: var(--cpb-cut-sm);
-  background: var(--cpb-accent-wash-border);
-  color: var(--cpb-text);
-  font: inherit;
-  cursor: pointer;
-  padding: 0.35rem 0.75rem;
-  border-radius: 0;
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0, 100% var(--c),
-    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
-  );
-  transition: background var(--cpb-dur) var(--cpb-ease),
-              color var(--cpb-dur) var(--cpb-ease),
-              transform var(--cpb-dur) var(--cpb-ease);
-}
-.cyberpunk-blue button::before,
-.cyberpunk-blue .button::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--btn-fill);
-  clip-path: inherit;
-  z-index: -1;
-  transition: background var(--cpb-dur) var(--cpb-ease);
-}
-.cyberpunk-blue button:hover,
-.cyberpunk-blue button:focus,
-.cyberpunk-blue .button:hover,
-.cyberpunk-blue .button:focus {
-  color: var(--cpb-bg-solid-top);
-  font-weight: 700;
-  transform: translateY(-1px);
-  outline: none;
-}
-.cyberpunk-blue button:hover::before,
-.cyberpunk-blue button:focus::before,
-.cyberpunk-blue .button:hover::before,
-.cyberpunk-blue .button:focus::before {
-  background: var(--btn-tint);
-}
-.cyberpunk-blue button:active,
-.cyberpunk-blue .button:active { transform: translateY(0); }
-.cyberpunk-blue button[disabled],
-.cyberpunk-blue button:disabled {
-  opacity: 0.45; cursor: not-allowed; transform: none;
-}
-.cyberpunk-blue button[disabled]:hover,
-.cyberpunk-blue button:disabled:hover {
-  color: var(--cpb-text);
-  transform: none;
-}
-.cyberpunk-blue button[disabled]:hover::before,
-.cyberpunk-blue button:disabled:hover::before {
-  background: var(--btn-fill);
-}
-
-/* Roll button — warm violet variant with HUD stripe.
-   Inherits ::before fake-border from .cyberpunk-blue button;
+/* #endregion */
+/* #region Roll button — warm violet variant with HUD stripe. */
+/* Inherits ::before fake-border from .cyberpunk-blue button;
    overrides the tint tokens so the 1px ring and fill use warm colours. */
 .cyberpunk-blue .roll-button {
   --btn-tint: var(--cpb-accent-warm);
   --btn-fill: var(--cpb-accent-warm-wash);
   background: var(--cpb-accent-warm-border);
   color: var(--cpb-accent-warm);
-  font-family: var(--cpb-font-mono);
-  font-size: 0.85rem;
-  letter-spacing: 0.06em;
-  padding: 0.35rem calc(0.75rem + var(--cpb-stripe) + 6px) 0.35rem 0.75rem;
 }
 .cyberpunk-blue .roll-button::after {
   content: "";
@@ -3048,20 +610,11 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   transition: background var(--cpb-dur) var(--cpb-ease);
 }
 .cyberpunk-blue .roll-button:hover,
-.cyberpunk-blue .roll-button:focus {
-  color: var(--cpb-bg-solid-top);
-}
+.cyberpunk-blue .roll-button:focus { color: var(--cpb-bg-solid-top); }
 .cyberpunk-blue .roll-button:hover::after,
 .cyberpunk-blue .roll-button:focus::after { background: var(--cpb-bg-solid-top); }
-
-/* ── Unified roll-button content: bk_d10 icon + signed modifier ────────────── */
-.cyberpunk-blue .cpb-roll-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.3rem;
-  white-space: nowrap;
-}
+/* #endregion */
+/* #region Unified roll-button content: bk_d10 icon + signed modifier ────────────── */
 .cyberpunk-blue .cpb-roll-d10 {
   width: 1.05em;
   height: 1.05em;
@@ -3078,37 +631,209 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   font-family: var(--cpb-font-mono);
   letter-spacing: 0.04em;
 }
+/* #endregion */
+/* #endregion */
 
-/* ── Sheet panel ──────────────────────────────────────────── */
-.cyberpunk-blue .sheet-panel {
-  position: relative;
-  isolation: isolate;
-  padding: 1rem;
-  --c: var(--cpb-cut-lg);
-  background: var(--cpb-accent-wash);
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0, 100% var(--c),
-    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
-  );
-  box-shadow: var(--cpb-shadow);
+/* #region prose-mirror fields */
+/* Only the active (open) editor gets a resize handle and scroll region.
+   While toggled-inactive, a prose-mirror just shows the enriched HTML. */
+.cyberpunk-blue .prosemirror.active, .cyberpunk-blue prose-mirror.active {
+  resize: vertical;
+  overflow-y: scroll;
 }
-.cyberpunk-blue .sheet-panel::before {
+/* Non-editors see a disabled prose-mirror: hide its edit (pencil) button so the
+   field reads as plain enriched text. */
+.cyberpunk-blue prose-mirror[disabled] > button.toggle {
+  display: none;
+}
+/* While toggled-inactive, an editor just displays enriched HTML. Core locks the
+   box to --min-height (150px) and absolutely-positions .editor-content, so the
+   content can neither shrink the box when short nor grow it when long. Restore
+   normal flow so the read-only view sizes to exactly its content (with a small
+   floor so an empty field stays clickable). */
+.cyberpunk-blue prose-mirror.inactive {
+  --min-height: 0px;
+  min-height: 1.5em;
+}
+.cyberpunk-blue prose-mirror.inactive > .editor-content {
+  position: static;
+  inset: auto;
+  overflow: visible;
+}
+/* #endregion */
+
+/* #region Broad-use classes */
+.cpb-divider--header {
+  --d-h: 24px;
+  --d-bar: 6px;
+  --d-label-w: 200px;
+  --d-foot: 60px;
+  --d-slope: 10px;
+  appearance: none;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  clip-path: none;
+  width: 100%;
+}
+.cpb-divider--header::before {
   content: "";
   position: absolute;
-  inset: var(--cpb-stroke);
-  background: var(--cpb-accent-wash);
-  clip-path: inherit;
-  z-index: 0;
+  inset: 0;
+  background: rgba(0, 240, 255, 0.55);
+  clip-path: polygon(0% 0%, 100% 0%, 100% var(--d-bar), calc(50% + var(--d-label-w) / 2) var(--d-bar), calc(50% + var(--d-label-w) / 2 - var(--d-slope)) 100%, calc(50% - var(--d-label-w) / 2 + var(--d-slope)) 100%, calc(50% - var(--d-label-w) / 2) var(--d-bar), 0% var(--d-bar));
 }
-.cyberpunk-blue .sheet-panel > * { position: relative; z-index: 1; }
-.cyberpunk-blue .sheet-panel h2 {
+.cpb-divider--header > span {
+    position: relative;
+    z-index: 1;
+    margin-top: var(--d-bar);
+    height: calc(var(--d-h) - var(--d-bar));
+    display: inline-flex;
+    align-items: center;
+    padding: 0 22px;
+    font-family: var(--cpb-font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cpb-bg-solid-top);
+    font-weight: 700;
+}
+.cyberpunk-blue .hint {
   color: var(--cpb-muted);
-  font-size: 1.2rem;
-  text-align: center;
-  text-transform: uppercase;
+  font-size: var(--cpb-fs-sm);
 }
+/* Generic in-template icon. Drop a <span class="cpb-icon" style="--cpb-icon: url('/systems/...')"></span>
+   anywhere icon art is wanted; the mask-backed background uses currentColor, so the icon
+   tracks the surrounding text color including hover/active states.
+   .cpb-tab-icon is the larger variant used inside sheet tabs.
+   NOTE: the url() must be root-absolute (leading slash). The var() is substituted inside this
+   stylesheet, so a relative path would resolve against this file's /css/ dir and 404. */
+.cyberpunk-blue .cpb-icon,
+.cyberpunk-blue .cpb-tab-icon {
+  background-color: currentColor;
+  display: inline-block;
+  flex-shrink: 0;
+  -webkit-mask: var(--cpb-icon) center / contain no-repeat;
+          mask: var(--cpb-icon) center / contain no-repeat;
+  vertical-align: -0.2em;
+}
+.cyberpunk-blue .cpb-icon {
+  width: 1.1em;
+  height: 1.1em;
+}
+.cyberpunk-blue .manufacturer-logo {
+  /* Logo SVGs are authored as black-on-transparent (unified item-art palette).
+     Sheets render on a dark background, so invert to white at display time. */
+  filter: invert(1);
+  height: 35px;
+  object-fit: contain;
+  width: unset;
+}
+.manufacturer-summary img + span { display: none; }
+/* #endregion */
+/* #endregion */
 
-/* ── Sheet tabs — peg/notch interlocked ──────────────────── */
+/* ==================================================
+   .SHEET
+================================================== */
+/* #region Sheet general */
+.cyberpunk-blue .numeric-column,
+.cyberpunk-blue .embedded-rank,
+.cyberpunk-blue .skill-stat,
+.cyberpunk-blue .resource-fields input { text-align: center; }
+.cyberpunk-blue .resource-fields {
+  display: grid;
+  gap: 0.35rem;
+  grid-template-columns: 1fr min-content 1fr;
+  align-items: center;
+}
+.cyberpunk-blue .armor-inline-field .resource-fields,
+.cyberpunk-blue .compact-resource {
+  align-items: center;
+  min-height: 38px;
+  margin-top: auto;
+}
+.cyberpunk-blue .compact-resource input { min-width: 3rem; }
+/* #endregion */
+/* #region Sheet header */
+.cyberpunk-blue .sheet-header {
+  align-items: end;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 200px minmax(0, 1fr);
+}
+.cyberpunk-blue .profile-img {
+  aspect-ratio: 1;
+  border: none;
+  margin: 0 1rem 1rem 0;
+  box-shadow: none;
+  object-fit: contain;
+  max-width: 200px;
+  max-height: 300px;
+}
+.cyberpunk-blue .header-fields {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+.cyberpunk-blue .header-stats-row {
+  margin-top: 1rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+.cyberpunk-blue .header-stats {
+  display: grid;
+  gap: 0.35rem;
+  grid-template-columns: repeat(5, minmax(72px, 1fr));
+}
+.cyberpunk-blue .header-stat {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  max-width: 10rem;
+}
+.cyberpunk-blue .header-stat .stat-short {  
+  color: var(--cpb-accent-strong);
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-align: center;
+}
+.cyberpunk-blue .stat-icon {
+  filter: invert(1);
+  height: 4rem;
+  opacity: 0.85;
+  width: 4rem;
+}
+.cyberpunk-blue .stat-icon-sm {
+  filter: invert(1);
+  height: 3rem;
+  opacity: 0.85;
+  width: 3rem;
+}
+.cyberpunk-blue .charname {
+  border: 0;
+  margin: 0;
+}
+.cyberpunk-blue .charname input {
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  min-height: 54px;
+  border: none;
+  border-bottom: 1px solid var(--cpb-accent);
+  background: none;
+}
+/* #endregion */
+
+/* #region Tab selection */
 .cyberpunk-blue .sheet-tabs {
   display: flex;
   gap: 2px;
@@ -3118,11 +843,9 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   position: relative;
   border: none;
 }
-
 .cyberpunk-blue nav.sheet-tabs {
   justify-content: center;
 }
-
 .cyberpunk-blue .sheet-tabs .item {
   position: relative;
   isolation: isolate;
@@ -3221,6 +944,2030 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 .cyberpunk-blue .sheet-tabs .item.active::after { background: var(--cpb-accent); }
 .cyberpunk-blue .sheet-tabs .item.active::before { filter: brightness(0); }
+.cyberpunk-blue .cpb-tab-icon {
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-right: var(--cpb-space-2);
+  vertical-align: -0.35rem;
+}
+/* #endregion */
+
+/* #region Sheet body ——————————————————————————— */
+.cyberpunk-blue .sheet-body {
+  min-height: 0;
+  overflow: auto;
+}
+.cyberpunk-blue .sheet-body .tab {
+  display: none;
+}
+.cyberpunk-blue .sheet-body .tab.active {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.cyberpunk-blue .quick-stats-row {
+  margin-top: 1rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+/* #region Sheet panels */
+.cyberpunk-blue .sheet-panel:has(.cpb-divider--header) {
+  padding-top: 0 !important;
+}
+.cyberpunk-blue .sheet-panel {
+  position: relative;
+  isolation: isolate;
+  padding: 1rem;
+  --c: var(--cpb-cut-lg);
+  background: var(--cpb-accent-wash);
+  clip-path: polygon(
+    0 0, calc(100% - var(--c)) 0, 100% var(--c),
+    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
+  );
+  box-shadow: var(--cpb-shadow);
+}
+.cyberpunk-blue .sheet-panel::before {
+  content: "";
+  position: absolute;
+  inset: var(--cpb-stroke);
+  background: var(--cpb-accent-wash);
+  clip-path: inherit;
+  z-index: 0;
+}
+.cyberpunk-blue .sheet-panel > * { position: relative; z-index: 1; }
+.cyberpunk-blue .sheet-panel h2 {
+  color: var(--cpb-muted);
+  font-size: 1.2rem;
+  text-align: center;
+  text-transform: uppercase;
+}
+/* #endregion */
+.cyberpunk-blue .notes-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+}
+.cyberpunk-blue .notes-grid .prosemirror.active { min-height: 400px; }
+/* #endregion */
+
+/* =====================================================
+CHARACTER SHEET SPECIFIC
+===================================================== */
+/* #region Money */
+.cyberpunk-blue .header-money {
+  justify-self: end;
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  min-width: 5.5rem;
+}
+.cyberpunk-blue .header-money .stat-short {
+  color: var(--cpb-accent-strong);
+  background-color: var(--cpb-accent-strong-wash);
+  padding: 0.35rem;
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  padding: 0.2rem 1rem .2rem 1.2rem;
+  --c: 8px;
+  clip-path: polygon(
+    var(--c) 0, 100% 0,
+    100% 100%, var(--c) 100%, 0 50%
+  );
+}
+.cyberpunk-blue .header-money input {
+  text-align: right;
+  border-color: var(--cpb-accent-strong-border);
+  width: 6rem;
+}
+/* #endregion */
+/* #region Improvement Points header block  */
+.cyberpunk-blue .header-progression {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-left: auto;
+}
+.cyberpunk-blue .header-ip {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 5.5rem;
+}
+.cyberpunk-blue .header-ip .stat-short {
+  color: var(--cpb-accent-strong);
+  background-color: var(--cpb-accent-strong-wash);
+  padding: 0.2rem 0.6rem 0.2rem 1rem;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  --c: 8px;
+  clip-path: polygon(var(--c) 0, 100% 0, 100% 100%, var(--c) 100%, 0 50%);
+}
+.cyberpunk-blue .header-ip .ip-values {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+.cyberpunk-blue .header-ip .ip-current {
+  min-width: 1.5rem;
+  text-align: right;
+  font-weight: 700;
+  color: var(--cpb-accent-strong);
+}
+.cyberpunk-blue .header-ip .ip-total {
+  font-size: 0.75rem;
+  color: var(--color-text-light-6);
+  white-space: nowrap;
+}
+.cyberpunk-blue .ip-use-btn {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+/* #endregion */
+
+/* ==================================================
+   SHEET COMPONENTS: HEALTH SYSTEM
+================================================== */
+/* #region Effects panel (all Active Effects applied to the actor) ───────────────── */
+.cyberpunk-blue .effects-panel {
+  grid-column: span 3;
+  text-align: left;
+}
+.cyberpunk-blue .effects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.25rem;
+  align-items: start;
+  width: 100%;
+}
+.cyberpunk-blue .effect-cell {
+  align-items: center;
+  display: flex;
+  gap: 2px;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+}
+
+/* #region The open button carries the icon + label and fills the cell. */
+.cyberpunk-blue .effect-open {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: grid;
+  flex: 1;
+  gap: 0.4rem;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  justify-items: start;
+  min-width: 0;
+  padding: 0.15rem 0.3rem;
+  text-align: left;
+  clip-path: none;
+  white-space: unset;
+  text-align: start;
+  text-transform: none;
+}
+.cyberpunk-blue button.effect-open::after, .cyberpunk-blue button.effect-open::before { display: none; }
+.cyberpunk-blue .effect-open::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: none;
+  clip-path: inherit;
+}
+.cyberpunk-blue .effect-open:hover {
+  color: var(--cpb-accent-strong);
+  transform: none;
+}
+.cyberpunk-blue .effect-icon {
+  height: 18px;
+  width: 18px;
+}
+.cyberpunk-blue .effect-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cyberpunk-blue .effect-duration {
+  font-size: var(--font-size-10, 0.7rem);
+  opacity: 0.7;
+  display: none;
+}
+/* #endregion */
+
+/* #region Same-named effects collapse under an expandable header. */
+.cyberpunk-blue .effect-group {
+  grid-column: 1 / -1;
+}
+.cyberpunk-blue .effect-group > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.cyberpunk-blue .effect-group > summary::-webkit-details-marker {
+  display: none;
+}
+.cyberpunk-blue .effect-group-summary {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.15rem 0.3rem;
+}
+.cyberpunk-blue .effect-group-summary::before {
+  content: "\25B8"; /* ▸ collapsed */
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+.cyberpunk-blue .effect-group[open] > .effect-group-summary::before {
+  content: "\25BE"; /* ▾ expanded */
+}
+.cyberpunk-blue .effect-group-summary .effect-icon {
+  flex: 0 0 auto;
+}
+.cyberpunk-blue .effect-group-summary .effect-name {
+  flex: 1 1 auto;
+}
+.cyberpunk-blue .effect-count {
+  font-size: var(--font-size-10, 0.7rem);
+  font-weight: 700;
+  opacity: 0.75;
+}
+.cyberpunk-blue .effect-group-members {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.2rem;
+  padding: 0.15rem 0 0.15rem 0.85rem;
+}
+/* #endregion */
+
+/* Critical-condition effects (low HP / low PSYCHE / Critical Injury): icon + text in error red.
+   The <button> resets `color`, so the text colour must be set on the button/label
+   explicitly rather than relying on inheritance from the cell. */
+.cyberpunk-blue .effect-cell.is-error,
+.cyberpunk-blue .effect-cell.is-error .effect-open,
+.cyberpunk-blue .effect-cell.is-error .effect-name,
+.cyberpunk-blue .effect-cell.is-error .effect-icon,
+.cyberpunk-blue .effect-group.is-error > .effect-group-summary,
+.cyberpunk-blue .effect-group.is-error > .effect-group-summary .effect-name,
+.cyberpunk-blue .effect-group.is-error > .effect-group-summary .effect-icon {
+  color: var(--cpb-error); /* masked .cpb-icon tracks currentColor */
+}
+/* #endregion */
+.cyberpunk-blue .health-value {
+  color: var(--cpb-text);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+/* ==================================================
+   SHEET COMPONENTS: SKILLS & ABILITIES
+================================================== */
+/* #region Joint list structure */
+.cyberpunk-blue .skill-table,
+.cyberpunk-blue .component-table,
+.cyberpunk-blue .embedded-list {
+  display: flex;
+  flex-direction: column;
+}
+.cyberpunk-blue .skill-row,
+.cyberpunk-blue .component-row,
+.cyberpunk-blue .embedded-row {
+  align-items: center;
+  background: var(--cpb-panel);
+  border: none;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.1rem;
+}
+.cyberpunk-blue .skill-header,
+.cyberpunk-blue .component-header,
+.cyberpunk-blue .embedded-header {
+  color: var(--cpb-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.cyberpunk-blue .skill-header .numeric-column,
+.cyberpunk-blue .component-header .numeric-column,
+.cyberpunk-blue .embedded-header .numeric-column {
+  justify-self: center;
+  text-align: center;
+}
+.cyberpunk-blue .skill-row input[type=text],
+.cyberpunk-blue .skill-row input[type=number],
+.cyberpunk-blue .component-row input[type=text],
+.cyberpunk-blue .component-row input[type=number],
+.cyberpunk-blue .embedded-row input[type=text],
+.cyberpunk-blue .embedded-row input[type=number],
+.cyberpunk-blue .ability-row input[type=text],
+.cyberpunk-blue .ability-row input[type=number] {
+  border: none;
+  background-color: transparent;
+  background: none;
+  color: var(--cpb-text);
+  font-size: 1rem;
+  min-height: 14px;
+  padding: 0.1rem 0.2rem;
+}
+.cyberpunk-blue .skill-row input[type=text],
+.cyberpunk-blue .component-row input[type=text],
+.cyberpunk-blue .embedded-row input[type=text],
+.cyberpunk-blue .ability-row input[type=text] {
+  text-align: left;
+}
+.cyberpunk-blue .skill-row input[type=number],
+.cyberpunk-blue .component-row input[type=number],
+.cyberpunk-blue .embedded-row input[type=number],
+.cyberpunk-blue .ability-row input[type=number] {
+  text-align: center;
+}
+.cyberpunk-blue .embedded-row {
+  grid-template-columns: minmax(180px, 1.4fr) 70px minmax(160px, 1fr) minmax(240px, 1.5fr);
+}
+.cyberpunk-blue .skill-table-container > .skill-row:nth-child(even),
+.cyberpunk-blue .component-entries > .component-row:nth-child(even),
+.cyberpunk-blue .embedded-entries > .embedded-row:nth-child(even),
+.cyberpunk-blue .embedded-entries > .embedded-entry:nth-child(even) { background: var(--cpb-table-alt-bg); }
+/* #endregion */
+
+/* #region Skills & Components */
+.cyberpunk-blue .skill-table {
+  column-gap: 1rem;
+  columns: 2 520px;
+}
+.cyberpunk-blue .skill-table > * {
+  break-inside: avoid;
+}
+.cyberpunk-blue .skill-category-grid {
+  margin-top: 1rem;
+  align-items: start;
+  columns: 3 44rem;
+  gap: 1rem;
+}
+.cyberpunk-blue .skill-category {
+  margin-bottom: 1rem;
+  break-inside: avoid;
+}
+.cyberpunk-blue .skill-category > .cpb-divider--header { margin-bottom: 0.35rem; }
+.cyberpunk-blue .skill-table-container {
+  display: flex;
+  flex-direction: column;
+}
+.cyberpunk-blue .skill-row {
+  grid-template-columns: 78px minmax(120px, 1.2fr) 64px 56px minmax(220px, 2fr) 56px;
+}
+.cyberpunk-blue .skill-table-container .skill-row {
+  grid-template-columns: 78px minmax(120px, 1.2fr) 64px 56px minmax(220px, 2fr) 56px 40px;
+}
+.cyberpunk-blue .skill-row > input.numeric-column {
+  width: 100%;
+}
+.cyberpunk-blue .skill-row .macro-button {
+  align-items: center;
+  background: rgba(141, 227, 255, 0.08);
+  border-color: rgba(141, 227, 255, 0.24);
+  color: var(--cpb-accent);
+  display: inline-flex;
+  justify-content: center;
+  justify-self: center;
+  padding-inline: 0;
+  width: 100%;
+}
+.cyberpunk-blue .component-row {
+  grid-template-columns: minmax(120px, 1fr) 72px minmax(160px, 1.4fr) 42px;
+}
+.cyberpunk-blue .component-pill {
+  position: relative;
+  isolation: isolate;
+  --c: 4px;
+  background: rgba(0, 240, 255, 0.32);
+  color: var(--cpb-accent);
+  font-family: var(--cpb-font-mono);
+  font-size: var(--cpb-fs-xs);
+  padding: 0.28rem 0.7rem;
+  border: 0;
+  display: inline-flex;
+  clip-path: polygon(
+    0 0, calc(100% - var(--c)) 0, 100% var(--c),
+    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
+  );
+  background-color: var(--cpb-panel);
+  padding-inline: 0.6rem;
+}
+.cyberpunk-blue .component-pill::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--cpb-accent-wash-soft);
+  clip-path: inherit;
+}
+/* #endregion */
+
+/* #region Abilities*/
+.cyberpunk-blue .traits-grid {
+  gap: 1rem;
+  display: grid;
+  grid-template-columns: min-content minmax(auto, 2fr);
+}
+.cyberpunk-blue .traits-grid .sheet-panel > .embedded-table { margin-top: 0; }
+.cyberpunk-blue .traits-role-panel { width: max-content; }
+.cyberpunk-blue .traits-role-panel .embedded-table { width: auto; }
+.cyberpunk-blue .traits-ability-panel { min-width: 0; }
+.cyberpunk-blue .roles-controls-column { width: 9.5rem; }
+.cyberpunk-blue .abilities-note-column { width: auto; }
+/* #endregion */
+
+/* =================================================
+   SHEET COMPONENTS: EMBEDDED ITEMS & PANELS
+================================================== */
+.cyberpunk-blue .checkbox-label,
+.cyberpunk-blue .compact-field,
+.cyberpunk-blue .platform-select { min-width: 3rem; }
+.cyberpunk-blue .panel-header.panel-actions { justify-content: flex-end; }
+
+/* #region Embedded Items lists*/
+.cyberpunk-blue .component-pill-list,
+.cyberpunk-blue .panel-header,
+.cyberpunk-blue .item-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+.cyberpunk-blue .item-meta-row label {
+  display: flex;
+  flex-flow: column;
+}
+.cyberpunk-blue .manufacturer-field { min-width: min(100%, 18rem); }
+.cyberpunk-blue .manufacturer-input-row {
+  align-items: center;
+  display: flex;
+  gap: 0.45rem;
+}
+.cyberpunk-blue .embedded-entry {
+  break-inside: avoid;
+  display: flex;
+  flex-direction: column;
+}
+.cyberpunk-blue .embedded-description {
+  background: var(--cpb-panel);
+  color: white;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.7rem 0.7rem;
+}
+.cyberpunk-blue .embedded-entry.is-disabled { opacity: 0.5; }
+.cyberpunk-blue .embedded-controls {
+  display: flex;
+  flex-wrap: nowrap;
+}
+.cyberpunk-blue .embedded-controls button[title="Edit"] { display: none; }
+.cyberpunk-blue .panel-header {
+  align-items: center;
+  justify-content: space-between;
+}
+.cyberpunk-blue .component-add {
+  display: flex;
+  break-inside: avoid;
+  flex-wrap: nowrap;
+}
+.cyberpunk-blue .component-add select {
+  border: 1px solid var(--cpb-accent);
+  background: var(--cpb-panel);
+  color: var(--cpb-text);
+  min-height: 34px;
+  padding: 0.35rem 0.7rem;
+}
+.cyberpunk-blue .component-links,
+.cyberpunk-blue .embedded-summary {
+  color: white;
+  font-size: 0.85rem;
+}
+.cyberpunk-blue .embedded-name {
+  align-items: center;
+  background: transparent !important;
+  border: 0;
+  display: flex;
+  gap: 0.65rem;
+  justify-content: flex-start;
+  font-family: var(--cpb-font-body);
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  clip-path: none;
+  text-transform: none;
+  white-space: unset;
+}
+.cyberpunk-blue .embedded-name::before { background: none;}
+.cyberpunk-blue .embedded-name::after {
+  display: none;
+}
+.cyberpunk-blue .embedded-name-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  text-align: start;
+}
+.cyberpunk-blue .manufacturer-summary,
+.cyberpunk-blue .embedded-note {
+  color: white;
+  font-size: 0.8rem;
+}
+.cyberpunk-blue .manufacturer-summary {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+}
+.cyberpunk-blue .manufacturer-summary .manufacturer-logo {
+  height: unset;
+  width: unset;
+  max-width: 70px;
+  max-height: 15px;
+  object-fit: contain;
+}
+.cyberpunk-blue .embedded-name img {
+  border: none;
+  height: 38px;
+  object-fit: contain;
+  width: 38px;
+}
+.cyberpunk-blue .embedded-controls button,
+.cyberpunk-blue .panel-header > button,
+.cyberpunk-blue .component-add button,
+.cyberpunk-blue .component-row button {
+  min-width: 34px;
+  padding: 0.35rem 0.55rem;
+}
+.cyberpunk-blue .embedded-controls button::after,
+.cyberpunk-blue .panel-header > button::after,
+.cyberpunk-blue .component-add button::after,
+.cyberpunk-blue .component-row button::after { display: none; }
+.cyberpunk-blue .embedded-controls i,
+.cyberpunk-blue .panel-header i,
+.cyberpunk-blue .component-add i,
+.cyberpunk-blue .component-row i { pointer-events: none; }
+/* #endregion */
+
+/* #region Embedded tables */
+.cyberpunk-blue .table.embedded-table {
+  border-collapse: separate;
+  border-spacing: 0 2px;
+  display: table;
+  table-layout: auto;
+  width: 100%;
+}
+.cyberpunk-blue table.embedded-table th,
+.cyberpunk-blue table.embedded-table td {
+  background: var(--cpb-panel);
+  padding: 0.35rem 0.45rem;
+  vertical-align: middle;
+}
+.cyberpunk-blue table.embedded-table th {
+  color: var(--cpb-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.cyberpunk-blue table.embedded-table th.numeric-column,
+.cyberpunk-blue table.embedded-table th.column-controls { text-align: center; }
+.cyberpunk-blue table.embedded-table td .embedded-controls { justify-content: flex-start; }
+.cyberpunk-blue table.embedded-table td input[type=number] { width: 100%; }
+.cyberpunk-blue table.embedded-table tbody tr:nth-child(even) td { background: var(--cpb-table-alt-bg); }
+.cyberpunk-blue .embedded-table .column-compact,
+.cyberpunk-blue .embedded-table .column-controls,
+.cyberpunk-blue .embedded-table th.numeric-column,
+.cyberpunk-blue .embedded-table td.numeric-column {
+  white-space: nowrap;
+  width: 3rem;
+}
+.cyberpunk-blue table.embedded-table td { overflow: hidden; }
+.cyberpunk-blue table.embedded-table td .embedded-summary,
+.cyberpunk-blue .inventory-row .embedded-summary {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* #endregion */
+
+/* #region Cyberware lists */
+.cyberpunk-blue .cyberware-header {
+  align-items: end;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+.cyberpunk-blue .cyberware-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.cyberpunk-blue .cyberware-detail-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+.cyberpunk-blue .cyberware-group:first-child { margin-top: 1rem; }
+.cyberpunk-blue .cyberware-row { grid-template-columns: minmax(180px, 1.4fr) minmax(110px, 0.8fr) 72px minmax(160px, 1fr) 80px minmax(180px, 1fr); }
+.cyberpunk-blue .cyberware-sheet.is-disabled .sheet-panel:not(.status-disabled) { opacity: 0.7; }
+/* #endregion */
+
+/* #region Weapon section ———————————————————————————— */
+.cyberpunk-blue .combat-layout,
+.cyberpunk-blue .weapon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.cyberpunk-blue .weapon-block {
+  border: 1px solid var(--cpb-panel-border);
+  padding: 0.85rem;
+}
+.cyberpunk-blue .weapon-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+.cyberpunk-blue .weapon-mod-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  margin-top: 0.1rem;
+}
+.cyberpunk-blue .weapon-mod-dot {
+  font-size: 0.45rem;
+  color: var(--color-text-light-6);
+}
+/* #endregion */
+
+/* #region Netrunner tab ────────────────────────────── */
+/* #region Component uses */
+.cyberpunk-blue .netrunner-components-row {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  gap: var(--cpb-space-3);
+}
+.cyberpunk-blue .netrunner-comp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+  gap: 6px;
+} 
+.cyberpunk-blue .netrunner-comp-name {
+  text-transform: uppercase;
+  font-size: var(--cpb-fs-h3);
+  color: var(--cpb-accent-warm);
+}
+.cyberpunk-blue .netrunner-comp-mod {
+  font-size: var(--cpb-fs-body);
+  color: var(--cpb-text);
+  white-space: nowrap;
+}
+.cyberpunk-blue .netrunner-comp-uses {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cpb-space-1);
+}
+/* #endregion */
+
+/* #region Computers list */
+.cyberpunk-blue .netrunner-computers-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+.cyberpunk-blue .netrunner-computer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+  padding: .5rem .35rem;
+  background: var(--cpb-accent-warm-border);
+  --c: var(--cpb-cut-lg);
+  --s: calc(var(--c) * 0.45);
+  clip-path: var(--cpb-shape--panel);
+}
+.cyberpunk-blue .netrunner-computer-card::before {
+  content: "";
+  position: absolute;
+  inset: var(--cpb-stroke);
+  background: var(--cpb-panel);
+  clip-path: inherit;
+  z-index: 0;
+}
+.cyberpunk-blue .netrunner-computer-card > * {
+  position: relative;
+  z-index: 1;
+}
+.cyberpunk-blue .netrunner-computer-name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: bold;
+  font-size: var(--cpb-fs-h3);
+  transform: uppercase;
+}
+.cyberpunk-blue .netrunner-computer-name img.item-img {
+  max-width: 8rem;
+  max-height: 8rem;
+  object-fit: contain;
+}
+.cyberpunk-blue .netrunner-computer-stats {
+  display: flex;
+  gap: .5rem;
+}
+/* #endregion */
+
+/* #region Programs */
+.cyberpunk-blue .netrunner-computer-programs {
+  display: flex;
+  gap: .5rem;
+  list-style: none;
+  align-items: center;
+  justify-content: center;
+}
+.cyberpunk-blue .netrunner-computer-programs li {
+  padding: 0.25rem 0.5rem;
+  background: var(--cpb-accent-warm-wash);
+  border: 1px solid var(--cpb-accent-warm-border);
+  white-space: nowrap;
+  border-radius: 3px;
+}
+.cyberpunk-blue .net-connection-row { width: 100%; }
+.cyberpunk-blue .netrunner-exe-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-12);
+}
+.cyberpunk-blue .netrunner-exe-table th {
+  text-align: center;
+  padding: 2px 4px;
+  border-bottom: 1px solid var(--cpb-border, #aaa);
+  font-size: var(--font-size-11);
+  font-weight: bold;
+  white-space: nowrap;
+}
+.cyberpunk-blue .netrunner-exe-table td {
+  padding: 2px 4px;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--cpb-border, #ddd);
+}
+.cyberpunk-blue .netrunner-exe-table .exe-name-col {
+  text-align: left;
+  min-width: 100px;
+}
+.cyberpunk-blue .exe-computer-name {
+  display: block;
+  font-size: var(--font-size-10);
+}
+.cyberpunk-blue .exe-rez-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.cyberpunk-blue .exe-rez-input {
+  width: 36px;
+  text-align: center;
+  padding: 0 2px;
+}
+.cyberpunk-blue .exe-roll-btn {
+  padding: 1px 6px;
+  font-size: var(--font-size-11);
+  cursor: pointer;
+  border: 1px solid var(--cpb-border, #bbb);
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.cyberpunk-blue .exe-action-btn {
+  padding: 2px 6px;
+  font-size: var(--font-size-12);
+  cursor: pointer;
+}
+/* #endregion */
+/* #endregion */
+
+/* #region Inventory Tab ————————————————— */
+.cyberpunk-blue .inventory-header {
+  margin-top: 1rem;
+  align-items: flex-start;
+  display: flex;
+  gap: 0.75rem;
+}
+/* #region Ammo pills row */
+.cyberpunk-blue .ammo-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.4rem;
+}
+.cyberpunk-blue .ammo-pill {
+  display: flex;
+  position: relative;
+  isolation: isolate;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  padding: 0;
+  background: var(--cpb-accent-warm-wash);
+  color: var(--cpb-text);
+  --c: var(--cpb-cut-sm);
+  clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, var(--c) 100%, 0 calc(100% - var(--c)));
+}
+.cyberpunk-blue .ammo-pill button {
+  background: transparent;
+  padding: var(--cpb-space-3);
+}
+.cyberpunk-blue .ammo-pill:hover, .cyberpunk-blue .ammo-pill button:hover, .cyberpunk-blue .ammo-pill button:hover::before {
+  background: var(--cpb-accent-warm);
+  color: var(--cpb-bg-solid-top);
+}
+.cyberpunk-blue .ammo-pill button::after, .cyberpunk-blue .ammo-pill button:hover::after, .cyberpunk-blue .ammo-pill button:focus::after { display: none; }
+.cyberpunk-blue .ammo-pill-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.2;
+  width: 100%;
+  white-space: nowrap;
+}
+.cyberpunk-blue .ammo-pill-name img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border: none;
+}
+.cyberpunk-blue .ammo-pill-qty {
+  max-width: 3rem;
+  min-width: 2rem;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
+  text-align: center;
+  font-size: 0.85rem;
+  --c: var(--cpb-cut-sm);
+  clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(c), 100% 100%, 0 100%) !important;
+}
+.cyberpunk-blue .ammo-pill-qty:focus {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+.cyberpunk-blue .ammo-pill::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--cpb-panel-deep);
+  clip-path: inherit;
+  z-index: 0;
+}
+.cyberpunk-blue .ammo-pill > * { position: relative; z-index: 1; }
+/* #endregion */
+
+/* #region Inventory table */
+.cyberpunk-blue .inventory-row {
+  grid-template-columns: minmax(180px, 1.2fr) 70px minmax(220px, 1.6fr) 80px minmax(220px, 1fr);
+}
+.cyberpunk-blue .instruction-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cyberpunk-blue .inventory-row .embedded-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.cyberpunk-blue .inventory-row input[type=number] { width: 100%; }
+/* #endregion */
+
+/* =================================================
+    ITEM SHEETS SPECIFIC
+  ================================================= */
+/* #region Cyberware Sheet ——————————————— */
+.cyberpunk-blue .sheet-status {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+}
+.cyberpunk-blue .status-disabled {
+  border-color: var(--cpb-warning);
+  color: var(--cpb-warning);
+}
+/* #endregion */
+
+/* #region Role Sheet ———————————————————— */
+.cyberpunk-blue .lifepath-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.cyberpunk-blue .lifepath-layout > .sheet-panel {
+  flex: 1 1 auto;
+  width: 20rem;
+  min-width: min(100%, 30rem);
+}
+/* #endregion */
+
+/* #region Ability Sheet ————————————————— */
+.cyberpunk-blue .ability-header {
+  align-items: end;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) minmax(240px, 3fr);
+}
+.cyberpunk-blue .ability-header.single-rank {
+  grid-template-columns: minmax(160px, 1fr) minmax(240px, 3fr);
+}
+.cyberpunk-blue .ability-single-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.cyberpunk-blue .ability-note-field {
+  min-width: 0;
+}
+/* #endregion */
+
+/* #region Weapon Sub-Section ———————————— */
+.cyberpunk-blue .weapon-subfields {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  background: var(--cpb-panel);
+  border: 1px solid var(--cpb-panel-border);
+  border-radius: 4px;
+}
+.cyberpunk-blue .weapon-subfields .weapon-range-table-wrap {
+  flex: 1 1 100%;
+  margin-top: 0;
+}
+.cyberpunk-blue .weapon-range-table-wrap {
+  margin-top: 0.9rem;
+  overflow-x: auto;
+}
+.cyberpunk-blue .weapon-range-table {
+  border-collapse: collapse;
+  display: table;
+  min-width: 32rem;
+  table-layout: fixed;
+  width: 100%;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  margin-top: 0.9rem;
+}
+.cyberpunk-blue .weapon-range-table th,
+.cyberpunk-blue .weapon-range-table td {
+  background: var(--cpb-panel);
+  border: 1px solid var(--cpb-panel-border);
+  padding: 0.25rem;
+  text-align: center;
+}
+.cyberpunk-blue .weapon-range-table td.is-blocked,
+.cyberpunk-blue .weapon-range-table td.is-blocked input {
+  background: #000;
+  color: #000;
+}
+.cyberpunk-blue .weapon-range-table input {
+  min-height: 30px;
+  width: 100%;
+}
+/* #endregion */
+
+.cyberpunk-blue .combat-weapon-table .numeric-column button { width: 100%; }
+.cyberpunk-blue .checkbox-bottom { align-self: end; }
+.cyberpunk-blue .item-meta-row .compact-field { max-width: 8rem; }
+.cyberpunk-blue .cost-field { min-width: min(100%, 16rem); }
+.cyberpunk-blue .item-meta-row .ammo-type-grid {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.cyberpunk-blue .item-meta-row .ammo-type-grid .checkbox-label {
+  display: grid;
+  grid-template-columns: min-content max-content;
+  align-items: center;
+  gap: .2rem;
+}
+.cyberpunk-blue .item-meta-row .checkbox-label { margin-left: 0.35rem; }
+.cyberpunk-blue .armor-inline-field { min-width: min(100%, 16rem); }
+.cyberpunk-blue .weapon-grid .checkbox-label { align-self: end; }
+.cyberpunk-blue .weapon-damage-type-group {
+  border: 1px solid var(--cpb-panel-border);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  grid-column: 1 / -1;
+}
+.cyberpunk-blue .weapon-damage-type-group legend {
+  font-size: 0.75em;
+  font-weight: 600;
+  opacity: 0.7;
+  padding: 0 0.25rem;
+  text-transform: uppercase;
+}
+.cyberpunk-blue .readonly-value,
+.cyberpunk-blue .readonly-icon,
+.cyberpunk-blue .manufacturer-display {
+  align-items: center;
+  color: var(--cpb-text);
+  display: inline-flex;
+  min-height: 34px;
+}
+.cyberpunk-blue .readonly-value {
+  padding: 0.35rem 0.1rem;
+}
+.cyberpunk-blue .manufacturer-display {
+  gap: 0.45rem;
+}
+.cyberpunk-blue .mod-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.cyberpunk-blue .mod-card {
+  border: 1px solid var(--cpb-panel-border);
+  padding: 0.85rem;
+}
+.cyberpunk-blue .mod-card.is-invalid .state-chip {
+  border-color: var(--cpb-error);
+  color: var(--cpb-error);
+}
+.cyberpunk-blue .mod-heading {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+.cyberpunk-blue .weapon-change-list,
+.cyberpunk-blue .mod-effect-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.cyberpunk-blue .weapon-change-row,
+.cyberpunk-blue .mod-effect-row {
+  align-items: center;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(120px, 1fr) minmax(110px, 0.9fr) minmax(90px, 0.8fr) 42px;
+}
+.cyberpunk-blue .mod-effect-name {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.45rem;
+}
+.cyberpunk-blue .mod-effect-name img {
+  height: 20px;
+  width: 20px;
+}
+
+/* #region Role AE condition row ──────────────────── */
+/* #region Role ability area */
+.cyberpunk-blue .effect-condition-row {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid var(--cpb-border);
+  color: var(--cpb-muted);
+  display: flex;
+  font-size: 0.75rem;
+  gap: 0.4rem;
+  padding: 0.1rem 0.5rem 0.1rem 2rem;
+}
+.cyberpunk-blue .effect-condition-row .condition-summary.active { color: var(--cpb-accent); }
+.cyberpunk-blue .effect-condition-btn {
+  cursor: pointer;
+  opacity: 0.5;
+  padding: 0 0.25rem;
+  transition: opacity 0.15s;
+}
+.cyberpunk-blue .effect-condition-btn:hover,
+.cyberpunk-blue .effect-condition-btn.cpb-condition-active {
+  color: var(--cpb-accent);
+  opacity: 1;
+}
+.cyberpunk-blue .role-config-block,
+.cyberpunk-blue .role-grant-groups,
+.cyberpunk-blue .role-reference-list,
+.cyberpunk-blue .role-grant-summary-list,
+.cyberpunk-blue .team-member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.cyberpunk-blue .role-grant-group,
+.cyberpunk-blue .role-config-block,
+.cyberpunk-blue .role-overview-feature { padding: 0.8rem; }
+.cyberpunk-blue .role-grant-summary,
+.cyberpunk-blue .specialty-summary-list {
+  columns: 3 450px;
+  gap: 1rem;
+}
+.cyberpunk-blue .role-overview-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1rem;
+}
+.cyberpunk-blue .role-overview-feature {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cpb-space-2);
+}
+.cyberpunk-blue .role-overview-feature .role-mechanic-row {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(120px, 1fr) minmax(160px, 1.2fr) minmax(80px, 0.8fr);
+}
+.cyberpunk-blue .role-focus-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.cyberpunk-blue .role-reference-row {
+  align-items: end;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(180px, 1.5fr) minmax(120px, 1fr) 42px 42px;
+}
+/* #endregion */
+.cyberpunk-blue .role-guide-row { grid-template-columns: repeat(auto-fill, minmax(max-content,19%)); }
+/* #region Specialist display */
+.cyberpunk-blue .specialty-summary-list > * { break-inside: avoid; }
+.cyberpunk-blue .specialty-header {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.cyberpunk-blue .specialty-name {
+  font-size: 1rem;
+  font-weight: var(--cpb-fw-bold);
+  color: var(--cpb-accent-warm);
+}
+.cyberpunk-blue .specialty-rank-controls {
+  display: flex;
+  gap: 0.25rem;
+}
+/* #endregion */
+
+/* #region Protean displays */
+.cyberpunk-blue .role-overview-feature .protean-tactic-list { columns: 5 300px; }
+.cyberpunk-blue .protean-tactic-list > * { break-inside: avoid; }
+.cyberpunk-blue .protean-tactic-list .protean-tactic {
+  background: var(--cpb-panel);
+  padding: 0.45rem;
+  display: grid;
+  grid-template-columns: minmax(300px, auto) max-content;
+  gap: .5rem;
+}
+.cyberpunk-blue .protean-tactic-list .protean-tactic + .protean-tactic { margin-top: 0.5rem; }
+.cyberpunk-blue .protean-tactic .protean-tactic-name {
+  font-weight: 600;
+  order: 2;
+  text-align: end;
+}
+.cyberpunk-blue .protean-tactic .protean-tactic-description {
+  font-size: 0.9rem;
+  order: 3;
+  grid-column: 1 / span 2;
+}
+.cyberpunk-blue .protean-tactic .protean-tactic-points {
+  font-size: 0.75rem;
+  font-weight: 700;
+  order: 1;
+}
+/* #endregion */
+
+/* #region Leader displays */
+.cyberpunk-blue .team-member-list {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.cyberpunk-blue .team-member-link { min-width: 180px; }
+/* #endregion */
+/* #endregion */
+
+@media (max-width: 900px) {
+  .cyberpunk-blue .notes-grid,
+  .cyberpunk-blue .header-stats {
+    grid-template-columns: 1fr;
+  }
+  .cyberpunk-blue .header-stats-row {
+    flex-wrap: wrap;
+  }
+  .cyberpunk-blue .skill-row,
+  .cyberpunk-blue .skill-table-container .skill-row,
+  .cyberpunk-blue .component-row,
+  .cyberpunk-blue .embedded-row {
+    grid-template-columns: 1fr;
+  }
+
+  .cyberpunk-blue .ability-header,
+  .cyberpunk-blue .ability-header.single-rank,
+  .cyberpunk-blue .cyberware-header {
+    grid-template-columns: 1fr;
+  }
+
+  .cyberpunk-blue .inventory-row,
+  .cyberpunk-blue .weapon-change-row,
+  .cyberpunk-blue .mod-effect-row {
+    grid-template-columns: 1fr;
+  }
+  .cyberpunk-blue .role-reference-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* #region Role Sheet Section: Future Possibilities folding section */
+.cyberpunk-blue .future-possibilities summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.cyberpunk-blue .future-possibilities summary h3 {
+  display: inline;
+  font-size: var(--font-size-14);
+  color: var(--color-text-light-6);
+}
+.cyberpunk-blue .future-possibilities .future-section {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--cpb-border);
+}
+.cyberpunk-blue .future-possibilities .future-section h4 {
+  font-size: var(--font-size-12);
+  color: var(--color-text-light-6);
+  margin-bottom: 0.25rem;
+}
+/* #endregion */
+/* ==================================================
+   CHARACTER CREATION WIZARD
+================================================== */
+/* #region Character Creator */
+/* #region CC wizard components ─────────────────────────────────── */
+.character-creation-wizard .cc-points-counter {
+  position: relative;
+  isolation: isolate;
+  --c: var(--cpb-cut-sm);
+  background: var(--cpb-accent-wash-border);
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(
+    0 0, calc(100% - var(--c)) 0, 100% var(--c),
+    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
+  );
+  text-align: center;
+  font-size: var(--font-size-14);
+  padding: 0.4rem;
+  color: var(--cpb-accent);
+}
+.character-creation-wizard .cc-points-counter::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--cpb-panel-deep);
+  clip-path: inherit;
+  z-index: 0;
+}
+.character-creation-wizard .cc-points-counter.all-spent {
+  background: var(--cpb-accent-strong-border);
+  color: var(--cpb-accent-strong);
+  border-color: var(--cpb-accent-strong);
+}
+.character-creation-wizard .cc-points-counter.all-spent::before { background: var(--cpb-accent-strong-wash); }
+.character-creation-wizard .cc-points-counter.over-budget {
+  background: rgba(255, 35, 80, 0.45);
+  color: var(--cpb-error, #ff4444);
+  border-color: var(--cpb-error, #ff4444);
+}
+.character-creation-wizard .cc-points-counter.over-budget::before { background: rgba(255, 35, 80, 0.1); }
+
+.character-creation-wizard .cc-step-dot {
+  position: relative;
+  isolation: isolate;
+  --c: 4px;
+  background: rgba(141, 227, 255, 0.2);
+  border: 0;
+  border-radius: 0;
+  clip-path: polygon(
+    var(--c) 0, calc(100% - var(--c)) 0,
+    100% var(--c), 100% calc(100% - var(--c)),
+    calc(100% - var(--c)) 100%, var(--c) 100%,
+    0 calc(100% - var(--c)), 0 var(--c)
+  );
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  font-size: var(--font-size-10);
+  color: var(--color-text-light-6);
+  opacity: 0.5;
+}
+.character-creation-wizard .cc-step-dot::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--cpb-panel-deep);
+  clip-path: inherit;
+  z-index: 0;
+}
+.character-creation-wizard .cc-step-dot.done {
+  background: var(--cpb-accent-wash-border);
+  color: var(--cpb-accent);
+  opacity: 0.7;
+  border-color: var(--cpb-accent);
+}
+.character-creation-wizard .cc-step-dot.active {
+  background: var(--cpb-accent-strong-border);
+  color: var(--cpb-accent-strong);
+  opacity: 1;
+  border-color: var(--cpb-accent-strong);
+  font-weight: bold;
+}
+.character-creation-wizard .cc-step-dot.active::before { background: var(--cpb-accent-strong-wash); }
+/* #endregion */
+/* #region Sheet highlight border */
+.cyberpunk-blue .char-creation-highlight {
+  outline: 3px solid var(--cpb-accent);
+  outline-offset: 2px;
+}
+/* Sheet banner */
+.cyberpunk-blue .cc-sheet-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(39, 176, 255, 0.12);
+  border-bottom: 1px solid var(--cpb-accent);
+  font-size: var(--font-size-12);
+  color: var(--cpb-accent);
+}
+.cyberpunk-blue .cc-sheet-banner span {
+  flex: 1;
+}
+.cyberpunk-blue .cc-sheet-banner button {
+  padding: 0.2rem 0.6rem;
+  font-size: var(--font-size-11);
+}
+.cyberpunk-blue .cc-begin-banner {
+  justify-content: flex-end;
+  background: transparent;
+  border-bottom: none;
+}
+/* #endregion */
+
+/* #region Wizard window */
+.character-creation-wizard .cc-wizard {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Progress dots */
+.character-creation-wizard .cc-progress {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Content area */
+.character-creation-wizard .cc-content {
+  flex: 1;
+}
+.character-creation-wizard .cc-step-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.character-creation-wizard .cc-intro {
+  font-size: var(--font-size-16);
+  text-align: center;
+  color: var(--cpb-accent-strong);
+  padding: 1rem 0;
+}
+/* #endregion */
+
+/* #region Lifepath */
+.character-creation-wizard .cc-table-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.character-creation-wizard .cc-roll-btn {
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+}
+.character-creation-wizard .cc-roll-all {
+  --btn-tint: var(--cpb-accent-strong);
+  --btn-tint-border: var(--cpb-accent-strong-border);
+  color: var(--cpb-accent-strong);
+}
+/* #endregion */
+
+/* #region Stats */
+.character-creation-wizard .cc-stat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.character-creation-wizard .cc-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.character-creation-wizard .cc-stat-label {
+  width: 4rem;
+  font-size: var(--font-size-12);
+  color: var(--cpb-accent);
+  font-weight: bold;
+}
+.character-creation-wizard .cc-stat-btn {
+  width: 1.8rem;
+  height: 1.8rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.character-creation-wizard .cc-stat-value {
+  width: 2rem;
+  text-align: center;
+  font-size: var(--font-size-16);
+  font-weight: bold;
+  color: var(--cpb-accent-strong);
+}
+
+/* Secondary text blocks */
+.character-creation-wizard .cc-text-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: var(--font-size-12);
+  max-height: 280px;
+  overflow-y: auto;
+}
+/* #endregion */
+
+/* Languages */
+.character-creation-wizard .cc-language-input input {
+  width: 100%;
+  direction: ltr;
+}
+
+/* #region Ability list */
+.character-creation-wizard .cc-ability-upgrade {
+  --btn-tint: var(--cpb-accent-strong);
+  --btn-tint-border: var(--cpb-accent-strong-border);
+  color: var(--cpb-accent-strong);
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+}
+.character-creation-wizard .cc-ability-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.character-creation-wizard .cc-ability-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--cpb-border);
+  grid-template-columns: minmax(180px, 1.2fr) 80px minmax(140px, 1fr) minmax(220px, 1.4fr) minmax(160px, 0.8fr);
+}
+.character-creation-wizard .cc-ability-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.character-creation-wizard .cc-ability-name {
+  font-size: var(--font-size-12);
+  color: var(--color-text-light-1);
+}
+.character-creation-wizard .cc-ability-maxrank,
+.character-creation-wizard .cc-ability-note {
+  font-size: var(--font-size-10);
+  color: var(--color-text-light-6);
+}
+
+/* New Language row in ability list */
+.character-creation-wizard .cc-new-language-row {
+  border-top: 1px dashed var(--cpb-border);
+  padding-top: 0.3rem;
+  margin-top: 0.1rem;
+}
+.character-creation-wizard .cc-new-language-input {
+  width: 100%;
+  font-size: var(--font-size-12);
+  padding: 0.15rem 0.3rem;
+  border: 1px solid var(--cpb-border);
+  border-radius: 3px;
+  background: var(--color-bg-input, #fff);
+  color: var(--color-text-input, #333);
+}
+/* #endregion */
+
+/* #region Role list */
+.character-creation-wizard .cc-role-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.character-creation-wizard .cc-role-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--cpb-border);
+  border-radius: 3px;
+}
+.character-creation-wizard .cc-role-name {
+  flex: 1;
+  font-size: var(--font-size-13);
+  color: var(--cpb-accent);
+}
+/* #endregion */
+
+/* Note text */
+.character-creation-wizard .cc-sheet-note {
+  font-size: var(--font-size-12);
+  color: var(--cpb-accent);
+  font-style: italic;
+}
+
+/* #region Footer navigation */
+.character-creation-wizard .cc-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--cpb-border);
+  margin-top: 0.25rem;
+}
+.character-creation-wizard .cc-btn-primary {
+  --btn-tint: var(--cpb-accent-strong);
+  --btn-tint-border: var(--cpb-accent-strong-border);
+  color: var(--cpb-accent-strong);
+}
+.character-creation-wizard .cc-btn-secondary {
+  opacity: 0.75;
+}
+.character-creation-wizard .cc-btn-small {
+  padding: 0.2rem 0.5rem;
+  font-size: var(--font-size-11);
+  white-space: nowrap;
+}
+/* #endregion */
+/* #endregion */
+
+/* #region Mods Tab ─────────────────────────────────── */
+
+.cyberpunk-blue .embedded-mods-panel .embedded-mod-import-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem 0 0;
+}
+.cyberpunk-blue .embedded-mods-panel .embedded-mod-import-row input {
+  flex: 1;
+  font-size: var(--font-size-11);
+}
+.cyberpunk-blue .embedded-mod-card {
+  margin-top: 0.5rem;
+}
+.cyberpunk-blue .mod-note {
+  font-style: italic;
+  opacity: 0.8;
+  font-size: var(--font-size-12);
+  margin: 0.25rem 0;
+}
+.cyberpunk-blue .mod-description {
+  font-size: var(--font-size-12);
+  margin: 0.25rem 0;
+}
+.cyberpunk-blue .mod-changes {
+  margin-top: 0.5rem;
+}
+.cyberpunk-blue .mod-changes-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-11);
+}
+.cyberpunk-blue .mod-changes-table th,
+.cyberpunk-blue .mod-changes-table td {
+  padding: 2px 6px;
+  border-bottom: 1px solid var(--cpb-panel-border);
+  text-align: left;
+}
+.cyberpunk-blue .mod-effect-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.25rem 0;
+  border-top: 1px solid var(--cpb-panel-border);
+  grid-template-columns: minmax(160px, 1fr) auto;
+}
+.cyberpunk-blue .mod-effect-icon {
+  height: 16px;
+  width: 16px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+.cyberpunk-blue .mod-effect-label {
+  font-size: var(--font-size-12);
+}
+/* #endregion */
+
+/* ── Computer config fields ───────────────────── */
+.cyberpunk-blue .computer-fields-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: center;
+  padding: 4px 0;
+}
+
+
+/* Executable item sheet — linked program actor */
+.cyberpunk-blue .gm-only-panel {
+  background: rgba(180, 140, 0, 0.08);
+  border: 1px solid rgba(180, 140, 0, 0.3);
+  border-radius: 4px;
+  padding: var(--cpb-space-2) var(--cpb-space-3);
+  margin-bottom: var(--cpb-space-2);
+}
+.cyberpunk-blue .program-actor-link {
+  display: flex;
+  align-items: center;
+  gap: var(--cpb-space-2);
+  font-size: var(--cpb-fs-sm);
+}
+.cyberpunk-blue .program-actor-link .label {
+  color: var(--cpb-muted);
+  white-space: nowrap;
+}
+.cyberpunk-blue .program-actor-link a {
+  color: var(--cpb-accent-strong);
+  text-decoration: none;
+}
+.cyberpunk-blue .program-actor-link a:hover {
+  text-decoration: underline;
+}
+
+/* ─── Netrunning: NET actions counter & attack panel ────────────────────────── */
+.cyberpunk-blue .net-actions-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: var(--font-size-12);
+  background: var(--cpb-panel-bg, #e8e8e0);
+  border: 1px solid var(--cpb-border, #bbb);
+  color: var(--color-text-dark-primary, #222);
+}
+.cyberpunk-blue .net-actions-counter.net-actions-exhausted {
+  background: #ffe0e0;
+  border-color: #c00;
+  color: #900;
+}
+
+.cyberpunk-blue .program-link-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  padding: 0.3rem 0.5rem;
+  margin: 0.25rem 0;
+  border: 1px solid var(--cpb-accent-strong-border, #444);
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.15);
+  font-size: 0.85rem;
+}
+.cyberpunk-blue .program-link-row input[name="executableUuidInput"] {
+  flex: 1 1 12rem;
+  min-width: 8rem;
+}
+.cyberpunk-blue .program-link-row .program-link-label strong { color: var(--cpb-accent-strong); }
+.cyberpunk-blue .program-link-row .program-link-broken { color: var(--color-level-warning, #d9a400); }
+.cyberpunk-blue .program-link-row .hint {
+  flex-basis: 100%;
+  font-size: 0.75rem;
+  color: var(--color-text-light-6);
+  margin: 0;
+}
+
+.cyberpunk-blue .program-error-banner {
+  background: #330000;
+  color: #ff4444;
+  border: 2px solid #ff0000;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.cyberpunk-blue .program-attack-panel {
+  border: 2px solid var(--cpb-border, #bbb);
+  border-radius: 4px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+}
+.cyberpunk-blue .program-attack-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.cyberpunk-blue .program-attack-function {
+  font-size: var(--font-size-12);
+  padding: 4px 6px;
+  background: var(--cpb-panel-bg, #e8e8e0);
+  border-radius: 3px;
+}
+
+/* ─── Critical Injury Chat Card ─────────────────────────────────────────────── */
+.cyberpunk-blue .critical-injury-card { padding: 0.5rem; }
+.cyberpunk-blue .critical-injury-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--font-size-14);
+  font-weight: bold;
+  border-bottom: 2px solid #8b0000;
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.5rem;
+  color: #8b0000;
+}
+.cyberpunk-blue .crit-table-label { flex: 1; }
+.cyberpunk-blue .crit-target-name {
+  font-style: italic;
+  color: var(--color-text-dark-secondary, #555);
+}
+.cyberpunk-blue .critical-injury-roll {
+  font-size: var(--font-size-12);
+  color: var(--color-text-dark-secondary, #555);
+  margin-bottom: 0.25rem;
+}
+.cyberpunk-blue .critical-injury-name {
+  font-size: var(--font-size-14);
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+.cyberpunk-blue .critical-injury-desc {
+  font-size: var(--font-size-12);
+  margin-bottom: 0.4rem;
+  line-height: 1.4;
+}
+.cyberpunk-blue .crit-mortal-warning {
+  color: #8b0000;
+  font-size: var(--font-size-12);
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+.cyberpunk-blue .critical-injury-actions {
+  margin-top: 0.4rem;
+}
+.cyberpunk-blue .remove-critical-injury {
+  font-size: var(--font-size-12);
+  padding: 2px 8px;
+  cursor: pointer;
+  border: 1px solid #8b0000;
+  border-radius: 3px;
+  color: #8b0000;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.cyberpunk-blue .remove-critical-injury:hover {
+  background: #8b0000;
+  color: #fff;
+}
+
+/* ─── Confirm Dialog: Crit block ─────────────────────────────────────────────── */
+.cyberpunk-blue .crit-dice-note {
+  color: #8b0000;
+  font-weight: bold;
+  font-size: var(--font-size-12);
+  margin-bottom: 0.3rem;
+}
+
+/* ─── Health Effects: critical injury delete button ─────────────────────────── */
+.cyberpunk-blue .effect-cell.is-critical-injury .effect-open { border-color: #8b000044; }
+.cyberpunk-blue .effect-cell.is-mortal .effect-open { border-color: #8b0000; }
+.cyberpunk-blue .effect-mortal-badge {
+  color: #8b0000;
+  font-size: var(--font-size-11);
+  flex-shrink: 0;
+}
+.cyberpunk-blue .health-effect-delete {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid #8b0000;
+  color: #8b0000;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: var(--font-size-10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cyberpunk-blue .health-effect-delete:hover {
+  background: #8b0000;
+  color: #fff;
+}
+
+/* #region Weapon Table: Target Vitals column ──────── */
+.cyberpunk-blue .target-vitals-cell { text-align: center; }
+.cyberpunk-blue .target-vitals-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.cyberpunk-blue .target-vitals-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: #8b0000;
+}
+.cyberpunk-blue .target-vitals-note {
+  color: #8b0000;
+  font-size: var(--font-size-11);
+  margin-bottom: 0.2rem;
+}
+/* #endregion */
+
+/* #region Weapon Table: calibration button ────────── */
+.cyberpunk-blue .weapon-calibrate-btn:hover {
+  background: var(--cpb-accent);
+  color: #000;
+}
+.cyberpunk-blue .weapon-calibrate-btn.calibration-active {
+  background: var(--cpb-accent);
+  color: #000;
+  font-weight: bold;
+}
+/* #endregion */
+
+/* #region Weapon Table: ricochet button ───────────── */
+.cyberpunk-blue .weapon-ricochet-btn:hover {
+  background: #44aaff;
+  color: #000;
+}
+.cyberpunk-blue .weapon-ricochet-btn.ricochet-active {
+  background: #44aaff;
+  color: #000;
+  font-weight: bold;
+}
+/* #endregion */
+
+/* #region Weapon Table: Tech Weapon Charge button ──────────────── */
+.cyberpunk-blue .weapon-charge-btn:hover {
+  background: #00d4ff;
+  color: #000;
+}
+.cyberpunk-blue .weapon-charge-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+/* #endregion */
+
+/* #region Martial Arts ────────────────────────────── */
+.cyberpunk-blue .ma-specials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.cyberpunk-blue .ma-special-btn {
+  width: 100%;
+}
+/* #endregion */
+
+/* #region Combat state panel (in the combat tracker sidebar) ──────────────────── */
+.cyber-blue-combat-panel .cbcp-name {
+  font-size: var(--font-size-12);
+  font-weight: bold;
+  color: var(--cpb-accent);
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cyber-blue-combat-panel .cbcp-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.cyber-blue-combat-panel .cbcp-label {
+  min-width: 42px;
+  color: #aaa;
+  font-size: var(--font-size-10);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Movement progress bar */
+.cyber-blue-combat-panel .cbcp-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.cyber-blue-combat-panel .cbcp-bar {
+  height: 100%;
+  background: var(--cpb-accent);
+  border-radius: 3px;
+  transition: width 0.25s ease;
+  min-width: 2px;
+}
+.cyber-blue-combat-panel .cbcp-value {
+  min-width: 54px;
+  text-align: right;
+  font-size: var(--font-size-10);
+  color: #bbb;
+}
+
+/* Action state label */
+.cyber-blue-combat-panel .cbcp-action-state {
+  font-size: var(--font-size-11);
+  font-weight: bold;
+}
+.cyber-blue-combat-panel .cbcp-action-state.available { color: #4cff8a; }
+.cyber-blue-combat-panel .cbcp-action-state.used {
+  color: #888;
+  text-decoration: line-through;
+}
+/* #endregion */
+
+/* #region Guide Tarot play dialog ──────────────────── */
+.tarot-play-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  padding: .5rem 0;
+}
+.tarot-play-card-image {
+  display: flex;
+  justify-content: center;
+}
+.tarot-play-img {
+  width: 240px;
+  max-width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--color-border-dark, #999);
+}
+.tarot-play-description {
+  font-size: .85rem;
+  line-height: 1.6;
+}
+.tarot-play-destination {
+  margin-top: .25rem;
+}
+/* #endregion */
 
 /* ── Stat & resource cards ────────────────────────────────── */
 .cyberpunk-blue .stat-card {
@@ -3240,10 +2987,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   --c: var(--cpb-cut-sm);
   background: rgba(141, 227, 255, 0.14);
   border: 0;
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0, 100% var(--c),
-    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
-  );
+  clip-path: var(--cpb-shape-tl-br);
   align-items: center;
   display: flex;
   flex-direction: column;
@@ -3263,7 +3007,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 .cyberpunk-blue .derived-field > * { position: relative; z-index: 1; }
 
-/* ── State chips ──────────────────────────────────────────── */
+/* #region State chips ──────────────────────────────────────────── */
 .cyberpunk-blue .state-chip {
   position: relative;
   isolation: isolate;
@@ -3293,12 +3037,10 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   clip-path: inherit;
   z-index: 0;
 }
-
 .cyberpunk-blue .state-chip > * {
   position: relative;
   z-index: 1;
 }
-
 .cyberpunk-blue .state-disabled {
   background: var(--cpb-warning);
   color: var(--cpb-bg-solid-top);
@@ -3306,47 +3048,17 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   border: 0;
 }
 .cyberpunk-blue .state-disabled::before { background: var(--cpb-warning); }
+/* #endregion */
 
-/* Component pill */
-.cyberpunk-blue .component-pill {
-  position: relative;
-  isolation: isolate;
-  --c: 4px;
-  background: rgba(0, 240, 255, 0.32);
-  color: var(--cpb-accent);
-  font-family: var(--cpb-font-mono);
-  font-size: var(--cpb-fs-xs);
-  padding: 0.28rem 0.7rem;
-  border: 0;
-  display: inline-flex;
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0, 100% var(--c),
-    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
-  );
-  background-color: var(--cpb-panel);
-  padding-inline: 0.6rem;
-}
-.cyberpunk-blue .component-pill::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--cpb-accent-wash-soft);
-  clip-path: inherit;
-}
-
-/* ── Mook skill list ──────────────────────────────────────── */
+/* #region Mook skill list ──────────────────────────────────────── */
 .cyberpunk-blue .mook-skill-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.15rem 0.2rem;
 }
-.cyberpunk-blue .mook-skill-row .roll-button {
-  flex: 0 0 auto;
-}
-.cyberpunk-blue .mook-skill-row .skill-label {
-  flex: 0 1 auto;
-}
+.cyberpunk-blue .mook-skill-row .roll-button { flex: 0 0 auto; }
+.cyberpunk-blue .mook-skill-row .skill-label { flex: 0 1 auto; }
 .cyberpunk-blue .mook-skill-row .skill-stat {
   flex: 0 0 auto;
   min-width: 2.5rem;
@@ -3384,6 +3096,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   opacity: 1;
   color: var(--cpb-accent);
 }
+/* #endregion */
 
 /* ── Weapon block & mod card ──────────────────────────────── */
 .cyberpunk-blue .weapon-block,
@@ -3409,30 +3122,14 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 }
 .cyberpunk-blue .weapon-block > *,
 .cyberpunk-blue .mod-card > * { position: relative; z-index: 1; }
-.cyberpunk-blue .mod-card.is-invalid { background: rgba(255, 35, 80, 0.42); border-color: var(--cpb-error); color: var(--cpb-error); }
+.cyberpunk-blue .mod-card.is-invalid {
+  background: rgba(255, 35, 80, 0.42);
+  border-color: var(--cpb-error);
+  color: var(--cpb-error);
+}
 .cyberpunk-blue .mod-card.is-invalid::before { background: var(--cpb-panel-deep); }
 
 /* ── Ammo pill ────────────────────────────────────────────── */
-.cyberpunk-blue .ammo-pill {
-  position: relative;
-  isolation: isolate;
-  --c: var(--cpb-cut-sm);
-  background: rgba(0, 240, 255, 0.34);
-  border-radius: 0;
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0, 100% var(--c),
-    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
-  );
-}
-.cyberpunk-blue .ammo-pill::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--cpb-panel-deep);
-  clip-path: inherit;
-  z-index: 0;
-}
-.cyberpunk-blue .ammo-pill > * { position: relative; z-index: 1; }
 
 .cyberpunk-blue .role-overview-feature > * { position: relative; z-index: 1; }
 
@@ -3475,9 +3172,12 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   cursor: pointer;
 }
 .cyberpunk-blue .netrunner-use-btn::before { background: var(--cpb-accent-warm-wash); }
-.cyberpunk-blue .netrunner-use-btn:hover { color: var(--cpb-bg-solid-top); background: var(--cpb-accent-warm); }
+.cyberpunk-blue .netrunner-use-btn:hover {
+  color: var(--cpb-bg-solid-top);
+  background: var(--cpb-accent-warm);
+}
 
-/* ── Martial arts special entry ───────────────────────────── */
+/* #region Martial arts special entry ───────────────────────────── */
 .cyberpunk-blue .ma-special-entry {
   position: relative;
   isolation: isolate;
@@ -3498,8 +3198,10 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   z-index: 0;
 }
 .cyberpunk-blue .ma-special-entry > * { position: relative; z-index: 1; }
+/* #endregion */
 
-/* ── Weapon action buttons ────────────────────────────────── */
+/* #region Weapon action buttons ────────────────────────────────── */
+/* #region Base */
 .cyberpunk-blue .weapon-unjam-btn,
 .cyberpunk-blue .weapon-calibrate-btn,
 .cyberpunk-blue .weapon-ricochet-btn,
@@ -3533,58 +3235,79 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   z-index: 0;
   transition: background var(--cpb-dur) var(--cpb-ease);
 }
+/* #endregion */
 
-/* Unjam — amber */
+/* #region Unjam — amber */
 .cyberpunk-blue .weapon-unjam-btn {
-  background: rgba(200, 149, 0, 0.42); color: #c89500;
+  background: rgba(200, 149, 0, 0.42);
+  color: #c89500;
 }
 .cyberpunk-blue .weapon-unjam-btn::before { background: rgba(8, 16, 26, 0.9); }
-.cyberpunk-blue .weapon-unjam-btn:hover { background: #c89500; color: #000; font-weight: 700; }
+.cyberpunk-blue .weapon-unjam-btn:hover { background: #c89500;
+  color: #000;
+  font-weight: 700;
+}
 .cyberpunk-blue .weapon-unjam-btn:hover::before { background: #c89500; }
+/* #endregion */
 
-/* Calibrate — cyan */
+/* #region Calibrate — cyan */
 .cyberpunk-blue .weapon-calibrate-btn {
-  background: var(--cpb-accent-wash-border); color: var(--cpb-accent);
+  background: var(--cpb-accent-wash-border);
+  color: var(--cpb-accent);
 }
 .cyberpunk-blue .weapon-calibrate-btn::before { background: rgba(8, 16, 26, 0.92); }
 .cyberpunk-blue .weapon-calibrate-btn:hover,
 .cyberpunk-blue .weapon-calibrate-btn.calibration-active {
-  background: var(--cpb-accent); color: #000; font-weight: 700;
+  background: var(--cpb-accent);
+  color: #000;
+  font-weight: 700;
 }
 .cyberpunk-blue .weapon-calibrate-btn:hover::before,
 .cyberpunk-blue .weapon-calibrate-btn.calibration-active::before { background: var(--cpb-accent); }
+/* #endregion */
 
-/* Ricochet — sky blue */
+/* #region Ricochet — sky blue */
 .cyberpunk-blue .weapon-ricochet-btn {
-  background: rgba(68, 170, 255, 0.32); color: #44aaff;
+  background: rgba(68, 170, 255, 0.32);
+  color: #44aaff;
 }
 .cyberpunk-blue .weapon-ricochet-btn::before { background: rgba(8, 16, 26, 0.92); }
 .cyberpunk-blue .weapon-ricochet-btn:hover,
 .cyberpunk-blue .weapon-ricochet-btn.ricochet-active {
-  background: #44aaff; color: #000; font-weight: 700;
+  background: #44aaff;
+  color: #000;
+  font-weight: 700;
 }
 .cyberpunk-blue .weapon-ricochet-btn:hover::before,
 .cyberpunk-blue .weapon-ricochet-btn.ricochet-active::before { background: #44aaff; }
+/* #endregion */
 
-/* Charge — bright cyan */
+/* #region Charge — bright cyan */
 .cyberpunk-blue .weapon-charge-btn {
-  background: rgba(0, 212, 255, 0.32); color: #00d4ff;
+  background: rgba(0, 212, 255, 0.32);
+  color: #00d4ff;
 }
 .cyberpunk-blue .weapon-charge-btn::before { background: rgba(8, 16, 26, 0.92); }
 .cyberpunk-blue .weapon-charge-btn:hover,
 .cyberpunk-blue .weapon-charge-btn.charge-active {
-  background: #00d4ff; color: #000; font-weight: 700;
+  background: #00d4ff;
+  color: #000;
+  font-weight: 700;
 }
 .cyberpunk-blue .weapon-charge-btn:hover::before,
 .cyberpunk-blue .weapon-charge-btn.charge-active::before { background: #00d4ff; }
 .cyberpunk-blue .weapon-charge-btn.charge-active { box-shadow: 0 0 6px #00d4ff; }
 .cyberpunk-blue .weapon-charge-btn.charge-cooldown {
-  background: rgba(255, 153, 0, 0.32); color: #ff9900; opacity: 0.7; cursor: not-allowed;
+  background: rgba(255, 153, 0, 0.32);
+  color: #ff9900;
+  opacity: 0.7;
+  cursor: not-allowed;
   border-color: #ff9900;
 }
+/* #endregion */
+/* #endregion */
 
 /* ── Critical injury UI ───────────────────────────────────── */
-
 .cyberpunk-blue .remove-critical-injury,
 .cyberpunk-blue .health-effect-delete {
   --btn-tint: #8b0000;
@@ -3596,11 +3319,14 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cyberpunk-blue .remove-critical-injury::before,
 .cyberpunk-blue .health-effect-delete::before { background: rgba(0, 0, 0, 0.5); }
 .cyberpunk-blue .remove-critical-injury:hover,
-.cyberpunk-blue .health-effect-delete:hover { background: #8b0000; color: #fff; }
+.cyberpunk-blue .health-effect-delete:hover {
+  background: #8b0000;
+  color: #fff;
+}
 .cyberpunk-blue .remove-critical-injury:hover::before,
 .cyberpunk-blue .health-effect-delete:hover::before { background: #8b0000; }
 
-/* ── Combat tracker panel ─────────────────────────────────── */
+/* #region Combat tracker panel ─────────────────────────────────── */
 .cyber-blue-combat-panel {
   position: relative;
   isolation: isolate;
@@ -3643,73 +3369,16 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   white-space: nowrap;
 }
 .cyber-blue-sprint-btn::before { background: rgba(8, 16, 26, 0.92); }
-.cyber-blue-sprint-btn:hover { background: var(--btn-tint); color: var(--cpb-bg-solid-top); border-color: var(--cpb-accent); }
+.cyber-blue-sprint-btn:hover {
+  background: var(--btn-tint);
+  color: var(--cpb-bg-solid-top);
+  border-color: var(--cpb-accent);
+}
 .cyber-blue-sprint-btn:hover::before { background: var(--btn-tint); }
+/* #endregion */
 
-/* ── CC wizard components ─────────────────────────────────── */
-.character-creation-wizard .cc-points-counter {
-  position: relative;
-  isolation: isolate;
-  --c: var(--cpb-cut-sm);
-  background: var(--cpb-accent-wash-border);
-  border: 0;
-  border-radius: 0;
-  clip-path: polygon(
-    0 0, calc(100% - var(--c)) 0, 100% var(--c),
-    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
-  );
-  text-align: center;
-  font-size: var(--font-size-14);
-  padding: 0.4rem;
-  color: var(--cpb-accent);
-}
-.character-creation-wizard .cc-points-counter::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--cpb-panel-deep);
-  clip-path: inherit;
-  z-index: 0;
-}
-.character-creation-wizard .cc-points-counter.all-spent { background: var(--cpb-accent-strong-border); color: var(--cpb-accent-strong); border-color: var(--cpb-accent-strong); }
-.character-creation-wizard .cc-points-counter.all-spent::before { background: var(--cpb-accent-strong-wash); }
-.character-creation-wizard .cc-points-counter.over-budget { background: rgba(255, 35, 80, 0.45); color: var(--cpb-error, #ff4444); border-color: var(--cpb-error, #ff4444); }
-.character-creation-wizard .cc-points-counter.over-budget::before { background: rgba(255, 35, 80, 0.1); }
 
-.character-creation-wizard .cc-step-dot {
-  position: relative;
-  isolation: isolate;
-  --c: 4px;
-  background: rgba(141, 227, 255, 0.2);
-  border: 0;
-  border-radius: 0;
-  clip-path: polygon(
-    var(--c) 0, calc(100% - var(--c)) 0,
-    100% var(--c), 100% calc(100% - var(--c)),
-    calc(100% - var(--c)) 100%, var(--c) 100%,
-    0 calc(100% - var(--c)), 0 var(--c)
-  );
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.2rem 0.5rem;
-  font-size: var(--font-size-10);
-  color: var(--color-text-light-6);
-  opacity: 0.5;
-}
-.character-creation-wizard .cc-step-dot::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--cpb-panel-deep);
-  clip-path: inherit;
-  z-index: 0;
-}
-.character-creation-wizard .cc-step-dot.done { background: var(--cpb-accent-wash-border); color: var(--cpb-accent); opacity: 0.7; border-color: var(--cpb-accent); }
-.character-creation-wizard .cc-step-dot.active { background: var(--cpb-accent-strong-border); color: var(--cpb-accent-strong); opacity: 1; border-color: var(--cpb-accent-strong); font-weight: bold; }
-.character-creation-wizard .cc-step-dot.active::before { background: var(--cpb-accent-strong-wash); }
-
-/* ── Chat messages ────────────────────────────────────────── */
+/* #region Chat messages ────────────────────────────────────────── */
 .chat-message {
   position: relative;
   isolation: isolate;
@@ -3748,49 +3417,9 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   background: rgba(198, 255, 0, 0.05);
   color: var(--cpb-text);
 }
+/* #endregion */
 
-/* ── Foundry sidebar enhancements ────────────────────────── */
-/* Sidebar background already inherits --cpb-bg. These rules
-   add subtle detail to directory entries. */
-.directory li.directory-item {
-  border-top: 0;
-  border-bottom: 1px solid rgba(0, 240, 255, 0.08);
-}
-.directory li.directory-item:hover,
-.directory li.directory-item.active {
-  background: var(--cpb-accent-wash-soft);
-}
-.directory li.directory-header {
-  border-bottom: 1px solid var(--cpb-accent-wash-border);
-}
-
-/* Sidebar tab buttons (icons along the right rail) */
-#sidebar-tabs .item {
-  color: var(--cpb-muted);
-  transition: color var(--cpb-dur) var(--cpb-ease);
-}
-#sidebar-tabs .item:hover,
-#sidebar-tabs .item.active { color: var(--cpb-accent); }
-
-/* Foundry application window header */
-.application .window-header {
-  background: var(--cpb-bg);
-  border-bottom: 1px solid var(--cpb-accent-wash-border);
-}
-
-.application .window-header button {
-  font-family: var(--_fa-family);
-}
-
-.application .window-header button::before {
-  content: var(--fa) / "";
-  font-family: var(--_fa-family);
-}
-
-/* Remove border-radius from Foundry's own controls to stay consistent */
-.form-group input,
-.form-group select,
-.form-group textarea { border-radius: 0; }
+/* #region Foundry enhancements ────────────────────────── */
 
 /* ── Input baseline (non-sheet contexts) ─────────────────── */
 .cyberpunk-blue input[type=text]:focus,
@@ -3799,6 +3428,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   outline: none;
   box-shadow: 0 0 0 1px var(--cpb-accent);
 }
+/* #endregion */
 
 /* ── Misc border-radius cleanup ───────────────────────────── */
 .cyberpunk-blue .weapon-subfields,
@@ -3811,7 +3441,7 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   padding: 0.5rem;
 }
 
-/* ── Vehicle tracker row chips ───────────────────────────────────────────── */
+/* #region Vehicle tracker row chips ───────────────────────────────────────────── */
 
 /* Chip strip appended below each vehicle combatant row */
 .cpb-vehicle-chips {
@@ -3892,7 +3522,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   padding-top: 4px;
   flex-wrap: wrap;
 }
-
 .cpb-declare-maneuver-btn {
   display: inline-flex;
   align-items: center;
@@ -3920,14 +3549,14 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   color: #ffc832;
   border-radius: 2px;
 }
+/* #endregion */
 
-/* ── Vehicle Maneuver Declaration Dialog ─────────────────────────────────── */
-
+/* #region Vehicle Maneuver Declaration Dialog ─────────────────────────────────── */
+/* #region Manovre dialog */
 .vehicle-maneuver-dialog .window-content {
   padding: 0;
   background: var(--cpb-bg-solid-top, #08101a);
 }
-
 .cpb-maneuver-picker {
   display: flex;
   flex-direction: column;
@@ -3935,8 +3564,8 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   font-size: var(--font-size-12, 12px);
   color: var(--cpb-text-dim, #a0b8cc);
 }
-
-/* Header: vehicle + driver summary */
+/* #endregion */
+/* #region Header: vehicle + driver summary */
 .cpb-mp-header {
   display: flex;
   flex-direction: column;
@@ -3951,7 +3580,10 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   gap: 6px;
   flex-wrap: wrap;
 }
-.cpb-mp-vehicle { font-weight: bold; color: var(--cpb-accent, #27b0ff); }
+.cpb-mp-vehicle {
+  font-weight: bold;
+  color: var(--cpb-accent, #27b0ff);
+}
 .cpb-mp-stat {
   font-size: var(--font-size-10, 10px);
   padding: 1px 4px;
@@ -3960,9 +3592,12 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   border-radius: 2px;
   color: #a0c8e0;
 }
-.cpb-mp-formula { font-size: var(--font-size-10, 10px); color: #6a8fa0; }
-
-/* Tab nav: Maneuver / Cruise */
+.cpb-mp-formula {
+  font-size: var(--font-size-10, 10px);
+  color: #6a8fa0;
+}
+/* #endregion*/
+/* #region Tab nav: Maneuver / Cruise */
 .cpb-mp-tabs {
   display: flex;
   gap: 0;
@@ -3992,8 +3627,8 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   background: rgba(39, 176, 255, 0.1);
 }
 .cpb-mp-panel[hidden] { display: none; }
-
-/* Inline horizontal radio row (e.g. Sharp Turn direction) */
+/* #endregion */
+/* #region Inline horizontal radio row (e.g. Sharp Turn direction) */
 .cpb-mp-radio-row {
   display: flex;
   gap: 16px;
@@ -4005,8 +3640,8 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   gap: 4px;
   cursor: pointer;
 }
-
-/* Draw-path row (Sharp Turn vector-draw) */
+/* #endregion */S
+/* #region Draw-path row (Sharp Turn vector-draw) */
 .cpb-mp-draw-row {
   display: flex;
   align-items: center;
@@ -4017,8 +3652,8 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   font-size: var(--font-size-11, 11px);
   color: #a0c8e0;
 }
-
-/* Maneuver type radio list */
+/* #endregion */
+/* #region Maneuver type radio list */
 .cpb-mp-types {
   display: flex;
   flex-direction: column;
@@ -4045,9 +3680,12 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   padding: 0 4px;
   border-radius: 2px;
 }
-.cpb-mp-type-note { font-size: var(--font-size-10, 10px); color: #888; }
-
-/* Parameter sections */
+.cpb-mp-type-note {
+  font-size: var(--font-size-10, 10px);
+  color: #888;
+}
+/* #endregion */
+/* #region Parameter sections */
 .cpb-mp-params {
   padding: 8px 12px 6px;
   border-bottom: 1px solid var(--cpb-border, rgba(39, 176, 255, 0.1));
@@ -4058,7 +3696,10 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   gap: 8px;
   margin-bottom: 4px;
 }
-.cpb-mp-params .form-group label { min-width: 130px; color: #a0b8cc; }
+.cpb-mp-params .form-group label {
+  min-width: 130px;
+  color: #a0b8cc;
+}
 .cpb-mp-params select, .cpb-mp-params input[type="number"] {
   flex: 1;
   background: rgba(0, 0, 0, 0.4);
@@ -4072,8 +3713,8 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   margin: 2px 0 0;
   font-style: italic;
 }
-
-/* DV display row */
+/* #endregion */
+/* #region DV display row */
 .cpb-mp-dv-row {
   display: flex;
   align-items: center;
@@ -4087,8 +3728,8 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   color: #ffc832;
   font-size: var(--font-size-13, 13px);
 }
-
-/* Footer */
+/* #endregion */
+/* #region Footer */
 .cpb-mp-footer {
   padding: 8px 12px;
   display: flex;
@@ -4108,18 +3749,10 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
 .cpb-mp-footer .cpb-btn:hover {
   background: rgba(39, 176, 255, 0.25);
 }
+/* #endregion */
+/* #endregion */
 
-/* Chat card success/failure coloring */
-.cyberpunk-blue .chat-card .cpb-success { color: #4cff8a; }
-.cyberpunk-blue .chat-card .cpb-failure { color: #ff4c4c; }
-.cyberpunk-blue .chat-card .cpb-gm-note {
-  font-size: var(--font-size-10, 10px);
-  color: #888;
-  font-style: italic;
-}
-
-/* ─── Vehicle Vital Area picker button ──────────── */
-
+/* #region Vehicle Vital Area picker button ──────────── */
 .cyberpunk-blue .cpb-vehicle-vital-btn {
   background: transparent;
   border: 1px solid #555;
@@ -4133,19 +3766,17 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   vertical-align: middle;
   transition: border-color 0.15s, color 0.15s;
 }
-
 .cyberpunk-blue .cpb-vehicle-vital-btn:hover {
   border-color: #27b0ff;
   color: #27b0ff;
 }
-
 .cyberpunk-blue .cpb-vehicle-vital-btn.active {
   border-color: #ff8800;
   color: #ff8800;
 }
+/* #endregion */
 
-/* ─── Vehicle HUD button in Token HUD ───────────── */
-
+/* #region Vehicle HUD button in Token HUD ───────────── */
 .cpb-vehicle-hud-btn {
   background: rgba(0, 0, 0, 0.6);
   border: 1px solid #27b0ff;
@@ -4155,19 +3786,17 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   font-size: 16px;
   padding: 4px 6px;
 }
-
 .cpb-vehicle-hud-btn:hover {
   background: rgba(39, 176, 255, 0.2);
 }
+/* #endregion */
 
-/* ─── Vehicle HUD ApplicationV2 window ──────────── */
-
+/* #region ─── Vehicle HUD ApplicationV2 window ──────────── */
 .vehicle-hud-body {
   padding: 0.5rem 0.75rem;
   font-size: var(--font-size-12, 12px);
   min-width: 180px;
 }
-
 .vehicle-hud-body .vhud-state {
   display: inline-block;
   padding: 1px 6px;
@@ -4178,19 +3807,16 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   letter-spacing: 0.04em;
   margin-bottom: 0.4rem;
 }
-
 .vehicle-hud-body .vhud-state.vhud-state--operational {
   background: rgba(76, 255, 138, 0.15);
   border: 1px solid #4cff8a;
   color: #4cff8a;
 }
-
 .vehicle-hud-body .vhud-state.vhud-state--wreck {
   background: rgba(255, 76, 76, 0.15);
   border: 1px solid #ff4c4c;
   color: #ff4c4c;
 }
-
 .vehicle-hud-body .vhud-stats {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -4198,31 +3824,43 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   margin: 0;
   padding: 0;
 }
-
 .vehicle-hud-body .vhud-stats dt {
   color: #aaa;
   white-space: nowrap;
 }
-
 .vehicle-hud-body .vhud-stats dd {
   margin: 0;
   color: #eee;
   font-weight: bold;
 }
-
 .vehicle-hud-body .vhud-muted {
   color: #777;
   font-weight: normal;
 }
+/* #endregion */
 
-/* ── Vehicle Blueprint Editor ─────────────────────────────────────────────── */
+/* #region Vehicle Sheet ────────────────────────────────────────────────────────── */
+.cyberpunk-blue .vehicle-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--cpb-space-5);
+}
+.cyberpunk-blue .vehicle-stat-row {
+  display: flex;
+  gap: var(--cpb-space-3);
+}
+.cyberpunk-blue .vehicle-stat-inputs { display: flex; }
+.cyberpunk-blue .vehicle-stat-row input { flex-grow: 1; }
+.cyberpunk-blue .vehicle-stat-effective { white-space: nowrap; }
+/* #endregion */
+
+/* #region Vehicle Blueprint Editor ─────────────────────────────────────────────── */
 .cyberpunk-blue .cpb-blueprint-editor {
   display: flex;
   flex-direction: column;
   height: 100%;
   gap: 0.5rem;
 }
-
 .cyberpunk-blue .cpb-be-toolbar {
   display: flex;
   align-items: center;
@@ -4231,23 +3869,19 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   padding-bottom: 0.25rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
-
 .cyberpunk-blue .cpb-be-footprint {
   font-size: var(--font-size-12, 12px);
   color: #cdd3da;
 }
-
 .cyberpunk-blue .cpb-be-muted {
   color: #7f8c8d;
 }
-
 .cyberpunk-blue .cpb-be-main {
   display: flex;
   flex: 1 1 auto;
   min-height: 0;
   gap: 0.5rem;
 }
-
 .cyberpunk-blue .cpb-be-canvas-wrap {
   position: relative;
   flex: 1 1 auto;
@@ -4256,7 +3890,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   border: 1px solid rgba(255, 255, 255, 0.12);
   overflow: hidden;
 }
-
 .cyberpunk-blue .cpb-be-canvas-wrap canvas {
   display: block;
   width: 100%;
@@ -4265,7 +3898,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   cursor: grab;
   outline: none;
 }
-
 .cyberpunk-blue .cpb-be-noart {
   position: absolute;
   inset: 0;
@@ -4279,11 +3911,9 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   pointer-events: none;
   padding: 1rem;
 }
-
 .cyberpunk-blue .cpb-be-noart i {
   font-size: 2rem;
 }
-
 .cyberpunk-blue .cpb-be-rail {
   flex: 0 0 240px;
   display: flex;
@@ -4294,14 +3924,12 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   padding: 0.5rem;
   overflow-y: auto;
 }
-
 .cyberpunk-blue .cpb-be-rail-title {
   margin: 0 0 0.5rem;
   font-size: var(--font-size-13, 13px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   padding-bottom: 0.25rem;
 }
-
 .cyberpunk-blue .cpb-be-region-list {
   list-style: none;
   margin: 0;
@@ -4310,7 +3938,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   flex-direction: column;
   gap: 2px;
 }
-
 .cyberpunk-blue .cpb-be-region-row {
   display: flex;
   align-items: center;
@@ -4319,16 +3946,13 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   cursor: pointer;
   border: 1px solid transparent;
 }
-
 .cyberpunk-blue .cpb-be-region-row:hover {
   background: rgba(255, 255, 255, 0.06);
 }
-
 .cyberpunk-blue .cpb-be-region-row.selected {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.4);
 }
-
 .cyberpunk-blue .cpb-be-swatch {
   flex: 0 0 12px;
   width: 12px;
@@ -4336,7 +3960,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   border-radius: 2px;
   border: 1px solid rgba(0, 0, 0, 0.5);
 }
-
 .cyberpunk-blue .cpb-be-region-label {
   flex: 1 1 auto;
   min-width: 0;
@@ -4345,44 +3968,40 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   white-space: nowrap;
   font-size: var(--font-size-12, 12px);
 }
-
 .cyberpunk-blue .cpb-be-region-type {
   flex: 0 0 auto;
   font-size: var(--font-size-10, 10px);
   color: #7f8c8d;
 }
-
 .cyberpunk-blue .cpb-be-empty {
   color: #7f8c8d;
   font-size: var(--font-size-12, 12px);
   font-style: italic;
 }
-
-/* Toolbar tools */
+/* #endregion */
+/* #region Toolbar tools */
 .cyberpunk-blue .cpb-be-tools {
   display: flex;
   gap: 2px;
 }
-
 .cyberpunk-blue .cpb-be-tool {
   min-width: 0;
   padding: 0.3rem 0.5rem;
 }
-
 .cyberpunk-blue .cpb-be-tool.active {
   background: #3a7abf;
   color: #fff;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
-
 .cyberpunk-blue .cpb-be-status {
   margin-left: auto;
   font-size: var(--font-size-11, 11px);
   color: #ffd54a;
   font-style: italic;
 }
+/* #endregion */
 
-/* Property panel */
+/* #region Property panel */
 .cyberpunk-blue .cpb-be-props {
   margin-top: 0.75rem;
   padding-top: 0.5rem;
@@ -4391,172 +4010,94 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   flex-direction: column;
   gap: 0.4rem;
 }
-
 .cyberpunk-blue .cpb-be-props-title {
   margin: 0;
   font-size: var(--font-size-13, 13px);
 }
-
 .cyberpunk-blue .cpb-be-props-hint {
   color: #7f8c8d;
   font-size: var(--font-size-12, 12px);
   font-style: italic;
   margin: 0;
 }
-
 .cyberpunk-blue .cpb-be-prop-field {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
-
 .cyberpunk-blue .cpb-be-prop-field label {
   font-size: var(--font-size-11, 11px);
   color: #cdd3da;
 }
-
 .cyberpunk-blue .cpb-be-prop-field input,
-.cyberpunk-blue .cpb-be-prop-field select {
-  width: 100%;
-}
-
+.cyberpunk-blue .cpb-be-prop-field select { width: 100%; }
 .cyberpunk-blue .cpb-be-prop-row {
   flex-direction: row;
   gap: 8px;
 }
-
 .cyberpunk-blue .cpb-be-prop-row .cpb-be-prop-sub {
   display: flex;
   flex-direction: column;
   gap: 2px;
   flex: 1 1 0;
 }
-
 .cyberpunk-blue .cpb-be-prop-shape {
   font-size: var(--font-size-11, 11px);
   color: #7f8c8d;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-
 .cyberpunk-blue .cpb-be-delete {
   margin-top: 0.25rem;
   background: #6b1f1a;
   color: #fff;
 }
+.cyberpunk-blue .cpb-be-delete:hover { background: #c0392b; }
+/* #endregion */
 
-.cyberpunk-blue .cpb-be-delete:hover {
-  background: #c0392b;
-}
-
-/* ── Improvement Points header block ──────────────────────────────────── */
-.cyberpunk-blue .header-progression {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  margin-left: auto;
-}
-
-.cyberpunk-blue .header-ip {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.25rem;
-  min-width: 5.5rem;
-}
-
-.cyberpunk-blue .header-ip .stat-short {
-  color: var(--cpb-accent-strong);
-  background-color: var(--cpb-accent-strong-wash);
-  padding: 0.2rem 0.6rem 0.2rem 1rem;
-  font-size: 1.1rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-  white-space: nowrap;
-  --c: 8px;
-  clip-path: polygon(var(--c) 0, 100% 0, 100% 100%, var(--c) 100%, 0 50%);
-}
-
-.cyberpunk-blue .header-ip .ip-values {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-}
-
-.cyberpunk-blue .header-ip .ip-current {
-  min-width: 1.5rem;
-  text-align: right;
-  font-weight: 700;
-  color: var(--cpb-accent-strong);
-}
-
-.cyberpunk-blue .header-ip .ip-total {
-  font-size: 0.75rem;
-  color: var(--color-text-light-6);
-  white-space: nowrap;
-}
-
-.cyberpunk-blue .ip-use-btn {
-  padding: 0.2rem 0.4rem;
-  font-size: 0.8rem;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-/* ── IP Spender Application ────────────────────────────────────────────── */
+/* #region IP Spender Application ────────────────────────────────────────────── */
 .cyberpunk-blue.ip-spender .window-content {
   padding: 0;
   overflow: hidden;
 }
-
 .cyberpunk-blue.ip-spender .ip-spender-root {
   display: flex;
   flex-direction: column;
   height: 100%;
   width: 100%;
 }
-
 .cyberpunk-blue.ip-spender .ip-spender-header {
   padding: 0.5rem 0.75rem;
   border-bottom: 1px solid var(--color-border-light-2);
   background: var(--cpb-bg-light, rgba(0,0,0,0.15));
 }
-
 .cyberpunk-blue.ip-spender .ip-header-values {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 1rem;
 }
-
 .cyberpunk-blue.ip-spender .ip-label {
   font-weight: 700;
   color: var(--cpb-accent-strong);
   letter-spacing: 0.08em;
 }
-
 .cyberpunk-blue.ip-spender .ip-current,
 .cyberpunk-blue.ip-spender .ip-after {
   font-weight: 700;
   font-size: 1.1rem;
 }
-
-.cyberpunk-blue.ip-spender .ip-after.is-negative {
-  color: var(--color-level-error);
-}
-
+.cyberpunk-blue.ip-spender .ip-after.is-negative { color: var(--color-level-error); }
 .cyberpunk-blue.ip-spender .ip-cost-tag {
   font-size: 0.85rem;
   color: var(--color-text-light-6);
 }
-
 .cyberpunk-blue.ip-spender .ip-tab-nav {
   display: flex;
   gap: 0;
   border-bottom: 2px solid var(--cpb-accent-strong);
   background: none;
 }
-
 .cyberpunk-blue.ip-spender .ip-tab-btn {
   flex: 1;
   padding: 0.4rem 0.5rem;
@@ -4570,35 +4111,27 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   cursor: pointer;
   transition: background 0.1s, color 0.1s;
 }
-
 .cyberpunk-blue.ip-spender .ip-tab-btn:hover {
   background: var(--cpb-accent-strong-wash);
   color: var(--color-text-light-primary);
 }
-
 .cyberpunk-blue.ip-spender .ip-tab-btn.active {
   background: var(--cpb-accent-strong-wash);
   color: var(--cpb-accent-strong);
   border-bottom: 2px solid var(--cpb-accent-strong);
   margin-bottom: -2px;
 }
-
 .cyberpunk-blue.ip-spender .ip-tab-body {
   flex: 1;
   overflow-y: auto;
   padding: 0.5rem 0.75rem;
 }
-
 .cyberpunk-blue.ip-spender .ip-tab {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
 }
-
-.cyberpunk-blue.ip-spender .ip-tab.hidden {
-  display: none;
-}
-
+.cyberpunk-blue.ip-spender .ip-tab.hidden { display: none; }
 .cyberpunk-blue.ip-spender .ip-role-warning {
   background: rgba(200,150,0,0.12);
   border: 1px solid rgba(200,150,0,0.4);
@@ -4608,7 +4141,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   color: var(--color-text-light-7);
   margin-bottom: 0.5rem;
 }
-
 .cyberpunk-blue.ip-spender .ip-row {
   display: grid;
   grid-template-columns: 1.5rem 1fr auto auto auto;
@@ -4618,20 +4150,12 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   border-radius: 3px;
   transition: background 0.1s;
 }
-
 .cyberpunk-blue.ip-spender .ip-row.is-selected {
   background: var(--cpb-accent-strong-wash);
   border-left: 3px solid var(--cpb-accent-strong);
 }
-
-.cyberpunk-blue.ip-spender .ip-row.is-locked {
-  opacity: 0.45;
-}
-
-.cyberpunk-blue.ip-spender .ip-row.is-at-cap {
-  opacity: 0.3;
-}
-
+.cyberpunk-blue.ip-spender .ip-row.is-locked { opacity: 0.45; }
+.cyberpunk-blue.ip-spender .ip-row.is-at-cap { opacity: 0.3; }
 .cyberpunk-blue.ip-spender .ip-row-icon {
   width: 1.4rem;
   height: 1.4rem;
@@ -4639,7 +4163,6 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   opacity: 0.75;
   flex-shrink: 0;
 }
-
 .cyberpunk-blue.ip-spender .ip-row-img {
   width: 1.4rem;
   height: 1.4rem;
@@ -4647,14 +4170,12 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   object-fit: cover;
   flex-shrink: 0;
 }
-
 .cyberpunk-blue.ip-spender .ip-row-name {
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .cyberpunk-blue.ip-spender .ip-row-stat-tag {
   font-size: 0.7rem;
   font-weight: 700;
@@ -4665,24 +4186,20 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   border-radius: 2px;
   white-space: nowrap;
 }
-
 .cyberpunk-blue.ip-spender .ip-row-rank {
   font-size: 0.8rem;
   color: var(--color-text-light-6);
   white-space: nowrap;
 }
-
 .cyberpunk-blue.ip-spender .ip-row-cost {
   font-size: 0.8rem;
   font-weight: 600;
   white-space: nowrap;
   color: var(--color-text-light-7);
 }
-
 .cyberpunk-blue.ip-spender .ip-row.is-selected .ip-row-cost {
   color: var(--cpb-accent-strong);
 }
-
 .cyberpunk-blue.ip-spender .ip-toggle-btn {
   width: 1.6rem;
   height: 1.6rem;
@@ -4694,12 +4211,10 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   font-size: 0.8rem;
   border-radius: 3px;
 }
-
 .cyberpunk-blue.ip-spender .ip-toggle-btn.is-active {
   background: var(--cpb-accent-strong);
   color: #fff;
 }
-
 .cyberpunk-blue.ip-spender .ip-expand-area {
   margin: 0 0 0.4rem 2rem;
   padding: 0.4rem 0.6rem;
@@ -4710,13 +4225,11 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   flex-direction: column;
   gap: 0.25rem;
 }
-
 .cyberpunk-blue.ip-spender .ip-expand-hint {
   font-size: 0.8rem;
   color: var(--color-text-light-6);
   margin: 0 0 0.25rem 0;
 }
-
 .cyberpunk-blue.ip-spender .ip-expand-option {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -4725,41 +4238,36 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   padding: 0.15rem 0.3rem;
   border-radius: 3px;
 }
-
 .cyberpunk-blue.ip-spender .ip-expand-option.is-selected {
   background: var(--cpb-accent-strong-wash);
 }
-
 .cyberpunk-blue.ip-spender .ip-expand-option.is-locked {
   opacity: 0.4;
 }
-
 .cyberpunk-blue.ip-spender .ip-expand-option-label {
   font-size: 0.85rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .cyberpunk-blue.ip-spender .ip-language-input {
   width: 100%;
   margin-top: 0.15rem;
 }
-
 .cyberpunk-blue.ip-spender .ip-footer {
   padding: 0.5rem 0.75rem;
   border-top: 1px solid var(--color-border-light-2);
   display: flex;
   justify-content: flex-end;
 }
-
 .cyberpunk-blue.ip-spender .ip-confirm-btn {
   font-weight: 700;
   letter-spacing: 0.05em;
   padding: 0.4rem 1.2rem;
 }
+/* #endregion */
 
-/* ── NET Combat tab ─────────────────────────────────────────────────────────── */
+/* #region NET Combat tab ─────────────────────────────────────────────────────────── */
 .net-combat-tab {
   display: flex;
   flex-direction: column;
@@ -4868,3 +4376,4 @@ SHEET COMPONENTS: STATS, RESOURCES, GRIDS
   object-fit: contain;
 }
 .net-support-name { flex: 1; }
+/* #endregion */

@@ -209,8 +209,14 @@ export class IpSpenderApplication extends HandlebarsApplicationMixin(Application
 
     // ── Components ─────────────────────────────────────────────────────
     const compSel = sel?.tab === 'components' ? sel : null;
+    // Show every Component the character can meaningfully raise: those already
+    // active on the sheet, plus any Component linked to a skill they have ranks
+    // in — even at 0 ranks / not yet added. Buying one activates it (see the
+    // components branch in _onConfirm), which adds it to the sheet.
     context.componentsRows = Object.entries(CONFIG.CYBER_BLUE.components)
-      .filter(([slug]) => system.components[slug]?.active)
+      .filter(([slug, data]) =>
+        system.components[slug]?.active
+        || data.skills.some((ss) => (system.skills[ss]?.rank ?? 0) > 0))
       .map(([slug, data]) => {
         const currentRank = system.components[slug]?.rank ?? 0;
         const newRank = currentRank + 1;

@@ -373,7 +373,7 @@ export class CyberBlueVehicleBlueprintEditor extends HandlebarsApplicationMixin(
       </div>
       ${configFields}
       <div class="cpb-be-prop-shape">${this._esc(region.shape?.type ?? '—')}</div>
-      <button type="button" class="cpb-btn cpb-be-delete" data-action="delete-region">
+      <button type="button" class="button cpb-be-delete" data-action="delete-region">
         <i class="fa-solid fa-trash"></i> ${L('CYBER_BLUE.BlueprintEditor.DeleteRegion')}
       </button>`;
   }

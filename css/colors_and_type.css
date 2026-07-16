@@ -71,6 +71,11 @@
   --cpb-tracking-h1: 0.04em;
   --cpb-tracking-h2: 0.08em;
   --cpb-tracking-stat: 0.12em;
+  --cpb-tracking-1: 0.04em;
+  --cpb-tracking-2: 0.08em;
+  --cpb-tracking-3: 0.12em;
+  --cpb-tracking-4: 0.16em;
+  --cpb-tracking-5: 0.2em;
 
   /* Chamfer scale — diagonal corner cut sizes (xs=chips, sm=buttons/inputs,
      md=cards/counters, lg=top-level panels). */
@@ -94,7 +99,8 @@
   --cpb-space-5: 1rem;
   --cpb-space-6: 1.4rem;
 
-  /* ---- Shapes — clip-path polygons for panels and controls. ---- */
+  /* ---- Shapes — clip-path polygons for panels and controls.
+    DO NOT PRUNE. Even ones not yet used are kept for the future ---- */
   --cpb-shape--tr-bl: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, var(--c) 100%, 0 calc(100% - var(--c)));
   --cpb-shape--tl-br: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
   --cpb-shape--hex: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c));

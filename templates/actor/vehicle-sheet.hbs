@@ -6,6 +6,14 @@
         <input name="name" type="text" value="{{actor.name}}" placeholder="Vehicle Name" />
       </h1>
       <div class="header-stats">
+        <div class="header-stat" title="Current Speed (spaces this turn)">
+          <span class="stat-short">SPEED</span>
+          <div class="resource-fields">
+            <input type="number" name="system.stats.currentSpeed.value" value="{{system.stats.currentSpeed.value}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
+            <span>=</span>
+            <span><!-- TODO: CONVERTED SPEED --></span>
+          </div>
+        </div>
         <div class="header-stat" title="Stopping Power (SP)">
           <span class="stat-short">SP</span>
           <div class="resource-fields">
@@ -21,10 +29,6 @@
             <span>/</span>
             <input type="number" name="system.resources.hp.max" value="{{system.resources.hp.max}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
           </div>
-        </div>
-        <div class="header-stat" title="Current Speed (spaces this turn)">
-          <span class="stat-short">SPD</span>
-          <input type="number" name="system.stats.currentSpeed.value" value="{{system.stats.currentSpeed.value}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
         </div>
         <div class="header-stat" title="Vehicle state">
           <span class="stat-short">State</span>
@@ -74,7 +78,7 @@
 
             <label class="vehicle-stat-row" title="Maximum Move: grid spaces per round at top speed">
               <span class="vehicle-stat-label">
-                <button type="button" data-action="post-speed-chat" title="Post speed to chat" class="cpb-btn cpb-btn--ghost cpb-btn--xs">MOVE</button>
+                <button type="button" data-action="post-speed-chat" title="Post speed to chat" class="button--ghost">MOVE</button>
               </span>
               <span class="vehicle-stat-inputs">
                 <input type="number" name="system.stats.maxMove.value" value="{{system.stats.maxMove.value}}" data-dtype="Number" {{#unless isGM}}disabled{{/unless}} />
@@ -191,7 +195,7 @@
           {{!-- Blueprint ──────────────────────────────────────────────────────── --}}
           <fieldset class="vehicle-fieldset">
             <legend>Blueprint</legend>
-            <button type="button" class="cpb-btn" data-action="edit-blueprint">
+            <button type="button" data-action="edit-blueprint">
               <i class="fa-solid fa-vector-square"></i>
               {{localize "CYBER_BLUE.BlueprintEditor.OpenButton"}}
             </button>
