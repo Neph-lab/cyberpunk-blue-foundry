@@ -4,7 +4,9 @@ const EXTENSION_PREFERENCE = ['.svg', '.webp', '.png', '.jpg', '.jpeg', '.gif', 
 let brandLogoCachePromise = null;
 
 export function normalizeBrandName(name = '') {
-  return `${name}`.trim().replace(/\s+/g, '-').toLowerCase();
+  // NFC-normalize so an accented brand (e.g. "Rostović") keys identically
+  // whether the source uses precomposed or combining-mark form.
+  return `${name}`.normalize('NFC').trim().replace(/\s+/g, '-').toLowerCase();
 }
 
 function getExtensionPriority(path) {
@@ -23,7 +25,18 @@ async function buildBrandLogoCache() {
 
     for (const path of files) {
       const filename = `${path}`.split('/').at(-1) ?? '';
-      const basename = filename.replace(/\.[^.]+$/, '');
+      // FilePicker.browse percent-encodes non-ASCII characters in the paths it
+      // returns (e.g. "Rostović.svg" → "Rostovi%C4%87.svg"), so decode before
+      // deriving the lookup key. The original (encoded) path stays the cached
+      // value — it is valid as-is for an <img src>. Decoding is a no-op for the
+      // ASCII filenames that make up every other logo.
+      let decodedFilename = filename;
+      try {
+        decodedFilename = decodeURIComponent(filename);
+      } catch (_error) {
+        // Malformed percent-encoding — fall back to the raw filename.
+      }
+      const basename = decodedFilename.replace(/\.[^.]+$/, '');
       const normalized = normalizeBrandName(basename);
       if (!normalized) {
         continue;
