@@ -99,8 +99,16 @@
   --cpb-space-5: 1rem;
   --cpb-space-6: 1.4rem;
 
-  /* ---- Shapes — clip-path polygons for panels and controls.
-    DO NOT PRUNE. Even ones not yet used are kept for the future ---- */
+  /* ---- Shapes — clip-path polygon REFERENCE TEMPLATES.
+    DO NOT PRUNE. Even ones not yet used are kept for the future.
+
+    WARNING: these are documentation only — they CANNOT be used via
+    `clip-path: var(--cpb-shape--x)`. Each polygon contains var(--c), and a
+    custom property with a var() is resolved where it is DECLARED (here, on
+    :root), where --c does not exist → it computes to empty and every
+    descendant inherits that empty value; setting --c lower down is too late.
+    To use a shape, write the polygon() literal inline in the rule that also
+    sets --c (see the .cpb-shape--* classes in cyberpunk-blue.css). ---- */
   --cpb-shape--tr-bl: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, var(--c) 100%, 0 calc(100% - var(--c)));
   --cpb-shape--tl-br: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
   --cpb-shape--hex: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c));

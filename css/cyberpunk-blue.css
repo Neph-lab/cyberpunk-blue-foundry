@@ -8,25 +8,33 @@
 SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace the previous border-radius vocabulary. Every component that uses clip-path applies the fake-border technique: outer element = border colour, ::before = 1px-inset inner fill, clip-path: inherit keeps the shapes in register. See README in design handoff.
 ================================================== */
 
+/* NOTE: each class writes its polygon() inline next to its own --c.
+   The --cpb-shape--* variables in colors_and_type.css are reference
+   templates ONLY — they CANNOT be consumed via `clip-path: var(--cpb-shape--x)`.
+   A custom property containing var(--c) is resolved where it is declared
+   (:root), where --c does not exist, so it computes to empty and inherits
+   empty everywhere. The corner size must be in scope at the point the
+   polygon literal is written — hence inline. */
+
 /* Default: TR + BL chamfered (forward-leaning / interactive). */
 .cpb-shape, .cpb-shape--tr-bl {
   --c: var(--cpb-cut-sm);
-  clip-path: var(--cpb-shape--tr-bl);
+  clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, var(--c) 100%, 0 calc(100% - var(--c)));
 }
 /* Mirrored: TL + BR chamfered (passive / readout). */
 .cpb-shape--tl-br {
   --c: var(--cpb-cut-sm);
-  clip-path: var(--cpb-shape--tl-br);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
 }
 /* Hex: all four corners chamfered (data plate / stat block). */
 .cpb-shape--hex {
   --c: var(--cpb-cut-sm);
-  clip-path: var(--cpb-shape--hex);
+  clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c));
 }
 /* Card: TL + TR chamfered, flat bottom (docked panel). */
 .cpb-shape--card {
   --c: var(--cpb-cut-md);
-  clip-path: var(--cpb-shape--card);
+  clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, 0 100%, 0 var(--c));
 }
 /* Panel: large TR + BL chamfer, small step at TL. */
 .cpb-shape--panel {
@@ -42,32 +50,32 @@ SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace 
 /* Panel (no step): simple TR + BL, large chamfer. */
 .cpb-shape--panel-clean {
   --c: var(--cpb-cut-lg);
-  clip-path: var(--cpb-shape--tr-bl);
+  clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, var(--c) 100%, 0 calc(100% - var(--c)));
 }
 /* Notch TR: one corner cut, three square. */
 .cpb-shape--notch-tr {
   --c: var(--cpb-cut-sm);
-  clip-path: var(--cpb-shape--notch-tr);
+  clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, 0 100%);
 }
 /* Tag: pointed left, flat right (status flags). */
 .cpb-shape--tag {
   --c: 8px;
-  clip-path: var(--cpb-shape--tag-left);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% 100%, var(--c) 100%, 0 50%);
 }
 /* Tag (right-pointing). */
 .cpb-shape--tag-r {
   --c: 8px;
-  clip-path: var(--cpb-shape--tag-right);
+  clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% 50%, calc(100% - var(--c)) 100%, 0 100%);
 }
 /* Arrow: right-pointing chevron (primary action / forward CTA). */
 .cpb-shape--arrow {
   --c: 10px;
-  clip-path: var(--cpb-shape--arrow-right);
+  clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% 50%, calc(100% - var(--c)) 100%, 0 100%);
 }
 /* Checkbox marker shape: TR only cut. */
 .cpb-shape--check {
   --c: 4px;
-  clip-path: var(--cpb-shape--check);
+  clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, 0 100%);
 }
 /* Radio shape: all four corners (diamond-like). */
 .cpb-shape--radio {
@@ -419,7 +427,7 @@ section.chat-sidebar:not(.sidebar-popout),
 .cyberpunk-blue input[type=number] {
   border: 1px solid rgba(141, 227, 255, 0.2);
   --c: var(--cpb-cut-sm);
-  clip-path: var(--cpb-shape--notch-tr);
+  clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, 0 100%);
   background: var(--cpb-panel-deeper);
   color: var(--cpb-text);
   font-size: var(--cpb-fs-body);
@@ -1011,7 +1019,7 @@ section.chat-sidebar:not(.sidebar-popout),
 .cyberpunk-blue .note-panel {
   break-inside: avoid;
   --c: var(--cpb-cut-sm);
-  clip-path: var(--cpb-shape--hex);
+  clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c));
   margin-bottom: var(--cpb-space-4);
 }
 .cyberpunk-blue .notes-grid .prosemirror.active { min-height: 400px; }
@@ -1683,7 +1691,7 @@ CHARACTER SHEET SPECIFIC
   background: var(--cpb-accent-warm-border);
   --c: var(--cpb-cut-lg);
   --s: calc(var(--c) * 0.45);
-  clip-path: var(--cpb-shape--panel);
+  clip-path: polygon(var(--s) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--s), var(--s) var(--s));
 }
 .cyberpunk-blue .netrunner-computer-card::before {
   content: "";
@@ -2987,7 +2995,7 @@ CHARACTER SHEET SPECIFIC
   --c: var(--cpb-cut-sm);
   background: rgba(141, 227, 255, 0.14);
   border: 0;
-  clip-path: var(--cpb-shape--tl-br);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
   align-items: center;
   display: flex;
   flex-direction: column;
@@ -3183,7 +3191,7 @@ CHARACTER SHEET SPECIFIC
   isolation: isolate;
   --c: var(--cpb-cut-sm);
   background: rgba(0, 240, 255, 0.28);
-  clip-path: var(--cpb-shape--tr-bl);
+  clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, var(--c) 100%, 0 calc(100% - var(--c)));
   padding: var(--cpb-space-3) var(--cpb-space-4);
   display: flex;
   flex-direction: column;
