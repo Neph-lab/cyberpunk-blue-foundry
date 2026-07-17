@@ -849,49 +849,90 @@ for (const id of result.actorIds) {
 export const APPLY_DAMAGE_MACRO = `
 (async () => {
 // ── Apply Damage ──────────────────────────────────────────────────────────────
-// GM macro. Applies damage to the selected tokens (optionally ignoring armor).
+// GM: applies damage to the SELECTED tokens, no checks, optional ignore-armor.
+//     SP ablation and HP loss are handled by the actor's damage pipeline.
+// Player: applies damage to the ONE token they TARGET. The write is routed to
+//     the GM if the player doesn't own the target (game.cyberpunkblue.delegate).
+//     Armor (SP) always applies for players — ignore-armor is a GM adjudication.
 
-const tokens = canvas.tokens.controlled;
-if (!tokens.length) {
-  ui.notifications.warn('Select one or more tokens first.');
+if (game.user.isGM) {
+  const tokens = canvas.tokens.controlled;
+  if (!tokens.length) {
+    ui.notifications.warn('Select one or more tokens first.');
+    return;
+  }
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title: 'Apply Damage' },
+    content: \`
+      <div class="cyberpunk-blue" style="padding:0.5rem; display:flex; flex-direction:column; gap:0.5rem;">
+        <p>Apply to: <strong>\${tokens.map(t => t.name).join(', ')}</strong></p>
+        <label>Damage: <input type="number" id="dmg-input" value="0" min="0" style="width:5rem;" /></label>
+        <label style="display:flex;align-items:center;gap:0.5rem;"><input type="checkbox" id="ignore-armor" /> Ignore armor (SP)</label>
+      </div>
+    \`,
+    buttons: [
+      { action: 'apply', label: 'Apply', icon: 'fas fa-heart-crack', default: true,
+        callback: (e, btn) => ({
+          damage: Number(btn.form.elements['dmg-input'].value),
+          ignoreArmor: btn.form.elements['ignore-armor'].checked,
+        })
+      },
+      { action: 'cancel', label: 'Cancel', icon: 'fas fa-xmark', callback: () => null },
+    ],
+  });
+  if (!result || result.damage <= 0) return;
+
+  for (const token of tokens) {
+    const actor = token.actor;
+    if (!actor?.applyDamage) continue;
+    const outcome = await actor.applyDamage(result.damage, { ignoreArmor: result.ignoreArmor });
+    const blocked = result.ignoreArmor ? 0 : outcome.armorBlocked;
+    ChatMessage.create({
+      content: \`
+        <div class="cyberpunk-blue chat-card">
+          <h3>Damage Applied: \${token.name}</h3>
+          <p>Raw: \${result.damage}\${blocked ? ' — SP blocked: ' + blocked : ''} — HP lost: <strong>\${outcome.hpLoss}</strong></p>
+        </div>
+      \`,
+    });
+  }
   return;
 }
+
+// ── Player branch ──
+const targets = [...game.user.targets];
+if (targets.length !== 1) { ui.notifications.warn('Target exactly one token.'); return; }
+const targetActor = targets[0].actor;
+if (!targetActor?.applyDamage) { ui.notifications.warn('No valid target actor.'); return; }
 
 const result = await foundry.applications.api.DialogV2.wait({
   window: { title: 'Apply Damage' },
   content: \`
     <div class="cyberpunk-blue" style="padding:0.5rem; display:flex; flex-direction:column; gap:0.5rem;">
-      <p>Apply to: <strong>\${tokens.map(t => t.name).join(', ')}</strong></p>
+      <p>Apply to: <strong>\${targetActor.name}</strong></p>
       <label>Damage: <input type="number" id="dmg-input" value="0" min="0" style="width:5rem;" /></label>
-      <label style="display:flex;align-items:center;gap:0.5rem;"><input type="checkbox" id="ignore-armor" /> Ignore armor (SP)</label>
+      <p style="opacity:0.7; font-size:0.9em;">Armor (SP) is applied automatically.</p>
     </div>
   \`,
   buttons: [
     { action: 'apply', label: 'Apply', icon: 'fas fa-heart-crack', default: true,
-      callback: (e, btn) => ({
-        damage: Number(btn.form.elements['dmg-input'].value),
-        ignoreArmor: btn.form.elements['ignore-armor'].checked,
-      })
-    },
+      callback: (e, btn) => ({ damage: Number(btn.form.elements['dmg-input'].value) }) },
     { action: 'cancel', label: 'Cancel', icon: 'fas fa-xmark', callback: () => null },
   ],
 });
-
 if (!result || result.damage <= 0) return;
 
-for (const token of tokens) {
-  const actor = token.actor;
-  if (!actor?.applyDamage) continue;
-  const outcome = await actor.applyDamage(result.damage, { ignoreArmor: result.ignoreArmor });
-  const blocked = result.ignoreArmor ? 0 : outcome.armorBlocked;
-  const net = outcome.hpLoss;
+// Owned target → apply directly and report the outcome; unowned → delegate to
+// the GM (who computes SP/HP silently), so we can only announce the raw amount.
+if (targetActor.isOwner) {
+  const outcome = await targetActor.applyDamage(result.damage);
   ChatMessage.create({
-    content: \`
-      <div class="cyberpunk-blue chat-card">
-        <h3>Damage Applied: \${token.name}</h3>
-        <p>Raw: \${result.damage}\${blocked ? ' — SP blocked: ' + blocked : ''} — HP lost: <strong>\${net}</strong></p>
-      </div>
-    \`,
+    content: \`<div class="cyberpunk-blue chat-card"><h3>Damage Applied: \${targetActor.name}</h3><p>Raw: \${result.damage}\${outcome.armorBlocked ? ' — SP blocked: ' + outcome.armorBlocked : ''} — HP lost: <strong>\${outcome.hpLoss}</strong></p></div>\`,
+  });
+} else {
+  await game.cyberpunkblue.delegate.applyDamage(targetActor, result.damage);
+  ChatMessage.create({
+    content: \`<div class="cyberpunk-blue chat-card"><h3>Damage Sent: \${targetActor.name}</h3><p>Raw: <strong>\${result.damage}\</strong> (armor applied by the GM).</p></div>\`,
   });
 }
 })();
@@ -902,41 +943,73 @@ for (const token of tokens) {
 export const HEAL_HP_MACRO = `
 (async () => {
 // ── Heal / Restore HP ─────────────────────────────────────────────────────────
-// GM macro. Restores HP to the selected tokens (capped at max HP).
+// GM: restores HP to the SELECTED tokens (capped at max HP), no checks.
+// Player: restores HP to the ONE token they TARGET. The write is routed to the
+//     GM if the player doesn't own the target (game.cyberpunkblue.delegate).
 
-const tokens = canvas.tokens.controlled;
-if (!tokens.length) {
-  ui.notifications.warn('Select one or more tokens first.');
+const healActor = async (actor, amount) => {
+  const current = actor.system.resources.hp.value ?? 0;
+  const max = actor.system.resources.hp.max ?? current;
+  const next = Math.min(current + amount, max);
+  if (next === current) return 0;
+  await game.cyberpunkblue.delegate.updateActor(actor, { 'system.resources.hp.value': next });
+  return next - current;
+};
+
+if (game.user.isGM) {
+  const tokens = canvas.tokens.controlled;
+  if (!tokens.length) {
+    ui.notifications.warn('Select one or more tokens first.');
+    return;
+  }
+  const result = await foundry.applications.api.DialogV2.wait({
+    window: { title: 'Heal / Restore HP' },
+    content: \`
+      <div class="cyberpunk-blue" style="padding:0.5rem; display:flex; flex-direction:column; gap:0.5rem;">
+        <p>Heal: <strong>\${tokens.map(t => t.name).join(', ')}</strong></p>
+        <label>HP to restore: <input type="number" id="heal-input" value="0" min="0" style="width:5rem;" /></label>
+      </div>
+    \`,
+    buttons: [
+      { action: 'heal', label: 'Heal', icon: 'fas fa-heart', default: true,
+        callback: (e, btn) => ({ amount: Number(btn.form.elements['heal-input'].value) })
+      },
+      { action: 'cancel', label: 'Cancel', icon: 'fas fa-xmark', callback: () => null },
+    ],
+  });
+  if (!result || result.amount <= 0) return;
+  for (const token of tokens) {
+    if (token.actor) await healActor(token.actor, result.amount);
+  }
+  ui.notifications.info(\`Restored up to \${result.amount} HP to \${tokens.length} token(s).\`);
   return;
 }
+
+// ── Player branch ──
+const targets = [...game.user.targets];
+if (targets.length !== 1) { ui.notifications.warn('Target exactly one token.'); return; }
+const targetActor = targets[0].actor;
+if (!targetActor) { ui.notifications.warn('No valid target actor.'); return; }
 
 const result = await foundry.applications.api.DialogV2.wait({
   window: { title: 'Heal / Restore HP' },
   content: \`
     <div class="cyberpunk-blue" style="padding:0.5rem; display:flex; flex-direction:column; gap:0.5rem;">
-      <p>Heal: <strong>\${tokens.map(t => t.name).join(', ')}</strong></p>
+      <p>Heal: <strong>\${targetActor.name}</strong></p>
       <label>HP to restore: <input type="number" id="heal-input" value="0" min="0" style="width:5rem;" /></label>
     </div>
   \`,
   buttons: [
     { action: 'heal', label: 'Heal', icon: 'fas fa-heart', default: true,
-      callback: (e, btn) => ({ amount: Number(btn.form.elements['heal-input'].value) })
-    },
+      callback: (e, btn) => ({ amount: Number(btn.form.elements['heal-input'].value) }) },
     { action: 'cancel', label: 'Cancel', icon: 'fas fa-xmark', callback: () => null },
   ],
 });
-
 if (!result || result.amount <= 0) return;
-
-for (const token of tokens) {
-  const actor = token.actor;
-  if (!actor) continue;
-  const current = actor.system.resources.hp.value ?? 0;
-  const max = actor.system.resources.hp.max ?? current;
-  const next = Math.min(current + result.amount, max);
-  await actor.update({ 'system.resources.hp.value': next });
-}
-ui.notifications.info(\`Restored \${result.amount} HP to \${tokens.length} token(s).\`);
+const healed = await healActor(targetActor, result.amount);
+ChatMessage.create({
+  content: \`<div class="cyberpunk-blue chat-card"><p><i class="fas fa-heart"></i> <strong>\${targetActor.name}</strong> restored <strong>\${healed}</strong> HP.</p></div>\`,
+});
 })();
 `;
 

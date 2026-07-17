@@ -54,7 +54,7 @@ import { AMMO_CATALOGUE } from './data/ammo-catalogue.mjs';
 import { ROLE_CATALOGUE } from './data/role-catalogue.mjs';
 import { ABILITY_CATALOGUE } from './data/ability-catalogue.mjs';
 import { LIFEPATH_CATALOGUE } from './data/lifepath-catalogue.mjs';
-import { registerSocketHandlers, applyDamageWithPermission } from './helpers/socket.mjs';
+import { registerSocketHandlers, applyDamageWithPermission, updateActorWithPermission } from './helpers/socket.mjs';
 import { getPixelsPerMeter, getTokenCenter } from './helpers/targeting.mjs';
 import { syncRoleGrantedItemGroups } from './helpers/world-init.mjs';
 import { refreshAllRicochetLines, clearRicochetLine } from './helpers/ricochet-canvas.mjs';
@@ -124,6 +124,12 @@ Hooks.once('init', function () {
       createWeaponData,
       applyWeaponTypeDefaults,
       applyDamage: async (actor, amount, options = {}) => actor.applyDamage(amount, options),
+    },
+    // Permission-delegating helpers for compendium macros: a player targeting an
+    // actor they don't own routes the write to the GM via socket (see socket.mjs).
+    delegate: {
+      applyDamage: applyDamageWithPermission,
+      updateActor: updateActorWithPermission,
     },
     cyberwareDisable: {
       keys: CYBERWARE_DISABLE_CHANGE_KEYS,

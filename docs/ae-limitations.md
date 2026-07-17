@@ -8,7 +8,7 @@
 |---|---|
 | `system.stats.<stat>.rollMod` | Adds to every roll using that stat (and initiative for RFLX). Used by Seriously Wounded, drug boosts, tactic bonuses, Kerenzikov, etc. |
 | `system.stats.<stat>.value` | Changes the displayed stat value and all derived values (HP max from BODY, death save from BODY). Use only for permanent/structural changes; prefer `rollMod` for temporary effects. |
-| `system.stats.move.value` | Changes movement speed. Used by Seriously Wounded (-6), Skate Foot (+6), charging weapon AEs (Improved Charge → 1, SR Capacity → ½). |
+| `system.stats.move.value` | Changes movement speed. Used by Skate Foot (+6), charging weapon AEs (Improved Charge → 1, SR Capacity → ½). |
 | `system.skills.<slug>.bonus` | Adds to rolls using that skill without corrupting the player-set rank. Primary target for cyberware skill bonuses (Medscanner +2 Medicine, Voice Stress Analyzer +2 Human Perception, etc.) and Ninja/Solo tactic bonuses. |
 | `system.components.<slug>.bonus` | Adds to component (weapon/martial arts) rolls. Target for Ninja Martial Skill, Solo Precision Attack (if applied here), etc. |
 | `system.resources.hp.max` | Modifies maximum HP. |
