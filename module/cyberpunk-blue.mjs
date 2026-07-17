@@ -621,29 +621,55 @@ const makeItemSyncHook = ({ guardOption, type, name = null, run }) => (document,
   return run(item, options);
 };
 
+// Serialises wound syncs per actor. A sync is check-then-create, and Foundry does
+// not await hook callbacks, so back-to-back writes (the Stabilize macro's
+// `update(hp)` then `toggleStatusEffect('unconscious')`) can overlap: the second
+// sync reads the actor before the first one's AE create has returned from the
+// server and creates a second copy. Chaining keeps each read after the prior write.
+const _woundSyncChains = new Map();
+
 const syncSeriousWoundEffect = (document, options = {}) => {
   // Skip echoes from either wound-AE sync writing its own effect.
   if (options?.cyberBlueSyncSeriousWound || options?.cyberBlueSyncMortallyWounded) {
     return;
   }
 
+  // These hooks fire on EVERY connected client, and every OWNER of the actor is
+  // permitted to write the AE, so without a single designated writer each client
+  // creates its own duplicate marker (a GM + a GM + the owning player = 3 copies).
+  if (game.user !== game.users.activeGM) return;
+
   const actor = resolveActorFromHookDocument(document);
   if (!actor) return;
 
   // Keep both reactive wound markers (Seriously Wounded, Mortally Wounded) in sync.
-  return Promise.all([
-    actor.syncSeriousWoundEffect(options),
-    actor.syncMortallyWoundedEffect(options),
-  ]);
+  const previous = _woundSyncChains.get(actor.id) ?? Promise.resolve();
+  const next = previous
+    .then(() => Promise.all([
+      actor.syncSeriousWoundEffect(options),
+      actor.syncMortallyWoundedEffect(options),
+    ]))
+    .catch((err) => console.error('cyberpunk-blue | wound effect sync failed', err))
+    .finally(() => {
+      if (_woundSyncChains.get(actor.id) === next) _woundSyncChains.delete(actor.id);
+    });
+  _woundSyncChains.set(actor.id, next);
+  return next;
 };
 
+// create*/delete* hooks are called as (doc, options, userId) but update* hooks as
+// (doc, changed, options, userId) — without this shim the update hooks passed
+// `changed` as `options`, so the echo guard above never matched on an update.
+const syncSeriousWoundEffectOnUpdate = (document, _changed, options = {}) =>
+  syncSeriousWoundEffect(document, options);
+
 Hooks.on('createActor', syncSeriousWoundEffect);
-Hooks.on('updateActor', syncSeriousWoundEffect);
+Hooks.on('updateActor', syncSeriousWoundEffectOnUpdate);
 Hooks.on('createItem', syncSeriousWoundEffect);
-Hooks.on('updateItem', syncSeriousWoundEffect);
+Hooks.on('updateItem', syncSeriousWoundEffectOnUpdate);
 Hooks.on('deleteItem', syncSeriousWoundEffect);
 Hooks.on('createActiveEffect', syncSeriousWoundEffect);
-Hooks.on('updateActiveEffect', syncSeriousWoundEffect);
+Hooks.on('updateActiveEffect', syncSeriousWoundEffectOnUpdate);
 Hooks.on('deleteActiveEffect', syncSeriousWoundEffect);
 
 // ─── Natural Healing: per-rest role/ability resets ───────────────────────────
@@ -1385,16 +1411,21 @@ Hooks.on('updateActor', async (actor, changes) => {
 // ─── Vehicle: Serious Damage AE sync ─────────────────────────────────────────
 // Mirrors the character syncSeriousWoundEffect pattern.
 // Fires on createActor + updateActor so any HP change is captured immediately.
-const _syncVehicleSeriousDamage = async (document, _data, options = {}) => {
+const _syncVehicleSeriousDamage = async (document, options = {}) => {
   if (options?.cyberBlueSyncVehicleSeriousDamage) return;
+  // Fires on every client; only the designated GM may write, or each owning
+  // client creates its own duplicate AE (see syncSeriousWoundEffect above).
+  if (game.user !== game.users.activeGM) return;
   const actor = document instanceof Actor ? document
     : document?.parent instanceof Actor ? document.parent
     : null;
   if (!actor || actor.type !== 'vehicle') return;
   await syncVehicleSeriousDamage(actor, options);
 };
+const _syncVehicleSeriousDamageOnUpdate = (document, _changed, options = {}) =>
+  _syncVehicleSeriousDamage(document, options);
 Hooks.on('createActor',  _syncVehicleSeriousDamage);
-Hooks.on('updateActor',  _syncVehicleSeriousDamage);
+Hooks.on('updateActor',  _syncVehicleSeriousDamageOnUpdate);
 
 // ─── Vehicle: wreck transition when HP hits 0 (GM only) ──────────────────────
 // Sets state: 'wreck', zeroes stats (via prepareDerivedData), cancels Maneuver.
