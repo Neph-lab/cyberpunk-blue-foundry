@@ -604,15 +604,47 @@ const resolveItemFromHookDocument = (document) => {
 };
 
 /**
+ * Register a document hook with a normalised handler signature.
+ *
+ * Foundry calls the two hook families with different argument shapes:
+ *   create* / delete*  →  (doc, options, userId)
+ *   update*            →  (doc, changed, options, userId)
+ * A handler registered across both families with one positional signature
+ * therefore misreads `changed` as `options` on the update hooks and shifts
+ * `userId` off the end. That has silently broken echo guards and `userId`
+ * checks here more than once, so handlers get a context object instead and
+ * never need to know which family they were registered on.
+ *
+ * @param {string|string[]} hooks  Hook name(s) to register the handler on.
+ * @param {(document: any, context: {options: object, userId: string,
+ *   changed: object|null}) => any} handler  `changed` is null on create/delete.
+ * @param {object} [config]
+ * @param {boolean} [config.activeGMOnly=false]  Run only on the designated GM
+ *   client. Required for any handler that CREATES or DELETES documents: hooks
+ *   fire on every connected client and each owner is permitted to write, so
+ *   without this each client makes its own duplicate (see helpers/socket.mjs).
+ */
+const onDocumentHook = (hooks, handler, { activeGMOnly = false } = {}) => {
+  for (const hook of [hooks].flat()) {
+    const isUpdate = hook.startsWith('update');
+    Hooks.on(hook, (document, ...rest) => {
+      const [changed, options, userId] = isUpdate ? rest : [null, ...rest];
+      if (activeGMOnly && game.user !== game.users.activeGM) return;
+      return handler(document, { options: options ?? {}, userId, changed: changed ?? null });
+    });
+  }
+};
+
+/**
  * Build a hook handler that resolves the owning Item, applies the standard
  * guards (echo option, item type, optional exact name, compendium skip), and
- * calls `run(item, options)`.
+ * calls `run(item, options)`. Register it with `onDocumentHook`.
  *
  * Compendium items are skipped because they are locked and cannot have
  * embedded documents updated from these hooks (the pack is re-locked before
  * the async sync resolves); the catalogue sync maintains their effects instead.
  */
-const makeItemSyncHook = ({ guardOption, type, name = null, run }) => (document, options = {}) => {
+const makeItemSyncHook = ({ guardOption, type, name = null, run }) => (document, { options }) => {
   if (guardOption && options?.[guardOption]) return;
   const item = resolveItemFromHookDocument(document);
   if (!item || item.type !== type) return;
@@ -628,16 +660,11 @@ const makeItemSyncHook = ({ guardOption, type, name = null, run }) => (document,
 // server and creates a second copy. Chaining keeps each read after the prior write.
 const _woundSyncChains = new Map();
 
-const syncSeriousWoundEffect = (document, options = {}) => {
+const syncSeriousWoundEffect = (document, { options }) => {
   // Skip echoes from either wound-AE sync writing its own effect.
   if (options?.cyberBlueSyncSeriousWound || options?.cyberBlueSyncMortallyWounded) {
     return;
   }
-
-  // These hooks fire on EVERY connected client, and every OWNER of the actor is
-  // permitted to write the AE, so without a single designated writer each client
-  // creates its own duplicate marker (a GM + a GM + the owning player = 3 copies).
-  if (game.user !== game.users.activeGM) return;
 
   const actor = resolveActorFromHookDocument(document);
   if (!actor) return;
@@ -657,20 +684,12 @@ const syncSeriousWoundEffect = (document, options = {}) => {
   return next;
 };
 
-// create*/delete* hooks are called as (doc, options, userId) but update* hooks as
-// (doc, changed, options, userId) — without this shim the update hooks passed
-// `changed` as `options`, so the echo guard above never matched on an update.
-const syncSeriousWoundEffectOnUpdate = (document, _changed, options = {}) =>
-  syncSeriousWoundEffect(document, options);
-
-Hooks.on('createActor', syncSeriousWoundEffect);
-Hooks.on('updateActor', syncSeriousWoundEffectOnUpdate);
-Hooks.on('createItem', syncSeriousWoundEffect);
-Hooks.on('updateItem', syncSeriousWoundEffectOnUpdate);
-Hooks.on('deleteItem', syncSeriousWoundEffect);
-Hooks.on('createActiveEffect', syncSeriousWoundEffect);
-Hooks.on('updateActiveEffect', syncSeriousWoundEffectOnUpdate);
-Hooks.on('deleteActiveEffect', syncSeriousWoundEffect);
+// Creates/deletes AEs → activeGMOnly, or every owning client makes its own copy.
+onDocumentHook([
+  'createActor', 'updateActor',
+  'createItem', 'updateItem', 'deleteItem',
+  'createActiveEffect', 'updateActiveEffect', 'deleteActiveEffect',
+], syncSeriousWoundEffect, { activeGMOnly: true });
 
 // ─── Natural Healing: per-rest role/ability resets ───────────────────────────
 // The Natural Healing macro calls Hooks.callAll('cyberpunk-blue.naturalHealing',
@@ -849,11 +868,11 @@ const onUpdateCyberwarePsycheLoss = (item, changed, options, userId) => {
   return promptCyberwarePsycheLoss(item, options, userId);
 };
 
-Hooks.on('createItem', syncCyberwarePsycheLossEffect);
-Hooks.on('updateItem', syncCyberwarePsycheLossEffect);
-Hooks.on('createActiveEffect', syncCyberwarePsycheLossEffect);
-Hooks.on('updateActiveEffect', syncCyberwarePsycheLossEffect);
-Hooks.on('deleteActiveEffect', syncCyberwarePsycheLossEffect);
+onDocumentHook([
+  'createItem', 'updateItem',
+  'createActiveEffect', 'updateActiveEffect', 'deleteActiveEffect',
+], syncCyberwarePsycheLossEffect);
+// Registered on a single hook family each, so these take the raw core signature.
 Hooks.on('createItem', onCreateCyberwarePsycheLoss);
 Hooks.on('updateItem', onUpdateCyberwarePsycheLoss);
 
@@ -863,7 +882,7 @@ const syncCyberwareOperationalEffects = makeItemSyncHook({
   run: (item, options) => item.syncCyberwareOperationalEffects(options),
 });
 
-const syncCyberwareDisableEffects = (document, options = {}) => {
+const syncCyberwareDisableEffects = (document, { options }) => {
   if (options?.cyberBlueSyncCyberwareDisable) {
     return;
   }
@@ -892,17 +911,14 @@ const syncCyberwareDisableEffects = (document, options = {}) => {
   });
 };
 
-Hooks.on('createItem', syncCyberwareDisableEffects);
-Hooks.on('updateItem', syncCyberwareDisableEffects);
-Hooks.on('deleteItem', syncCyberwareDisableEffects);
-Hooks.on('createActiveEffect', syncCyberwareDisableEffects);
-Hooks.on('updateActiveEffect', syncCyberwareDisableEffects);
-Hooks.on('deleteActiveEffect', syncCyberwareDisableEffects);
-Hooks.on('createItem', syncCyberwareOperationalEffects);
-Hooks.on('updateItem', syncCyberwareOperationalEffects);
-Hooks.on('createActiveEffect', syncCyberwareOperationalEffects);
-Hooks.on('updateActiveEffect', syncCyberwareOperationalEffects);
-Hooks.on('deleteActiveEffect', syncCyberwareOperationalEffects);
+onDocumentHook([
+  'createItem', 'updateItem', 'deleteItem',
+  'createActiveEffect', 'updateActiveEffect', 'deleteActiveEffect',
+], syncCyberwareDisableEffects);
+onDocumentHook([
+  'createItem', 'updateItem',
+  'createActiveEffect', 'updateActiveEffect', 'deleteActiveEffect',
+], syncCyberwareOperationalEffects);
 
 // ─── Gear AE state sync ───────────────────────────────────────────────────────
 // Disables item-level AEs when gear state is 'owned'; re-enables when carried/equipped.
@@ -913,8 +929,7 @@ const syncGearEffectsHook = makeItemSyncHook({
   run: (item, options) => item.syncGearEffects(options),
 });
 
-Hooks.on('createItem', syncGearEffectsHook);
-Hooks.on('updateItem', syncGearEffectsHook);
+onDocumentHook(['createItem', 'updateItem'], syncGearEffectsHook);
 
 // ─── Skill Chip AE sync ───────────────────────────────────────────────────────
 // Creates / updates a flag-bearing AE on "Skill Chip" gear whose note field
@@ -928,8 +943,7 @@ const syncSkillChipEffectHook = makeItemSyncHook({
   run: (item, options) => item.syncSkillChipEffect(options),
 });
 
-Hooks.on('createItem', syncSkillChipEffectHook);
-Hooks.on('updateItem', syncSkillChipEffectHook);
+onDocumentHook(['createItem', 'updateItem'], syncSkillChipEffectHook);
 
 // ─── PSYCHE state sync ────────────────────────────────────────────────────────
 
@@ -1001,7 +1015,7 @@ const onUpdateActorPsyche = (actor, changed, options) => {
 
 Hooks.on('updateActor', onUpdateActorPsyche);
 
-const syncLeaderTeams = (document, _options = {}) => {
+const syncLeaderTeams = (document) => {
   if (document instanceof Item && document.type !== 'role') {
     return;
   }
@@ -1010,17 +1024,13 @@ const syncLeaderTeams = (document, _options = {}) => {
   return syncActorLeaderRoles(actor);
 };
 
-Hooks.on('createItem', syncLeaderTeams);
-Hooks.on('updateItem', syncLeaderTeams);
-Hooks.on('deleteItem', syncLeaderTeams);
-Hooks.on('updateActor', syncLeaderTeams);
+onDocumentHook(['createItem', 'updateItem', 'deleteItem', 'updateActor'], syncLeaderTeams);
 
 // ─── Protean tactic AE sync ───────────────────────────────────────────────────
 // Re-sync tactic AEs whenever a protean Role item is created/updated/deleted.
 // Only runs on the client that made the change (userId === game.user.id) to
 // avoid duplicate writes when multiple clients are online.
-const syncProteanFociEffects = (document, ...hookArgs) => {
-  const userId = hookArgs[hookArgs.length - 1];
+const syncProteanFociEffects = (document, { userId }) => {
   if (userId !== game.user.id) return;
   if (!(document instanceof Item) || document.type !== 'role') return;
   if (!(document.parent instanceof CyberBlueActor)) return;
@@ -1028,18 +1038,12 @@ const syncProteanFociEffects = (document, ...hookArgs) => {
   if (system.category !== 'protean') return;
   return syncAllProteanFociAEs(document.parent);
 };
-Hooks.on('createItem', syncProteanFociEffects);
-Hooks.on('updateItem', syncProteanFociEffects);
-Hooks.on('deleteItem', syncProteanFociEffects);
+onDocumentHook(['createItem', 'updateItem', 'deleteItem'], syncProteanFociEffects);
 
 // ─── Cyberware install / uninstall sounds ────────────────────────────────────
-Hooks.on('createItem', (item, _data, _options, userId) => {
-  if (item.type !== 'cyberware') return;
-  if (!(item.parent instanceof Actor)) return;
-  if (userId !== game.user.id) return;
-  playUiSound('install-cyberware');
-});
-Hooks.on('deleteItem', (item, _options, userId) => {
+// The install handler previously declared an update-hook signature on
+// createItem, so `userId` was always undefined and the sound never played.
+onDocumentHook(['createItem', 'deleteItem'], (item, { userId }) => {
   if (item.type !== 'cyberware') return;
   if (!(item.parent instanceof Actor)) return;
   if (userId !== game.user.id) return;
@@ -1049,41 +1053,36 @@ Hooks.on('deleteItem', (item, _options, userId) => {
 // ─── Role condition AE sync ───────────────────────────────────────────────────
 // Re-sync role-condition AEs whenever any role item is created/updated/deleted.
 // Triggered by the editing client only (userId === game.user.id).
-const syncRoleConditionEffects = (document, ...hookArgs) => {
-  const userId = hookArgs[hookArgs.length - 1];
+const syncRoleConditionEffects = (document, { userId }) => {
   if (userId !== game.user.id) return;
   if (!(document instanceof Item) || document.type !== 'role') return;
   if (!(document.parent instanceof CyberBlueActor)) return;
   return syncAllRoleConditionAEs(document.parent);
 };
-Hooks.on('createItem', syncRoleConditionEffects);
-Hooks.on('updateItem', syncRoleConditionEffects);
+onDocumentHook(['createItem', 'updateItem', 'deleteItem'], syncRoleConditionEffects);
 
 // ─── Guide Role: auto-provision native Cards on role add ──────────────────────
 // When a Guide Role is added to a player-owned character, the active GM
 // provisions the character's Deck / Hand / Pile / macro. Runs on the GM only
 // (regardless of who added the role) since world Cards need GM permission.
-Hooks.on('createItem', (item, _data, _options, _userId) => {
-  if (game.user !== game.users.activeGM) return;
+onDocumentHook('createItem', (item) => {
   if (!(item instanceof Item) || item.type !== 'role' || item.name !== 'Guide') return;
   if (!(item.parent instanceof CyberBlueActor)) return;
   if (!getGuidePlayerUser(item.parent)) return; // NPC / GM-only — managed manually
   return ensureGuideCards(item.parent);
-});
-Hooks.on('deleteItem', syncRoleConditionEffects);
+}, { activeGMOnly: true });
 
 // Also re-sync when an AE on a role item changes (condition flags edited).
-const syncRoleConditionOnAEChange = (document, ...hookArgs) => {
-  const userId = hookArgs[hookArgs.length - 1];
+const syncRoleConditionOnAEChange = (document, { userId }) => {
   if (userId !== game.user.id) return;
   const parent = document.parent;
   if (!(parent instanceof Item) || parent.type !== 'role') return;
   if (!(parent.parent instanceof CyberBlueActor)) return;
   return syncAllRoleConditionAEs(parent.parent);
 };
-Hooks.on('createActiveEffect', syncRoleConditionOnAEChange);
-Hooks.on('updateActiveEffect', syncRoleConditionOnAEChange);
-Hooks.on('deleteActiveEffect', syncRoleConditionOnAEChange);
+onDocumentHook([
+  'createActiveEffect', 'updateActiveEffect', 'deleteActiveEffect',
+], syncRoleConditionOnAEChange);
 
 // ─── Vehicle blueprint materialisation ───────────────────────────────────────
 // When a vehicle Token is placed on a scene, spawn Scene Regions for each
@@ -1411,21 +1410,16 @@ Hooks.on('updateActor', async (actor, changes) => {
 // ─── Vehicle: Serious Damage AE sync ─────────────────────────────────────────
 // Mirrors the character syncSeriousWoundEffect pattern.
 // Fires on createActor + updateActor so any HP change is captured immediately.
-const _syncVehicleSeriousDamage = async (document, options = {}) => {
+const _syncVehicleSeriousDamage = async (document, { options }) => {
   if (options?.cyberBlueSyncVehicleSeriousDamage) return;
-  // Fires on every client; only the designated GM may write, or each owning
-  // client creates its own duplicate AE (see syncSeriousWoundEffect above).
-  if (game.user !== game.users.activeGM) return;
   const actor = document instanceof Actor ? document
     : document?.parent instanceof Actor ? document.parent
     : null;
   if (!actor || actor.type !== 'vehicle') return;
   await syncVehicleSeriousDamage(actor, options);
 };
-const _syncVehicleSeriousDamageOnUpdate = (document, _changed, options = {}) =>
-  _syncVehicleSeriousDamage(document, options);
-Hooks.on('createActor',  _syncVehicleSeriousDamage);
-Hooks.on('updateActor',  _syncVehicleSeriousDamageOnUpdate);
+// Creates/deletes an AE → activeGMOnly (see syncSeriousWoundEffect above).
+onDocumentHook(['createActor', 'updateActor'], _syncVehicleSeriousDamage, { activeGMOnly: true });
 
 // ─── Vehicle: wreck transition when HP hits 0 (GM only) ──────────────────────
 // Sets state: 'wreck', zeroes stats (via prepareDerivedData), cancels Maneuver.

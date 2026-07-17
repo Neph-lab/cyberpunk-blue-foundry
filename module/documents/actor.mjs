@@ -757,8 +757,35 @@ export class CyberBlueActor extends Actor {
     }
   }
 
+  /** Every Seriously Wounded marker on this actor. Normally 0 or 1, but see
+   *  `reapDuplicateEffects` for why more than one can exist. */
+  getSeriousWoundEffects() {
+    return this.effects.filter((effect) => effect.getFlag('cyberpunk-blue', CyberBlueActor.SERIOUS_WOUND_FLAG));
+  }
+
   getSeriousWoundEffect() {
-    return this.effects.find((effect) => effect.getFlag('cyberpunk-blue', CyberBlueActor.SERIOUS_WOUND_FLAG));
+    return this.getSeriousWoundEffects()[0];
+  }
+
+  /**
+   * Delete all but the first of `effects`, returning the keeper.
+   *
+   * The reactive marker syncs are check-then-create and run on every client, so
+   * two clients can each observe "no marker" and both create one. `activeGM`
+   * elects a single *User*, but a user with two sessions open (or a stale one)
+   * still races against itself, and Foundry offers no way to elect a single
+   * session — so duplicates remain possible and the sync self-heals instead.
+   * This also cleans up markers duplicated by earlier versions.
+   */
+  async reapDuplicateEffects(effects, options = {}) {
+    const [keep, ...extras] = effects;
+    if (extras.length) {
+      // Another client may be reaping the same extras concurrently; a delete of
+      // an already-deleted effect is expected, not an error worth surfacing.
+      await this.deleteEmbeddedDocuments('ActiveEffect', extras.map((e) => e.id), options)
+        .catch(() => {});
+    }
+    return keep;
   }
 
   shouldBeSeriouslyWounded() {
@@ -798,29 +825,24 @@ export class CyberBlueActor extends Actor {
   }
 
   async syncSeriousWoundEffect(options = {}) {
-    const existingEffect = this.getSeriousWoundEffect();
+    const syncOptions = { ...options, cyberBlueSyncSeriousWound: true };
+    const existingEffect = await this.reapDuplicateEffects(this.getSeriousWoundEffects(), syncOptions);
     const shouldExist = this.shouldBeSeriouslyWounded();
 
     if (!shouldExist) {
       if (existingEffect) {
-        await existingEffect.delete({ ...options, cyberBlueSyncSeriousWound: true });
+        await existingEffect.delete(syncOptions).catch(() => {});
       }
       return;
     }
 
     const effectData = this.getSeriousWoundEffectData();
     if (!existingEffect) {
-      await this.createEmbeddedDocuments('ActiveEffect', [effectData], {
-        ...options,
-        cyberBlueSyncSeriousWound: true,
-      });
+      await this.createEmbeddedDocuments('ActiveEffect', [effectData], syncOptions);
       return;
     }
 
-    await existingEffect.update(effectData, {
-      ...options,
-      cyberBlueSyncSeriousWound: true,
-    });
+    await existingEffect.update(effectData, syncOptions);
   }
 
   // ── Needs Stabilization ─────────────────────────────────────────────────────
@@ -849,8 +871,12 @@ export class CyberBlueActor extends Actor {
 
   // ── Mortally Wounded ────────────────────────────────────────────────────────
   // Reactive marker, present iff HP ≤ 0 (mirrors the Seriously Wounded sync).
+  getMortallyWoundedEffects() {
+    return this.effects.filter((e) => e.getFlag('cyberpunk-blue', CyberBlueActor.MORTALLY_WOUNDED_FLAG));
+  }
+
   getMortallyWoundedEffect() {
-    return this.effects.find((e) => e.getFlag('cyberpunk-blue', CyberBlueActor.MORTALLY_WOUNDED_FLAG));
+    return this.getMortallyWoundedEffects()[0];
   }
 
   shouldBeMortallyWounded() {
@@ -872,16 +898,14 @@ export class CyberBlueActor extends Actor {
   }
 
   async syncMortallyWoundedEffect(options = {}) {
-    const existing = this.getMortallyWoundedEffect();
+    const syncOptions = { ...options, cyberBlueSyncMortallyWounded: true };
+    const existing = await this.reapDuplicateEffects(this.getMortallyWoundedEffects(), syncOptions);
     if (!this.shouldBeMortallyWounded()) {
-      if (existing) await existing.delete({ ...options, cyberBlueSyncMortallyWounded: true });
+      if (existing) await existing.delete(syncOptions).catch(() => {});
       return;
     }
     if (!existing) {
-      await this.createEmbeddedDocuments('ActiveEffect', [this.getMortallyWoundedEffectData()], {
-        ...options,
-        cyberBlueSyncMortallyWounded: true,
-      });
+      await this.createEmbeddedDocuments('ActiveEffect', [this.getMortallyWoundedEffectData()], syncOptions);
     }
   }
 
