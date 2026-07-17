@@ -40,7 +40,8 @@ import {
   markDamageDeflectionUsed,
 } from './helpers/combat-tracker.mjs';
 import * as models from './data/_module.mjs';
-import { CRITICAL_INJURY_FLAG, buildCritBodyTableData, buildCritHeadTableData } from './helpers/critical-injury.mjs';
+import { CRITICAL_INJURY_FLAG, buildCritBodyTableData, buildCritHeadTableData,
+  CRITICAL_BODY_TABLE_NAME, CRITICAL_HEAD_TABLE_NAME } from './helpers/critical-injury.mjs';
 import { MACRO_CATALOGUE } from './helpers/critical-injury-macros.mjs';
 import { ensureTarotDeck, registerTarotHooks, ensureGuideCards, getGuidePlayerUser } from './helpers/guide-tarot.mjs';
 import { WEAPON_CATALOGUE } from './data/weapon-catalogue.mjs';
@@ -1563,7 +1564,12 @@ Hooks.once('ready', async () => {
   initAudio();
   initResidueMediaSync();
 
-  if (!game.user.isGM) {
+  // Everything below writes world settings and compendium content. `ready` fires
+  // on every client, so gating on isGM alone lets EVERY connected GM run the
+  // whole population concurrently — two GM sessions then each create their own
+  // copy of every catalogue entry. (This is what duplicated the critical injury
+  // tables.) Only the designated GM populates; see helpers/socket.mjs.
+  if (game.user !== game.users.activeGM) {
     return;
   }
 
@@ -2191,52 +2197,45 @@ Hooks.on('renderCombatTracker', (app, htmlArg, _data) => {
 // ─── Critical Injury: populate compendium tables on first run ────────────────
 
 async function ensureCritInjuryTables() {
-  if (!game.user.isGM) return;
   const PACK_ID = 'cyberpunk-blue.critical-injury-tables';
   const pack = game.packs.get(PACK_ID);
   if (!pack) {
     console.warn('Cyberpunk Blue | Critical injury tables compendium not found — skipping auto-populate.');
     return;
   }
-  const index = await pack.getIndex();
 
-  // Check if migration is needed: look for the new 'dismembered-hand' body entry
-  // (absent in the v1 tables that had Dismembered Leg at roll 3 instead).
-  let needsMigration = false;
-  if (index.size >= 2) {
-    const bodyEntry = index.find((e) => {
-      return pack.contents.find((t) => t.id === e._id)
-        ?.getFlag('cyberpunk-blue', 'critTableType') === 'body';
-    });
-    if (bodyEntry) {
-      try {
-        const bodyTable = await pack.getDocument(bodyEntry._id);
-        const hasNewEntries = bodyTable.results.contents.some(
-          (r) => r.getFlag('cyberpunk-blue', 'critKey') === 'dismembered-hand'
-        );
-        needsMigration = !hasNewEntries;
-      } catch {
-        needsMigration = true;
-      }
-    } else {
-      needsMigration = true;
-    }
-  }
+  // getDocuments(), NOT pack.contents: `contents` only lists documents already
+  // loaded into memory, and getIndex() loads the index WITHOUT the documents —
+  // so the previous `pack.contents.find(...)` lookup was always undefined. That
+  // made the migration check below fire on every single GM login and rebuild
+  // both tables each time; combined with a second GM session racing the same
+  // delete-then-create, it left duplicate and orphaned tables behind.
+  const docs = await pack.getDocuments();
 
-  if (index.size >= 2 && !needsMigration) return; // already up to date
+  // Match on the flag, falling back to the known name so tables written by
+  // versions predating the flag are still recognised as ours. Anything else in
+  // the pack is left alone.
+  const ourTables = (type, name) => docs.filter((t) =>
+    t.getFlag('cyberpunk-blue', 'critTableType') === type || t.name === name);
+  const body = ourTables('body', CRITICAL_BODY_TABLE_NAME);
+  const head = ourTables('head', CRITICAL_HEAD_TABLE_NAME);
 
-  console.log('Cyberpunk Blue | Creating/updating critical injury tables in compendium…');
+  // v2 body table has a 'dismembered-hand' entry; v1 had Dismembered Leg at roll 3.
+  const isCurrentVersion = body[0]?.results?.contents?.some(
+    (r) => r.getFlag('cyberpunk-blue', 'critKey') === 'dismembered-hand') ?? false;
+
+  // Exactly one of each, current version → nothing to do. More than one of
+  // either means a previous run duplicated them; rebuild to converge.
+  if (body.length === 1 && head.length === 1 && isCurrentVersion) return;
+
+  const stale = [...body, ...head];
+  console.log(`Cyberpunk Blue | Rebuilding critical injury tables (found ${body.length} body, ${head.length} head)…`);
   await pack.configure({ locked: false });
   try {
-    if (index.size >= 2 && needsMigration) {
-      // Delete existing tables and recreate with new data
-      const docs = await pack.getDocuments();
-      for (const doc of docs) await doc.delete();
-      console.log('Cyberpunk Blue | Old critical injury tables removed for migration.');
-    }
+    for (const doc of stale) await doc.delete();
     await RollTable.create(buildCritBodyTableData(), { pack: PACK_ID });
     await RollTable.create(buildCritHeadTableData(), { pack: PACK_ID });
-    console.log('Cyberpunk Blue | Critical injury tables created in compendium.');
+    console.log(`Cyberpunk Blue | Critical injury tables rebuilt (${stale.length} removed, 2 created).`);
   } catch (err) {
     console.error('Cyberpunk Blue | Failed to create critical injury tables:', err);
   } finally {
