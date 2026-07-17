@@ -254,48 +254,50 @@
                     {{/if}}
                   </td>
                   <td class="numeric-column">
-                    {{#if weapon.showsAmmo}}
-                      <button type="button" data-action="weapon-reload" data-weapon-index="{{weapon.weaponIndex}}" data-magazine="{{weapon.magazine}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Reload"}}">
-                        <i class="fas fa-rotate-right"></i>
+                    <div class="embedded-controls">
+                      {{#if weapon.showsAmmo}}
+                        <button type="button" data-action="weapon-reload" data-weapon-index="{{weapon.weaponIndex}}" data-magazine="{{weapon.magazine}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Reload"}}">
+                          <i class="fas fa-rotate-right"></i>
+                        </button>
+                      {{/if}}
+                      {{#if weapon.jammed}}
+                        <button type="button" class="weapon-unjam-btn" data-action="weapon-unjam" data-weapon-index="{{weapon.weaponIndex}}" title="{{localize 'CYBER_BLUE.Combat.WeaponUnjamHint'}}">
+                          <i class="fas fa-wrench"></i>
+                        </button>
+                      {{/if}}
+                      {{#if weapon.hasCalibration}}
+                        <button type="button" class="weapon-calibrate-btn{{#if weapon.calibrationActive}} calibration-active{{/if}}" data-action="weapon-calibrate" data-weapon-index="{{weapon.weaponIndex}}" title="{{localize 'CYBER_BLUE.Combat.CalibrateHint'}}">
+                          <i class="fas fa-bullseye"></i>
+                        </button>
+                      {{/if}}
+                      {{#if weapon.isPowerWeapon}}
+                        <button type="button" class="weapon-ricochet-btn{{#if weapon.ricochetActive}} ricochet-active{{/if}}" data-action="weapon-ricochet" data-weapon-index="{{weapon.weaponIndex}}" title="{{localize 'CYBER_BLUE.Combat.RicochetHint'}}">
+                          <i class="fas fa-circle-dot"></i>
+                        </button>
+                      {{/if}}
+                      {{#if weapon.isTechWeapon}}
+                        <button type="button" class="weapon-charge-btn{{#if weapon.isCharged}} charge-active{{/if}}{{#if weapon.isChargeCooldown}} charge-cooldown{{/if}}" data-action="weapon-charge" data-weapon-index="{{weapon.weaponIndex}}" {{#if weapon.chargeDisabled}}disabled{{/if}} title="{{localize 'CYBER_BLUE.Combat.ChargeHint'}}">
+                          <i class="fas fa-bolt-lightning"></i>
+                        </button>
+                      {{/if}}
+                      {{#if weapon.hasElectricCharge}}
+                        <span class="electric-charge-indicator{{#if (eq weapon.electricChargeUses 0)}} depleted{{/if}}" title="{{localize 'CYBER_BLUE.Combat.ElectricChargeTitle'}}">
+                          <i class="fas fa-battery-{{#if (eq weapon.electricChargeUses 0)}}empty{{else}}full{{/if}}"></i> {{weapon.electricChargeUses}}/{{weapon.electricChargeMax}}
+                        </span>
+                      {{/if}}
+                      <button type="button" class="macro-button" data-action="create-weapon-macro"
+                        data-item-id="{{weapon.itemId}}"
+                        data-weapon-index="{{weapon.weaponIndex}}"
+                        data-weapon-name="{{weapon.name}}"
+                        data-has-autofire="{{weapon.hasAutofire}}"
+                        data-is-standard-damage="{{weapon.isStandardDamage}}"
+                        data-is-tech-weapon="{{weapon.isTechWeapon}}"
+                        data-is-power-weapon="{{weapon.isPowerWeapon}}"
+                        data-shows-ammo="{{weapon.showsAmmo}}"
+                        title="{{localize 'CYBER_BLUE.Sheet.Buttons.CreateWeaponMacro'}}">
+                        <i class="fas fa-scroll"></i>
                       </button>
-                    {{/if}}
-                    {{#if weapon.jammed}}
-                      <button type="button" class="weapon-unjam-btn" data-action="weapon-unjam" data-weapon-index="{{weapon.weaponIndex}}" title="{{localize 'CYBER_BLUE.Combat.WeaponUnjamHint'}}">
-                        <i class="fas fa-wrench"></i>
-                      </button>
-                    {{/if}}
-                    {{#if weapon.hasCalibration}}
-                      <button type="button" class="weapon-calibrate-btn{{#if weapon.calibrationActive}} calibration-active{{/if}}" data-action="weapon-calibrate" data-weapon-index="{{weapon.weaponIndex}}" title="{{localize 'CYBER_BLUE.Combat.CalibrateHint'}}">
-                        <i class="fas fa-bullseye"></i>
-                      </button>
-                    {{/if}}
-                    {{#if weapon.isPowerWeapon}}
-                      <button type="button" class="weapon-ricochet-btn{{#if weapon.ricochetActive}} ricochet-active{{/if}}" data-action="weapon-ricochet" data-weapon-index="{{weapon.weaponIndex}}" title="{{localize 'CYBER_BLUE.Combat.RicochetHint'}}">
-                        <i class="fas fa-circle-dot"></i>
-                      </button>
-                    {{/if}}
-                    {{#if weapon.isTechWeapon}}
-                      <button type="button" class="weapon-charge-btn{{#if weapon.isCharged}} charge-active{{/if}}{{#if weapon.isChargeCooldown}} charge-cooldown{{/if}}" data-action="weapon-charge" data-weapon-index="{{weapon.weaponIndex}}" {{#if weapon.chargeDisabled}}disabled{{/if}} title="{{localize 'CYBER_BLUE.Combat.ChargeHint'}}">
-                        <i class="fas fa-bolt-lightning"></i>
-                      </button>
-                    {{/if}}
-                    {{#if weapon.hasElectricCharge}}
-                      <span class="electric-charge-indicator{{#if (eq weapon.electricChargeUses 0)}} depleted{{/if}}" title="{{localize 'CYBER_BLUE.Combat.ElectricChargeTitle'}}">
-                        <i class="fas fa-battery-{{#if (eq weapon.electricChargeUses 0)}}empty{{else}}full{{/if}}"></i> {{weapon.electricChargeUses}}/{{weapon.electricChargeMax}}
-                      </span>
-                    {{/if}}
-                    <button type="button" class="macro-button" data-action="create-weapon-macro"
-                      data-item-id="{{weapon.itemId}}"
-                      data-weapon-index="{{weapon.weaponIndex}}"
-                      data-weapon-name="{{weapon.name}}"
-                      data-has-autofire="{{weapon.hasAutofire}}"
-                      data-is-standard-damage="{{weapon.isStandardDamage}}"
-                      data-is-tech-weapon="{{weapon.isTechWeapon}}"
-                      data-is-power-weapon="{{weapon.isPowerWeapon}}"
-                      data-shows-ammo="{{weapon.showsAmmo}}"
-                      title="{{localize 'CYBER_BLUE.Sheet.Buttons.CreateWeaponMacro'}}">
-                      <i class="fas fa-scroll"></i>
-                    </button>
+                    </div>
                   </td>
                 </tr>
               {{/each}}
@@ -1440,19 +1442,19 @@
     <div class="tab" data-group="primary" data-tab="notes">
       <section class="notes-grid">
         <div class="sheet-panel note-panel">
-          <h2>{{localize "CYBER_BLUE.Sheet.Labels.Background"}}</h2>
+          <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Sheet.Labels.Background"}}</span></div>
           {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.details.background" value=system.details.background uuid=actor.uuid enriched=enrichedDetails.background editable=charCreation.notesWritable}}
         </div>
         <div class="sheet-panel note-panel">
-          <h2>{{localize "CYBER_BLUE.Sheet.Labels.Appearance"}}</h2>
+          <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Sheet.Labels.Appearance"}}</span></div>
           {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.details.appearance" value=system.details.appearance uuid=actor.uuid enriched=enrichedDetails.appearance editable=charCreation.notesWritable}}
         </div>
         <div class="sheet-panel note-panel">
-          <h2>{{localize "CYBER_BLUE.Sheet.Labels.Personality"}}</h2>
+          <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Sheet.Labels.Personality"}}</span></div>
           {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.details.personality" value=system.details.personality uuid=actor.uuid enriched=enrichedDetails.personality editable=charCreation.notesWritable}}
         </div>
         <div class="sheet-panel note-panel">
-          <h2>{{localize "CYBER_BLUE.Sheet.Labels.Style"}}</h2>
+          <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.Sheet.Labels.Style"}}</span></div>
           {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.details.style" value=system.details.style uuid=actor.uuid enriched=enrichedDetails.style editable=charCreation.notesWritable}}
         </div>
       </section>

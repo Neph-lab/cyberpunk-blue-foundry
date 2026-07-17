@@ -11,12 +11,12 @@ SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace 
 /* Default: TR + BL chamfered (forward-leaning / interactive). */
 .cpb-shape, .cpb-shape--tr-bl {
   --c: var(--cpb-cut-sm);
-  clip-path: var(--cpb-shape-tr-bl);
+  clip-path: var(--cpb-shape--tr-bl);
 }
 /* Mirrored: TL + BR chamfered (passive / readout). */
 .cpb-shape--tl-br {
   --c: var(--cpb-cut-sm);
-  clip-path: var(--cpb-shape-tl-br);
+  clip-path: var(--cpb-shape--tl-br);
 }
 /* Hex: all four corners chamfered (data plate / stat block). */
 .cpb-shape--hex {
@@ -42,7 +42,7 @@ SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace 
 /* Panel (no step): simple TR + BL, large chamfer. */
 .cpb-shape--panel-clean {
   --c: var(--cpb-cut-lg);
-  clip-path: var(--cpb-shape-tr-bl);
+  clip-path: var(--cpb-shape--tr-bl);
 }
 /* Notch TR: one corner cut, three square. */
 .cpb-shape--notch-tr {
@@ -52,7 +52,7 @@ SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace 
 /* Tag: pointed left, flat right (status flags). */
 .cpb-shape--tag {
   --c: 8px;
-  clip-path: var(--cpb-shape-tag-left);
+  clip-path: var(--cpb-shape--tag-left);
 }
 /* Tag (right-pointing). */
 .cpb-shape--tag-r {
@@ -364,6 +364,9 @@ section.chat-sidebar:not(.sidebar-popout),
   content: var(--fa) / "";
   font-family: var(--_fa-family);
 }
+.cyberpunk-blue .window-header button::after {
+  display: none;
+}
 /* #endregion */
 
 /* Remove border-radius from Foundry's own controls */
@@ -460,7 +463,6 @@ section.chat-sidebar:not(.sidebar-popout),
   color: var(--cpb-text);
   font-size: var(--cpb-fs-xs);
   letter-spacing: var(--cpb-tracking-2);
-  text-transform: uppercase;
   cursor: pointer;
   padding: 0.35rem calc(0.75rem + var(--cpb-stripe) + 6px) 0.35rem 0.75rem;
   white-space: nowrap;
@@ -1004,9 +1006,13 @@ section.chat-sidebar:not(.sidebar-popout),
 }
 /* #endregion */
 .cyberpunk-blue .notes-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+  columns: 3 550px;
+}
+.cyberpunk-blue .note-panel {
+  break-inside: avoid;
+  --c: var(--cpb-cut-sm);
+  clip-path: var(--cpb-shape--hex);
+  margin-bottom: var(--cpb-space-4);
 }
 .cyberpunk-blue .notes-grid .prosemirror.active { min-height: 400px; }
 /* #endregion */
@@ -1134,6 +1140,7 @@ CHARACTER SHEET SPECIFIC
   white-space: unset;
   text-align: start;
   text-transform: none;
+  overflow: hidden;
 }
 .cyberpunk-blue button.effect-open::after, .cyberpunk-blue button.effect-open::before { display: none; }
 .cyberpunk-blue .effect-open::before {
@@ -1161,6 +1168,40 @@ CHARACTER SHEET SPECIFIC
   opacity: 0.7;
   display: none;
 }
+.cyberpunk-blue .effect-mortal-badge {
+  color: #8b0000;
+  font-size: var(--font-size-11);
+  flex-shrink: 0;
+}
+.cyberpunk-blue .health-effect-delete {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid #8b0000;
+  color: #8b0000;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: var(--font-size-10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cyberpunk-blue .health-effect-delete:hover {
+  background: #8b0000;
+  color: #fff;
+}
+/* Critical-condition effects (low HP / low PSYCHE / Critical Injury): icon + text in error red.
+   The <button> resets `color`, so the text colour must be set on the button/label
+   explicitly rather than relying on inheritance from the cell. */
+.cyberpunk-blue .effect-cell.is-error,
+.cyberpunk-blue .effect-cell.is-error .effect-open,
+.cyberpunk-blue .effect-cell.is-error .effect-name,
+.cyberpunk-blue .effect-cell.is-error .effect-icon,
+.cyberpunk-blue .effect-group.is-error > .effect-group-summary,
+.cyberpunk-blue .effect-group.is-error > .effect-group-summary .effect-name,
+.cyberpunk-blue .effect-group.is-error > .effect-group-summary .effect-icon { color: var(--cpb-error); }
 /* #endregion */
 
 /* #region Same-named effects collapse under an expandable header. */
@@ -1208,18 +1249,6 @@ CHARACTER SHEET SPECIFIC
 }
 /* #endregion */
 
-/* Critical-condition effects (low HP / low PSYCHE / Critical Injury): icon + text in error red.
-   The <button> resets `color`, so the text colour must be set on the button/label
-   explicitly rather than relying on inheritance from the cell. */
-.cyberpunk-blue .effect-cell.is-error,
-.cyberpunk-blue .effect-cell.is-error .effect-open,
-.cyberpunk-blue .effect-cell.is-error .effect-name,
-.cyberpunk-blue .effect-cell.is-error .effect-icon,
-.cyberpunk-blue .effect-group.is-error > .effect-group-summary,
-.cyberpunk-blue .effect-group.is-error > .effect-group-summary .effect-name,
-.cyberpunk-blue .effect-group.is-error > .effect-group-summary .effect-icon {
-  color: var(--cpb-error); /* masked .cpb-icon tracks currentColor */
-}
 /* #endregion */
 .cyberpunk-blue .health-value {
   color: var(--cpb-text);
@@ -1464,11 +1493,10 @@ CHARACTER SHEET SPECIFIC
   clip-path: none;
   text-transform: none;
   white-space: unset;
+  text-align: start;
 }
 .cyberpunk-blue .embedded-name::before { background: none;}
-.cyberpunk-blue .embedded-name::after {
-  display: none;
-}
+.cyberpunk-blue .embedded-name::after { display: none; }
 .cyberpunk-blue .embedded-name-text {
   display: flex;
   flex-direction: column;
@@ -2790,36 +2818,8 @@ CHARACTER SHEET SPECIFIC
   margin-bottom: 0.3rem;
 }
 
-/* ─── Health Effects: critical injury delete button ─────────────────────────── */
-.cyberpunk-blue .effect-cell.is-critical-injury .effect-open { border-color: #8b000044; }
-.cyberpunk-blue .effect-cell.is-mortal .effect-open { border-color: #8b0000; }
-.cyberpunk-blue .effect-mortal-badge {
-  color: #8b0000;
-  font-size: var(--font-size-11);
-  flex-shrink: 0;
-}
-.cyberpunk-blue .health-effect-delete {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  background: transparent;
-  border: 1px solid #8b0000;
-  color: #8b0000;
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: var(--font-size-10);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.cyberpunk-blue .health-effect-delete:hover {
-  background: #8b0000;
-  color: #fff;
-}
-
 /* #region Weapon Table: Target Vitals column ──────── */
-.cyberpunk-blue .target-vitals-cell { text-align: center; }
+.cyberpunk-blue td.numeric-column.target-vitals-cell { text-align: center; }
 .cyberpunk-blue .target-vitals-label {
   display: inline-flex;
   align-items: center;
@@ -2987,7 +2987,7 @@ CHARACTER SHEET SPECIFIC
   --c: var(--cpb-cut-sm);
   background: rgba(141, 227, 255, 0.14);
   border: 0;
-  clip-path: var(--cpb-shape-tl-br);
+  clip-path: var(--cpb-shape--tl-br);
   align-items: center;
   display: flex;
   flex-direction: column;
@@ -3183,7 +3183,7 @@ CHARACTER SHEET SPECIFIC
   isolation: isolate;
   --c: var(--cpb-cut-sm);
   background: rgba(0, 240, 255, 0.28);
-  clip-path: var(--cpb-shape-tr-bl);
+  clip-path: var(--cpb-shape--tr-bl);
   padding: var(--cpb-space-3) var(--cpb-space-4);
   display: flex;
   flex-direction: column;
