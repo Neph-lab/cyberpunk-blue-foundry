@@ -190,6 +190,18 @@ export const EQUIPMENT_CATALOGUE = [
   clothing('Headwear', 'Neomilitarism','EX'),
   clothing('Headwear', 'Neokitch',     'LUX'),
 
+  // Named one-off garments — specific pieces rather than a type/style combo.
+  gear({
+    name: 'Wraith Jacket',
+    folder: 'Outfit', imgPath: `${A_CLOTHES}/entropism-jacket-wraith-jacket.png`, cost: 'CO',
+    description: 'A tough leather jacket made for style and races through the desert. Colors appropriate to the Wraith clan of nomads.',
+  }),
+  gear({
+    name: 'King of Pentacles Coat',
+    folder: 'Outfit', imgPath: `${A_CLOTHES}/neomilitarism-coat-king-of-pentacles.png`, cost: 'PR',
+    description: "A heavy leather coat that sends a message. That message is 'stay away, I'm brooding.'",
+  }),
+
   // ── Grenades ──────────────────────────────────────────────────────────────
 
   gear({
