@@ -487,7 +487,7 @@ export const CYBERWARE_CATALOGUE = [
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 2,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     useCyberneticsComponent: true, psycheLoss: '3d6',
-    img: `${CW_ASSET}/arasaka mantis blades.png`,
+    img: `${CW_ASSET}/arasaka-mantis-blades.png`,
     isWeapon: true,
     weapons: [
       // Single blade (default attack — one blade, RoF 2)
@@ -889,7 +889,7 @@ export const CYBERWARE_CATALOGUE = [
     isArmor: true, maxSp: 11,
     cost: 'EX', facilities: 'hospital', installationCost: 'EX', installationDv: 20,
     psycheLoss: '4d6',
-    img: `${CW_ASSET}/Dynalar subdermal armor.png`,
+    img: `${CW_ASSET}/Dynalar-subdermal-armor.png`,
     description: 'SP 11 armor micro-plates under the skin. Only counts if it is the highest SP source available. Ablates from damage; heals 1 SP per day of rest.',
   }),
   cw({

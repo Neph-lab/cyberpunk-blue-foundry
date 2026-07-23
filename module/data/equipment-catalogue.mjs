@@ -194,7 +194,7 @@ export const EQUIPMENT_CATALOGUE = [
 
   gear({
     name: 'Knock-Out Grenade',
-    folder: 'Grenades', imgPath: `${A_AMMO}/Knock-out Gas Grenade.png`, cost: 'EX',
+    folder: 'Grenades', imgPath: `${A_AMMO}/Knock-out-Gas-Grenade.png`, cost: 'EX',
     description: '<p>Deals no damage.</p><p><strong>AOE:</strong> 4m inner / 8m outer sphere; targets in outer zone get <strong>+5</strong> to resist. <strong style="color: var(--cpb-accent);">DV13</strong> <strong>BODY</strong>+<strong>Endurance</strong> or fall unconscious for a number of minutes equal to the margin of failure (waking from damage or an action taken to rouse them). No SP ablation. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind.</p>',
     isWeapon: true,
     weapons: [{
@@ -219,7 +219,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Smoke Grenade',
-    folder: 'Grenades', imgPath: `${A_AMMO}/Smoke Grenade.png`, cost: 'CO',
+    folder: 'Grenades', imgPath: `${A_AMMO}/Smoke-Grenade.png`, cost: 'CO',
     description: '<p>Deals no damage.</p><p><strong>AOE:</strong> 16m inner / 22m outer sphere. <strong style="color: var(--cpb-accent);">DV13</strong> <strong>BODY</strong>+<strong>Endurance</strong> or suffer Damaged Eye Critical Injury for 1 minute. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind.</p>',
     isWeapon: true,
     weapons: [{
@@ -244,7 +244,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Teargas Grenade',
-    folder: 'Grenades', imgPath: `${A_AMMO}/Teargas Grenade.png`, cost: 'CO',
+    folder: 'Grenades', imgPath: `${A_AMMO}/Teargas-Grenade.png`, cost: 'CO',
     description: '<p>Deals no damage.</p><p><strong>AOE:</strong> 10m inner / 12m outer sphere; targets in outer zone get <strong>+4</strong> to resist. <strong style="color: var(--cpb-accent);">DV13</strong> <strong>BODY</strong>+<strong>Endurance</strong> or suffer Damaged Eye Critical Injury for 1 minute. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind.</p>',
     isWeapon: true,
     weapons: [{
@@ -269,7 +269,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Flashbang Grenade',
-    folder: 'Grenades', imgPath: `${A_AMMO}/Flasgbang Grenade.png`, cost: 'EX',
+    folder: 'Grenades', imgPath: `${A_AMMO}/Flasgbang-Grenade.png`, cost: 'EX',
     description: '<p>Deals no damage.</p><p><strong>AOE:</strong> 10m inner / 12m outer sphere; targets in outer zone get <strong>+4</strong> to resist. <strong style="color: var(--cpb-accent);">DV17</strong> REFLEXES+<strong>Athletics</strong> or become Blinded and Deafened for 1 round. Both radii shrink by 2m after each subsequent turn.</p>',
     isWeapon: true,
     weapons: [{
@@ -294,7 +294,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Toxic Grenade',
-    folder: 'Grenades', imgPath: `${A_AMMO}/Toxic Gas Grenade.png`, cost: 'EX',
+    folder: 'Grenades', imgPath: `${A_AMMO}/Toxic-Gas-Grenade.png`, cost: 'EX',
     description: '<p>Deals no damage, no SP ablation, cannot cause Critical Injuries.</p><p><strong>AOE:</strong> 4m inner / 10m outer sphere; targets in outer zone get <strong>+2</strong> to resist. <strong style="color: var(--cpb-accent);">DV15</strong> <strong>BODY</strong>+<strong>Endurance</strong> or take <strong>2d6</strong> HP; on a successful resist, take half (rounded down). Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind.</p>',
     isWeapon: true,
     weapons: [{
@@ -370,7 +370,7 @@ export const EQUIPMENT_CATALOGUE = [
 
   gear({
     name: 'Anti-Smog Breathing Mask',
-    folder: 'Survival & Exploration', imgPath: `${A_GEAR}/amti-smog breathing mask.png`, cost: 'PR',
+    folder: 'Survival & Exploration', imgPath: `${A_GEAR}/amti-smog-breathing-mask.png`, cost: 'PR',
     description: 'Immune to airborne toxins that require inhalation while worn.',
     effects: [reminder('Immune to inhaled toxins while worn')],
   }),

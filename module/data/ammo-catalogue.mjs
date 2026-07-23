@@ -15,7 +15,7 @@ function ammoItem({
   return {
     name,
     type: 'ammo',
-    img: img || `${ASSET_BASE}/Basic Rifle.png`,
+    img: img || `${ASSET_BASE}/Basic-Rifle.png`,
     _folder: 'Ammo',
     system: {
       quantity,
@@ -47,25 +47,25 @@ export const AMMO_CATALOGUE = [
   ammoItem({
     name: 'Basic Medium Pistol Ammo',
     ammoTypes: { mediumPistol: true },
-    img: `${ASSET_BASE}/Basic Pistol.png`,
+    img: `${ASSET_BASE}/Basic-Pistol.png`,
     note: '9mm',
   }),
   ammoItem({
     name: 'Basic Heavy Pistol Ammo',
     ammoTypes: { heavyPistol: true },
-    img: `${ASSET_BASE}/Basic Pistol.png`,
+    img: `${ASSET_BASE}/Basic-Pistol.png`,
     note: '.44',
   }),
   ammoItem({
     name: 'Basic Very Heavy Pistol Ammo',
     ammoTypes: { veryHeavyPistol: true },
-    img: `${ASSET_BASE}/Basic Pistol.png`,
+    img: `${ASSET_BASE}/Basic-Pistol.png`,
     note: '.50',
   }),
   ammoItem({
     name: 'Basic SMG Ammo',
     ammoTypes: { smg: true },
-    img: `${ASSET_BASE}/Basic Pistol.png`,
+    img: `${ASSET_BASE}/Basic-Pistol.png`,
     note: '9mm, fits SMG and Heavy SMG',
   }),
   ammoItem({
@@ -83,19 +83,19 @@ export const AMMO_CATALOGUE = [
   ammoItem({
     name: 'Basic Rifle Ammo',
     ammoTypes: { assault: true },
-    img: `${ASSET_BASE}/Basic Rifle.png`,
+    img: `${ASSET_BASE}/Basic-Rifle.png`,
     note: '5.56mm, fits Assault Rifle, Precision Rifle, and Machine Gun',
   }),
   ammoItem({
     name: 'Basic Sniper Ammo',
     ammoTypes: { sniper: true },
-    img: `${ASSET_BASE}/Basic Rifle.png`,
+    img: `${ASSET_BASE}/Basic-Rifle.png`,
     note: '.308',
   }),
   ammoItem({
     name: 'Basic Arrows',
     ammoTypes: { bow: true },
-    img: `${ASSET_BASE}/Basic arrows.png`,
+    img: `${ASSET_BASE}/Basic-arrows.png`,
     note: 'Standard field point',
   }),
   ammoItem({
@@ -109,7 +109,7 @@ export const AMMO_CATALOGUE = [
     name: 'Basic Rocket',
     ammoTypes: { rocket: true },
     quantity: 1,
-    img: `${ASSET_BASE}/Basic rockets.png`,
+    img: `${ASSET_BASE}/Basic-rockets.png`,
     note: 'Unguided warhead',
   }),
   ammoItem({

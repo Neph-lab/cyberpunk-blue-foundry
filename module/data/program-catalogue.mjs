@@ -157,7 +157,7 @@ export const PROGRAM_CATALOGUE = [
   }),
   prog({
     name: 'Sword',
-    img: `systems/cyberpunk-blue/assets/items/programs/Sword program.png`,
+    img: `systems/cyberpunk-blue/assets/items/programs/Sword-program.png`,
     cost: 'CO', category: 'attack', programType: 'antiprogram',
     atk: 2, def: 10, rez: 5, damageFormula: '2d6',
     netCombat: { attack: { mode: 'attack', damage: { enabled: true, formula: '2d6', bonusFormula: '1d6', vsType: 'blackice' } } },
@@ -328,7 +328,7 @@ export const PROGRAM_CATALOGUE = [
 
   prog({
     name: 'Armor',
-    img: `systems/cyberpunk-blue/assets/items/programs/Armor program.png`,
+    img: `systems/cyberpunk-blue/assets/items/programs/Armor-program.png`,
     cost: 'CO', category: 'defender',
     def: 12, rez: 5,
     netCombat: { defense: { mode: 'personnel', ablate: true } },
