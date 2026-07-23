@@ -179,7 +179,7 @@ export const DRUG_CATALOGUE = [
   // Complex primary (2d6 PSYCHE, crit immunity — handled narratively).
   // Addiction: RFLX −2 (permanent AE).
   drug({
-    name:      'Black Lace',
+    name:      'Black Lace', img: `systems/cyberpunk-blue/assets/items/drugs/black-lace.png`,
     cost:      'CO',
     duration:  '24 hours',
     primary: '<p>Lose <strong>2d6</strong> PSYCHE temporarily (regained if secondary is avoided). Ignore <strong>Seriously Wounded</strong>, Broken Arm/Leg/Ribs/Jaw, and Torn Muscle/Foreign Object Critical Injury effects; each turn you benefit from this immunity costs <strong>1d6</strong> HP.</p>',

@@ -621,6 +621,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Gripfoot',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/gripfoot.png`,
     folder: 'Cyberlegs',
     cyberwareType: 'cyberlegs', integration: 'extension', slotsUsed: 1,
     cost: 'PR', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
@@ -688,6 +689,7 @@ export const CYBERWARE_CATALOGUE = [
 
   cw({
     name: 'Contraceptive Implant', manufacturer: 'Mr Stud',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/contraceptive-implant.png`,
     folder: 'Internal Cyberware',
     cyberwareType: 'internal', integration: 'standalone',
     cost: 'CH', facilities: 'mall', installationCost: 'CO', installationDv: 10,

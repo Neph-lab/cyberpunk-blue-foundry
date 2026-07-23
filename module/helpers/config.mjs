@@ -466,6 +466,7 @@ const MANUFACTURERS = [
   'Spectra Underground',
   'Spunky Monkey',
   'Sternmeyer Ballistics',
+  'Sudo',
   'Tanson',
   'Techtronika',
   'The Moxes',
