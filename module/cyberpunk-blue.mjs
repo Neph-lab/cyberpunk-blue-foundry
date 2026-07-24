@@ -58,7 +58,7 @@ import { registerSocketHandlers, applyDamageWithPermission, updateActorWithPermi
 import { getPixelsPerMeter, getTokenCenter } from './helpers/targeting.mjs';
 import { syncRoleGrantedItemGroups } from './helpers/world-init.mjs';
 import { refreshAllRicochetLines, clearRicochetLine } from './helpers/ricochet-canvas.mjs';
-import { refreshTechChargeHighlights, clearTechChargeHighlights } from './helpers/tech-charge-canvas.mjs';
+import { INFRARED_ID, DetectionModeInfrared, syncActorInfrared } from './helpers/infrared.mjs';
 import { clearWeaponCharge } from './helpers/tech-charge.mjs';
 import {
   CyberBlueAccessPointBehavior,
@@ -234,6 +234,18 @@ Hooks.once('init', function () {
   CONFIG.RegionBehavior.dataModels['hazard']     = CyberBlueHazardRegionBehavior;
   CONFIG.RegionBehavior.typeLabels['visibility'] = 'CYBER_BLUE.RegionBehavior.Visibility.Label';
   CONFIG.RegionBehavior.typeLabels['hazard']     = 'CYBER_BLUE.RegionBehavior.Hazard.Label';
+
+  // ── Infrared sense (custom DetectionMode) ──────────────────────────────────
+  // Warm-body vision granted by cyberware/gear/mods; range comes from the token's
+  // detectionModes entry, kept in sync by syncActorInfrared. walls:false → the
+  // mode never hard-blocks; attenuation is handled in DetectionModeInfrared.
+  CONFIG.Canvas.detectionModes[INFRARED_ID] = new DetectionModeInfrared({
+    id:    INFRARED_ID,
+    label: 'CYBER_BLUE.Sense.Infrared',
+    type:  DetectionModeInfrared.DETECTION_TYPES.SIGHT,
+    walls: false,
+    angle: false,
+  });
 
   // v13+ namespaces — the bare Actors/Items globals are deprecated aliases.
   const { Actors: ActorsCollection, Items: ItemsCollection } = foundry.documents.collections;
@@ -1244,18 +1256,28 @@ Hooks.on('updateActor', (actor, change) => {
 });
 Hooks.on('updateToken', () => { try { refreshAllRicochetLines(); } catch { /* canvas not ready */ } });
 
-// ─── Tech Weapon charge canvas hooks ─────────────────────────────────────────
-// Highlight tokens within 15 m (thin-cover vision) while any TW is charged.
-Hooks.on('canvasReady', () => { try { refreshTechChargeHighlights(); } catch { } });
-Hooks.on('updateToken', () => { try { refreshTechChargeHighlights(); } catch { } });
-Hooks.on('updateItem', (item, change) => {
-  const flags = change?.flags?.['cyberpunk-blue'] ?? {};
-  const keys  = Object.keys(flags);
-  if (keys.some((k) => k.startsWith('charged-') || k.startsWith('-=charged'))) {
-    try { refreshTechChargeHighlights(); } catch { }
+// ─── Infrared sense sync ─────────────────────────────────────────────────────
+// Keep each actor's token detectionModes in step with its IR sources (cyberware/
+// gear/mods, plus a transient 30 m while a Tech Weapon is charged — this replaces
+// the old tech-charge "see through walls" highlight). Gated on the active GM so
+// only one client writes; syncActorInfrared itself is idempotent (diff-guarded).
+function syncInfraredFor(actor) {
+  if (game.user !== game.users.activeGM) return;
+  if (!actor?.prototypeToken) return;
+  try { syncActorInfrared(actor); } catch (err) { console.warn('cyberpunk-blue | IR sync failed', err); }
+}
+Hooks.on('updateItem', (item) => syncInfraredFor(item?.parent instanceof Actor ? item.parent : null));
+Hooks.on('createItem', (item) => syncInfraredFor(item?.parent instanceof Actor ? item.parent : null));
+Hooks.on('deleteItem', (item) => syncInfraredFor(item?.parent instanceof Actor ? item.parent : null));
+Hooks.on('createToken', (tokenDoc) => syncInfraredFor(tokenDoc?.actor ?? null));
+Hooks.on('canvasReady', () => {
+  if (game.user !== game.users.activeGM) return;
+  const actors = new Set();
+  for (const token of canvas.tokens?.placeables ?? []) {
+    if (token.actor) actors.add(token.actor);
   }
+  for (const actor of actors) syncInfraredFor(actor);
 });
-Hooks.on('deleteCombat', () => { try { clearTechChargeHighlights(); } catch { } });
 
 // ─── Netrunning: program actor lifecycle ─────────────────────────────────────
 // When a programExecutable's `running` flag changes while a netrunner is

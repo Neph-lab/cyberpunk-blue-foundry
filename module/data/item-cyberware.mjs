@@ -13,6 +13,10 @@ export default class CyberBlueCyberware extends CyberBlueItemBase {
     schema.isArmor = new fields.BooleanField({ initial: false });
     schema.isWeapon = new fields.BooleanField({ initial: false });
     schema.isComputer = new fields.BooleanField({ initial: false });
+    // Infrared sense: grants the owning actor's token an IR DetectionMode.
+    // irRange is in meters; longest range across all sources wins (see infrared.mjs).
+    schema.irEnabled = new fields.BooleanField({ initial: false });
+    schema.irRange = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
     schema.armor = new fields.SchemaField({
       maxSp: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
       currentSp: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),

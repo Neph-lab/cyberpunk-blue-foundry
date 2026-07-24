@@ -12,6 +12,10 @@ export default class CyberBlueGear extends CyberBlueItemBase {
     schema.isArmor = new fields.BooleanField({ initial: false });
     schema.isWeapon = new fields.BooleanField({ initial: false });
     schema.isComputer = new fields.BooleanField({ initial: false });
+    // Infrared sense: grants the owning actor's token an IR DetectionMode.
+    // irRange is in meters; longest range across all sources wins (see infrared.mjs).
+    schema.irEnabled = new fields.BooleanField({ initial: false });
+    schema.irRange = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
     // BODY minimum to wield without a mount (HVY weapons: MG Helix needs 11, Defenders 8)
     schema.minBodyReq = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
     schema.armor = new fields.SchemaField({

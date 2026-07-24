@@ -107,8 +107,13 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     if (context.isGear) {
       itemData.system.state = normalizeGearState(itemData.system);
     }
+    // Extra Features panel (Advanced tab): infrared + future misc features.
+    // Only item types carrying the IR schema fields; visible to players once the
+    // GM has enabled a feature, always visible to GMs/Assistants.
+    context.showMiscFeatures = (context.isCyberware || context.isGear || context.isMod)
+      && (canManageRestricted || !!itemData.system.irEnabled);
     context.showAdvancedTab = ((context.isCyberware || context.isGear)
-      && (itemData.system.isArmor || itemData.system.isWeapon || itemData.system.isComputer || canManageRestricted))
+      && (itemData.system.isArmor || itemData.system.isWeapon || itemData.system.isComputer || canManageRestricted || context.showMiscFeatures))
       || (context.isDrug && canManageRestricted);
     context.showWeaponSection = itemData.system.isWeapon || canManageRestricted;
     context.showCyberwareDetailsTab = context.isCyberware;
@@ -582,6 +587,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
 
     // If no weapon form fields were actually submitted, there's nothing more to do
     if (Object.keys(formWeaponFields).length === 0) {
+      this._preserveInfraredFields(data, formObj);
       return preserveBoosterBoosts(data, this.document);
     }
 
@@ -608,7 +614,23 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       }
     }
 
+    this._preserveInfraredFields(data, formObj);
     return preserveBoosterBoosts(data, this.document);
+  }
+
+  /**
+   * Preserve the IR "extra features" fields (irEnabled / irRange) when their
+   * inputs weren't in the submitted form — i.e. a player viewing a read-only
+   * panel, or a GM with IR disabled (range input hidden). Without this, a
+   * submit for some other field could reset them to their schema initial.
+   */
+  _preserveInfraredFields(data, formObj) {
+    const src = this.document._source?.system ?? {};
+    for (const key of ['irEnabled', 'irRange']) {
+      if (src[key] === undefined) continue;                 // field n/a for this item type
+      if (`system.${key}` in (formObj ?? {})) continue;      // user actually submitted it
+      data[`system.${key}`] = src[key];
+    }
   }
 
   async _onRender(context, options) {

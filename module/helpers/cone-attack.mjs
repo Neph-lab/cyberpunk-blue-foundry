@@ -434,7 +434,7 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: attacker }),
       content: `<div class="cyberpunk-blue chat-card">
-        <h3><i class="fas fa-eye-slash"></i> ${game.i18n.localize('CYBER_BLUE.Visibility.BlockedTitle')}</h3>
+        <h3><i class="fas fa-eye-slash"></i> ${game.i18n.localize('CYBER_BLUE.RegionBehavior.Visibility.BlockedTitle')}</h3>
         <p>${_expVis.notes.join(' ')}</p>
       </div>`,
     });
@@ -1075,7 +1075,7 @@ export async function resolveAfflictionExplosionAttack(attacker, item, weaponInd
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: attacker }),
       content: `<div class="cyberpunk-blue chat-card">
-        <h3><i class="fas fa-eye-slash"></i> ${game.i18n.localize('CYBER_BLUE.Visibility.BlockedTitle')}</h3>
+        <h3><i class="fas fa-eye-slash"></i> ${game.i18n.localize('CYBER_BLUE.RegionBehavior.Visibility.BlockedTitle')}</h3>
         <p>${_affExpVis.notes.join(' ')}</p>
       </div>`,
     });

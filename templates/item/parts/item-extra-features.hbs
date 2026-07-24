@@ -1,0 +1,25 @@
+{{!--
+  Extra Features panel (Advanced tab).
+  Miscellaneous item-granted capabilities the GM can toggle. Players see it only
+  once a feature is enabled, and read-only. Gated by context.showMiscFeatures.
+--}}
+{{#if showMiscFeatures}}
+  <section class="sheet-panel">
+    <div class="panel-header"><h2>{{localize "CYBER_BLUE.ExtraFeatures.Title"}}</h2></div>
+
+    <label class="compact-field">
+      <input type="checkbox" name="system.irEnabled" {{checked system.irEnabled}} {{#unless canManageRestricted}}disabled{{/unless}} />
+      <span>{{localize "CYBER_BLUE.ExtraFeatures.Infrared"}}</span>
+    </label>
+
+    {{#if system.irEnabled}}
+      <div class="item-meta-row">
+        <label class="compact-field">
+          <span>{{localize "CYBER_BLUE.ExtraFeatures.InfraredRange"}}</span>
+          <input type="number" name="system.irRange" value="{{system.irRange}}" data-dtype="Number" min="0" {{#unless canManageRestricted}}disabled{{/unless}} />
+        </label>
+      </div>
+      <p class="hint">{{localize "CYBER_BLUE.ExtraFeatures.InfraredHint"}}</p>
+    {{/if}}
+  </section>
+{{/if}}

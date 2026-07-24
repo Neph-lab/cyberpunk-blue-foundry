@@ -1233,8 +1233,18 @@
         "NotVisibleDark": "Target is not visible (darkness).",
         "NotVisibleObscured": "Target is not visible (obscured).",
         "PenaltyNote": "Visibility penalty: {n}",
+        "InfraredBypass": "Infrared: darkness/obscuration ignored (target in IR range).",
         "BlockedTitle": "Attack Blocked — Target Not Visible"
       }
+    },
+    "Sense": {
+      "Infrared": "Infrared"
+    },
+    "ExtraFeatures": {
+      "Title": "Extra Features",
+      "Infrared": "Infrared vision",
+      "InfraredRange": "IR range (m)",
+      "InfraredHint": "Grants the token an infrared sense: warm bodies (characters, NPCs, mooks) are seen through darkness and smoke, shown monochrome red. Each intervening wall or region halves the remaining range. The longest IR range among all worn/installed sources is used."
     },
     "VehicleCombat": {
       "DeclareManeuver": "Declare Maneuver",

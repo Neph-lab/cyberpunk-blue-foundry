@@ -91,6 +91,7 @@ function cw({
   psycheLoss = '', facilities, installationCost, installationDv,
   useCyberneticsComponent = false, multipleInstalls = false, paired = false,
   isArmor = false, maxSp = 0, isWeapon = false, weapons = [],
+  irEnabled = false, irRange = 0,
   description = '', img = '',
   effects = [], instructions = [],
 }) {
@@ -119,6 +120,8 @@ function cw({
       isArmor,
       isWeapon,
       isComputer: false,
+      irEnabled,
+      irRange,
       minBodyReq: 0,
       armor: { maxSp, currentSp: maxSp },
       weapons,
@@ -334,12 +337,13 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     psycheLoss: '1d6',
     paired: true,
+    // Infrared sense (50 m) — grants the token an IR DetectionMode. Darkness /
+    // obscuration attack penalties are ignored against any target within
+    // effective IR range (see infrared.mjs + visibility.mjs), replacing the old
+    // unconditional ignore-penalty flags.
+    irEnabled: true,
+    irRange: 50,
     description: 'PAIRED (must be installed in both eyes). Infrared and UV light are visible. Ignore darkness and fog penalties. Can distinguish warm flesh from cold metal (not through cover).',
-    // "Ignore darkness and fog penalties" → penalty-only bypass; NOT_VISIBLE still blocks.
-    effects: [
-      aeFlag('Ignore Darkness Attack Penalty',    'ignoreDarknessPenalty'),
-      aeFlag('Ignore Obscuration Attack Penalty', 'ignoreObscurationPenalty'),
-    ],
   }),
 
   // ── Cyberaudio ────────────────────────────────────────────────────────────

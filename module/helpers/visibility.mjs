@@ -15,6 +15,7 @@
  */
 
 import { getActiveAEFlag } from './effects.mjs';
+import { getActorInfraredRange, isWithinInfrared } from './infrared.mjs';
 
 export const VIS = Object.freeze({ NONE: 0, DIM: 1, DARK: 2, NOT_VISIBLE: 3 });
 
@@ -189,14 +190,23 @@ export function computeVisibilityPenalty(attacker, attackerToken, targetToken, t
   const darkRaw = darknessComponent(tPt);
   const obscRaw = obscurationComponent(aPt, tPt);
 
-  const darkEff = applyBypass(darkRaw, 'Darkness',    attacker);
-  const obscEff = applyBypass(obscRaw, 'Obscuration',  attacker);
+  // Infrared: when the target sits inside the attacker's effective IR range, the
+  // warm body is seen through darkness and obscuration alike — both components
+  // clear entirely (incl. NOT_VISIBLE), superseding the AE-flag bypass path.
+  const irRange   = getActorInfraredRange(attacker);
+  const irReaches = irRange > 0 && isWithinInfrared(aPt, tPt, irRange);
+
+  const darkEff = irReaches ? VIS.NONE : applyBypass(darkRaw, 'Darkness',    attacker);
+  const obscEff = irReaches ? VIS.NONE : applyBypass(obscRaw, 'Obscuration',  attacker);
 
   const notes = [];
+  if (irReaches && (darkRaw > VIS.NONE || obscRaw > VIS.NONE)) {
+    notes.push(game.i18n.localize('CYBER_BLUE.RegionBehavior.Visibility.InfraredBypass'));
+  }
 
   if (darkEff === VIS.NOT_VISIBLE || obscEff === VIS.NOT_VISIBLE) {
-    if (darkEff === VIS.NOT_VISIBLE) notes.push(game.i18n.localize('CYBER_BLUE.Visibility.NotVisibleDark'));
-    if (obscEff === VIS.NOT_VISIBLE) notes.push(game.i18n.localize('CYBER_BLUE.Visibility.NotVisibleObscured'));
+    if (darkEff === VIS.NOT_VISIBLE) notes.push(game.i18n.localize('CYBER_BLUE.RegionBehavior.Visibility.NotVisibleDark'));
+    if (obscEff === VIS.NOT_VISIBLE) notes.push(game.i18n.localize('CYBER_BLUE.RegionBehavior.Visibility.NotVisibleObscured'));
     return { blocked: true, penalty: 0, darkEff, obscEff, notes };
   }
 
@@ -206,7 +216,7 @@ export function computeVisibilityPenalty(attacker, attackerToken, targetToken, t
   const penalty = level === VIS.DIM ? dimPenalty : level === VIS.DARK ? darkPenalty : 0;
 
   if (penalty !== 0) {
-    notes.push(game.i18n.format('CYBER_BLUE.Visibility.PenaltyNote', { n: penalty }));
+    notes.push(game.i18n.format('CYBER_BLUE.RegionBehavior.Visibility.PenaltyNote', { n: penalty }));
   }
 
   return { blocked: false, penalty, darkEff, obscEff, notes };

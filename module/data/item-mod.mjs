@@ -39,6 +39,10 @@ export default class CyberBlueMod extends CyberBlueItemBase {
     schema.rangeImprovementBidirectional = new fields.BooleanField({ initial: false });
     // Thermal-imaging scopes (Hyakume short, Percipient long, Grandstand long).
     schema.thermalImaging = new fields.BooleanField({ initial: false });
+    // Infrared sense: when installed & active on a weapon, grants the wielder's
+    // token an IR DetectionMode. irRange in meters; longest source wins (infrared.mjs).
+    schema.irEnabled = new fields.BooleanField({ initial: false });
+    schema.irRange = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
     // Digital-link scopes (Hyakume + Handyman): connected user sacrifices Move
     // → +1 attacks with this weapon that turn.
     schema.digitalLink = new fields.BooleanField({ initial: false });

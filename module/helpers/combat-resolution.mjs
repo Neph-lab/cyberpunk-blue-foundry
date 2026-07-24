@@ -446,7 +446,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: attacker }),
       content: `<div class="cyberpunk-blue chat-card">
-        <h3><i class="fas fa-eye-slash"></i> ${game.i18n.localize('CYBER_BLUE.Visibility.BlockedTitle')}</h3>
+        <h3><i class="fas fa-eye-slash"></i> ${game.i18n.localize('CYBER_BLUE.RegionBehavior.Visibility.BlockedTitle')}</h3>
         <p>${_vis.notes.join(' ')}</p>
       </div>`,
     });
@@ -1285,7 +1285,7 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: attacker }),
       content: `<div class="cyberpunk-blue chat-card">
-        <h3><i class="fas fa-eye-slash"></i> ${game.i18n.localize('CYBER_BLUE.Visibility.BlockedTitle')}</h3>
+        <h3><i class="fas fa-eye-slash"></i> ${game.i18n.localize('CYBER_BLUE.RegionBehavior.Visibility.BlockedTitle')}</h3>
         <p>${_visAF.notes.join(' ')}</p>
       </div>`,
     });
