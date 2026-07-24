@@ -96,11 +96,12 @@ export async function buildSubnetScene(design, name) {
     const assets = TYPE_ASSETS[n.type] ?? TYPE_ASSETS.data;
     const c = centreOf(n);
     const variant = 1 + Math.floor(Math.random() * NODE_VIDEO_COUNT);
-    // Node hexagon video.
+    // Node hexagon video. Tile x/y is the CENTRE anchor (v14 default 0.5/0.5),
+    // so place it on the node centre — do NOT subtract half-size.
     tileData.push({
       texture: { src: `${ASSET_BASE}${assets.prefix}${variant}.webm` },
-      x: Math.round(c.x - HEX_SIZE),
-      y: Math.round(c.y - HEX_SIZE),
+      x: Math.round(c.x),
+      y: Math.round(c.y),
       width: TILE_SIZE,
       height: TILE_SIZE,
       elevation: 0,
@@ -112,10 +113,12 @@ export async function buildSubnetScene(design, name) {
     const be = bottomEdge(c.x, c.y);
     const lw = Math.round(be.length);
     const lh = Math.max(1, Math.round(lw * LABEL_RATIO));
+    // Centre anchor: x = bottom-edge midpoint; y = half a banner-height above the
+    // edge so the banner rests just inside the hex's flat bottom edge.
     tileData.push({
       texture: { src: `${ASSET_BASE}${assets.label}` },
-      x: Math.round(be.x - lw / 2),
-      y: Math.round(be.y - lh),
+      x: Math.round(be.x),
+      y: Math.round(be.y - lh / 2),
       width: lw,
       height: lh,
       elevation: 0,
