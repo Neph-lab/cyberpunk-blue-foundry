@@ -125,6 +125,46 @@ export function countInfraredBlockers(origin, dest) {
   return countWallBlockers(origin, dest) + countRegionBlockers(origin, dest);
 }
 
+/** Region behaviour types that make a Region fully opaque to IR (subnet nodes). */
+const IR_BLOCKING_REGION_BEHAVIORS = new Set(['accNode', 'netNode']);
+
+/** True when a Region carries a non-disabled subnet-node behaviour. */
+function regionBlocksInfrared(regionDoc) {
+  for (const beh of regionDoc.behaviors ?? []) {
+    if (beh.disabled) continue;
+    if (IR_BLOCKING_REGION_BEHAVIORS.has(beh.type)) return true;
+  }
+  return false;
+}
+
+/**
+ * True when the origin→dest segment touches any subnet-node Region — "NET: ACC Node"
+ * (accNode) or "NET: Network Node" (netNode). Such regions HARD-block IR entirely
+ * (IR does not work inside a subnet Architecture), overriding the range/attenuation
+ * model. Any interior overlap counts: observer inside, target inside, or passing
+ * through all block.
+ * @param {{x:number,y:number,elevation?:number}} origin
+ * @param {{x:number,y:number,elevation?:number}} dest
+ * @returns {boolean}
+ */
+export function isInfraredNetBlocked(origin, dest) {
+  const regions = canvas?.scene?.regions;
+  if (!regions?.size) return false;
+  const MOVE = CONST.REGION_MOVEMENT_SEGMENT_TYPES?.MOVE ?? 1;
+  const aPt = { x: origin.x, y: origin.y, elevation: origin.elevation ?? 0 };
+  const tPt = { x: dest.x, y: dest.y, elevation: dest.elevation ?? 0 };
+  for (const regionDoc of regions) {
+    if (!regionBlocksInfrared(regionDoc)) continue;
+    try {
+      const segs = regionDoc.segmentizeMovementPath([aPt, tPt], [{ x: 0, y: 0 }]);
+      if (segs.some((s) => s.type === MOVE)) return true; // any interior overlap → blocked
+    } catch {
+      // region not ready / missing polygon data
+    }
+  }
+  return false;
+}
+
 /**
  * Effective IR range after attenuation: each blocker halves the remaining range.
  * @returns {number} effective range in meters
@@ -140,6 +180,7 @@ export function infraredEffectiveRange(baseRangeMeters, origin, dest) {
  * @returns {boolean}
  */
 export function isWithinInfrared(origin, dest, baseRangeMeters) {
+  if (isInfraredNetBlocked(origin, dest)) return false; // subnet Architecture blocks IR
   const effMeters = infraredEffectiveRange(baseRangeMeters, origin, dest);
   if (effMeters <= 0) return false;
   const ppm = getPixelsPerMeter();
@@ -267,6 +308,7 @@ export class DetectionModeInfrared extends DetectionModeBase {
     if (mode.range <= 0) return false;
     const origin = { x: visionSource.x, y: visionSource.y };
     const point = test.point;
+    if (isInfraredNetBlocked(origin, point)) return false; // subnet Architecture blocks IR
     const effMeters = infraredEffectiveRange(mode.range, origin, point);
     if (effMeters <= 0) return false;
     const ppm = getPixelsPerMeter();
