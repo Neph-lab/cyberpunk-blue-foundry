@@ -136,7 +136,10 @@ export async function buildSubnetScene(design, name) {
     return {
       name: (n.label?.trim()) || `${n.type.toUpperCase()} — ${name}`,
       color: nodeRegionColor(n.type),
-      visibility: CONST.REGION_VISIBILITY.ALWAYS,
+      // Invisible during play (LAYER): the node video Tiles are the visual — a
+      // visible region tint would just muddy the art. Behaviors fire regardless
+      // of visibility; the GM still sees/edits these on the Regions layer.
+      visibility: CONST.REGION_VISIBILITY.LAYER,
       shapes: [{ type: 'polygon', points, hole: false }],
       behaviors: [behavior],
       flags: { 'cyberpunk-blue': { subnetNodeId: n.id } },
