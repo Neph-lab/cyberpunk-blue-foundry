@@ -4,6 +4,7 @@ import { CyberBlueActiveEffect } from './documents/active-effect.mjs';
 import { CyberBlueCombat } from './documents/combat.mjs';
 import { VehicleManeuverDialog } from './apps/vehicle-maneuver-dialog.mjs';
 import { VehicleHud } from './apps/vehicle-hud.mjs';
+import { CyberBlueSubnetBuilder } from './apps/subnet-builder.mjs';
 import { CyberBlueActorSheet } from './sheets/actor-sheet.mjs';
 import { CyberBlueItemSheet } from './sheets/item-sheet.mjs';
 import { CyberBlueMookSheet } from './sheets/mook-sheet.mjs';
@@ -1242,6 +1243,25 @@ Hooks.on('renderTokenHUD', (hud, html, _data) => {
   if (col) {
     col.appendChild(btn);
   }
+});
+
+// ─── Scenes directory: Subnet Builder launch button (GM only) ─────────────────
+// Injects a header button next to "Create Scene" that opens the Subnet Builder.
+Hooks.on('renderSceneDirectory', (_app, html, _data) => {
+  if (!game.user.isGM) return;
+  const root = html instanceof HTMLElement ? html : html?.[0];
+  if (!root) return;
+  if (root.querySelector('.cpb-subnet-builder-btn')) return;
+
+  const header = root.querySelector('.header-actions') || root.querySelector('.directory-header');
+  if (!header) return;
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.classList.add('cpb-subnet-builder-btn');
+  btn.innerHTML = `<i class="fa-solid fa-diagram-project"></i> ${game.i18n.localize('CYBER_BLUE.SubnetBuilder.OpenButton')}`;
+  btn.addEventListener('click', () => CyberBlueSubnetBuilder.open());
+  header.appendChild(btn);
 });
 
 // ─── Ricochet canvas line hooks ───────────────────────────────────────────────

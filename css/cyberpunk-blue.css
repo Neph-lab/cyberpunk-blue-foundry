@@ -1013,9 +1013,7 @@ section.chat-sidebar:not(.sidebar-popout),
   text-transform: uppercase;
 }
 /* #endregion */
-.cyberpunk-blue .notes-grid {
-  columns: 3 550px;
-}
+.cyberpunk-blue .notes-grid { columns: 3 550px; }
 .cyberpunk-blue .note-panel {
   break-inside: avoid;
   --c: var(--cpb-cut-sm);
@@ -1129,6 +1127,22 @@ CHARACTER SHEET SPECIFIC
   padding: 0;
   text-align: left;
 }
+/* #region Critical injury UI */
+.cyberpunk-blue .remove-critical-injury,
+.cyberpunk-blue .health-effect-delete {
+  --btn-tint: #8b0000;
+  background: rgba(139, 0, 0, 0.32);
+  color: #ff4444;
+  border: 0;
+  border-radius: 0;
+}
+.cyberpunk-blue .remove-critical-injury::before,
+.cyberpunk-blue .health-effect-delete::before { background: rgba(0, 0, 0, 0.5); }
+.cyberpunk-blue .remove-critical-injury:hover,
+.cyberpunk-blue .health-effect-delete:hover { background: #8b0000; color: #fff; }
+.cyberpunk-blue .remove-critical-injury:hover::before,
+.cyberpunk-blue .health-effect-delete:hover::before { background: #8b0000; }
+/* #endregion */
 
 /* #region The open button carries the icon + label and fills the cell. */
 .cyberpunk-blue .effect-open {
@@ -1213,9 +1227,7 @@ CHARACTER SHEET SPECIFIC
 /* #endregion */
 
 /* #region Same-named effects collapse under an expandable header. */
-.cyberpunk-blue .effect-group {
-  grid-column: 1 / -1;
-}
+.cyberpunk-blue .effect-group { grid-column: 1 / -1; }
 .cyberpunk-blue .effect-group > summary {
   cursor: pointer;
   list-style: none;
@@ -1256,13 +1268,13 @@ CHARACTER SHEET SPECIFIC
   padding: 0.15rem 0 0.15rem 0.85rem;
 }
 /* #endregion */
-
-/* #endregion */
 .cyberpunk-blue .health-value {
   color: var(--cpb-text);
   font-size: 1.4rem;
   font-weight: 700;
 }
+
+/* #endregion */
 
 /* ==================================================
    SHEET COMPONENTS: SKILLS & ABILITIES
@@ -1895,6 +1907,7 @@ CHARACTER SHEET SPECIFIC
 }
 .cyberpunk-blue .inventory-row input[type=number] { width: 100%; }
 /* #endregion */
+/* #endregion */
 
 /* =================================================
     ITEM SHEETS SPECIFIC
@@ -2210,33 +2223,21 @@ CHARACTER SHEET SPECIFIC
 
 @media (max-width: 900px) {
   .cyberpunk-blue .notes-grid,
-  .cyberpunk-blue .header-stats {
-    grid-template-columns: 1fr;
-  }
-  .cyberpunk-blue .header-stats-row {
-    flex-wrap: wrap;
-  }
+  .cyberpunk-blue .header-stats { grid-template-columns: 1fr; }
+  .cyberpunk-blue .header-stats-row { flex-wrap: wrap; }
   .cyberpunk-blue .skill-row,
   .cyberpunk-blue .skill-table-container .skill-row,
   .cyberpunk-blue .component-row,
-  .cyberpunk-blue .embedded-row {
-    grid-template-columns: 1fr;
-  }
+  .cyberpunk-blue .embedded-row { grid-template-columns: 1fr; }
 
   .cyberpunk-blue .ability-header,
   .cyberpunk-blue .ability-header.single-rank,
-  .cyberpunk-blue .cyberware-header {
-    grid-template-columns: 1fr;
-  }
+  .cyberpunk-blue .cyberware-header { grid-template-columns: 1fr; }
 
   .cyberpunk-blue .inventory-row,
   .cyberpunk-blue .weapon-change-row,
-  .cyberpunk-blue .mod-effect-row {
-    grid-template-columns: 1fr;
-  }
-  .cyberpunk-blue .role-reference-row {
-    grid-template-columns: 1fr;
-  }
+  .cyberpunk-blue .mod-effect-row { grid-template-columns: 1fr; }
+  .cyberpunk-blue .role-reference-row { grid-template-columns: 1fr; }
 }
 
 /* #region Role Sheet Section: Future Possibilities folding section */
@@ -2658,7 +2659,6 @@ CHARACTER SHEET SPECIFIC
   align-items: center;
   padding: 4px 0;
 }
-
 
 /* Executable item sheet — linked program actor */
 .cyberpunk-blue .gm-only-panel {
@@ -3137,8 +3137,6 @@ CHARACTER SHEET SPECIFIC
 }
 .cyberpunk-blue .mod-card.is-invalid::before { background: var(--cpb-panel-deep); }
 
-/* ── Ammo pill ────────────────────────────────────────────── */
-
 .cyberpunk-blue .role-overview-feature > * { position: relative; z-index: 1; }
 
 /* ── Netrunner component box ──────────────────────────────── */
@@ -3315,24 +3313,6 @@ CHARACTER SHEET SPECIFIC
 /* #endregion */
 /* #endregion */
 
-/* ── Critical injury UI ───────────────────────────────────── */
-.cyberpunk-blue .remove-critical-injury,
-.cyberpunk-blue .health-effect-delete {
-  --btn-tint: #8b0000;
-  background: rgba(139, 0, 0, 0.32);
-  color: #ff4444;
-  border: 0;
-  border-radius: 0;
-}
-.cyberpunk-blue .remove-critical-injury::before,
-.cyberpunk-blue .health-effect-delete::before { background: rgba(0, 0, 0, 0.5); }
-.cyberpunk-blue .remove-critical-injury:hover,
-.cyberpunk-blue .health-effect-delete:hover {
-  background: #8b0000;
-  color: #fff;
-}
-.cyberpunk-blue .remove-critical-injury:hover::before,
-.cyberpunk-blue .health-effect-delete:hover::before { background: #8b0000; }
 
 /* #region Combat tracker panel ─────────────────────────────────── */
 .cyber-blue-combat-panel {
@@ -3440,9 +3420,7 @@ CHARACTER SHEET SPECIFIC
 
 /* ── Misc border-radius cleanup ───────────────────────────── */
 .cyberpunk-blue .weapon-subfields,
-.cyberpunk-blue .weapon-damage-type-group {
-  border-radius: 0;
-}
+.cyberpunk-blue .weapon-damage-type-group { border-radius: 0; }
 .cyberpunk-blue .future-possibilities {
   border-radius: 0;
   border: 1px solid var(--cpb-border);
@@ -4281,9 +4259,7 @@ CHARACTER SHEET SPECIFIC
   flex-direction: column;
   gap: 0.6rem;
 }
-.net-combat-section {
-  padding: 0.5rem 0.6rem;
-}
+.net-combat-section { padding: 0.5rem 0.6rem; }
 .net-combat-section > h3 {
   margin: 0 0 0.4rem;
   font-size: 0.95rem;
@@ -4361,9 +4337,7 @@ CHARACTER SHEET SPECIFIC
 .net-booster-row select { flex: 1; }
 .net-booster-row input[type="number"] { width: 3.5rem; }
 .net-booster-add,
-.net-booster-remove {
-  cursor: pointer;
-}
+.net-booster-remove { cursor: pointer; }
 /* Defense notes block in chat */
 .cyberpunk-blue.chat-card .net-defense-notes {
   margin-top: 0.3rem;
@@ -4384,4 +4358,201 @@ CHARACTER SHEET SPECIFIC
   object-fit: contain;
 }
 .net-support-name { flex: 1; }
+
+/* #region Subnet Builder ────────────────────────────────────────────────────── */
+.cyberpunk-blue.subnet-builder .cpb-subnet-builder,
+.cyberpunk-blue .cpb-subnet-builder {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 0.5rem;
+}
+.cyberpunk-blue .cpb-sb-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.cyberpunk-blue .cpb-sb-title {
+  font-size: var(--font-size-13, 13px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #cdd3da;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.cyberpunk-blue .cpb-sb-spacer { flex: 1 1 auto; }
+.cyberpunk-blue .cpb-sb-toolbar button {
+  flex: 0 0 auto;
+  width: auto;
+  line-height: 1.4;
+}
+.cyberpunk-blue .cpb-sb-save {
+  background: rgba(56, 214, 107, 0.18);
+  border-color: rgba(56, 214, 107, 0.6);
+}
+.cyberpunk-blue .cpb-sb-main {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 0.5rem;
+}
+.cyberpunk-blue .cpb-sb-canvas-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  background: #05070a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.cyberpunk-blue .cpb-sb-canvas-wrap canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+  outline: none;
+}
+.cyberpunk-blue .cpb-sb-status {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.4rem;
+  font-size: var(--font-size-11, 11px);
+  color: #7f8c8d;
+  pointer-events: none;
+}
+.cyberpunk-blue .cpb-sb-rail {
+  flex: 0 0 260px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.5rem;
+  overflow-y: auto;
+}
+.cyberpunk-blue .cpb-sb-rail-title {
+  margin: 0 0 0.5rem;
+  font-size: var(--font-size-13, 13px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 0.25rem;
+}
+.cyberpunk-blue .cpb-sb-node-list {
+  list-style: none;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cyberpunk-blue .cpb-sb-node-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.4rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.cyberpunk-blue .cpb-sb-node-row:hover { background: rgba(255, 255, 255, 0.06); }
+.cyberpunk-blue .cpb-sb-node-row.selected {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+.cyberpunk-blue .cpb-sb-swatch {
+  flex: 0 0 12px;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+}
+.cyberpunk-blue .cpb-sb-node-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-12, 12px);
+}
+.cyberpunk-blue .cpb-sb-node-type {
+  flex: 0 0 auto;
+  font-size: var(--font-size-10, 10px);
+  color: #7f8c8d;
+}
+.cyberpunk-blue .cpb-sb-props {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 0.5rem;
+}
+.cyberpunk-blue .cpb-sb-props-title {
+  margin: 0 0 0.4rem;
+  font-size: var(--font-size-13, 13px);
+}
+.cyberpunk-blue .cpb-sb-props-hint,
+.cyberpunk-blue .cpb-sb-hint {
+  color: #7f8c8d;
+  font-size: var(--font-size-11, 11px);
+  font-style: italic;
+  margin: 0.25rem 0 0;
+}
+.cyberpunk-blue .cpb-sb-prop-field {
+  margin-bottom: 0.5rem;
+}
+.cyberpunk-blue .cpb-sb-prop-field > label {
+  display: block;
+  font-size: var(--font-size-11, 11px);
+  color: #cdd3da;
+  margin-bottom: 0.2rem;
+}
+.cyberpunk-blue .cpb-sb-prop-field input,
+.cyberpunk-blue .cpb-sb-prop-field select { width: 100%; }
+.cyberpunk-blue .cpb-sb-prog-list {
+  list-style: none;
+  margin: 0.25rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cyberpunk-blue .cpb-sb-prog-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.2rem 0.3rem;
+}
+.cyberpunk-blue .cpb-sb-prog-uuid {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-10, 10px);
+  font-family: monospace;
+}
+.cyberpunk-blue .cpb-sb-prog-remove {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 0 0.3rem;
+  line-height: 1.2;
+}
+.cyberpunk-blue .cpb-sb-prog-add {
+  display: flex;
+  gap: 0.3rem;
+}
+.cyberpunk-blue .cpb-sb-prog-add input { flex: 1 1 auto; }
+.cyberpunk-blue .cpb-sb-prog-add button { flex: 0 0 auto; width: auto; }
+.cyberpunk-blue .cpb-sb-delete {
+  width: 100%;
+  margin-top: 0.5rem;
+  background: rgba(192, 57, 43, 0.18);
+  border-color: rgba(192, 57, 43, 0.6);
+}
+/* Scenes-directory launch button */
+.cpb-subnet-builder-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+/* #endregion */
 /* #endregion */
