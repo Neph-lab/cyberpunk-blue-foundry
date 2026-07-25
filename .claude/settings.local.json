@@ -9,6 +9,8 @@
       "Bash(git commit -m 'fix: use correct bodyweight-suit.png image for Bodyweight Suit *)",
       "mcp__Claude_in_Chrome__tabs_context_mcp",
       "mcp__Claude_in_Chrome__navigate",
+      "mcp__claude-in-chrome__navigate",
+      "mcp__claude-in-chrome__tabs_context_mcp",
       "mcp__Claude_in_Chrome__read_page",
       "mcp__Claude_in_Chrome__browser_batch",
       "mcp__Claude_in_Chrome__read_console_messages",
@@ -190,7 +192,8 @@
       "Bash(node --check module/data/weapon-schema.mjs)",
       "Bash(git --no-pager diff -- module/data/weapon-schema.mjs module/data/weapon-catalogue.mjs module/data/cyberware-catalogue.mjs module/helpers/combat.mjs module/cyberpunk-blue.mjs)",
       "Bash(node --input-type=module -e \"import\\('./module/data/cyberware-catalogue.mjs'\\).then\\(\\(\\)=>console.log\\('cyberware OK'\\)\\); import\\('./module/data/equipment-catalogue.mjs'\\).then\\(\\(\\)=>console.log\\('equipment OK'\\)\\)\")",
-      "Bash(node --check module/helpers/config.mjs)"
+      "Bash(node --check module/helpers/config.mjs)",
+      "Read(//d//**)"
     ]
   }
 }
