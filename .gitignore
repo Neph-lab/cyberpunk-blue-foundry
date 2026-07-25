@@ -12,3 +12,4 @@ packs/*/LOG.old
 packs/*/MANIFEST-*
 packs/*/*.ldb
 packs/*/*.sst
+.claude/settings.local.json
