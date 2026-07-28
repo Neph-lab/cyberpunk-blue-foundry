@@ -343,6 +343,11 @@ export const EQUIPMENT_CATALOGUE = [
     description: 'Required to experience a Braindance recording.',
   }),
   gear({
+    name: 'IR-Flashlight', manufacturer: 'EBM',
+    folder: 'Clandestine Gear', imgPath: `${A_GEAR}/EBM-IR-Flashlight.png`, cost: 'PR',
+    description: 'Turned on or off with little effort. While on it casts either a narrow column of bright light or a wide cone of dim light — entirely in the infrared, and so invisible to anyone without the ability to see that part of the spectrum.',
+  }),
+  gear({
     name: 'The Snitcher', manufacturer: 'Fourth Wall',
     folder: 'Media Gear', imgPath: `${A_GEAR}/BD-TheSnitcher.png`, cost: 'CO',
     description: "Braindance. Historical police drama set in 1992. Three hardened detectives are hunting a group of robbers — one of whom keeps leaving clues for them. Meanwhile, the robbers always seem to have insider info on the cops…",

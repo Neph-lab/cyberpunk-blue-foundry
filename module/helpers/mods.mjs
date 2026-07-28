@@ -142,7 +142,12 @@ export function getInstalledWeaponMods(item, weaponIndex, actor) {
         modDoc.system.installedOnId === item.id &&
         Number(modDoc.system.targetWeaponIndex) === weaponIndex,
     )
-    .map((modDoc) => Object.assign(modDoc.system.toObject?.() ?? { ...modDoc.system }, { _docId: modDoc.id }));
+    .map((modDoc) => Object.assign(
+      modDoc.system.toObject?.() ?? { ...modDoc.system },
+      // `_active` reflects the activation toggle (see toggleModActivation); the
+      // `active*` effect fields only apply when this is true.
+      { _docId: modDoc.id, _active: !!modDoc.getFlag?.('cyberpunk-blue', 'modActive') },
+    ));
 }
 
 export function getEffectiveItemWeapons(itemLike, actor = null) {
@@ -171,6 +176,54 @@ export function getEffectiveItemWeapons(itemLike, actor = null) {
         applyWeaponChange(weapon, change);
       }
     }
+  }
+
+  // ── Large Fuel Tank: double the magazine of each weapon entry ─────────────
+  const modSystems = [
+    ...(itemLike?.system?.embeddedMods ?? []),
+    ...((actor && itemLike?.id)
+      ? (actor.items ?? []).filter(
+        (d) => d.type === 'mod' && d.system.modType === 'weaponMod'
+          && d.system.installedOnId === itemLike.id).map((d) => d.system)
+      : []),
+  ];
+  if (modSystems.some((m) => m.doubleMagazine)) {
+    for (const w of weapons) {
+      if ((w.magazine ?? 0) > 0) w.magazine *= 2;
+    }
+  }
+
+  // ── Rostović Skachok injection ───────────────────────────────────────────
+  // Adds a stun-baton melee mode to the host weapon. Pistols and SMGs become a
+  // Medium Melee Weapon (2d6, RoF 2, 1 hand); anything else a Heavy Melee Weapon
+  // (3d6, RoF 1, 2 hands). Both ignore ½ SP and are non-lethal. Usable only while
+  // the host weapon is charged (a Tech Weapon requirement of the mod).
+  if (modSystems.some((m) => m.skachok)) {
+    const baseType = weapons[0]?.type ?? '';
+    const isLight = ['mediumPistol', 'heavyPistol', 'veryHeavyPistol', 'smg', 'heavySmg'].includes(baseType);
+    weapons.push({
+      type: isLight ? 'mediumMelee' : 'heavyMelee', skill: 'meleeWeapons',
+      damage: isLight ? '2d6' : '3d6',
+      autofireDamage: '', rateOfFire: isLight ? 2 : 1, magazine: 0, ammoCurrent: 0, shots: 0,
+      hands: isLight ? 1 : 2, concealable: false, damageType: '', autofireMultiplier: 1,
+      autofireRangeTable: Array(8).fill(0), coneSpread: 0, coneAngle: 45,
+      coneHalfDamageDistance: 0, rangeTable: [15, 20, 0, 0, 0, 0, 0, 0], ammoTypeUuid: '',
+      isPowerWeapon: false, isSmartWeapon: false, isTechWeapon: false,
+      isExcellentQuality: false, chargeType: '', cs3: false, cs3FallbackDamage: '',
+      chargeKeepsRof: false, silenceBuiltIn: false, silenceBuiltInDV: 0,
+      jamOnRoll: 0, jamFiresFirst: false, shellDvModifier: 0, targetVitalsPenalty: 8,
+      payloadDmgBonus: 0, targetedShotDamageDice: '', armorPiercing: false,
+      scatter: false, shatteredProjectiles: false, shortAmmoFallbackDamage: '',
+      critOnBodyReq: 0, critSlicing: false, critBlunt: false, critCrushing: false,
+      critStun: false, vicious: false, heavyRecoil: false, shockwave: false,
+      burningEdge: false, chargedAttackBonus: 0,
+      halveSP: true, nonLethal: true,
+      autoFireOn10: false, doubleLock: false, electricCharge: false,
+      electricChargeMax: 0, chompAmmo: false,
+      afflictionPrimary: 'body', afflictionSkill: '', afflictionDv: 13,
+      afflictionEffectId: '',
+      _isSkachok: true,
+    });
   }
 
   // ── Bayonet injection ────────────────────────────────────────────────────

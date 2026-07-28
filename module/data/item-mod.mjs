@@ -70,6 +70,43 @@ export default class CyberBlueMod extends CyberBlueItemBase {
     schema.narrowConeShell = new fields.BooleanField({ initial: false });
     schema.coneAttackBonus = new fields.NumberField({ ...requiredInteger, initial: 0 });
     schema.coneDamageBonusDice = new fields.StringField({ required: true, blank: true, initial: '' });
+
+    // ── Activation framework ─────────────────────────────────────────────────
+    // `activatable` renders a toggle button on the weapon row (next to Charge).
+    // Activation state lives on the mod Item as flag cyberpunk-blue.modActive;
+    // getInstalledWeaponMods surfaces it as `_active`. The `active*` fields below
+    // only apply while the mod is toggled on.
+    schema.activatable = new fields.BooleanField({ initial: false });
+    // Font Awesome icon name for the toggle button (without the "fa-" prefix).
+    schema.activationIcon = new fields.StringField({ required: true, blank: true, initial: 'power-off' });
+    // Charge-style restriction: can't activate after moving, and MOVE drops to 0
+    // for the turn (Militech CS-63 Bipod).
+    schema.activationBlocksMove = new fields.BooleanField({ initial: false });
+    // Name of an ActiveEffect on the mod Item copied to the actor while active
+    // (Vibro-Stun's −1 to Melee checks).
+    schema.activationSelfEffect = new fields.StringField({ required: true, blank: true, initial: '' });
+
+    // ── While-active effects ─────────────────────────────────────────────────
+    // Extra damage dice added to the attack (Budget Arms Riptide: '1d6').
+    schema.activeDamageDice = new fields.StringField({ required: true, blank: true, initial: '' });
+    // Ablate 2 SP instead of 1 while active (Riptide).
+    schema.activeAblateExtra = new fields.BooleanField({ initial: false });
+    // Flat attack bonus while active (CS-63 Bipod: +1).
+    schema.activeAttackBonus = new fields.NumberField({ ...requiredInteger, initial: 0 });
+    // Arasaka Thermal Advantage: on ≥2 HP damage, apply Burning for 1d6 rounds.
+    schema.activeThermalBurn = new fields.BooleanField({ initial: false });
+    // Militech Vibro-Stun: attack die 10 + HP damage > 0 → target Stunned.
+    schema.activeVibroStun = new fields.BooleanField({ initial: false });
+
+    // Petrochem Large Fuel Tank: doubles the weapon's magazine (flamethrowers).
+    schema.doubleMagazine = new fields.BooleanField({ initial: false });
+    // Rostović Skachok: injects a non-lethal stun-baton melee mode (Tech Weapons).
+    schema.skachok = new fields.BooleanField({ initial: false });
+    // Kendachi Permanent Edge: roll 3d6 for a Critical Injury and pick any two.
+    schema.critTriplePick = new fields.BooleanField({ initial: false });
+    // Rostović Smart-targeting: after a hit, grant a 1-turn +1 attack AE that
+    // refreshes on each subsequent hit (scoped to the weapon's skill).
+    schema.postHitAttackBonusAE = new fields.BooleanField({ initial: false });
     schema.compressRof = new fields.BooleanField({ initial: false });
     schema.stealthAdvantage = new fields.BooleanField({ initial: false });
 

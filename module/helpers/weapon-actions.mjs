@@ -229,6 +229,87 @@ export async function toggleWeaponCharge(actor, item, weaponIndex) {
 }
 
 /**
+ * Toggle an activatable weapon mod on or off (Thermal Advantage, Riptide,
+ * Bipod, Vibro-Stun). Generic counterpart to toggleWeaponCharge: the state lives
+ * on the mod Item as flag `cyberpunk-blue.modActive`, and the mod's `active*`
+ * fields only take effect while it is set.
+ *
+ * Mods with `activationBlocksMove` follow the Charge restriction — they cannot be
+ * activated after moving this turn, and drop the actor's MOVE to 0 while active.
+ * Mods with `activationSelfEffect` copy that named ActiveEffect from the mod onto
+ * the actor while active.
+ *
+ * @param {Actor}  actor
+ * @param {string} modDocId  Id of the installed mod Item.
+ */
+export async function toggleModActivation(actor, modDocId) {
+  const modDoc = actor?.items?.get(modDocId);
+  if (!modDoc || modDoc.type !== 'mod' || !modDoc.system.activatable) return;
+
+  const isActive = !!modDoc.getFlag('cyberpunk-blue', 'modActive');
+
+  if (isActive) {
+    // ── Deactivate: drop the self-AE and the MOVE lock ──────────────────────
+    const aeId = modDoc.getFlag('cyberpunk-blue', 'modActiveAeId');
+    if (aeId) {
+      const ae = actor.effects?.get(aeId);
+      if (ae) { try { await ae.delete(); } catch { /* already gone */ } }
+      try { await modDoc.unsetFlag('cyberpunk-blue', 'modActiveAeId'); } catch { }
+    }
+    const moveAeId = modDoc.getFlag('cyberpunk-blue', 'modActiveMoveAeId');
+    if (moveAeId) {
+      const ae = actor.effects?.get(moveAeId);
+      if (ae) { try { await ae.delete(); } catch { /* already gone */ } }
+      try { await modDoc.unsetFlag('cyberpunk-blue', 'modActiveMoveAeId'); } catch { }
+    }
+    await modDoc.setFlag('cyberpunk-blue', 'modActive', false);
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-power-off"></i> ${game.i18n.format('CYBER_BLUE.Combat.ModDeactivated', { mod: modDoc.name })}</p></div>`,
+    });
+    return;
+  }
+
+  // ── Activate ─────────────────────────────────────────────────────────────
+  if (modDoc.system.activationBlocksMove) {
+    const combatant = game.combat?.started
+      ? game.combat.combatants.find((c) => c.actorId === actor.id)
+      : null;
+    const turnState = combatant ? getTurnState(combatant) : null;
+    if ((turnState?.movementUsed ?? 0) > 0) {
+      ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.ModBlockedByMovement'));
+      return;
+    }
+    const [moveAe] = await actor.createEmbeddedDocuments('ActiveEffect', [{
+      name: game.i18n.format('CYBER_BLUE.Combat.ModDeployedAELabel', { mod: modDoc.name }),
+      icon: 'icons/svg/anchor.svg',
+      changes: [{ key: 'system.stats.move.value', mode: 5, value: '0' }],
+      flags: { 'cyberpunk-blue': { modActivation: true, modDocId } },
+    }]);
+    await modDoc.setFlag('cyberpunk-blue', 'modActiveMoveAeId', moveAe.id);
+  }
+
+  const selfEffectName = modDoc.system.activationSelfEffect;
+  if (selfEffectName) {
+    const source = modDoc.effects.find((e) => e.name === selfEffectName);
+    if (source) {
+      const aeData = source.toObject();
+      aeData.disabled = false;
+      delete aeData._id;
+      foundry.utils.setProperty(aeData, 'flags.cyberpunk-blue.modActivation', true);
+      const [ae] = await actor.createEmbeddedDocuments('ActiveEffect', [aeData]);
+      await modDoc.setFlag('cyberpunk-blue', 'modActiveAeId', ae.id);
+    }
+  }
+
+  await modDoc.setFlag('cyberpunk-blue', 'modActive', true);
+  ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-power-off"></i> ${game.i18n.format('CYBER_BLUE.Combat.ModActivated', { mod: modDoc.name })}</p></div>`,
+  });
+}
+
+/**
  * Toggle the Power Weapon ricochet point.
  * If a point is already set: clear it.
  * Otherwise: enter placement mode and wait for a canvas click.

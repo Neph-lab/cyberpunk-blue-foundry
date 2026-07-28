@@ -280,6 +280,11 @@
                           <i class="fas fa-bolt-lightning"></i>
                         </button>
                       {{/if}}
+                      {{#each weapon.activatableMods}}
+                        <button type="button" class="weapon-charge-btn{{#if this.active}} charge-active{{/if}}" data-action="mod-activate" data-mod-doc-id="{{this.docId}}" title="{{this.name}}">
+                          <i class="fas fa-{{this.icon}}"></i>
+                        </button>
+                      {{/each}}
                       {{#if weapon.hasElectricCharge}}
                         <span class="electric-charge-indicator{{#if (eq weapon.electricChargeUses 0)}} depleted{{/if}}" title="{{localize 'CYBER_BLUE.Combat.ElectricChargeTitle'}}">
                           <i class="fas fa-battery-{{#if (eq weapon.electricChargeUses 0)}}empty{{else}}full{{/if}}"></i> {{weapon.electricChargeUses}}/{{weapon.electricChargeMax}}

@@ -9,7 +9,7 @@ import {
 } from './combat-tracker.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
 import { resolveAfflictionAttack, resolveAppliedAffliction } from './affliction-attack.mjs';
-import { applyDamageWithPermission, rollCriticalInjuryWithPermission, rollVehicleCriticalWithPermission, deleteActorItemWithPermission, ablateArmorExtraWithPermission, applyForcedCriticalInjuryWithPermission, applyDamageToSubsystemWithPermission, toggleStatusEffectWithPermission } from './socket.mjs';
+import { applyDamageWithPermission, rollCriticalInjuryWithPermission, rollVehicleCriticalWithPermission, deleteActorItemWithPermission, ablateArmorExtraWithPermission, applyForcedCriticalInjuryWithPermission, applyDamageToSubsystemWithPermission, toggleStatusEffectWithPermission, createActiveEffectWithPermission } from './socket.mjs';
 import { getVitalAreaSubsystem } from './vehicle-damage.mjs';
 import { clearWeaponCharge, countWallsBetweenTokens } from './tech-charge.mjs';
 import { getActiveAEFlag } from './effects.mjs';
@@ -444,6 +444,9 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   attackModifier += calibrationBonus;
   // Charged Attack Bonus (Sanroo Hello Cutie+ Stabilizers: +2 while charged)
   if (isCharged) attackModifier += (weapon.chargedAttackBonus ?? 0);
+  // Active mods granting a flat attack bonus (Militech CS-63 Bipod: +1 deployed).
+  attackModifier += installedMods.reduce(
+    (sum, m) => sum + ((m.activatable && m._active) ? (m.activeAttackBonus ?? 0) : 0), 0);
   // Ricochet penalty: -4 normally, -3 with Directed Recoil mod
   if (isRicochet) {
     const hasDirectedRecoil = installedMods.some((m) => m.directedRecoil);
@@ -755,12 +758,21 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
 
   // CS3 damage formula selection: use cs3FallbackDamage when ammo was short.
   const cs3WasShortAmmo = isCs3 && useFallbackAmmoWasCs3;
-  const baseDamageFormula = cs3WasShortAmmo
+  const baseDamageFormulaPreMods = cs3WasShortAmmo
     ? (weapon.cs3FallbackDamage || weapon.damage || definition.damage || '1d6')
     : useFallbackDamage
       ? (weapon.shortAmmoFallbackDamage ?? weapon.damage ?? definition.damage ?? '1d6')
       : (weapon.damage ?? definition.damage ?? '1d6');
+  // Active mods that add damage dice (Budget Arms Riptide: +1d6 while running).
+  const activeDamageDice = installedMods
+    .filter((m) => m.activatable && m._active && m.activeDamageDice)
+    .map((m) => m.activeDamageDice);
+  const baseDamageFormula = [baseDamageFormulaPreMods, ...activeDamageDice].join(' + ');
   const damageRoll = await new Roll(baseDamageFormula).evaluate();
+  // Riptide also ablates 2 SP instead of 1 while active.
+  if (installedMods.some((m) => m.activatable && m._active && m.activeAblateExtra)) {
+    weapon.armorPiercing = true;
+  }
 
   // Charged: effective SP is halved (ignore ½ SP).
   const rawSP = targetSP !== null ? targetSP : null;
@@ -1054,12 +1066,78 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
         }
       }
       if (isCritical) {
-        if (targetActor.type === 'vehicle') {
+        // Kendachi Permanent Edge: instead of the normal 2d6 table roll, post 3d6
+        // and let the GM pick any two. Critical bonus damage still applied above.
+        const hasTriplePick = installedMods.some((m) => m.critTriplePick);
+        if (hasTriplePick && targetActor.type !== 'vehicle') {
+          const tpRoll = await new Roll('3d6').evaluate();
+          const dice = tpRoll.dice[0]?.results?.map((r) => r.result) ?? [];
+          await tpRoll.toMessage({
+            speaker: ChatMessage.getSpeaker({ actor: attacker }),
+            flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.PermanentEdge')}</h3><p>${game.i18n.format('CYBER_BLUE.Combat.PermanentEdgePick', { dice: dice.join(', '), table: tableType })}</p></div>`,
+            rollMode: game.settings.get('core', 'rollMode'),
+          });
+        } else if (targetActor.type === 'vehicle') {
           await rollVehicleCriticalWithPermission(targetActor, targetToken, targetVehicleVitalRegionId);
         } else {
           await rollCriticalInjuryWithPermission(targetActor, tableType, { attackerActor: attacker, weaponFlags });
         }
       }
+
+      // ── Rostović Smart-targeting: post-hit +1 attack AE (1 turn) ───────────
+      // Refreshes if already present. Scoped to the weapon's skill.
+      if (installedMods.some((m) => m.postHitAttackBonusAE)) {
+        const stName = game.i18n.localize('CYBER_BLUE.Combat.SmartTargetingAE');
+        const existing = attacker.effects.find((e) => e.getFlag('cyberpunk-blue', 'smartTargeting'));
+        if (existing) {
+          await existing.update({ duration: { value: 1, units: 'turns' } });
+        } else {
+          await attacker.createEmbeddedDocuments('ActiveEffect', [{
+            name: stName,
+            icon: 'icons/svg/target.svg',
+            changes: [{ key: `system.skills.${skillSlug}.bonus`, mode: 2, value: '1' }],
+            duration: { value: 1, units: 'turns' },
+            flags: { 'cyberpunk-blue': { smartTargeting: true } },
+          }]);
+        }
+      }
+      // ── Arasaka Thermal Advantage: ignite on ≥2 HP damage ──────────────────
+      // While the heating coil is active, a hit dealing at least 2 HP applies
+      // Burning (embers, 2 HP/turn) for 1d6 rounds. Doesn't stack with itself.
+      if (targetActor && netDamage >= 2
+          && installedMods.some((m) => m.activatable && m._active && m.activeThermalBurn)) {
+        const alreadyBurning = targetActor.effects.some((e) =>
+          [...(e.statuses ?? [])].some((s) => `${s}`.startsWith('burning-')));
+        if (!alreadyBurning) {
+          const burnRoll = await new Roll('1d6').evaluate();
+          const statusDef = CONFIG.statusEffects.find((s) => s.id === 'burning-embers');
+          if (statusDef) {
+            await createActiveEffectWithPermission(targetActor, {
+              name: game.i18n.localize(statusDef.name),
+              img: statusDef.icon ?? statusDef.img,
+              changes: foundry.utils.deepClone(statusDef.changes ?? []),
+              statuses: ['burning-embers'],
+              duration: { value: burnRoll.total, units: 'rounds' },
+              flags: foundry.utils.deepClone(statusDef.flags ?? {}),
+            });
+          }
+          ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({ actor: attacker }),
+            content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-fire"></i> ${game.i18n.format('CYBER_BLUE.Combat.ThermalBurnApplied', { target: targetActor.name, rounds: burnRoll.total })}</p></div>`,
+          });
+        }
+      }
+
+      // ── Militech Vibro-Stun: attack die 10 + HP damage → Stunned ───────────
+      if (targetActor && netDamage > 0 && d10Result === 10
+          && installedMods.some((m) => m.activatable && m._active && m.activeVibroStun)) {
+        await toggleStatusEffectWithPermission(targetActor, 'stunned', true);
+        ChatMessage.create({
+          speaker: ChatMessage.getSpeaker({ actor: attacker }),
+          content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt"></i> ${game.i18n.format('CYBER_BLUE.Combat.VibroStunApplied', { target: targetActor.name })}</p></div>`,
+        });
+      }
+
       // ── Electric Charge (Kendachi RA-5 Powered Knife) ──────────────────────
       // On a hit that deals net damage, if the weapon has charges remaining:
       // target must pass DV 15 TECH + Endurance or take 2d6 direct HP damage.

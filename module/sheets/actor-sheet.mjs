@@ -5,7 +5,7 @@ import { getBrandLogoPath } from '../helpers/branding.mjs';
 import { getEligiblePlatforms, getPlatformUsage, isExtensionFullyConnected, promptForCyberwarePlatform, promptForCyberwarePlatformPair } from '../helpers/cyberware.mjs';
 import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs';
 import { normalizeGearState, getGearStateUpdateData } from '../helpers/gear.mjs';
-import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
+import { getEffectiveItemWeapons, getInstalledWeaponMods } from '../helpers/mods.mjs';
 import { buildWeaponUpdate, getWeaponTypeDefinition } from '../helpers/combat.mjs';
 import { getTurnState, consumeNetAction, unlockNetActions } from '../helpers/combat-tracker.mjs';
 import {
@@ -23,7 +23,7 @@ import {
 import { getNetCombat, isInert, getBoost } from '../helpers/net-program-combat.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack, resolveDoubleLockAttack } from '../helpers/combat-resolution.mjs';
 import { refreshAllRicochetLines } from '../helpers/ricochet-canvas.mjs';
-import { reloadWeapon, toggleWeaponCharge, toggleWeaponRicochet } from '../helpers/weapon-actions.mjs';
+import { reloadWeapon, toggleWeaponCharge, toggleWeaponRicochet, toggleModActivation } from '../helpers/weapon-actions.mjs';
 import { playUiSound } from '../helpers/audio.mjs';
 import { findGuideStack } from '../helpers/guide-tarot.mjs';
 import {
@@ -505,6 +505,16 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         attackDisabled: rofExhausted || rofLocked || bodyBlocked,
         showsAmmo: definition.usesMagazine,
         noReload: !!weapon.noReload,
+        // Activatable mods installed on this weapon slot (Thermal Advantage,
+        // Riptide, Bipod, Vibro-Stun) — one toggle button each.
+        activatableMods: getInstalledWeaponMods(itemDoc, weaponIndex, this.document)
+          .filter((m) => m.activatable)
+          .map((m) => ({
+            docId: m._docId,
+            active: !!m._active,
+            icon: m.activationIcon || 'power-off',
+            name: this.document.items.get(m._docId)?.name ?? '',
+          })),
         ammoCurrent: ammo.current,
         magazine: ammo.magazine,
         // Consumable-thrown grenades: the owning Item's quantity is the magazine,
@@ -1267,6 +1277,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     this.element.querySelectorAll('[data-action="weapon-charge"]').forEach((button) => {
       button.addEventListener('click', this._onWeaponCharge.bind(this));
     });
+    this.element.querySelectorAll('[data-action="mod-activate"]').forEach((button) => {
+      button.addEventListener('click', this._onModActivate.bind(this));
+    });
     this.element.querySelectorAll('[data-action="weapon-double-lock"]').forEach((button) => {
       button.addEventListener('click', this._onWeaponDoubleLock.bind(this));
     });
@@ -1567,6 +1580,13 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     const weaponIndex = Number.parseInt(event.currentTarget.dataset.weaponIndex ?? '-1', 10);
     if (Number.isNaN(weaponIndex) || weaponIndex < 0) return;
     await toggleWeaponCharge(this.document, item, weaponIndex);
+  }
+
+  async _onModActivate(event) {
+    event.preventDefault();
+    const modDocId = event.currentTarget.dataset.modDocId;
+    if (!modDocId) return;
+    await toggleModActivation(this.document, modDocId);
   }
 
   async _onMartialArtsAttack(event) {
