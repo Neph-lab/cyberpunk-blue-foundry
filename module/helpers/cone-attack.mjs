@@ -364,6 +364,36 @@ export function showAreaEffectExplosion(centerX, centerY, spreadPx, halfDamagePx
 }
 
 /**
+ * Upfront "can this even fire?" check for area attacks. Mirrors spendWeaponUse:
+ * a consumableThrown weapon (grenades) spends from the Item's `quantity`, not
+ * from `ammoCurrent` — checking ammoCurrent for those blocked every thrown
+ * grenade, since they carry no magazine at all.
+ *
+ * @returns {boolean} true when the attack may proceed.
+ */
+function hasAmmoForAreaAttack(item, weaponIndex, weapon) {
+  const src = item.system.weapons?.[weaponIndex];
+  const shotsRequired = src?.shots ?? weapon.shots ?? 0;
+  if (shotsRequired <= 0) return true;
+  if (src?.consumableThrown ?? weapon.consumableThrown) {
+    const remaining = Number(item.system.quantity) || 0;
+    if (remaining < 1) {
+      ui.notifications.warn(game.i18n.format(
+        'CYBER_BLUE.Combat.NotEnoughAmmoForShots', { required: 1, current: remaining }));
+      return false;
+    }
+    return true;
+  }
+  const currentAmmo = src?.ammoCurrent ?? 0;
+  if (currentAmmo < shotsRequired) {
+    ui.notifications.warn(game.i18n.format(
+      'CYBER_BLUE.Combat.NotEnoughAmmoForShots', { required: shotsRequired, current: currentAmmo }));
+    return false;
+  }
+  return true;
+}
+
+/**
  * Set a target alight (Burning embers, 2/turn). No-op if they are already
  * burning at any intensity — multiple ignitions don't stack. Extinguishing is
  * GM-handled, so no duration is set.
@@ -403,14 +433,7 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
   }
 
   // Upfront ammo check: weapon must have at least `shots` ammo to fire
-  const shotsRequiredExp = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
-  if (shotsRequiredExp > 0) {
-    const currentAmmoExp = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
-    if (currentAmmoExp < shotsRequiredExp) {
-      ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.NotEnoughAmmoForShots', { required: shotsRequiredExp, current: currentAmmoExp }));
-      return;
-    }
-  }
+  if (!hasAmmoForAreaAttack(item, weaponIndex, weapon)) return;
 
   const spread = weapon.coneSpread ?? 0;
   const halfDamageDistance = weapon.coneHalfDamageDistance ?? 0;
@@ -623,14 +646,7 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
   }
 
   // Upfront ammo check: weapon must have at least `shots` ammo to fire
-  const shotsRequired = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
-  if (shotsRequired > 0) {
-    const currentAmmo = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
-    if (currentAmmo < shotsRequired) {
-      ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.NotEnoughAmmoForShots', { required: shotsRequired, current: currentAmmo }));
-      return;
-    }
-  }
+  if (!hasAmmoForAreaAttack(item, weaponIndex, weapon)) return;
 
   // Constitutional Arms Delaware (shotgun cone): tighter pellet spread → halve the
   // cone angle, +coneAttackBonus to the attack, +coneDamageBonusDice to damage.
@@ -1090,14 +1106,7 @@ export async function resolveAfflictionExplosionAttack(attacker, item, weaponInd
   }
 
   // Upfront ammo check: weapon must have at least `shots` ammo to fire
-  const shotsRequiredAffExp = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
-  if (shotsRequiredAffExp > 0) {
-    const currentAmmoAffExp = item.system.weapons?.[weaponIndex]?.ammoCurrent ?? 0;
-    if (currentAmmoAffExp < shotsRequiredAffExp) {
-      ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.NotEnoughAmmoForShots', { required: shotsRequiredAffExp, current: currentAmmoAffExp }));
-      return;
-    }
-  }
+  if (!hasAmmoForAreaAttack(item, weaponIndex, weapon)) return;
 
   const spread = weapon.coneSpread ?? 0;
   const halfDamageDistance = weapon.coneHalfDamageDistance ?? 0;
