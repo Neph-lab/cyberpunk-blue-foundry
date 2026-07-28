@@ -140,6 +140,12 @@ export function buildWeaponField() {
     critStun: new fields.BooleanField({ initial: false }),
     critDoublePick: new fields.BooleanField({ initial: false }),
 
+    // ── Self-cone malfunction (Onibi Plasma Caster) ───────────────────────────
+    // After a cone attack, roll 1d10; on 9–10 the toxicity fires a second cone of
+    // the same geometry that also catches the attacker (inner radius). The second
+    // cone bypasses SP and doesn't ablate; it does not itself re-roll a malfunction.
+    selfConeMalfunction: new fields.BooleanField({ initial: false }),
+
     // ── Non-lethal ────────────────────────────────────────────────────────────
     // When true, any blow that would drop the target to ≤0 HP instead leaves them
     // at 1 HP and Unconscious (no −10 lower bound, unlike critStun). Projected onto

@@ -899,6 +899,8 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const srCapacityBonus = (hasSRCapacityMod && penetratesWithoutBonus) ? 2 : 0;
   // Silencer: -1 per damage die (applied last, after other bonuses)
   const silencerDmgReduction = installedMods.some((m) => m.reduceDmgPerDie) ? damageDiceCount : 0;
+  // Inazuma electric edge: +N per damage die (melee-only by installation).
+  const perDieBonus = installedMods.reduce((sum, m) => sum + (m.damagePerDie ?? 0), 0) * damageDiceCount;
 
   // Charged TW: count wall intersections; each reduces damage by 10.
   const chargeWallCount = isCharged
@@ -909,7 +911,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // Base final damage (goes through SP as normal)
   const finalDamage = Math.max(
     0,
-    damageRoll.total + critBonus + vitalsBonus + targetedShotBonus + payloadBonus + synergyBonus + improvedRicochetBonus + accidentalDischargeDmgBonus + srCapacityBonus - silencerDmgReduction - chargeWallReduction,
+    damageRoll.total + critBonus + vitalsBonus + targetedShotBonus + payloadBonus + synergyBonus + improvedRicochetBonus + accidentalDischargeDmgBonus + srCapacityBonus + perDieBonus - silencerDmgReduction - chargeWallReduction,
   );
 
   // Critical table: head when targeting vitals, body otherwise
@@ -940,12 +942,13 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   if (barrierPenBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.BarrierPenetration', { n: barrierPenBonus }));
   if (viciousBonus) bonusNotes.push(game.i18n.localize('CYBER_BLUE.Combat.ViciousBonus'));
   if (accidentalDischargeDmgBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.AccidentalDischargeDmg', { n: accidentalDischargeDmgBonus }));
+  if (perDieBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.PerDieDamageBonus', { n: perDieBonus }));
   if (srCapacityBonus) bonusNotes.push(game.i18n.localize('CYBER_BLUE.Combat.SRCapacityBonus'));
   if (hasBurningEdge && rawSP !== null && rawSP < 11) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.BurningEdge', { sp: rawSP }));
   if (silencerDmgReduction) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.SilencerReduction', { n: silencerDmgReduction }));
   if (chargeWallReduction) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.ChargeWallReduction', { walls: chargeWallCount, dmg: chargeWallReduction }));
   if (vitalsExtraRoll) bonusNotes.push(`${game.i18n.localize('CYBER_BLUE.Combat.HighlightedVitalsRoll')}: [${vitalsExtraRoll.total}]${highlightedVitalsAutoCrit ? ' ★' : ''}`);
-  const totalBonus = critBonus + vitalsBonus + targetedShotBonus + payloadBonus + synergyBonus + improvedRicochetBonus + accidentalDischargeDmgBonus + srCapacityBonus - silencerDmgReduction - chargeWallReduction;
+  const totalBonus = critBonus + vitalsBonus + targetedShotBonus + payloadBonus + synergyBonus + improvedRicochetBonus + accidentalDischargeDmgBonus + srCapacityBonus + perDieBonus - silencerDmgReduction - chargeWallReduction;
   const bonusDisplay = totalBonus > 0 ? ` (+${totalBonus})` : totalBonus < 0 ? ` (${totalBonus})` : '';
   const spLineAblate = ablatesArmor ? ` (SP ${(weapon.armorPiercing ?? false) ? '-2' : '-1'})` : '';
   const critLine = bonusNotes.length

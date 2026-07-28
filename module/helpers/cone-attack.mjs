@@ -1,6 +1,6 @@
 import { getWeaponTypeDefinition, COMBAT_CONFIG, spendWeaponUse } from './combat.mjs';
 import { playSfx } from './audio.mjs';
-import { getEffectiveItemWeapons } from './mods.mjs';
+import { getEffectiveItemWeapons, getInstalledWeaponMods } from './mods.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
 import { rollAfflictionDefense, checkAfflictionSP, applyAfflictionEffect } from './affliction-attack.mjs';
 import { applyDamageWithPermission, rollCriticalInjuryWithPermission } from './socket.mjs';
@@ -604,8 +604,15 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
     }
   }
 
+  // Constitutional Arms Delaware (shotgun cone): tighter pellet spread → halve the
+  // cone angle, +coneAttackBonus to the attack, +coneDamageBonusDice to damage.
+  const coneMods = getInstalledWeaponMods(item, weaponIndex, attacker);
+  const narrowShell = coneMods.some((m) => m.narrowConeShell);
+  const coneAttackBonus = coneMods.reduce((sum, m) => sum + (m.coneAttackBonus ?? 0), 0);
+  const coneBonusDice = coneMods.map((m) => m.coneDamageBonusDice).filter(Boolean);
+
   const spread = weapon.coneSpread ?? 0;
-  const angleDeg = weapon.coneAngle ?? 45;
+  const angleDeg = (weapon.coneAngle ?? 45) / (narrowShell ? 2 : 1);
   const halfDamageDistance = weapon.coneHalfDamageDistance ?? 0;
 
   if (spread <= 0) {
@@ -624,9 +631,9 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
   const confirmedAngle = await placeConeOverlay(attackerCenter.x, attackerCenter.y, spreadPx, halfDamagePx, angleDeg);
   if (confirmedAngle === null) return;
 
-  // Roll attack
+  // Roll attack (Delaware adds coneAttackBonus)
   const precisionBonus = getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0;
-  const attackRoll = await attacker.rollSkill({ skillSlug, modifier: precisionBonus });
+  const attackRoll = await attacker.rollSkill({ skillSlug, modifier: precisionBonus + coneAttackBonus });
   const attackTotal = attackRoll.total;
 
   // Consume ammo (shots)
@@ -666,7 +673,9 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
     return;
   }
 
-  const damageFormula = weapon.damage ?? definition.damage ?? '1d6';
+  // Delaware appends bonus damage dice (e.g. +1d6) to the shell damage.
+  const baseFormula = weapon.damage ?? definition.damage ?? '1d6';
+  const damageFormula = [baseFormula, ...coneBonusDice].join(' + ');
   const damageRoll = await new Roll(damageFormula).evaluate();
   const baseDamage = damageRoll.total;
 
@@ -737,6 +746,37 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
       flavor: coneDamageFlavorHtml,
       rollMode: game.settings.get('core', 'rollMode'),
     });
+  }
+
+  // ── Onibi toxicity malfunction ─────────────────────────────────────────────
+  // After firing, roll 1d10; on 9–10 the plasma toxicity fires a second cone of
+  // the same geometry that also catches the attacker (inner radius). This second
+  // burst bypasses SP and doesn't ablate, and does not re-roll a malfunction.
+  if (weapon.selfConeMalfunction) {
+    const malfRoll = await new Roll('1d10').evaluate();
+    await malfRoll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: attacker }),
+      flavor: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-radiation"></i> ${game.i18n.localize('CYBER_BLUE.Combat.OnibiMalfunctionCheck')}</p></div>`,
+      rollMode: game.settings.get('core', 'rollMode'),
+    });
+    if (malfRoll.total >= 9) {
+      const malfTargets = [...targets, { actor: attacker, isFullDamage: true }];
+      const malfDamageRoll = await new Roll(damageFormula).evaluate();
+      const malfBase = malfDamageRoll.total;
+      await malfDamageRoll.toMessage({
+        speaker: ChatMessage.getSpeaker({ actor: attacker }),
+        flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Combat.OnibiMalfunction')}: ${weaponLabel}</h3><p>${game.i18n.localize('CYBER_BLUE.Combat.OnibiMalfunctionHit')}</p></div>`,
+        rollMode: game.settings.get('core', 'rollMode'),
+      });
+      for (const { actor: mActor, isFullDamage: mFull } of malfTargets) {
+        const mEvasion = await rollTargetEvasion(mActor);
+        const mEvaded = mEvasion.total > attackTotal;
+        let mDmg = mFull ? malfBase : Math.ceil(malfBase / 2);
+        if (mEvaded) mDmg = Math.ceil(mDmg / 2);
+        // Toxic burst bypasses SP and does not ablate.
+        if (mDmg > 0) await applyDamageWithPermission(mActor, mDmg, { ignoreArmor: true });
+      }
+    }
   }
 
   // Show cone area effect for N seconds after damage

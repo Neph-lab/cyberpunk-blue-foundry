@@ -63,6 +63,13 @@ export default class CyberBlueMod extends CyberBlueItemBase {
     schema.destroyedByTech = new fields.BooleanField({ initial: false });
     schema.destroyedByRof2 = new fields.BooleanField({ initial: false });
     schema.reduceDmgPerDie = new fields.BooleanField({ initial: false });
+    // Bonus damage per damage die (Arasaka Inazuma electric edge: +1/die).
+    schema.damagePerDie = new fields.NumberField({ ...requiredInteger, initial: 0 });
+    // Constitutional Arms Delaware (shotgun cone): halve the cone angle (tighter
+    // pellet spread), +coneAttackBonus to the cone attack, +coneDamageBonusDice damage.
+    schema.narrowConeShell = new fields.BooleanField({ initial: false });
+    schema.coneAttackBonus = new fields.NumberField({ ...requiredInteger, initial: 0 });
+    schema.coneDamageBonusDice = new fields.StringField({ required: true, blank: true, initial: '' });
     schema.compressRof = new fields.BooleanField({ initial: false });
     schema.stealthAdvantage = new fields.BooleanField({ initial: false });
 
