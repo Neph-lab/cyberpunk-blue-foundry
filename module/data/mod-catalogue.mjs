@@ -353,14 +353,14 @@ const accessories = [
   modItem({ name: 'Arasaka SPU Tsubasa', manufacturer: 'Arasaka', cost: 'PR', imgPath: img(M_ROOT, 'Arasaka-SPU-Tsubasa.png'),
     system: { requiresSmartWeapon: true },
     description: desc("<p style=\"color: var(--cpb-error);\"><strong>Smart Weapons only.</strong></p><p>Smart ammunition can side-load a Quickhack program that uploads to the target's cyberware, with an effective skill of <strong>+14</strong> to breach their COS.</p>") }),
-  modItem({ name: 'Arasaka Inazuma', manufacturer: 'Arasaka', cost: 'PR', imgPath: img(M_ROOT, 'Arasaka-Inazuma.png'),
-    system: { damagePerDie: 1, requiresLightMelee: false },
-    description: desc("<p style=\"color: var(--cpb-error);\"><strong>Melee weapons only.</strong></p><p>Takes an Action to turn on or off. While active, the electric edge deals <strong>+1 damage per die</strong>. Striking non-insulated cyberware (an Aimed shot, at least <strong>-4</strong>) forces a <strong style=\"color: var(--cpb-accent);\">DV15</strong> <strong>TECH</strong>+<strong>Endurance</strong> check or that device is disabled for 1 minute.</p>") }),
   modItem({ name: 'Constitutional Arms Delaware', manufacturer: 'Constitutional Arms', cost: 'PR', imgPath: img(M_ROOT, 'Constitutional-arms-Delaware.png'),
     system: { narrowConeShell: true, coneAttackBonus: 3, coneDamageBonusDice: '1d6' },
     description: desc("<p style=\"color: var(--cpb-error);\"><strong>Shotguns with a cone (shell) attack only.</strong></p><p>A tighter pellet spread halves the cone width, and grants <strong>+3</strong> to the attack and <strong>+1d6</strong> damage when firing a shell.</p>") }),
 
   // ── Activatable mods (toggle button on the weapon row) ──────────────────────
+  modItem({ name: 'Arasaka Inazuma', manufacturer: 'Arasaka', cost: 'PR', imgPath: img(M_ROOT, 'Arasaka-Inazuma.png'),
+    system: { activatable: true, activationIcon: 'bolt', damagePerDie: 1, requiresLightMelee: false },
+    description: desc("<p style=\"color: var(--cpb-error);\"><strong>Melee weapons only.</strong></p><p>Takes an Action to turn on or off. While active, the electric edge deals <strong>+1 damage per die</strong>. Striking non-insulated cyberware (an Aimed shot, at least <strong>-4</strong>) forces a <strong style=\"color: var(--cpb-accent);\">DV15</strong> <strong>TECH</strong>+<strong>Endurance</strong> check or that device is disabled for 1 minute.</p>") }),
   modItem({ name: 'Arasaka Thermal Advantage', manufacturer: 'Arasaka', cost: 'PR', imgPath: img(M_ROOT, 'Arasaka-Thermal-Advantage.png'),
     system: { activatable: true, activationIcon: 'fire', activeThermalBurn: true },
     description: desc("<p style=\"color: var(--cpb-error);\"><strong>Melee weapons only.</strong></p><p>The heating coil is switched on or off as an Action. While active, a hit dealing at least <strong>2</strong> HP applies <strong>Burning</strong> (2 HP at the start of each turn) for <strong>1d6</strong> rounds; the condition can be ended as an Action. Flammable objects ignite even without initial damage. A battery lasts 8 hours and takes ten minutes to recharge.</p>") }),

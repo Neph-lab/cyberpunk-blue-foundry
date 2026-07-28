@@ -922,7 +922,10 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // Silencer: -1 per damage die (applied last, after other bonuses)
   const silencerDmgReduction = installedMods.some((m) => m.reduceDmgPerDie) ? damageDiceCount : 0;
   // Inazuma electric edge: +N per damage die (melee-only by installation).
-  const perDieBonus = installedMods.reduce((sum, m) => sum + (m.damagePerDie ?? 0), 0) * damageDiceCount;
+  // An activatable mod (Inazuma) only grants its per-die bonus while toggled on;
+  // a passive one with damagePerDie would apply always.
+  const perDieBonus = installedMods.reduce(
+    (sum, m) => sum + ((m.activatable && !m._active) ? 0 : (m.damagePerDie ?? 0)), 0) * damageDiceCount;
 
   // Charged TW: count wall intersections; each reduces damage by 10.
   const chargeWallCount = isCharged
