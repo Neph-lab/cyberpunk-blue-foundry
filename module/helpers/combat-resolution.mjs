@@ -9,7 +9,7 @@ import {
 } from './combat-tracker.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
 import { resolveAfflictionAttack, resolveAppliedAffliction } from './affliction-attack.mjs';
-import { applyDamageWithPermission, rollCriticalInjuryWithPermission, rollVehicleCriticalWithPermission, deleteActorItemWithPermission, ablateArmorExtraWithPermission, applyForcedCriticalInjuryWithPermission, applyDamageToSubsystemWithPermission } from './socket.mjs';
+import { applyDamageWithPermission, rollCriticalInjuryWithPermission, rollVehicleCriticalWithPermission, deleteActorItemWithPermission, ablateArmorExtraWithPermission, applyForcedCriticalInjuryWithPermission, applyDamageToSubsystemWithPermission, toggleStatusEffectWithPermission } from './socket.mjs';
 import { getVitalAreaSubsystem } from './vehicle-damage.mjs';
 import { clearWeaponCharge, countWallsBetweenTokens } from './tech-charge.mjs';
 import { getActiveAEFlag } from './effects.mjs';
@@ -56,6 +56,26 @@ async function getLoadedAmmoItem(item, weaponIndex) {
   } catch {
     return null;
   }
+}
+
+/**
+ * Project a loaded ammo item's effect fields onto the resolved weapon object so
+ * the downstream damage / SP / crit logic sees them. `weapon` is a per-attack
+ * clone from getEffectiveItemWeapons (safe to mutate). Ammo takes precedence
+ * where it sets a value; `nonTechOnly` ammo is inert on a Tech Weapon.
+ *
+ * Each special ammo is wired here as its slice lands (Armor-Piercing first).
+ * @returns {object} the same `weapon`, mutated.
+ */
+function projectAmmoOntoWeapon(weapon, ammoData) {
+  if (!weapon || !ammoData) return weapon;
+  if (ammoData.nonTechOnly && weapon.isTechWeapon) return weapon; // inert on Tech
+  if (ammoData.armorPiercing) weapon.armorPiercing = true;
+  if (ammoData.noAblate) weapon.noAblate = true;
+  if (ammoData.nonLethal) weapon.nonLethal = true;
+  if (ammoData.critRerollForeignObject) weapon.critRerollForeignObject = true;
+  if (ammoData.damageOverride) weapon.damage = ammoData.damageOverride;
+  return weapon;
 }
 
 async function consumeAmmo(item, weaponIndex, shots) {
@@ -135,6 +155,8 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // ── Loaded ammo item (for ammo-specific bonuses) ──────────────────────────
   const loadedAmmoItem = await getLoadedAmmoItem(item, weaponIndex);
   const loadedAmmoData = loadedAmmoItem?.system ?? null;
+  // Project special-ammo effects (Armor-Piercing, …) onto this attack's weapon.
+  projectAmmoOntoWeapon(weapon, loadedAmmoData);
 
   // ── Range DV with scope range improvement ─────────────────────────────────
   // For each mod with rangeImprovementMeters: compute DV for adjusted distances
@@ -942,15 +964,25 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     critCrushing: !!weapon.critCrushing,
   };
 
-  // ── Stun mechanic (Stun Baton, Mámù): target at 0–(−10) HP → 1 HP unconscious ──
+  // ── Non-lethal / Stun cap: a lethal blow leaves the target at 1 HP + Unconscious ──
+  // weapon.nonLethal (Rubber ammo, Skachok, Rostović stun): ANY drop to ≤0 HP is capped.
+  // weapon.critStun  (Stun Baton, Mámù): only 0..−10 HP is capped (harder hits still kill).
+  // Both now apply the Unconscious status; nonLethalKnockout gates that below (once the
+  // final applied damage is known, so Solo Damage Deflection can't leave them awake at >1 HP).
   let effectiveFinalDamage = barrierPenFinalDamage;
-  if (weapon.critStun && targetActor) {
+  let nonLethalKnockout = false;
+  if (targetActor && netDamage > 0) {
     const targetHp = targetActor.system?.resources?.hp?.value ?? 0;
-    if (netDamage > 0 && targetHp - netDamage < 0 && targetHp - netDamage >= -10) {
+    const wouldBe = targetHp - netDamage;
+    const capNonLethal = (weapon.nonLethal ?? false) && wouldBe < 0;
+    const capStun = (weapon.critStun ?? false) && wouldBe < 0 && wouldBe >= -10;
+    if (capNonLethal || capStun) {
       effectiveFinalDamage = Math.max(0, (targetHp - 1) + (sp ?? 0));
+      nonLethalKnockout = true;
+      const label = capStun ? 'CYBER_BLUE.Combat.StunEffect' : 'CYBER_BLUE.Combat.NonLethalEffect';
       ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor: attacker }),
-        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt"></i> <strong>${game.i18n.localize('CYBER_BLUE.Combat.StunEffect')}</strong> — ${targetActor.name} ${game.i18n.localize('CYBER_BLUE.Combat.StunKnockedOut')}</p></div>`,
+        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt"></i> <strong>${game.i18n.localize(label)}</strong> — ${targetActor.name} ${game.i18n.localize('CYBER_BLUE.Combat.StunKnockedOut')}</p></div>`,
       });
     }
   }
@@ -999,6 +1031,11 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
         // Armor Piercing: ablate 1 extra SP (Tactician slug)
         if ((weapon.armorPiercing ?? false) && ablatesArmor) {
           await ablateArmorExtraWithPermission(targetActor);
+        }
+        // Non-lethal / Stun knockout: only when the cap actually held (deflection,
+        // if any, didn't reduce the blow below it — otherwise HP ends >1 and awake).
+        if (nonLethalKnockout && actualDamage === effectiveFinalDamage) {
+          await toggleStatusEffectWithPermission(targetActor, 'unconscious', true);
         }
       }
       if (isCritical) {

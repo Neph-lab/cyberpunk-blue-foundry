@@ -135,6 +135,13 @@ export function buildWeaponField() {
     critStun: new fields.BooleanField({ initial: false }),
     critDoublePick: new fields.BooleanField({ initial: false }),
 
+    // ── Non-lethal ────────────────────────────────────────────────────────────
+    // When true, any blow that would drop the target to ≤0 HP instead leaves them
+    // at 1 HP and Unconscious (no −10 lower bound, unlike critStun). Projected onto
+    // the attack by Rubber ammo, and set on synthesised weapon modes (Skachok,
+    // Rostović stun). critStun is the harder-hit-still-kills variant of the same cap.
+    nonLethal: new fields.BooleanField({ initial: false }),
+
     // ── Vicious (Budget Arms Cut-O-Matic) ────────────────────────────────────
     // While powered on, critical hits deal +5 extra damage on top of the
     // standard critical bonus (i.e. +10 on a normal crit, +20 on vitals crit).

@@ -17,6 +17,24 @@ export default class CyberBlueAmmo extends CyberBlueItemBase {
     // When true and fired by a Smart Weapon: if the attack misses by ≤5, roll
     // 1d10+14 and treat that as the attack total instead (no chain re-roll).
     schema.smartMissReroll = new fields.BooleanField({ initial: false });
+
+    // ── Special-ammo effect payload (projected onto the fired weapon) ─────────
+    // These let an ammo Item grant weapon-entry behaviour at resolve time. See
+    // projectAmmoOntoWeapon() in combat-resolution.mjs. Ammo wins where it sets a
+    // value; nonTechOnly ammo is inert on Tech Weapons (and can't be loaded).
+    // nonTechOnly: loading/effect gate — this ammo is for non-Tech weapons only.
+    schema.nonTechOnly = new fields.BooleanField({ initial: false });
+    // armorPiercing: ablate 2 SP instead of 1 (Armor-Piercing ammo).
+    schema.armorPiercing = new fields.BooleanField({ initial: false });
+    // noAblate: the shot degrades no armor at all (Rubber ammo).
+    schema.noAblate = new fields.BooleanField({ initial: false });
+    // nonLethal: a blow to ≤0 HP leaves the target at 1 HP + Unconscious (Rubber).
+    schema.nonLethal = new fields.BooleanField({ initial: false });
+    // critRerollForeignObject: on a Foreign Object crit, roll one extra crit
+    // result (skipping another Foreign Object) — Hollow-Point ammo.
+    schema.critRerollForeignObject = new fields.BooleanField({ initial: false });
+    // damageOverride: when set, replaces the weapon's damage formula for the shot.
+    schema.damageOverride = new fields.StringField({ required: true, blank: true, initial: '' });
     schema.ammoTypes = new fields.SchemaField({
       mediumPistol: new fields.BooleanField({ initial: false }),
       heavyPistol: new fields.BooleanField({ initial: false }),

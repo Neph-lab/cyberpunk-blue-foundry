@@ -44,9 +44,11 @@ export async function reloadWeapon(actor, item, weaponIndex) {
   // Filter actor's ammo items to those compatible with this weapon.
   // Smart-weapon-only ammo (e.g. Smart Ammo) is excluded for non-smart weapons.
   const isSmartWeapon = !!(sourceWeapon.isSmartWeapon);
+  const isTechWeapon = !!(sourceWeapon.isTechWeapon);
   const actorAmmoDocs = actor.items.filter((i) => {
     if (i.type !== 'ammo') return false;
     if (i.system.smartWeaponOnly && !isSmartWeapon) return false;
+    if (i.system.nonTechOnly && isTechWeapon) return false; // AP/Hollow/Rubber/Toxic: non-Tech only
     return compatibleAmmoKeys.some((key) => i.system.ammoTypes?.[key]);
   });
 
