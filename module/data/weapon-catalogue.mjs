@@ -77,9 +77,12 @@ function entry(opts = {}) {
     mediumPistol: 'handgun', heavyPistol: 'handgun', veryHeavyPistol: 'handgun',
     smg: 'handgun', heavySmg: 'handgun',
     shotgun: 'shoulderArms', assaultRifle: 'shoulderArms',
-    machineGun: 'heavyWeapons', precisionRifle: 'shoulderArms',
-    sniperRifle: 'shoulderArms', grenadeLauncher: 'heavyWeapons',
-    rocketLauncher: 'heavyWeapons', flamethrower: 'heavyWeapons',
+    // NB: the skill slug is 'hvyWeapons' (see config.mjs SKILLS / combat.mjs
+    // defaultSkill). 'heavyWeapons' is not a real slug and made every heavy
+    // weapon throw "Unknown skill slug" on attack.
+    machineGun: 'hvyWeapons', precisionRifle: 'shoulderArms',
+    sniperRifle: 'shoulderArms', grenadeLauncher: 'hvyWeapons',
+    rocketLauncher: 'hvyWeapons', flamethrower: 'hvyWeapons',
     bowCrossbow: 'archery', stunGun: 'handgun', thrown: 'athletics',
   };
   return {
