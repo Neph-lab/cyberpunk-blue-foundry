@@ -6,11 +6,13 @@
  * The accompanying mod catalogue lives in `mod-catalogue.mjs`.
  *
  * Excluded by design (per memory/weapon-cards-excluded.md):
- *   - Arasaka Onibi Plasma Caster (non-standard)
- *   - SoftSys Microwaver-55 (EMP, not a weapon)
  *   - Arasaka Daikon NT Mantis Blades (cyberware, modelled separately)
- *   - Kendachi Permanent Edge (truncated source data)
- *   - Budget Arms Slaught-O-Matic (can't reload + melts)
+ *
+ * Previously excluded, now implemented from tmp/items-supplemental.md:
+ *   - Arasaka Onibi Plasma Caster (flamethrower cone + self-cone malfunction)
+ *   - Zetatech Microwaver-55 (affliction: disable random cyberware, bypasses armor)
+ *   - Budget Arms Slaught-O-Matic (single-use SMG, noReload flag)
+ *   - Kendachi Permanent Edge → a MOD (Phase 3), not a weapon
  */
 
 // ─── Cost abbreviation → full COST_LADDER string ─────────────────────────────
@@ -145,6 +147,7 @@ function entry(opts = {}) {
     afflictionEffectId: opts.afflictionEffectId ?? '',
     outerZoneResistBonus: opts.outerZoneResistBonus ?? 2,
     isBeaconWeapon: !!opts.isBeaconWeapon,
+    selfConeMalfunction: !!opts.selfConeMalfunction,
   };
 }
 
@@ -486,6 +489,9 @@ const special = [
   weaponItem({ name: 'Militech IP-13 Provo', manufacturer: 'Militech', cost: 'EX', imgPath: img(W_ROOT, 'Militech-IP-13-Provo.png'),
     weapons: [entry({ type: 'flamethrower', damage: '4d6', rateOfFire: 1, magazine: 10, shots: 1, hands: 2, damageType: 'cone', coneSpread: 4, coneAngle: 53, coneHalfDamageDistance: 6 })],
     description: desc('<p>Flamethrower. Same baseline as Hotness; tank has 25 HP. CHOOH²: roll <strong>1d10</strong>; if result > user\'s <strong>BODY</strong> → <strong>1d6</strong> directly to HP.</p>') }),
+  weaponItem({ name: 'Arasaka Onibi Plasma Caster', manufacturer: 'Arasaka', cost: 'EX', imgPath: img(W_SMG, 'Arasaka-Onibi.png'),
+    weapons: [entry({ type: 'flamethrower', damage: '2d6', rateOfFire: 1, magazine: 10, shots: 1, hands: 2, damageType: 'cone', coneSpread: 6, coneAngle: 53, coneHalfDamageDistance: 4, selfConeMalfunction: true })],
+    description: desc('<p>Experimental plasma caster (treated as a Flamethrower). 6/4m cone dealing <strong>2d6</strong>.</p><p><strong>MALFUNCTION:</strong> after firing, roll <strong>1d10</strong>; on a <strong>9–10</strong> the toxicity blasts a second 6/4m cone that also catches the user (inner radius) for <strong>2d6</strong>, bypassing SP and not ablating it.</p><p><strong>EXPLOSION RISK:</strong> the tank has 5 HP; if broken while loaded the weapon detonates in a 2/4m explosion for <strong>6d6</strong> (GM-handled).</p>') }),
   // Standard launchers. Payload defaults to a fragmentation grenade / unguided
   // rocket; a loaded grenade/rocket Ammo will replace the payload once the
   // grenade-as-ammo slice lands.
@@ -495,6 +501,14 @@ const special = [
   weaponItem({ name: 'Militech Rocket Launcher', manufacturer: 'Militech', cost: 'VEX', imgPath: img(W_HEAVY, 'Rocket-launcher.png'),
     weapons: [entry({ type: 'rocketLauncher', damage: '10d6', rateOfFire: 1, magazine: 1, shots: 1, hands: 2, rangeTable: R.rl, damageType: 'explosion', coneSpread: 4, coneHalfDamageDistance: 4 })],
     description: desc('Launches self-propelled rockets. Explosive 4m inner / 10m outer.') }),
+  weaponItem({ name: 'Zetatech Microwaver-55', manufacturer: 'Zetatech', cost: 'VEX', imgPath: img(W_ROOT, 'Zetatech-Microwaver.png'),
+    effects: [{
+      name: 'Cyberware Disabled (Microwaver)', disabled: true, transfer: false,
+      changes: [{ key: 'cyberblue.disableCyberware.random', mode: 2, value: '2' }],
+      flags: { 'cyberpunk-blue': { isAfflictionEffect: true } },
+    }],
+    weapons: [entry({ type: 'veryHeavyPistol', damage: '0', rateOfFire: 1, magazine: 0, shots: 0, hands: 1, rangeTable: R.pistol, damageType: 'affliction', afflictionPrimary: 'tech', afflictionSkill: 'endurance', afflictionDv: 15 })],
+    description: desc('<p>Deals no damage. On a hit the target must make a <strong style="color: var(--cpb-accent);">DV15</strong> <strong>TECH</strong>+<strong>Endurance</strong> check or two random non-insulated pieces of cyberware are disabled — microwaves bypass physical armor. Disabled cyberware can be rebooted with a <strong style="color: var(--cpb-accent);">DV15</strong> <strong>TECH</strong>+<strong>Electronics (Cybernetics)</strong> check as an Action.</p><p><strong>BATTERY:</strong> powered by a battery instead of ammunition.</p>') }),
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
