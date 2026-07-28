@@ -370,16 +370,21 @@ export class CyberBlueActor extends Actor {
     return availableArmor.find((item) => item.id === this.system.combat.activeArmorItemId) ?? availableArmor[0];
   }
 
-  async applyDamage(amount, { ignoreArmor = false } = {}) {
+  async applyDamage(amount, { ignoreArmor = false, armorPen = 0 } = {}) {
     const totalDamage = Math.max(Number(amount) || 0, 0);
+    // Armor-Piercing: the target's effective SP is reduced by `armorPen` for this
+    // hit's penetration (SP still degrades from its real value). The extra armour
+    // ablation AP causes is applied separately by the resolver (armorPiercing flag).
+    const pen = Math.max(Number(armorPen) || 0, 0);
 
     // Mooks: use the derived armor value directly; no item-based "active armor" selection.
     if (this.type === 'mook') {
       const currentHp = this.system.resources.hp.value ?? 0;
-      const mookSp = ignoreArmor ? 0 : Math.max(this.system.resources.armor?.value ?? 0, 0);
-      const penetrated = totalDamage - mookSp;
+      const realSp = ignoreArmor ? 0 : Math.max(this.system.resources.armor?.value ?? 0, 0);
+      const effSp = Math.max(realSp - pen, 0); // effective SP for penetration (AP)
+      const penetrated = totalDamage - effSp;
       const hpLoss = Math.max(penetrated, 0);
-      const shouldAblate = !ignoreArmor && mookSp > 0 && penetrated >= 0;
+      const shouldAblate = !ignoreArmor && realSp > 0 && penetrated >= 0;
       const updates = [];
 
       if (hpLoss > 0) {
@@ -397,7 +402,7 @@ export class CyberBlueActor extends Actor {
           const itemCurSp = Math.min(bestItem.system?.armor?.currentSp ?? bestMaxSp, bestMaxSp);
           updates.push(bestItem.update({ 'system.armor.currentSp': Math.max(itemCurSp - 1, 0) }));
         } else {
-          updates.push(this.update({ 'system.resources.armor.value': Math.max(mookSp - 1, 0) }));
+          updates.push(this.update({ 'system.resources.armor.value': Math.max(realSp - 1, 0) }));
         }
       }
 
@@ -406,7 +411,7 @@ export class CyberBlueActor extends Actor {
         totalDamage,
         armorId: null,
         armorName: null,
-        armorBlocked: Math.min(mookSp, totalDamage),
+        armorBlocked: Math.min(effSp, totalDamage),
         hpLoss,
         ablatedArmor: shouldAblate ? 1 : 0,
       };
@@ -415,17 +420,18 @@ export class CyberBlueActor extends Actor {
     // Vehicles: SP lives directly on resources.armor.value — no embedded armor items.
     if (this.type === 'vehicle') {
       const currentHp  = this.system.resources.hp.value ?? 0;
-      const vehicleSp  = ignoreArmor ? 0 : Math.max(this.system.resources.armor?.value ?? 0, 0);
-      const penetrated = totalDamage - vehicleSp;
+      const realSp     = ignoreArmor ? 0 : Math.max(this.system.resources.armor?.value ?? 0, 0);
+      const effSp      = Math.max(realSp - pen, 0); // effective SP for penetration (AP)
+      const penetrated = totalDamage - effSp;
       const hpLoss     = Math.max(penetrated, 0);
-      const shouldAblate = !ignoreArmor && vehicleSp > 0 && penetrated >= 0;
+      const shouldAblate = !ignoreArmor && realSp > 0 && penetrated >= 0;
       const updates    = [];
 
       if (hpLoss > 0) {
         updates.push(this.update({ 'system.resources.hp.value': Math.max(currentHp - hpLoss, 0) }));
       }
       if (shouldAblate) {
-        updates.push(this.update({ 'system.resources.armor.value': Math.max(vehicleSp - 1, 0) }));
+        updates.push(this.update({ 'system.resources.armor.value': Math.max(realSp - 1, 0) }));
       }
 
       if (updates.length) await Promise.all(updates);
@@ -433,7 +439,7 @@ export class CyberBlueActor extends Actor {
         totalDamage,
         armorId:      null,
         armorName:    null,
-        armorBlocked: Math.min(vehicleSp, totalDamage),
+        armorBlocked: Math.min(effSp, totalDamage),
         hpLoss,
         ablatedArmor: shouldAblate ? 1 : 0,
       };
@@ -442,7 +448,8 @@ export class CyberBlueActor extends Actor {
     const activeArmor = ignoreArmor ? null : this.getActiveArmorItem();
     const currentHp = this.system.resources.hp.value ?? 0;
     const currentSp = activeArmor ? Math.max(Math.min(activeArmor.system.armor?.currentSp ?? 0, activeArmor.system.armor?.maxSp ?? 0), 0) : 0;
-    const penetrated = activeArmor ? totalDamage - currentSp : totalDamage;
+    const effSp = Math.max(currentSp - pen, 0); // effective SP for penetration (AP)
+    const penetrated = activeArmor ? totalDamage - effSp : totalDamage;
     const hpLoss = penetrated > 0 ? penetrated : 0;
     const shouldAblateArmor = Boolean(activeArmor) && currentSp > 0 && penetrated >= 0;
     const updates = [];
@@ -478,7 +485,7 @@ export class CyberBlueActor extends Actor {
       totalDamage,
       armorId: activeArmor?.id ?? null,
       armorName: activeArmor?.name ?? null,
-      armorBlocked: activeArmor ? Math.min(currentSp, totalDamage) : 0,
+      armorBlocked: activeArmor ? Math.min(effSp, totalDamage) : 0,
       hpLoss,
       ablatedArmor: shouldAblateArmor ? 1 : 0,
     };

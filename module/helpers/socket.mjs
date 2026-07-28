@@ -58,10 +58,10 @@ export function registerSocketHandlers() {
 
     switch (message.type) {
       case 'applyDamage': {
-        const { targetUuid, finalDamage } = message;
+        const { targetUuid, finalDamage, armorPen } = message;
         const actor = await fromUuid(targetUuid);
         if (!actor) return;
-        await actor.applyDamage(finalDamage);
+        await actor.applyDamage(finalDamage, { armorPen: armorPen ?? 0 });
         break;
       }
       case 'rollCriticalInjury': {
@@ -212,11 +212,11 @@ export function emitToGM(type, data = {}) {
  * @param {Actor} targetActor
  * @param {number} finalDamage
  */
-export async function applyDamageWithPermission(targetActor, finalDamage) {
+export async function applyDamageWithPermission(targetActor, finalDamage, { armorPen = 0 } = {}) {
   if (targetActor.isOwner || game.user.isGM) {
-    await targetActor.applyDamage(finalDamage);
+    await targetActor.applyDamage(finalDamage, { armorPen });
   } else {
-    emitToGM('applyDamage', { targetUuid: targetActor.uuid, finalDamage });
+    emitToGM('applyDamage', { targetUuid: targetActor.uuid, finalDamage, armorPen });
   }
 }
 

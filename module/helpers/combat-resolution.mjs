@@ -70,10 +70,14 @@ async function getLoadedAmmoItem(item, weaponIndex) {
 function projectAmmoOntoWeapon(weapon, ammoData) {
   if (!weapon || !ammoData) return weapon;
   if (ammoData.nonTechOnly && weapon.isTechWeapon) return weapon; // inert on Tech
-  // Armor-Piercing currently reuses the tested armorPiercing flag (ablate 2 on a
-  // solid hit). The "effective SP −2 for damage" upgrade the user chose needs an
-  // armorPen option threaded through actor.applyDamage — pending confirmation.
-  if (ammoData.armorPiercing) weapon.armorPiercing = true;
+  if (ammoData.armorPiercing) {
+    // Armor-Piercing: effective SP is reduced by 2 for this shot's pierce + damage
+    // (spReduction → armorPen at applyDamage), and the armour permanently ablates 2
+    // instead of 1 (armorPiercing flag → ablateArmorExtra). spReduction takes the
+    // max across sources ("reduced by at least 2, higher if another source set more").
+    weapon.armorPiercing = true;
+    weapon.spReduction = Math.max(weapon.spReduction ?? 0, 2);
+  }
   if (ammoData.noAblate) weapon.noAblate = true;
   if (ammoData.nonLethal) weapon.nonLethal = true;
   if (ammoData.critRerollForeignObject) weapon.critRerollForeignObject = true;
@@ -770,7 +774,12 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const spAfterHalve = (!spBypassActive && spAfterBurningEdge !== null && hasHalveSP)
     ? Math.ceil(spAfterBurningEdge / 2)
     : spAfterBurningEdge;
-  const sp    = spAfterHalve !== null ? (isCharged ? Math.floor(spAfterHalve / 2) : spAfterHalve) : null;
+  const spBeforeAP = spAfterHalve !== null ? (isCharged ? Math.floor(spAfterHalve / 2) : spAfterHalve) : null;
+  // Armor-Piercing (ammo): effective SP for pierce + damage is reduced by spReduction.
+  // The same value is passed to applyDamage as armorPen so actual HP loss matches
+  // the displayed net (applyDamage subtracts the target's real SP, which equals `sp`).
+  const armorPen = weapon.spReduction ?? 0;
+  const sp = (spBeforeAP !== null && armorPen > 0) ? Math.max(0, spBeforeAP - armorPen) : spBeforeAP;
   const damageDiceCount = countDamageDice(damageRoll);
 
   // ── Ammo-based bonuses ─────────────────────────────────────────────────────
@@ -1030,8 +1039,8 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
         // is untouched (no extra Armor-Piercing ablation against main SP).
         await applyDamageToSubsystemWithPermission(targetActor, vitalSubsystem.id, actualDamage);
       } else {
-        await applyDamageWithPermission(targetActor, actualDamage);
-        // Armor Piercing: ablate 1 extra SP (Tactician slug)
+        await applyDamageWithPermission(targetActor, actualDamage, { armorPen });
+        // Armor Piercing: ablate 1 extra SP (Tactician slug / AP ammo)
         if ((weapon.armorPiercing ?? false) && ablatesArmor) {
           await ablateArmorExtraWithPermission(targetActor);
         }
@@ -1158,6 +1167,11 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
   const effectiveWeapons = item.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(item);
   const weapon = effectiveWeapons[weaponIndex];
   if (!weapon) return;
+
+  // Project special-ammo effects (Armor-Piercing, …) onto this attack's weapon.
+  const loadedAmmoItemAF = await getLoadedAmmoItem(item, weaponIndex);
+  projectAmmoOntoWeapon(weapon, loadedAmmoItemAF?.system ?? null);
+  const armorPen = weapon.spReduction ?? 0;
 
   // ── Installed mod checks ───────────────────────────────────────────────────
   const installedMods = getInstalledWeaponMods(item, weaponIndex, attacker);
@@ -1409,7 +1423,10 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
 
   // ── Critical Injury detection ──────────────────────────────────────────────
   const { count: critDiceCount } = detectCriticalDice(damageRoll);
-  const sp = targetSP !== null ? targetSP : null;
+  const spBaseAF = targetSP !== null ? targetSP : null;
+  // Armor-Piercing (ammo): effective SP reduced for pierce + damage; same value
+  // passed to applyDamage as armorPen so actual HP loss matches the shown net.
+  const sp = (spBaseAF !== null && armorPen > 0) ? Math.max(0, spBaseAF - armorPen) : spBaseAF;
   // Penetration check uses rawDamage (post-multiplier, pre-bonus)
   const penetratesWithoutBonus = sp === null ? rawDamage > 0 : rawDamage > sp;
   const isCritical = critDiceCount >= 2 && penetratesWithoutBonus;
@@ -1424,7 +1441,7 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
     ? `<p class="crit-roll-note"><i class="fas fa-skull"></i> ${game.i18n.format('CYBER_BLUE.CriticalInjury.CritDetected', { count: critDiceCount })} ${game.i18n.localize('CYBER_BLUE.CriticalInjury.CritBonus')}</p>`
     : '';
   const spLine = sp !== null
-    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}${isCritical ? ` (+${critBonusAF})` : ''}</p>`
+    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ((weapon.armorPiercing ?? false) ? ' (SP -2)' : ' (SP -1)') : ''}${isCritical ? ` (+${critBonusAF})` : ''}</p>`
     : '';
 
   const weaponLabel = (item.system.weapons?.length ?? 0) > 1 ? `${item.name} - ${definition.label}` : item.name;
@@ -1447,7 +1464,11 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
         flavor: autofireFlavorHtml,
         rollMode: game.settings.get('core', 'rollMode'),
       });
-      await applyDamageWithPermission(targetActor, finalDamage);
+      await applyDamageWithPermission(targetActor, finalDamage, { armorPen });
+      // Armor Piercing (ammo): ablate 1 extra SP.
+      if ((weapon.armorPiercing ?? false) && ablatesArmor) {
+        await ablateArmorExtraWithPermission(targetActor);
+      }
       if (isCritical) {
         // Autofire always uses the body table
         await rollCriticalInjuryWithPermission(targetActor, 'body', { attackerActor: attacker });
