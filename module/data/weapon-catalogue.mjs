@@ -108,6 +108,7 @@ function entry(opts = {}) {
     silenceBuiltInDV: opts.silenceBuiltInDV ?? 0,
     jamOnRoll: opts.jamOnRoll ?? 0,
     jamFiresFirst: !!opts.jamFiresFirst,
+    noReload: !!opts.noReload,
     shellDvModifier: opts.shellDvModifier ?? 0,
     targetVitalsPenalty: opts.targetVitalsPenalty ?? 8,
     payloadDmgBonus: opts.payloadDmgBonus ?? 0,
@@ -363,6 +364,9 @@ const smgs = [
   weaponItem({ name: 'Kang Tao S9 Daishi Tang', manufacturer: 'Kang Tao', cost: 'EX', imgPath: img(W_SMG, 'Kang-Tao-Daishi-Tang.png'),
     weapons: [smgAF({ smart: true, autoFireOn10: true })],
     description: desc('<p>Smart Weapon.</p><p><strong>SINGLE-SHOT RULE:</strong> if attack die = 10 and the weapon has enough ammo, treat the shot as autofire instead.</p>') }),
+  weaponItem({ name: 'Budget Arms Slaught-O-Matic', manufacturer: 'Budget Arms', cost: 'CH', imgPath: img(W_SMG, 'Budget-Arms-Slaught-O-Matic.png'),
+    weapons: [smgAF({ damage: '2d6', shots: 1, jamOnRoll: 1, noReload: true })],
+    description: desc('<p>Extremely cheap SMG sold from vending machines. Cheap (jams on an attack die of 1). Autofire ×3.</p><p><strong>FUSED MAGAZINE:</strong> single-use — it cannot be reloaded; once emptied the components melt together.</p>') }),
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════

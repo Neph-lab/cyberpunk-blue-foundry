@@ -504,6 +504,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         rofLocked,
         attackDisabled: rofExhausted || rofLocked || bodyBlocked,
         showsAmmo: definition.usesMagazine,
+        noReload: !!weapon.noReload,
         ammoCurrent: ammo.current,
         magazine: ammo.magazine,
         // Consumable-thrown grenades: the owning Item's quantity is the magazine,

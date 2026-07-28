@@ -25,6 +25,10 @@ export async function reloadWeapon(actor, item, weaponIndex) {
   if (!item || Number.isNaN(weaponIndex) || weaponIndex < 0) return;
 
   const sourceWeapon = item._source?.system?.weapons?.[weaponIndex] ?? {};
+  if (sourceWeapon.noReload) {
+    ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.WeaponNoReload'));
+    return;
+  }
   const magazine = Math.max(Number(sourceWeapon.magazine) || 0, 0);
   const ammoCurrent = Math.max(Number(sourceWeapon.ammoCurrent) || 0, 0);
   const ammoNeededFull = magazine - ammoCurrent;

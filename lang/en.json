@@ -675,6 +675,7 @@
       "GrenadesRemaining": "Grenades remaining",
       "NoAmmo": "{weapon} has no ammo remaining in the magazine.",
       "WeaponAlreadyFull": "Weapon magazine is already full.",
+      "WeaponNoReload": "This weapon has a fused magazine and cannot be reloaded.",
       "NoAmmoType": "This weapon type does not use reloadable ammunition.",
       "NoCompatibleAmmo": "No compatible ammo found in inventory.",
       "ChooseAmmo": "Choose Ammunition",

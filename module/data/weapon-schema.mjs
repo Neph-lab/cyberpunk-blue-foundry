@@ -82,6 +82,11 @@ export function buildWeaponField() {
     jamOnRoll: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
     jamFiresFirst: new fields.BooleanField({ initial: false }),
 
+    // ── Single-use / fused magazine (Budget Arms Slaught-O-Matic) ─────────────
+    // When true the weapon cannot be reloaded: the reload control is hidden and
+    // reloadWeapon() refuses. Ammo count still shows and depletes to empty.
+    noReload: new fields.BooleanField({ initial: false }),
+
     // ── Shotgun shell-mode DV deviation (Testera, Igla → -1) ──────────────
     shellDvModifier: new fields.NumberField({ required: true, nullable: false, integer: true, initial: 0 }),
 

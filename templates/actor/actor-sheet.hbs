@@ -255,11 +255,11 @@
                   </td>
                   <td class="numeric-column">
                     <div class="embedded-controls">
-                      {{#if weapon.showsAmmo}}
+                      {{#if weapon.showsAmmo}}{{#unless weapon.noReload}}
                         <button type="button" data-action="weapon-reload" data-weapon-index="{{weapon.weaponIndex}}" data-magazine="{{weapon.magazine}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Reload"}}">
                           <i class="fas fa-rotate-right"></i>
                         </button>
-                      {{/if}}
+                      {{/unless}}{{/if}}
                       {{#if weapon.jammed}}
                         <button type="button" class="weapon-unjam-btn" data-action="weapon-unjam" data-weapon-index="{{weapon.weaponIndex}}" title="{{localize 'CYBER_BLUE.Combat.WeaponUnjamHint'}}">
                           <i class="fas fa-wrench"></i>
