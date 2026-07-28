@@ -330,6 +330,12 @@ const accessories = [
   modItem({ name: 'Drum Magazine', manufacturer: '', cost: 'PR', imgPath: img(M_ROOT, 'Drum-mag.png'),
     system: {},
     description: desc('<p>Quadruples ammo capacity (or cap below, whichever is lower). Cannot conceal.</p><p><strong>CAPS:</strong> MP 36, HP/VHP 28, SMG 50, HvySMG 60, SG 16, AR 45, PR 35, SR 12, GL 6, RL 3.</p>') }),
+  modItem({ name: 'Federated Arms Sling', manufacturer: 'Federated Arms', cost: 'CO', imgPath: img(M_ROOT, 'Federated-Arms-Sling.png'),
+    system: {},
+    description: desc("<p>Part of Federated Arms' Righteous Series. Fits any gear. Dropping the gear makes it hang by a strap at the user's side instead of falling to the ground.</p>") }),
+  modItem({ name: 'Arasaka SPU Tsubasa', manufacturer: 'Arasaka', cost: 'PR', imgPath: img(M_ROOT, 'Arasaka-SPU-Tsubasa.png'),
+    system: { requiresSmartWeapon: true },
+    description: desc("<p style=\"color: var(--cpb-error);\"><strong>Smart Weapons only.</strong></p><p>Smart ammunition can side-load a Quickhack program that uploads to the target's cyberware, with an effective skill of <strong>+14</strong> to breach their COS.</p>") }),
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════

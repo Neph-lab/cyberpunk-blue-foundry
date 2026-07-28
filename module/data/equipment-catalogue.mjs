@@ -343,6 +343,11 @@ export const EQUIPMENT_CATALOGUE = [
     description: 'Required to experience a Braindance recording.',
   }),
   gear({
+    name: 'The Snitcher', manufacturer: 'Fourth Wall',
+    folder: 'Media Gear', imgPath: `${A_GEAR}/BD-TheSnitcher.png`, cost: 'CO',
+    description: "Braindance. Historical police drama set in 1992. Three hardened detectives are hunting a group of robbers — one of whom keeps leaving clues for them. Meanwhile, the robbers always seem to have insider info on the cops…",
+  }),
+  gear({
     name: 'Drum Synthesizer', manufacturer: 'Fuyutsuki',
     folder: 'Media Gear', imgPath: `${A_GEAR}/drum-synthesizer.png`, cost: 'EX',
     description: 'Plastic pads that simulate a drum kit; includes pre-programmed beats and loops. Requires a pocket amplifier or amp.',

@@ -11,6 +11,8 @@ const ASSET_BASE = 'systems/cyberpunk-blue/assets/items/ammo';
 function ammoItem({
   name, ammoTypes = {}, quantity = 10, note = '', img = '', cost = '€$10 (Cheap)',
   attackBonus = 0, smartWeaponOnly = false, smartMissReroll = false,
+  nonTechOnly = false, armorPiercing = false, noAblate = false, nonLethal = false,
+  critRerollForeignObject = false, damageOverride = '',
 }) {
   return {
     name,
@@ -24,6 +26,12 @@ function ammoItem({
       attackBonus,
       smartWeaponOnly,
       smartMissReroll,
+      nonTechOnly,
+      armorPiercing,
+      noAblate,
+      nonLethal,
+      critRerollForeignObject,
+      damageOverride,
       ammoTypes: {
         mediumPistol:  !!ammoTypes.mediumPistol,
         heavyPistol:   !!ammoTypes.heavyPistol,
@@ -244,4 +252,23 @@ export const AMMO_CATALOGUE = [
     note: 'Arasaka precision-charge cell. Smart Weapons only. +1 attack; miss by ≤5: roll 1d10+14 as replacement (no re-roll chain).',
     attackBonus: 1, smartWeaponOnly: true, smartMissReroll: true,
   }),
+
+  // ── Armor-Piercing (non-Tech weapons only) ──────────────────────────────────
+  // Ablates 2 SP instead of 1 on a solid hit. One item per weapon type. The `smg`
+  // type covers both SMG and Heavy SMG (as with Basic SMG Ammo).
+  ...(() => {
+    const AP_NOTE = 'Ablates 2 SP instead of 1 on a hit. Non-Tech weapons only.';
+    const ap = (name, ammoTypes, note) => ammoItem({
+      name, ammoTypes, cost: '€$100 (Premium)', img: `${ASSET_BASE}/Armor-Piercing.png`,
+      nonTechOnly: true, armorPiercing: true, note: note ? `${note} ${AP_NOTE}` : AP_NOTE,
+    });
+    return [
+      ap('Armor-Piercing Medium Pistol Ammo',     { mediumPistol: true },   '9mm.'),
+      ap('Armor-Piercing Heavy Pistol Ammo',      { heavyPistol: true },    '.44.'),
+      ap('Armor-Piercing Very Heavy Pistol Ammo', { veryHeavyPistol: true }, '.50.'),
+      ap('Armor-Piercing SMG Ammo',               { smg: true },            'Fits SMG and Heavy SMG.'),
+      ap('Armor-Piercing Rifle Ammo',             { assault: true },        'Fits Assault Rifle, Precision Rifle, and Machine Gun.'),
+      ap('Armor-Piercing Shotgun Slugs',          { shotgunSlug: true },    '12-gauge slug.'),
+    ];
+  })(),
 ];

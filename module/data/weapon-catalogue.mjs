@@ -34,6 +34,7 @@ const W_SMG = `${ASSET_BASE}/SMGs`;
 const W_SHOTGUN = `${ASSET_BASE}/Shotgun`;
 const W_AR = `${ASSET_BASE}/Assault Rifle`;
 const W_SNIPER = `${ASSET_BASE}/Sniper`;
+const W_HEAVY = `${ASSET_BASE}/Heavy Weapons`;
 const W_ROOT = ASSET_BASE; // MG, PR, RL, Stun, Flamethrower
 
 // ─── Range tables (from weapon-cards-data RANGE DEFAULTS) ────────────────────
@@ -481,6 +482,15 @@ const special = [
   weaponItem({ name: 'Militech IP-13 Provo', manufacturer: 'Militech', cost: 'EX', imgPath: img(W_ROOT, 'Militech-IP-13-Provo.png'),
     weapons: [entry({ type: 'flamethrower', damage: '4d6', rateOfFire: 1, magazine: 10, shots: 1, hands: 2, damageType: 'cone', coneSpread: 4, coneAngle: 53, coneHalfDamageDistance: 6 })],
     description: desc('<p>Flamethrower. Same baseline as Hotness; tank has 25 HP. CHOOH²: roll <strong>1d10</strong>; if result > user\'s <strong>BODY</strong> → <strong>1d6</strong> directly to HP.</p>') }),
+  // Standard launchers. Payload defaults to a fragmentation grenade / unguided
+  // rocket; a loaded grenade/rocket Ammo will replace the payload once the
+  // grenade-as-ammo slice lands.
+  weaponItem({ name: 'Militech Grenade Launcher', manufacturer: 'Militech', cost: 'EX', imgPath: img(W_HEAVY, 'Grenade-Launcher.png'),
+    weapons: [entry({ type: 'grenadeLauncher', damage: '6d6', rateOfFire: 1, magazine: 1, shots: 1, hands: 2, rangeTable: R.rl, damageType: 'explosion', coneSpread: 10, coneAngle: 360, coneHalfDamageDistance: 4 })],
+    description: desc('The problem with grenades is the range you can throw them. A launcher removes that concern. Fires a fragmentation grenade for <strong>6d6</strong> explosion (4m inner / 10m outer).') }),
+  weaponItem({ name: 'Militech Rocket Launcher', manufacturer: 'Militech', cost: 'VEX', imgPath: img(W_HEAVY, 'Rocket-launcher.png'),
+    weapons: [entry({ type: 'rocketLauncher', damage: '10d6', rateOfFire: 1, magazine: 1, shots: 1, hands: 2, rangeTable: R.rl, damageType: 'explosion', coneSpread: 4, coneHalfDamageDistance: 4 })],
+    description: desc('Launches self-propelled rockets. Explosive 4m inner / 10m outer.') }),
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -535,6 +545,12 @@ const melee = [
       rangeTable: [17, 15, 13, 15, 20, 0, 0, 0],
     })],
     description: desc('Standard recurve bow. Uses arrows. Two-handed; silent.') }),
+  weaponItem({ name: 'Eagletech Fletcher', manufacturer: 'Eagletech', cost: 'PR', imgPath: img(W_ROOT, 'crossbow.png'),
+    weapons: [entry({
+      type: 'bowCrossbow', damage: '4d6', rateOfFire: 1, hands: 2,
+      rangeTable: [17, 15, 13, 15, 20, 0, 0, 0],
+    })],
+    description: desc('A crossbow designed for sports. Taking down enemies can be a sport.') }),
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
