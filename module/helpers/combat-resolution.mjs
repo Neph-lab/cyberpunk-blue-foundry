@@ -70,6 +70,9 @@ async function getLoadedAmmoItem(item, weaponIndex) {
 function projectAmmoOntoWeapon(weapon, ammoData) {
   if (!weapon || !ammoData) return weapon;
   if (ammoData.nonTechOnly && weapon.isTechWeapon) return weapon; // inert on Tech
+  // Armor-Piercing currently reuses the tested armorPiercing flag (ablate 2 on a
+  // solid hit). The "effective SP −2 for damage" upgrade the user chose needs an
+  // armorPen option threaded through actor.applyDamage — pending confirmation.
   if (ammoData.armorPiercing) weapon.armorPiercing = true;
   if (ammoData.noAblate) weapon.noAblate = true;
   if (ammoData.nonLethal) weapon.nonLethal = true;
