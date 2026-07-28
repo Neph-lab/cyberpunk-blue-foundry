@@ -1017,6 +1017,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   if (targetActor && (netDamage > 0 || ablatesArmor)) {
     const result = await confirmDamageDialog({
       targetActor, finalDamage, sp, netDamage, ablatesArmor, isCritical, critDiceCount,
+      armorPiercing: !!(weapon.armorPiercing ?? false),
     });
     if (result?.confirmed) {
       await damageRoll.toMessage({
@@ -1538,6 +1539,7 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
   if (targetActor && (netDamage > 0 || ablatesArmor)) {
     const result = await confirmDamageDialog({
       targetActor, finalDamage, sp, netDamage, ablatesArmor, isCritical, critDiceCount,
+      armorPiercing: !!(weapon.armorPiercing ?? false),
     });
     if (result?.confirmed) {
       await damageRoll.toMessage({

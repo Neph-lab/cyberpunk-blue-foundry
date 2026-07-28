@@ -480,9 +480,12 @@ export function detectCriticalDice(roll) {
  * @param {number}  opts.critDiceCount
  * @returns {Promise<{ confirmed: boolean }|null>}
  */
-export async function confirmDamageDialog({ targetActor, finalDamage, sp, netDamage, ablatesArmor, isCritical, critDiceCount }) {
+export async function confirmDamageDialog({ targetActor, finalDamage, sp, netDamage, ablatesArmor, isCritical, critDiceCount, armorPiercing = false }) {
+  // Armour-Piercing hits (Tactician slug, AP ammo, an active Riptide) degrade 2
+  // SP rather than 1 — mirror the chat damage card instead of always saying -1.
+  const ablateNote = ablatesArmor ? (armorPiercing ? ' (SP -2)' : ' (SP -1)') : '';
   const spNote = sp !== null
-    ? `${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablatesArmor ? ' (SP -1)' : ''}`
+    ? `${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} → ${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>${ablateNote}`
     : `${game.i18n.localize('CYBER_BLUE.Combat.NetDamage')}: <strong>${netDamage}</strong>`;
 
   const critBlock = isCritical
