@@ -897,7 +897,10 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // Toxic ammo: +2 on penetration (only when weapon has no built-in payload bonus).
   const ammoPayloadBonus = (isIncendiaryAmmo && penetratesWithoutBonus ? 2 : 0)
     + (isExplosiveAmmo ? 2 : 0)
-    + (!weapon.payloadDmgBonus && isToxicAmmo && penetratesWithoutBonus ? 2 : 0);
+    // Legacy toxin-payload bonus, matched by ammo name. Skipped for Toxic ammo
+    // that carries its own payload (toxicDv) — that round's wound damage is
+    // discarded entirely, so a damage bonus is meaningless and misleading.
+    + (!weapon.payloadDmgBonus && isToxicAmmo && !isToxicPayload && penetratesWithoutBonus ? 2 : 0);
   const payloadBonus = weaponPayloadBonus + ammoPayloadBonus;
   // Synergy brand: +1 (and +1 more if dice ≥ threshold) per matching mod
   const weaponManufacturer = item.system?.manufacturer ?? '';
@@ -1077,7 +1080,9 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
           if (weapon.armorPiercing ?? false) await ablateArmorExtraWithPermission(targetActor);
         }
         const toxDefense = await rollAfflictionDefense(
-          targetActor, { afflictionPrimary: 'body', afflictionSkill: 'endurance' }, 0);
+          targetActor,
+          { afflictionPrimary: 'body', afflictionSkill: 'endurance', afflictionDv: weapon.toxicDv },
+          0);
         const resisted = toxDefense.total >= weapon.toxicDv;
         const toxRoll = await new Roll(weapon.toxicDamage || '3d6').evaluate();
         const toxDealt = resisted ? Math.ceil(toxRoll.total / 2) : toxRoll.total;
