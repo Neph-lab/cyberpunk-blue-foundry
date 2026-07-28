@@ -646,6 +646,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Rocket Boost',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/rocket-boost.png`,
     folder: 'Cyberlegs',
     cyberwareType: 'cyberlegs', integration: 'extension', slotsUsed: 3,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,

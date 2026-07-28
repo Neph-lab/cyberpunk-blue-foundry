@@ -473,6 +473,7 @@ const toxinMods = [
   modItem({
     name: 'Toxin',
     cost: 'PR',
+    imgPath: img(M_ROOT, 'toxin.png'),
     system: {
       modType: 'weaponMod',
       appliesAffliction: true,
@@ -486,6 +487,7 @@ const toxinMods = [
   modItem({
     name: 'Toxin, Strong',
     cost: 'EX',
+    imgPath: img(M_ROOT, 'toxin.png'),
     system: {
       modType: 'weaponMod',
       appliesAffliction: true,

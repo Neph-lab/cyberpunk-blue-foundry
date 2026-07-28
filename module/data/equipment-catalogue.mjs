@@ -217,6 +217,53 @@ export const EQUIPMENT_CATALOGUE = [
   // ── Grenades ──────────────────────────────────────────────────────────────
 
   gear({
+    name: 'EMP Grenade', manufacturer: 'Zetatech',
+    folder: 'Grenades', imgPath: `${A_AMMO}/EMP-Grenade.png`, cost: 'EX',
+    description: '<p>Deals no damage.</p><p><strong>AOE:</strong> 4m inner / 8m outer sphere; targets in the outer zone get <strong>+2</strong> to resist. <strong style="color: var(--cpb-accent);">DV15</strong> <strong>TECH</strong>+<strong>Endurance</strong> or two random non-insulated pieces of cyberware (or other electronics) are disabled for the next minute. No SP ablation — nothing physical touched the armor.</p>',
+    isWeapon: true,
+    weapons: [{
+      type: 'thrown', skill: 'athletics', damage: '0', rateOfFire: 1,
+      magazine: 0, ammoCurrent: 0, shots: 1, hands: 1, concealable: true, consumableThrown: true,
+      damageType: 'affliction-explosion', autofireMultiplier: 1, autofireRangeTable: Array(8).fill(0),
+      coneSpread: 8, coneAngle: 45, coneHalfDamageDistance: 4,
+      rangeTable: [15, 13, 25, 0, 0, 0, 0, 0],
+      ammoTypeUuid: '', autofireDamage: '',
+      isPowerWeapon: false, isSmartWeapon: false, isTechWeapon: false, isExcellentQuality: false,
+      chargeType: '', silenceBuiltIn: false, silenceBuiltInDV: 0,
+      jamOnRoll: 0, jamFiresFirst: false, shellDvModifier: 0, targetVitalsPenalty: 8,
+      payloadDmgBonus: 0, critSlicing: false, critBlunt: false, critCrushing: false, critStun: false,
+      afflictionPrimary: 'tech', afflictionSkill: 'endurance', afflictionDv: 15, afflictionEffectId: '',
+      outerZoneResistBonus: 2,
+    }],
+    effects: [{
+      name: 'Cyberware Disabled (EMP)',
+      disabled: true, transfer: false,
+      changes: [{ key: 'cyberblue.disableCyberware.random', mode: 2, value: '2' }],
+      duration: { value: 60, units: 'seconds' },
+      flags: { 'cyberpunk-blue': { isAfflictionEffect: true } },
+    }],
+  }),
+  gear({
+    name: 'Incendiary Grenade', manufacturer: 'Militech',
+    folder: 'Grenades', imgPath: `${A_AMMO}/Incendiary-Grenade.png`, cost: 'PR',
+    description: '<p><strong>AOE:</strong> 6m inner / 10m outer sphere dealing <strong>6d6</strong>. A target with <strong>RFLX</strong> 8+ may roll <strong>Evasion</strong> to halve the damage they would have taken.</p><p><strong>IGNITION:</strong> anyone who takes HP damage catches fire — <strong>Burning</strong> (2 points at the end of each turn) until put out with an Action. It burns for twenty rounds after the last ignition if never extinguished. Multiple instances don\'t stack.</p>',
+    isWeapon: true,
+    weapons: [{
+      type: 'thrown', skill: 'athletics', damage: '6d6', rateOfFire: 1,
+      magazine: 0, ammoCurrent: 0, shots: 1, hands: 1, concealable: true, consumableThrown: true,
+      damageType: 'explosion', autofireMultiplier: 1, autofireRangeTable: Array(8).fill(0),
+      coneSpread: 10, coneAngle: 45, coneHalfDamageDistance: 6,
+      rangeTable: [15, 13, 25, 0, 0, 0, 0, 0],
+      ammoTypeUuid: '', autofireDamage: '',
+      isPowerWeapon: false, isSmartWeapon: false, isTechWeapon: false, isExcellentQuality: false,
+      chargeType: '', silenceBuiltIn: false, silenceBuiltInDV: 0,
+      jamOnRoll: 0, jamFiresFirst: false, shellDvModifier: 0, targetVitalsPenalty: 8,
+      payloadDmgBonus: 0, critSlicing: false, critBlunt: false, critCrushing: false, critStun: false,
+      afflictionPrimary: 'body', afflictionSkill: 'endurance', afflictionDv: 13, afflictionEffectId: '',
+      outerZoneResistBonus: 2, ignitesOnDamage: true,
+    }],
+  }),
+  gear({
     name: 'Knock-Out Grenade',
     folder: 'Grenades', imgPath: `${A_AMMO}/Knock-out-Gas-Grenade.png`, cost: 'EX',
     description: '<p>Deals no damage.</p><p><strong>AOE:</strong> 4m inner / 8m outer sphere; targets in outer zone get <strong>+5</strong> to resist. <strong style="color: var(--cpb-accent);">DV13</strong> <strong>BODY</strong>+<strong>Endurance</strong> or fall unconscious for a number of minutes equal to the margin of failure (waking from damage or an action taken to rouse them). No SP ablation. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind.</p>',
@@ -436,7 +483,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Food Stick', manufacturer: 'AllFoods',
-    folder: 'Survival & Exploration', cost: 'CH',
+    folder: 'Survival & Exploration', imgPath: `${A_GEAR}/food-stick.png`, cost: 'CH',
     description: '1 meal. Available in various awful flavors.',
   }),
   gear({

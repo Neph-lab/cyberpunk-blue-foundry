@@ -3,7 +3,7 @@ import { playSfx } from './audio.mjs';
 import { getEffectiveItemWeapons, getInstalledWeaponMods } from './mods.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
 import { rollAfflictionDefense, checkAfflictionSP, applyAfflictionEffect } from './affliction-attack.mjs';
-import { applyDamageWithPermission, rollCriticalInjuryWithPermission } from './socket.mjs';
+import { applyDamageWithPermission, rollCriticalInjuryWithPermission, createActiveEffectWithPermission } from './socket.mjs';
 import { getActiveAEFlag } from './effects.mjs';
 import { computeVisibilityPenalty, makeElevatedPoint } from './visibility.mjs';
 import { playMediaEffect, DEFAULT_EXPLOSION_MEDIA, DEFAULT_SMOKE_MEDIA, createResidueMediaTile, sampleGroundElevation } from './media-effects.mjs';
@@ -363,6 +363,30 @@ export function showAreaEffectExplosion(centerX, centerY, spreadPx, halfDamagePx
   return graphics;
 }
 
+/**
+ * Set a target alight (Burning embers, 2/turn). No-op if they are already
+ * burning at any intensity — multiple ignitions don't stack. Extinguishing is
+ * GM-handled, so no duration is set.
+ */
+async function igniteTarget(targetActor, attacker) {
+  const alreadyBurning = targetActor.effects.some((e) =>
+    [...(e.statuses ?? [])].some((s) => `${s}`.startsWith('burning-')));
+  if (alreadyBurning) return;
+  const statusDef = CONFIG.statusEffects.find((s) => s.id === 'burning-embers');
+  if (!statusDef) return;
+  await createActiveEffectWithPermission(targetActor, {
+    name: game.i18n.localize(statusDef.name),
+    img: statusDef.icon ?? statusDef.img,
+    changes: foundry.utils.deepClone(statusDef.changes ?? []),
+    statuses: ['burning-embers'],
+    flags: foundry.utils.deepClone(statusDef.flags ?? {}),
+  });
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor: attacker }),
+    content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-fire"></i> ${game.i18n.format('CYBER_BLUE.Combat.IgnitedTarget', { target: targetActor.name })}</p></div>`,
+  });
+}
+
 export async function resolveExplosionAttack(attacker, item, weaponIndex) {
   const effectiveWeapons = item.getEffectiveWeapons?.() ?? getEffectiveItemWeapons(item);
   const weapon = effectiveWeapons[weaponIndex];
@@ -563,6 +587,10 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
         if (isCritical) {
           // Explosion/cone always uses the body table
           await rollCriticalInjuryWithPermission(targetActor, 'body', { attackerActor: attacker });
+        }
+        // Incendiary Grenade: anyone taking HP damage catches fire (no stacking).
+        if ((weapon.ignitesOnDamage ?? false) && netDamage > 0) {
+          await igniteTarget(targetActor, attacker);
         }
       }
     }

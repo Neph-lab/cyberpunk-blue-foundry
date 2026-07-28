@@ -140,6 +140,11 @@ export function buildWeaponField() {
     critStun: new fields.BooleanField({ initial: false }),
     critDoublePick: new fields.BooleanField({ initial: false }),
 
+    // ── Ignition (Incendiary Grenade) ─────────────────────────────────────────
+    // Anyone who takes HP damage from this attack catches fire (Burning embers,
+    // 2/turn) unless already burning. Removal is GM-handled.
+    ignitesOnDamage: new fields.BooleanField({ initial: false }),
+
     // ── Self-cone malfunction (Onibi Plasma Caster) ───────────────────────────
     // After a cone attack, roll 1d10; on 9–10 the toxicity fires a second cone of
     // the same geometry that also catches the attacker (inner radius). The second

@@ -8,7 +8,7 @@ import {
   markDamageDeflectionUsed,
 } from './combat-tracker.mjs';
 import { detectCriticalDice, confirmDamageDialog, rollCriticalInjury } from './critical-injury.mjs';
-import { resolveAfflictionAttack, resolveAppliedAffliction } from './affliction-attack.mjs';
+import { resolveAfflictionAttack, resolveAppliedAffliction, rollAfflictionDefense } from './affliction-attack.mjs';
 import { applyDamageWithPermission, rollCriticalInjuryWithPermission, rollVehicleCriticalWithPermission, deleteActorItemWithPermission, ablateArmorExtraWithPermission, applyForcedCriticalInjuryWithPermission, applyDamageToSubsystemWithPermission, toggleStatusEffectWithPermission, createActiveEffectWithPermission } from './socket.mjs';
 import { getVitalAreaSubsystem } from './vehicle-damage.mjs';
 import { clearWeaponCharge, countWallsBetweenTokens } from './tech-charge.mjs';
@@ -82,6 +82,10 @@ function projectAmmoOntoWeapon(weapon, ammoData) {
   if (ammoData.nonLethal) weapon.nonLethal = true;
   if (ammoData.critRerollForeignObject) weapon.critRerollForeignObject = true;
   if (ammoData.damageOverride) weapon.damage = ammoData.damageOverride;
+  if ((ammoData.toxicDv ?? 0) > 0) {
+    weapon.toxicDv = ammoData.toxicDv;
+    weapon.toxicDamage = ammoData.toxicDamage || '3d6';
+  }
   return weapon;
 }
 
@@ -827,7 +831,10 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const hasLostForce = installedMods.some((m) => m.lostForce);
   const critThreshold = hasLostForce ? 3 : 2;
   // Highlighted Vitals can auto-trigger a crit regardless of the Lost Force threshold.
-  const isCritical = (highlightedVitalsAutoCrit || critDiceCount >= critThreshold) && penetratesWithoutBonus;
+  // Toxic ammo carries a payload instead of wound damage, so it can't crit.
+  const isToxicPayload = (weapon.toxicDv ?? 0) > 0;
+  const isCritical = (highlightedVitalsAutoCrit || critDiceCount >= critThreshold)
+    && penetratesWithoutBonus && !isToxicPayload;
 
   // ── Stealth Advantage whisper ─────────────────────────────────────────────
   // When a silencer with stealthAdvantage is installed, targeting vitals,
@@ -930,7 +937,9 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const tableType = targetVitals ? 'head' : 'body';
 
   const netDamage = sp !== null ? Math.max(finalDamage - sp, 0) : finalDamage;
-  const ablatesArmor = sp !== null && finalDamage >= sp;
+  // Rubber ammo (noAblate): the round still interacts with armour normally for
+  // penetration, but degrades none of it.
+  const ablatesArmor = sp !== null && finalDamage >= sp && !(weapon.noAblate ?? false);
 
   // Barrier Penetration: bonus points bypass SP entirely.
   // Compute what preSP value to pass so that applyDamage (which deducts SP
@@ -989,6 +998,8 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     critSlicing: !!weapon.critSlicing,
     critBlunt: !!weapon.critBlunt,
     critCrushing: !!weapon.critCrushing,
+    // Hollow-Point ammo: a Foreign Object result adds a second injury.
+    critRerollForeignObject: !!weapon.critRerollForeignObject,
   };
 
   // ── Non-lethal / Stun cap: a lethal blow leaves the target at 1 HP + Unconscious ──
@@ -1054,6 +1065,30 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
         // The subsystem applies its own SP ablation, so the vehicle's main armour
         // is untouched (no extra Armor-Piercing ablation against main SP).
         await applyDamageToSubsystemWithPermission(targetActor, vitalSubsystem.id, actualDamage);
+      } else if (isToxicPayload) {
+        // Toxic ammo: the round's damage only established that it broke skin —
+        // none of it carries through. The payload is resolved instead: a
+        // BODY+Endurance check, full toxic damage on a failure and half on a
+        // success, both bypassing SP. The round still scuffs armour normally
+        // (ablateArmorExtra applies exactly 1 point here, since the bypassing
+        // payload never reaches applyDamage's own ablation).
+        if (ablatesArmor) {
+          await ablateArmorExtraWithPermission(targetActor);
+          if (weapon.armorPiercing ?? false) await ablateArmorExtraWithPermission(targetActor);
+        }
+        const toxDefense = await rollAfflictionDefense(
+          targetActor, { afflictionPrimary: 'body', afflictionSkill: 'endurance' }, 0);
+        const resisted = toxDefense.total >= weapon.toxicDv;
+        const toxRoll = await new Roll(weapon.toxicDamage || '3d6').evaluate();
+        const toxDealt = resisted ? Math.ceil(toxRoll.total / 2) : toxRoll.total;
+        await toxRoll.toMessage({
+          speaker: ChatMessage.getSpeaker({ actor: targetActor }),
+          flavor: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-biohazard"></i> ${game.i18n.format(
+            resisted ? 'CYBER_BLUE.Combat.ToxicAmmoResisted' : 'CYBER_BLUE.Combat.ToxicAmmoFailed',
+            { target: targetActor.name, roll: toxDefense.total, dv: weapon.toxicDv, dmg: toxDealt })}</p></div>`,
+          rollMode: game.settings.get('core', 'rollMode'),
+        });
+        await applyDamageWithPermission(targetActor, toxDealt, { ignoreArmor: true });
       } else {
         await applyDamageWithPermission(targetActor, actualDamage, { armorPen });
         // Armor Piercing: ablate 1 extra SP (Tactician slug / AP ammo)

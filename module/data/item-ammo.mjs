@@ -35,6 +35,11 @@ export default class CyberBlueAmmo extends CyberBlueItemBase {
     schema.critRerollForeignObject = new fields.BooleanField({ initial: false });
     // damageOverride: when set, replaces the weapon's damage formula for the shot.
     schema.damageOverride = new fields.StringField({ required: true, blank: true, initial: '' });
+    // Toxic ammo: when toxicDv > 0 the round's own damage only establishes SP
+    // penetration; the target then rolls BODY+Endurance vs toxicDv, taking
+    // toxicDamage (halved on a success) directly to HP. Cannot crit.
+    schema.toxicDv = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
+    schema.toxicDamage = new fields.StringField({ required: true, blank: true, initial: '' });
     schema.ammoTypes = new fields.SchemaField({
       mediumPistol: new fields.BooleanField({ initial: false }),
       heavyPistol: new fields.BooleanField({ initial: false }),

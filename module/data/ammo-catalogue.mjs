@@ -12,7 +12,7 @@ function ammoItem({
   name, ammoTypes = {}, quantity = 10, note = '', img = '', cost = '€$10 (Cheap)',
   attackBonus = 0, smartWeaponOnly = false, smartMissReroll = false,
   nonTechOnly = false, armorPiercing = false, noAblate = false, nonLethal = false,
-  critRerollForeignObject = false, damageOverride = '',
+  critRerollForeignObject = false, damageOverride = '', toxicDv = 0, toxicDamage = '',
 }) {
   return {
     name,
@@ -32,6 +32,8 @@ function ammoItem({
       nonLethal,
       critRerollForeignObject,
       damageOverride,
+      toxicDv,
+      toxicDamage,
       ammoTypes: {
         mediumPistol:  !!ammoTypes.mediumPistol,
         heavyPistol:   !!ammoTypes.heavyPistol,
@@ -253,22 +255,64 @@ export const AMMO_CATALOGUE = [
     attackBonus: 1, smartWeaponOnly: true, smartMissReroll: true,
   }),
 
-  // ── Armor-Piercing (non-Tech weapons only) ──────────────────────────────────
-  // Ablates 2 SP instead of 1 on a solid hit. One item per weapon type. The `smg`
-  // type covers both SMG and Heavy SMG (as with Basic SMG Ammo).
+  // ── Special ammo families (all non-Tech weapons only, €$100 Premium) ────────
+  // Each family covers the same six weapon types; the `smg` type serves both SMG
+  // and Heavy SMG (as with Basic SMG Ammo), and Rifle serves AR / PR / MG.
   ...(() => {
-    const AP_NOTE = 'Ablates 2 SP instead of 1 on a hit. Non-Tech weapons only.';
-    const ap = (name, ammoTypes, note) => ammoItem({
-      name, ammoTypes, cost: '€$100 (Premium)', img: `${ASSET_BASE}/Armor-Piercing.png`,
-      nonTechOnly: true, armorPiercing: true, note: note ? `${note} ${AP_NOTE}` : AP_NOTE,
-    });
+    const CALIBRES = [
+      ['Medium Pistol Ammo',     { mediumPistol: true },    '9mm.'],
+      ['Heavy Pistol Ammo',      { heavyPistol: true },     '.44.'],
+      ['Very Heavy Pistol Ammo', { veryHeavyPistol: true }, '.50.'],
+      ['SMG Ammo',               { smg: true },             'Fits SMG and Heavy SMG.'],
+      ['Rifle Ammo',             { assault: true },         'Fits Assault Rifle, Precision Rifle, and Machine Gun.'],
+      ['Shotgun Slugs',          { shotgunSlug: true },     '12-gauge slug.'],
+    ];
+    const family = (prefix, img, effectNote, extra) => CALIBRES.map(([label, ammoTypes, calibre]) => ammoItem({
+      name: `${prefix} ${label}`, ammoTypes, cost: '€$100 (Premium)', img,
+      nonTechOnly: true, note: `${calibre} ${effectNote}`, ...extra,
+    }));
     return [
-      ap('Armor-Piercing Medium Pistol Ammo',     { mediumPistol: true },   '9mm.'),
-      ap('Armor-Piercing Heavy Pistol Ammo',      { heavyPistol: true },    '.44.'),
-      ap('Armor-Piercing Very Heavy Pistol Ammo', { veryHeavyPistol: true }, '.50.'),
-      ap('Armor-Piercing SMG Ammo',               { smg: true },            'Fits SMG and Heavy SMG.'),
-      ap('Armor-Piercing Rifle Ammo',             { assault: true },        'Fits Assault Rifle, Precision Rifle, and Machine Gun.'),
-      ap('Armor-Piercing Shotgun Slugs',          { shotgunSlug: true },    '12-gauge slug.'),
+      ...family('Armor-Piercing', `${ASSET_BASE}/Armor-Piercing.png`,
+        'Ablates 2 SP instead of 1, and the target\'s SP counts as 2 lower against this shot. Non-Tech weapons only.',
+        { armorPiercing: true }),
+      ...family('Hollow-Point', `${ASSET_BASE}/Hollow-Point.png`,
+        'A Foreign Object critical injury tumbles into a second injury (re-rolled if it would be another Foreign Object). Non-Tech weapons only.',
+        { critRerollForeignObject: true }),
+      ...family('Rubber', `${ASSET_BASE}/Rubber.png`,
+        'Degrades no armor. A target dropped to 0 HP or below is left at 1 HP and unconscious instead. Non-Tech weapons only.',
+        { noAblate: true, nonLethal: true }),
+      ...family('Toxic', `${ASSET_BASE}/Toxic.png`,
+        'Deals no wound damage: on a hit that breaks SP the target rolls BODY+Endurance vs DV15 or takes 3d6 straight to HP (half on a success). Cannot cause a critical injury. Non-Tech weapons only.',
+        { toxicDv: 15, toxicDamage: '3d6' }),
     ];
   })(),
+
+  // ── Grenade-launcher payloads ───────────────────────────────────────────────
+  // Mirror the thrown Gear versions; loaded into a Grenade Launcher they replace
+  // the launcher's own payload. Quantity 1, as with the basic grenade.
+  ammoItem({
+    name: 'EMP Grenade',
+    ammoTypes: { grenade: true },
+    quantity: 1,
+    img: `${ASSET_BASE}/EMP-Grenade.png`,
+    cost: '€$500 (Expensive)',
+    note: 'Zetatech. 4m inner / 8m outer, no damage. DV15 TECH+Endurance (+2 in the outer zone) or two random non-insulated pieces of cyberware are disabled for a minute. No SP ablation.',
+  }),
+  ammoItem({
+    name: 'Incendiary Grenade',
+    ammoTypes: { grenade: true },
+    quantity: 1,
+    img: `${ASSET_BASE}/Incendiary-Grenade.png`,
+    cost: '€$100 (Premium)',
+    note: 'Militech. 6m inner / 10m outer for 6d6; RFLX 8+ may roll Evasion to halve it. Anyone taking HP damage catches fire (Burning) until put out.',
+  }),
+
+  ammoItem({
+    name: 'Toxic Shotgun Shells',
+    ammoTypes: { shotgunShell: true },
+    img: `${ASSET_BASE}/toxic-shotgun-shells.png`,
+    cost: '€$100 (Premium)',
+    nonTechOnly: true, toxicDv: 12, toxicDamage: '3d6',
+    note: '12-gauge shot. Deals no wound damage: on a hit that breaks SP the target rolls BODY+Endurance vs DV12 or takes 3d6 straight to HP (half on a success). Cannot cause a critical injury. Non-Tech weapons only.',
+  }),
 ];

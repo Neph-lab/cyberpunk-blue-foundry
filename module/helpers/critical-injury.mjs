@@ -719,8 +719,10 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
     }
   }
 
-  // Crushing (Sledgehammer): cascade — apply a secondary injury as well
+  // A secondary injury applied alongside the main one (Crushing cascade, or a
+  // Hollow-Point round tumbling after a Foreign Object).
   let crushingCascadeEntry = null;
+  let secondaryLabelKey = 'CYBER_BLUE.CriticalInjury.CrushingCascade';
   if (weaponFlags.critCrushing && entry) {
     if (tableType === 'body') {
       const cascadeKey = CRUSHING_BODY_CASCADE[entry.key];
@@ -739,6 +741,21 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
     }
     if (crushingCascadeEntry) {
       weaponNotes.push(`${game.i18n.localize('CYBER_BLUE.CriticalInjury.CrushingCascade')}: ${game.i18n.localize(crushingCascadeEntry.nameKey)}`);
+    }
+  }
+
+  // Hollow-Point ammo: a Foreign Object result tumbles into an extra injury.
+  // Re-roll until the additional result isn't another Foreign Object.
+  if (weaponFlags.critRerollForeignObject && entry && !crushingCascadeEntry
+      && `${entry.key}`.startsWith('foreign-object')) {
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const extra = await _drawSecondCritResult(rollTable, hardcodedTable);
+      if (extra.entry && !`${extra.entry.key}`.startsWith('foreign-object')) {
+        crushingCascadeEntry = extra.entry;
+        secondaryLabelKey = 'CYBER_BLUE.CriticalInjury.HollowPointExtra';
+        weaponNotes.push(`${game.i18n.localize(secondaryLabelKey)}: ${game.i18n.localize(extra.entry.nameKey)}`);
+        break;
+      }
     }
   }
 
@@ -836,7 +853,7 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
     };
     const [cascadeAE] = await targetActor.createEmbeddedDocuments('ActiveEffect', [cascadeAeData]);
     const cascadeContent = buildInjuryChatHtml({
-      tableLabel: `${tableLabel} (${game.i18n.localize('CYBER_BLUE.CriticalInjury.CrushingCascade')})`,
+      tableLabel: `${tableLabel} (${game.i18n.localize(secondaryLabelKey)})`,
       roll: '—', targetName: targetActor.name,
       name: game.i18n.localize(crushingCascadeEntry.nameKey),
       description: game.i18n.localize(crushingCascadeEntry.descKey),
