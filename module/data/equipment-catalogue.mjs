@@ -142,11 +142,23 @@ const STYLE_DESC = {
     'neokitch style. Found mostly in Westbrook or Downtown.',
 };
 
+// Clothing type → Outfit subfolder. Keeps the compendium browsable as more
+// specific garments are added; CLOTHING_SUBFOLDERS below lists every subfolder
+// that should exist, including ones with no items yet.
+const CLOTHING_FOLDER = {
+  Bottoms: 'Bottoms', Top: 'Tops', Jacket: 'Jackets', Footwear: 'Footwear',
+  Jewelry: 'Jewelry', Shades: 'Shades', Glasses: 'Glasses', Headwear: 'Headwear',
+};
+export const CLOTHING_SUBFOLDERS = [
+  'Bottoms', 'Tops', 'Jackets', 'Footwear', 'Jewelry', 'Shades', 'Glasses',
+  'Headwear', 'Full body', 'Dresses', 'Skirts',
+];
+
 function clothing(type, style, cost) {
   const imgPath = CLOTHING_IMG[`${type}/${style}`] ?? CLOTHING_IMG[`_/${style}`] ?? '';
   return gear({
     name: `${type} (${style})`,
-    folder: 'Outfit',
+    folder: `Outfit/${CLOTHING_FOLDER[type] ?? type}`,
     cost,
     imgPath,
     description: `${type}. ${STYLE_DESC[style]}`,
@@ -193,12 +205,12 @@ export const EQUIPMENT_CATALOGUE = [
   // Named one-off garments — specific pieces rather than a type/style combo.
   gear({
     name: 'Wraith Jacket',
-    folder: 'Outfit', imgPath: `${A_CLOTHES}/entropism-jacket-wraith-jacket.png`, cost: 'CO',
+    folder: 'Outfit/Jackets', imgPath: `${A_CLOTHES}/entropism-jacket-wraith-jacket.png`, cost: 'CO',
     description: 'A tough leather jacket made for style and races through the desert. Colors appropriate to the Wraith clan of nomads.',
   }),
   gear({
     name: 'King of Pentacles Coat',
-    folder: 'Outfit', imgPath: `${A_CLOTHES}/neomilitarism-coat-king-of-pentacles.png`, cost: 'PR',
+    folder: 'Outfit/Jackets', imgPath: `${A_CLOTHES}/neomilitarism-coat-king-of-pentacles.png`, cost: 'PR',
     description: "A heavy leather coat that sends a message. That message is 'stay away, I'm brooding.'",
   }),
 

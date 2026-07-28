@@ -47,7 +47,7 @@ import { MACRO_CATALOGUE } from './helpers/critical-injury-macros.mjs';
 import { ensureTarotDeck, registerTarotHooks, ensureGuideCards, getGuidePlayerUser } from './helpers/guide-tarot.mjs';
 import { WEAPON_CATALOGUE } from './data/weapon-catalogue.mjs';
 import { MOD_CATALOGUE } from './data/mod-catalogue.mjs';
-import { EQUIPMENT_CATALOGUE } from './data/equipment-catalogue.mjs';
+import { EQUIPMENT_CATALOGUE, CLOTHING_SUBFOLDERS } from './data/equipment-catalogue.mjs';
 import { CYBERWARE_CATALOGUE } from './data/cyberware-catalogue.mjs';
 import { DRUG_CATALOGUE } from './data/drug-catalogue.mjs';
 import { PROGRAM_CATALOGUE } from './data/program-catalogue.mjs';
@@ -710,6 +710,45 @@ onDocumentHook([
   'createItem', 'updateItem', 'deleteItem',
   'createActiveEffect', 'updateActiveEffect', 'deleteActiveEffect',
 ], syncSeriousWoundEffect, { activeGMOnly: true });
+
+/**
+ * Petrochem Large Fuel Tank: while a weapon carrying the mod holds more than
+ * 10 + BODY units of fuel, the wielder's MOVE drops by 1. Reactive on ammo
+ * changes, so it clears itself as the tank is spent.
+ */
+const LARGE_TANK_AE_FLAG = 'largeFuelTankEncumbrance';
+const syncLargeFuelTankEffect = async (document) => {
+  const actor = document instanceof Actor ? document
+    : (document instanceof Item && document.parent instanceof Actor) ? document.parent : null;
+  if (!(actor instanceof CyberBlueActor)) return;
+
+  const body = Number(actor.system?.stats?.body?.value) || 0;
+  const threshold = 10 + body;
+  const overloaded = actor.items.some((it) => {
+    if (!(it.system?.weapons?.length)) return false;
+    const hasTank = actor.items.some((m) => m.type === 'mod'
+      && m.system.modType === 'weaponMod'
+      && m.system.installedOnId === it.id
+      && m.system.doubleMagazine);
+    if (!hasTank) return false;
+    return it.system.weapons.some((w) => (w.ammoCurrent ?? 0) > threshold);
+  });
+
+  const existing = actor.effects.find((e) => e.getFlag('cyberpunk-blue', LARGE_TANK_AE_FLAG));
+  if (overloaded && !existing) {
+    await actor.createEmbeddedDocuments('ActiveEffect', [{
+      name: game.i18n.localize('CYBER_BLUE.Combat.LargeFuelTankAE'),
+      icon: 'icons/svg/downgrade.svg',
+      changes: [{ key: 'system.stats.move.value', mode: 2, value: '-1' }],
+      flags: { 'cyberpunk-blue': { [LARGE_TANK_AE_FLAG]: true } },
+    }]);
+  } else if (!overloaded && existing) {
+    try { await existing.delete(); } catch { /* already gone */ }
+  }
+};
+onDocumentHook([
+  'createItem', 'updateItem', 'deleteItem', 'updateActor',
+], syncLargeFuelTankEffect, { activeGMOnly: true });
 
 // ─── Natural Healing: per-rest role/ability resets ───────────────────────────
 // The Natural Healing macro calls Hooks.callAll('cyberpunk-blue.naturalHealing',
@@ -2316,11 +2355,28 @@ function _classifyForFolder(item) {
   return { packId: 'cyberpunk-blue.weapons', folderName: def?.label ?? typeKey };
 }
 
-async function _ensureFolderInPack(pack, name) {
+/**
+ * Resolve (creating as needed) a folder inside a pack. Accepts either a plain
+ * name ("Grenades") or a nested path ("Outfit/Jackets"); each segment is matched
+ * against siblings under the same parent, so a name may repeat at other depths.
+ * Returns the deepest folder.
+ */
+async function _ensureFolderInPack(pack, path) {
   await pack.getIndex({ fields: ['name', 'type'] });
-  const existing = pack.folders.find((f) => f.name === name);
-  if (existing) return existing;
-  return Folder.create({ name, type: 'Item', sorting: 'a', color: null }, { pack: pack.collection });
+  const segments = `${path}`.split('/').map((s) => s.trim()).filter(Boolean);
+  let parent = null;
+  for (const name of segments) {
+    const parentId = parent?.id ?? null;
+    let existing = pack.folders.find((f) => f.name === name && (f.folder?.id ?? null) === parentId);
+    if (!existing) {
+      existing = await Folder.create(
+        { name, type: 'Item', sorting: 'a', color: null, folder: parentId },
+        { pack: pack.collection },
+      );
+    }
+    parent = existing;
+  }
+  return parent;
 }
 
 async function _populatePack(packId, items) {
@@ -3420,6 +3476,46 @@ async function _populateEquipmentPack(packId, items) {
   return created;
 }
 
+/**
+ * Ensure every Outfit subfolder exists (including ones with no items yet), and
+ * move clothing that was seeded into the old flat "Outfit" folder down into its
+ * per-type subfolder. Idempotent — a no-op once everything is filed.
+ */
+async function _ensureClothingSubfolders(gearItems) {
+  const PACK_ID = 'cyberpunk-blue.gear';
+  const pack = game.packs.get(PACK_ID);
+  if (!pack) return;
+
+  await pack.configure({ locked: false });
+  try {
+    for (const sub of CLOTHING_SUBFOLDERS) {
+      await _ensureFolderInPack(pack, `Outfit/${sub}`);
+    }
+
+    // Relocate anything still sitting directly in "Outfit".
+    await pack.getIndex({ fields: ['name', 'type', 'folder'] });
+    const outfitRoot = pack.folders.find((f) => f.name === 'Outfit' && !f.folder);
+    if (!outfitRoot) return;
+    const wanted = new Map(gearItems
+      .filter((it) => `${it._folder ?? ''}`.startsWith('Outfit/'))
+      .map((it) => [it.name, it._folder]));
+    const updates = [];
+    for (const entry of pack.index) {
+      if (entry.folder !== outfitRoot.id) continue;
+      const path = wanted.get(entry.name);
+      if (!path) continue;
+      const dest = await _ensureFolderInPack(pack, path);
+      if (dest?.id) updates.push({ _id: entry._id, folder: dest.id });
+    }
+    if (updates.length) {
+      await Item.updateDocuments(updates, { pack: PACK_ID });
+      console.log(`Cyberpunk Blue | Filed ${updates.length} clothing item(s) into Outfit subfolders.`);
+    }
+  } finally {
+    await pack.configure({ locked: true });
+  }
+}
+
 async function ensureEquipmentCatalogue() {
   if (!game.user.isGM) return;
   try {
@@ -3450,6 +3546,10 @@ async function ensureEquipmentCatalogue() {
 
     // Stamp each item's picture onto its effects' stored icons in the packs.
     await bakeCompendiumEffectImages();
+
+    // Outfit subfolders (incl. the still-empty Full body / Dresses / Skirts) and
+    // relocation of clothing seeded before the subfolders existed.
+    await _ensureClothingSubfolders(gearItems);
 
     // Backfill any items added to a catalogue after the world's pack was first
     // seeded (grenades, new armor, cyberware, drugs, programs, ...). Each derives

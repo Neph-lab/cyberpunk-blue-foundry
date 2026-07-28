@@ -745,6 +745,7 @@
       "AccidentalDischarge": "Accidental Discharge! ({weapon}, die={die}) — extra round consumed, +1 dmg/die.",
       "AccidentalDischargeDmg": "+{n} (Accidental Discharge)",
       "PerDieDamageBonus": "+{n} (electric edge)",
+      "LargeFuelTankAE": "Large Fuel Tank (overloaded, MOVE −1)",
       "PermanentEdge": "Permanent Edge — Critical Injury",
       "PermanentEdgePick": "Rolled [{dice}] on the {table} table — the GM picks any two dice for the result.",
       "SmartTargetingAE": "Smart-targeting feedback (+1)",
