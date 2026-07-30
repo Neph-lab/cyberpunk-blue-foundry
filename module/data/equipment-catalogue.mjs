@@ -129,22 +129,35 @@ function gear({
 
 const STYLE_DESC = {
   Entropism:
-    'Entropism — Necessity over Style. Survival ethos born from the Time of the Red. ' +
-    'Materials must be rough, durable, with pockets or attachment points for gear. ' +
-    'Headgear protects from sun or acid rain; footwear handles rough terrain. ' +
-    'Military surplus is a common source. Prevalent in Santo Domingo and the Northside Industrial District.',
+    '<strong>ENTROPISM — NECESSITY OVER STYLE:</strong> This is the survival ethos born from the Time of the Red. ' +
+    'Materials must be rough and durable, with pockets or attachment points for gear. ' +
+    'Headgear protects from sun and acid rain, and footwear handles rough terrain. ' +
+    'Military surplus is a common source. The style is prevalent in Santo Domingo and the Northside Industrial District.',
   Kitch:
-    'Kitch — Style over Substance. All about making a statement. More is more: bold colors, ' +
-    'unique hairstyles, impressive jewelry or cyberware threading. Clothes and decorations ' +
-    'often have embedded tech producing light effects. The default style across most of Night City.',
+    '<strong>KITCH — STYLE OVER SUBSTANCE:</strong> This style is all about making a statement, and more is more: ' +
+    'bold colors, unique hairstyles, and impressive jewelry or cyberware threading. Clothes and decorations ' +
+    'often have embedded tech that produces light effects. It is the default style across most of Night City.',
   Neomilitarism:
-    'Neomilitarism — Substance over Style. Corporate cold show of power. Minimalism, strict lines, ' +
-    'quality materials. One statement, perfectly executed. Popular among career corpos and high society ' +
-    'throughout central Night City.',
+    '<strong>NEOMILITARISM — SUBSTANCE OVER STYLE:</strong> This is the corporate cold show of power, built on minimalism, ' +
+    'strict lines, and quality materials. It makes one statement, perfectly executed. The style is popular among career ' +
+    'corpos and high society throughout central Night City.',
   Neokitch:
-    'Neokitch — Style and Substance. A statement perfectly tailored to its message, designed specifically ' +
-    'for the wearer and context. Only the ultra-rich or those well-connected in fashion can maintain true ' +
-    'neokitch style. Found mostly in Westbrook or Downtown.',
+    '<strong>NEOKITCH — STYLE AND SUBSTANCE:</strong> This is a statement perfectly tailored to its message, designed ' +
+    'specifically for the wearer and the context. Only the ultra-rich, or those well connected in fashion, can maintain ' +
+    'true Neokitch style. It is found mostly in Westbrook and Downtown.',
+};
+
+// Lead-in sentence per garment type, so each clothing description opens with a
+// complete sentence rather than a bare noun label.
+const CLOTHING_LEAD = {
+  Bottoms:  'A pair of bottoms cut in the {style} style.',
+  Top:      'A top cut in the {style} style.',
+  Jacket:   'A jacket cut in the {style} style.',
+  Footwear: 'A pair of shoes made in the {style} style.',
+  Jewelry:  'A piece of jewelry made in the {style} style.',
+  Shades:   'A pair of shades made in the {style} style.',
+  Glasses:  'A pair of glasses made in the {style} style.',
+  Headwear: 'A piece of headwear made in the {style} style.',
 };
 
 // Clothing type → Outfit subfolder. Keeps the compendium browsable as more
@@ -166,7 +179,8 @@ function clothing(type, style, cost) {
     folder: `Outfit/${CLOTHING_FOLDER[type] ?? type}`,
     cost,
     imgPath,
-    description: `${type}. ${STYLE_DESC[style]}`,
+    description: `<p>${(CLOTHING_LEAD[type] ?? `A piece of ${type.toLowerCase()} made in the {style} style.`).replace('{style}', style)}</p>`
+      + `<p>${STYLE_DESC[style]}</p>`,
   });
 }
 
@@ -216,7 +230,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'King of Pentacles Coat',
     folder: 'Outfit/Jackets', imgPath: `${A_CLOTHES}/neomilitarism-coat-king-of-pentacles.png`, cost: 'PR',
-    description: "A heavy leather coat that sends a message. That message is 'stay away, I'm brooding.'",
+    description: 'A heavy leather coat that sends a message. That message is &ldquo;stay away, I&rsquo;m brooding.&rdquo;',
   }),
 
   // ── Grenades ──────────────────────────────────────────────────────────────
@@ -224,7 +238,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'EMP Grenade', manufacturer: 'Zetatech',
     folder: 'Grenades', imgPath: `${A_AMMO}/EMP-Grenade.png`, cost: 'EX',
-    description: '<p>Deals no damage.</p><p><strong>AOE:</strong> 4m inner / 8m outer sphere; targets in the outer zone get <strong>+2</strong> to resist. <strong style="color: var(--cpb-accent);">DV15</strong> <strong>TECH</strong>+<strong>Endurance</strong> or two random non-insulated pieces of cyberware (or other electronics) are disabled for the next minute. No SP ablation — nothing physical touched the armor.</p>',
+    description: '<p>This grenade deals no damage and ablates no SP, because nothing physical touches the armor.</p><p><strong>AOE:</strong> The blast fills a 4m inner / 8m outer sphere, and targets in the outer zone get <strong>+2</strong> to resist. A target must pass a <strong style="color: var(--cpb-accent);">DV 15</strong> <strong>TECH</strong>+<strong>Endurance</strong> check or have two random non-insulated pieces of cyberware (or other electronics) disabled for the next minute.</p>',
     isWeapon: true,
     weapons: [{
       type: 'thrown', skill: 'athletics', damage: '0', rateOfFire: 1,
@@ -271,7 +285,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Knock-Out Grenade',
     folder: 'Grenades', imgPath: `${A_AMMO}/Knock-out-Gas-Grenade.png`, cost: 'EX',
-    description: '<p>Deals no damage.</p><p><strong>AOE:</strong> 4m inner / 8m outer sphere; targets in outer zone get <strong>+5</strong> to resist. <strong style="color: var(--cpb-accent);">DV13</strong> <strong>BODY</strong>+<strong>Endurance</strong> or fall unconscious for a number of minutes equal to the margin of failure (waking from damage or an action taken to rouse them). No SP ablation. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind.</p>',
+    description: '<p>This grenade deals no damage and ablates no SP.</p><p><strong>AOE:</strong> The cloud fills a 4m inner / 8m outer sphere, and targets in the outer zone get <strong>+5</strong> to resist. A target must pass a <strong style="color: var(--cpb-accent);">DV 13</strong> <strong>BODY</strong>+<strong>Endurance</strong> check or fall unconscious for a number of minutes equal to the margin of failure, waking early from damage or from an Action taken to rouse them.</p><p><strong>DISPERSAL:</strong> Both radii shrink by 2m after each subsequent turn, and the cloud drifts with the wind.</p>',
     isWeapon: true,
     weapons: [{
       type: 'thrown', skill: 'athletics', damage: '0', rateOfFire: 1,
@@ -296,7 +310,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Smoke Grenade',
     folder: 'Grenades', imgPath: `${A_AMMO}/Smoke-Grenade.png`, cost: 'CO',
-    description: '<p>Deals no damage.</p><p><strong>AOE:</strong> 16m inner / 22m outer sphere. <strong style="color: var(--cpb-accent);">DV13</strong> <strong>BODY</strong>+<strong>Endurance</strong> or suffer Damaged Eye Critical Injury for 1 minute. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind.</p>',
+    description: '<p>This grenade deals no damage.</p><p><strong>AOE:</strong> The cloud fills a 16m inner / 22m outer sphere. A target must pass a <strong style="color: var(--cpb-accent);">DV 13</strong> <strong>BODY</strong>+<strong>Endurance</strong> check or suffer the Damaged Eye critical injury for 1 minute.</p><p><strong>DISPERSAL:</strong> Both radii shrink by 2m after each subsequent turn, and the cloud drifts with the wind.</p>',
     isWeapon: true,
     weapons: [{
       type: 'thrown', skill: 'athletics', damage: '0', rateOfFire: 1,
@@ -321,7 +335,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Teargas Grenade',
     folder: 'Grenades', imgPath: `${A_AMMO}/Teargas-Grenade.png`, cost: 'CO',
-    description: '<p>Deals no damage.</p><p><strong>AOE:</strong> 10m inner / 12m outer sphere; targets in outer zone get <strong>+4</strong> to resist. <strong style="color: var(--cpb-accent);">DV13</strong> <strong>BODY</strong>+<strong>Endurance</strong> or suffer Damaged Eye Critical Injury for 1 minute. Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind.</p>',
+    description: '<p>This grenade deals no damage.</p><p><strong>AOE:</strong> The cloud fills a 10m inner / 12m outer sphere, and targets in the outer zone get <strong>+4</strong> to resist. A target must pass a <strong style="color: var(--cpb-accent);">DV 13</strong> <strong>BODY</strong>+<strong>Endurance</strong> check or suffer the Damaged Eye critical injury for 1 minute.</p><p><strong>DISPERSAL:</strong> Both radii shrink by 2m after each subsequent turn, and the cloud drifts with the wind.</p>',
     isWeapon: true,
     weapons: [{
       type: 'thrown', skill: 'athletics', damage: '0', rateOfFire: 1,
@@ -346,7 +360,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Flashbang Grenade',
     folder: 'Grenades', imgPath: `${A_AMMO}/Flasgbang-Grenade.png`, cost: 'EX',
-    description: '<p>Deals no damage.</p><p><strong>AOE:</strong> 10m inner / 12m outer sphere; targets in outer zone get <strong>+4</strong> to resist. <strong style="color: var(--cpb-accent);">DV17</strong> REFLEXES+<strong>Athletics</strong> or become Blinded and Deafened for 1 round. Both radii shrink by 2m after each subsequent turn.</p>',
+    description: '<p>This grenade deals no damage.</p><p><strong>AOE:</strong> The blast fills a 10m inner / 12m outer sphere, and targets in the outer zone get <strong>+4</strong> to resist. A target must pass a <strong style="color: var(--cpb-accent);">DV 17</strong> <strong>RFLX</strong>+<strong>Athletics</strong> check or become Blinded and Deafened for 1 round.</p><p><strong>DISPERSAL:</strong> Both radii shrink by 2m after each subsequent turn.</p>',
     isWeapon: true,
     weapons: [{
       type: 'thrown', skill: 'athletics', damage: '0', rateOfFire: 1,
@@ -379,7 +393,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Toxic Grenade',
     folder: 'Grenades', imgPath: `${A_AMMO}/Toxic-Gas-Grenade.png`, cost: 'EX',
-    description: '<p>Deals no damage, no SP ablation, cannot cause Critical Injuries.</p><p><strong>AOE:</strong> 4m inner / 10m outer sphere; targets in outer zone get <strong>+2</strong> to resist. <strong style="color: var(--cpb-accent);">DV15</strong> <strong>BODY</strong>+<strong>Endurance</strong> or take <strong>2d6</strong> HP; on a successful resist, take half (rounded down). Both radii shrink by 2m after each subsequent turn; the cloud moves with the wind.</p>',
+    description: '<p>This grenade deals no damage, ablates no SP, and cannot cause critical injuries.</p><p><strong>AOE:</strong> The cloud fills a 4m inner / 10m outer sphere, and targets in the outer zone get <strong>+2</strong> to resist. A target must pass a <strong style="color: var(--cpb-accent);">DV 15</strong> <strong>BODY</strong>+<strong>Endurance</strong> check or take <strong>2d6</strong> to HP, taking half that damage, rounded down, on a successful resist.</p><p><strong>DISPERSAL:</strong> Both radii shrink by 2m after each subsequent turn, and the cloud drifts with the wind.</p>',
     isWeapon: true,
     weapons: [{
       type: 'thrown', skill: 'athletics', damage: '2d6', rateOfFire: 1,
@@ -402,17 +416,17 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Audio Recorder', manufacturer: 'Fuyutsuki',
     folder: 'Media Gear', imgPath: `${A_GEAR}/audio-recorder.png`, cost: 'CO',
-    description: '24-hour recording capacity per shard (1 shard included).',
+    description: 'This recorder holds up to 24 hours of audio per shard, and one shard is included.',
   }),
   gear({
     name: 'Braindance',
     folder: 'Media Gear', imgPath: `${A_GEAR}/braindance.png`, cost: 'PR',
-    description: 'Up to 4 hours of full-sensory recorded experience on a shard.',
+    description: 'This shard holds up to 4 hours of full-sensory recorded experience.',
   }),
   gear({
     name: 'Braindance Wreath', manufacturer: 'Segotari',
     folder: 'Media Gear', imgPath: `${A_GEAR}/braindance-wreath.png`, cost: 'EX',
-    description: 'Required to experience a Braindance recording.',
+    description: 'This headset is required in order to experience a Braindance recording.',
   }),
   gear({
     name: 'IR-Flashlight', manufacturer: 'EBM',
@@ -422,42 +436,42 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'The Snitcher', manufacturer: 'Fourth Wall',
     folder: 'Media Gear', imgPath: `${A_GEAR}/BD-TheSnitcher.png`, cost: 'CO',
-    description: "Braindance. Historical police drama set in 1992. Three hardened detectives are hunting a group of robbers — one of whom keeps leaving clues for them. Meanwhile, the robbers always seem to have insider info on the cops…",
+    description: '<p>This Braindance is a historical police drama set in 1992. Three hardened detectives are hunting a group of robbers, one of whom keeps leaving clues for them. Meanwhile, the robbers always seem to have insider info on the cops&hellip;</p>',
   }),
   gear({
     name: 'Drum Synthesizer', manufacturer: 'Fuyutsuki',
     folder: 'Media Gear', imgPath: `${A_GEAR}/drum-synthesizer.png`, cost: 'EX',
-    description: 'Plastic pads that simulate a drum kit; includes pre-programmed beats and loops. Requires a pocket amplifier or amp.',
+    description: 'This instrument is a set of plastic pads that simulate a drum kit, and it comes with pre-programmed beats and loops. It requires a pocket amplifier or a full amp.',
   }),
   gear({
     name: 'Electric Guitar', manufacturer: 'Fuyutsuki',
     folder: 'Media Gear', imgPath: `${A_GEAR}/electric-guitar.png`, cost: 'EX',
-    description: 'Requires a pocket amplifier or amp.',
+    description: 'This is a standard electric guitar. It requires a pocket amplifier or a full amp.',
   }),
   gear({
     name: 'Movie (Shard)',
     folder: 'Media Gear', imgPath: `${A_GEAR}/movie.png`, cost: 'CO',
-    description: '2–5 hours of screen-viewable content on a shard.',
+    description: 'This shard holds between 2 and 5 hours of screen-viewable content.',
   }),
   gear({
     name: 'Music Album (Shard)',
     folder: 'Media Gear', imgPath: `${A_GEAR}/music-album.png`, cost: 'CH',
-    description: '10–20 songs on a shard or legacy format.',
+    description: 'This album holds 10 to 20 songs on a shard or a legacy format.',
   }),
   gear({
     name: 'Pocket Amplifier', manufacturer: 'Fuyutsuki',
     folder: 'Media Gear', imgPath: `${A_GEAR}/pocket-amp.png`, cost: 'PR',
-    description: 'Large-book sized amplifier. Connects up to 2 instruments; up to 90dB output.',
+    description: 'This amplifier is roughly the size of a large book. It connects up to 2 instruments and puts out up to 90dB.',
   }),
   gear({
     name: 'Radio / Music Player', manufacturer: 'Fuyutsuki',
     folder: 'Media Gear', imgPath: `${A_GEAR}/music-player.png`, cost: 'CO',
-    description: 'Can play audio from the Data Pool, memory chip, or radio broadcast.',
+    description: 'This player can play audio from the Data Pool, a memory chip, or a radio broadcast.',
   }),
   gear({
     name: 'Video Camera', manufacturer: 'Fuyutsuki',
     folder: 'Media Gear', imgPath: `${A_GEAR}/video-camera.png`, cost: 'PR',
-    description: '10-hour recording capacity per shard (1 shard included).',
+    description: 'This camera holds up to 10 hours of footage per shard, and one shard is included.',
   }),
 
   // ── Survival & Exploration Gear ───────────────────────────────────────────
@@ -465,74 +479,74 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Anti-Smog Breathing Mask',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/amti-smog-breathing-mask.png`, cost: 'PR',
-    description: 'Immune to airborne toxins that require inhalation while worn.',
+    description: 'The wearer is immune to airborne toxins that require inhalation while this mask is worn.',
     effects: [reminder('Immune to inhaled toxins while worn')],
   }),
   gear({
     name: 'Auto-Level Ear Protectors', manufacturer: 'Fuyutsuki',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/auto-level-ear-protectors.png`, cost: 'PR',
-    description: 'Immune to deafness effects and damage from loud noises while worn.',
+    description: 'The wearer is immune to deafness effects and to damage from loud noises while these protectors are worn.',
     effects: [reminder('Immune to deafness / loud-noise damage while worn')],
   }),
   gear({
     name: 'Backpack', manufacturer: 'Everest VentureWare',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/backpack.png`, cost: 'CO',
-    description: 'Spacious and sturdy.',
+    description: 'This backpack is spacious and sturdy enough for a long haul.',
   }),
   gear({
     name: 'Binoculars', manufacturer: 'Militech',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/binoculars.png`, cost: 'CO',
-    description: 'Magnifies up to ×5.',
+    description: 'These binoculars magnify up to &times;5.',
   }),
   gear({
     name: 'Duct Tape',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/duct-tape.png`, cost: 'EV',
-    description: '100m roll. Available in glow-in-the-dark color options.',
+    description: 'This is a 100m roll of duct tape, available in glow-in-the-dark color options.',
   }),
   gear({
     name: 'Flashlight', manufacturer: 'Everest VentureWare',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/flashlight.png`, cost: 'EV',
-    description: '100m illumination beam.',
+    description: 'This flashlight throws an illumination beam up to 100m.',
   }),
   gear({
     name: 'Food Stick', manufacturer: 'AllFoods',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/food-stick.png`, cost: 'CH',
-    description: '1 meal. Available in various awful flavors.',
+    description: 'This stick is one full meal, and it comes in various awful flavors.',
   }),
   gear({
     name: 'Grapple Gun', manufacturer: 'Everest VentureWare',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/grappling-gun.png`, cost: 'PR',
-    description: 'Rocket-propelled grapple that embeds in thick cover within 30m. Action to fire or fully retract. 30m rope, 2-person capacity, rope has 10 HP.',
+    description: 'This gun fires a rocket-propelled grapple that embeds in thick cover within 30m. Firing or fully retracting it takes an Action. The 30m rope carries 2 people and has 10 HP.',
   }),
   gear({
     name: 'Inflatable Bed & Sleeping Bag', manufacturer: 'Everest VentureWare',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/inflatable-bed-and-sleeping-bag.png`, cost: 'EV',
-    description: 'Folds down to a 15×15×10cm package.',
+    description: 'This bedroll folds down to a 15&times;15&times;10cm package.',
   }),
   gear({
     name: 'Personal Care Pack',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/personal-care-pack.png`, cost: 'EV',
-    description: 'Toothbrush, towel, soap, and other basic hygiene items.',
+    description: 'This pack holds a toothbrush, a towel, soap, and other basic hygiene items.',
   }),
   gear({
     name: 'Radar Detector',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/radar-detector.png`, cost: 'EX',
-    description: 'Detects radar, ladar, and echo scan in the area; triangulates the source within a 10% margin.',
+    description: 'This detector picks up radar, ladar, and echo scans in the area, and it triangulates the source to within a 10% margin.',
   }),
   gear({
     name: 'Road Flare',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/road-flare.png`, cost: 'CH',
-    description: '100m radius illumination, lasts 1 hour, single use. Available in various colors.',
+    description: 'This flare lights a 100m radius for 1 hour and is single use. It is available in various colors.',
   }),
   gear({
     name: 'Rope', manufacturer: 'Everest VentureWare',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/rope.png`, cost: 'EV',
-    description: '60m nylon rope with 400kg capacity.',
+    description: 'This is 60m of nylon rope with a 400kg capacity.',
   }),
   gear({
     name: 'Tent & Camping Equipment', manufacturer: 'Everest VentureWare',
     folder: 'Survival & Exploration', imgPath: `${A_GEAR}/tent-and-camping-equipment.png`, cost: 'CO',
-    description: 'Small tent, self-heating pot (2-hour use with 5-minute recharge), and basic utensils.',
+    description: 'This kit holds a small tent, a self-heating pot that runs for 2 hours on a 5-minute recharge, and basic utensils.',
   }),
 
   // ── Scientific & Medical Equipment ────────────────────────────────────────
@@ -564,22 +578,22 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Chemical Analyzer', manufacturer: 'Tanson',
     folder: 'Scientific & Medical', imgPath: `${A_GEAR}/chemical-analyzer.png`, cost: 'VEX',
-    description: 'Action to insert a sample; identifies the compound on the following round.',
+    description: 'Inserting a sample takes an Action, and the analyzer identifies the compound on the following round.',
   }),
   gear({
     name: 'Cryopump',
     folder: 'Scientific & Medical', imgPath: `${A_GEAR}/cryobag.png`, cost: 'LUX',
-    description: '<p>Medtech only. Briefcase that unfolds into a body-bag and coolant pump (Action). <strong style="color: var(--cpb-accent);">DV12</strong> <strong>TECH</strong>+<strong>Medicine</strong> (Cryotech) to place a person in stasis for up to 1 week (Action). The bag has 15 HP. Recharge costs CO.</p>',
+    description: '<p>This briefcase unfolds into a body bag and coolant pump as an Action, and the bag has 15 HP. A <strong style="color: var(--cpb-accent);">DV 12</strong> <strong>TECH</strong>+<strong>Medicine</strong> (Cryotech) check as an Action places a person in stasis for up to 1 week.</p><p><strong>PREREQUISITE:</strong> Only a Medtech can operate this device. Recharging it costs &euro;$50 (Costly).</p>',
   }),
   gear({
     name: 'Cryotank',
     folder: 'Scientific & Medical', imgPath: `${A_GEAR}/cryotank.png`, cost: 'LUX',
-    description: '<p>Medtech only. <strong style="color: var(--cpb-accent);">DV15</strong> <strong>TECH</strong>+<strong>Medicine</strong> (Cryotech) for indefinite stasis, or conscious suspension with 2× the natural healing rate.</p>',
+    description: '<p>A <strong style="color: var(--cpb-accent);">DV 15</strong> <strong>TECH</strong>+<strong>Medicine</strong> (Cryotech) check places a person in indefinite stasis, or in conscious suspension at twice the natural healing rate.</p><p><strong>PREREQUISITE:</strong> Only a Medtech can operate this device.</p>',
   }),
   gear({
     name: 'Medscanner', manufacturer: 'Trauma Team',
     folder: 'Scientific & Medical', imgPath: `${A_GEAR}/medscanner.png`, cost: 'VEX',
-    description: '<p>Performs most medical tests. <strong>+2</strong> to <strong>Medicine</strong> checks.</p>',
+    description: 'This scanner performs most medical tests and grants <strong>+2</strong> to <strong>Medicine</strong> checks.',
     effects: [ae('Medicine +2', [skill('medicine', 2)])],
   }),
   gear({
@@ -625,26 +639,26 @@ export const EQUIPMENT_CATALOGUE = [
     folder: 'Computer Hardware', cost: 'VEX',
     isComputer: true,
     computer: { generalSlots: 9, ram: 8, isCyberdeck: true, canQuickhack: true },
-    description: '9 general slots (hardware Mods or software Executables), 8 RAM, 10m wireless range. Requires a Neuroport Cyberdeck Port or Interface Plugs to use.',
+    description: 'This deck has 9 general slots for hardware Mods or software Executables, 8 RAM, and a 10m wireless range. It requires a Neuroport Cyberdeck Port or Interface Plugs to use.',
   }),
   gear({
     name: 'Memory Shard',
     folder: 'Computer Hardware', imgPath: `${A_GEAR}/memory-card.png`, cost: 'CH',
-    description: 'Data storage wafer. Fits any standard shard socket.',
+    description: 'This data storage wafer fits any standard shard socket.',
   }),
   gear({
     name: 'Netrunner Chair',
     folder: 'Computer Hardware', imgPath: `${A_GEAR}/netrunning-chair.png`, cost: 'VEX',
     isComputer: true,
     computer: { hardwareSlots: 1 },
-    description: '<p>1 hardware slot (functionally part of a connected cyberdeck). <strong>−2</strong> to remote hack damage while seated. Requires a Neuroport Cyberdeck Port.</p>',
+    description: 'This chair provides 1 hardware slot, which functions as part of a connected cyberdeck, and grants <strong>&minus;2</strong> to remote hack damage while the netrunner is seated. It requires a Neuroport Cyberdeck Port.',
   }),
   gear({
     name: 'Netrunner Chair, Advanced',
     folder: 'Computer Hardware', imgPath: `${A_GEAR}/netrunning-chair-advanced.png`, cost: 'LUX',
     isComputer: true,
     computer: { hardwareSlots: 2 },
-    description: '<p><strong>+1</strong> NET Action per turn and 2 hardware slots (functionally part of a connected cyberdeck). <strong>−3</strong> to remote hack damage while seated. Requires a Neuroport Cyberdeck Port.</p>',
+    description: 'This chair grants <strong>+1</strong> NET Action per turn and provides 2 hardware slots, which function as part of a connected cyberdeck. It also grants <strong>&minus;3</strong> to remote hack damage while the netrunner is seated. It requires a Neuroport Cyberdeck Port.',
   }),
   gear({
     name: 'Smart Visor', manufacturer: 'Tanson',
@@ -666,7 +680,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Caltrops',
     folder: 'Clandestine Gear', imgPath: `${A_GEAR}/caltrops.png`, cost: 'EV',
-    description: '<p>Covers 2m². Any creature moving through must make a <strong style="color: var(--cpb-accent);">DV15</strong> <strong>RFLX</strong>+<strong>Athletics</strong> check or take <strong>1d6</strong> damage per 2m of movement through the area. Shoes have SP 1 against this; army boots have SP 5. <strong style="color: var(--cpb-accent);">DV10</strong> <strong>INT</strong>+<strong>Perception</strong> to detect.</p>',
+    description: '<p>A scattering of caltrops covers 2m&sup2;. Any creature moving through the area must pass a <strong style="color: var(--cpb-accent);">DV 15</strong> <strong>RFLX</strong>+<strong>Athletics</strong> check or take <strong>1d6</strong> damage per 2m of movement through it. Shoes count as SP 1 against this, and army boots as SP 5.</p><p><strong>SPOTTING:</strong> Noticing the caltrops requires a <strong style="color: var(--cpb-accent);">DV 10</strong> <strong>INT</strong>+<strong>Perception</strong> check.</p>',
     // Deployed as an "affliction explosion" placement that drops a persistent
     // movement-hazard Region (see createHazardRegion / CyberBlueHazardRegionBehavior).
     isWeapon: true,
@@ -694,32 +708,32 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Disposable Phone', manufacturer: 'Zetatech',
     folder: 'Clandestine Gear', imgPath: `${A_GEAR}/disposable-phone.png`, cost: 'CO',
-    description: 'Voice and holo-calls without a neuroport.',
+    description: 'This phone handles voice and holo-calls without needing a neuroport.',
   }),
   gear({
     name: 'Handcuffs',
     folder: 'Clandestine Gear', imgPath: `${A_GEAR}/handcuffs.png`, cost: 'CO',
-    description: '<p>Steel. A character with <strong>BODY</strong> 10+ can break free.</p>',
+    description: 'These cuffs are solid steel. A character with <strong>BODY</strong> 10 or higher can break free of them.',
   }),
   gear({
     name: 'Homing Tracer', manufacturer: 'SecSystems',
     folder: 'Clandestine Gear', imgPath: `${A_GEAR}/homing-tracer.png`, cost: 'PR',
-    description: '1 button beacon included; additional beacons cost CO each. City-street range of 1km.',
+    description: 'This tracer comes with 1 button beacon, and additional beacons cost &euro;$50 (Costly) each. It has a city-street range of 1km.',
   }),
   gear({
     name: 'Lock-Picking Kit',
     folder: 'Clandestine Gear', imgPath: `${A_GEAR}/lock-picking-kit.png`, cost: 'EV',
-    description: 'Tools for bypassing mechanical locks.',
+    description: 'This kit holds the tools needed to bypass mechanical locks.',
   }),
   gear({
     name: 'Radio Communicator', manufacturer: 'Zetatech',
     folder: 'Clandestine Gear', imgPath: `${A_GEAR}/radio-communicator.png`, cost: 'CO',
-    description: 'Discreet earpiece. 1-mile range; does not use public networks.',
+    description: 'This discreet earpiece has a 1-mile range and does not use public networks.',
   }),
   gear({
     name: 'Scrambler / Descrambler', manufacturer: 'SecSystems',
     folder: 'Clandestine Gear', imgPath: `${A_GEAR}/scrambler-descramber.png`, cost: 'EX',
-    description: 'Sold in pairs for encrypted communications. Can read additional encryption keys from a shard.',
+    description: 'These units are sold in pairs for encrypted communications, and they can read additional encryption keys from a shard.',
   }),
   // Toxin and Toxin, Strong are implemented as weapon-coating Mods (any weapon)
   // — see toxinMods in mod-catalogue.mjs. They are no longer standalone gear.
@@ -729,17 +743,17 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Glow Paint', manufacturer: 'Spectra Underground',
     folder: 'Miscellaneous', imgPath: `${A_GEAR}/glow-paint.png`, cost: 'EV',
-    description: 'Rattling spray can of glow-in-the-dark paint.',
+    description: 'This is a rattling spray can of glow-in-the-dark paint.',
   }),
   gear({
     name: 'Glow Stick', manufacturer: 'Spectra Underground',
     folder: 'Miscellaneous', imgPath: `${A_GEAR}/glow-stick.png`, cost: 'CH',
-    description: '4m radius illumination, lasts up to 10 hours. Single use.',
+    description: 'This stick lights a 4m radius for up to 10 hours, and it is single use.',
   }),
   gear({
     name: 'Linear Frame Sigma',
     folder: 'Miscellaneous', cost: 'VEX',
-    description: '<p>Exoskeleton. Connect via Personal Link as an Action; regular limbs are unavailable until disconnected (also an Action). While connected, perform strength-based tasks as if <strong>BODY</strong> were 12.</p>',
+    description: 'This exoskeleton is connected via Personal Link as an Action, and the wearer&rsquo;s own limbs are unavailable until it is disconnected, which is also an Action. While connected, the wearer performs strength-based tasks as if their <strong>BODY</strong> were 12.',
     effects: [aeOff('Linear Frame Sigma Connected (BODY 12)', [statOvr('body', 12)])],
     instructions: [
       S.message('<p><strong>Linear Frame Sigma connected</strong> — strength-based tasks as if BODY were 12. Regular limbs unavailable while connected.</p>', { name: 'Connect' }),
@@ -750,7 +764,7 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Linear Frame Beta',
     folder: 'Miscellaneous', cost: 'LUX',
-    description: '<p>Exoskeleton. Connect via Personal Link as an Action; regular limbs are unavailable until disconnected (also an Action). While connected, perform strength-based tasks as if <strong>BODY</strong> were 14.</p>',
+    description: 'This exoskeleton is connected via Personal Link as an Action, and the wearer&rsquo;s own limbs are unavailable until it is disconnected, which is also an Action. While connected, the wearer performs strength-based tasks as if their <strong>BODY</strong> were 14.',
     effects: [aeOff('Linear Frame Beta Connected (BODY 14)', [statOvr('body', 14)])],
     instructions: [
       S.message('<p><strong>Linear Frame Beta connected</strong> — strength-based tasks as if BODY were 14. Regular limbs unavailable while connected.</p>', { name: 'Connect' }),
@@ -765,23 +779,23 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Chemical Sniffer Chip', manufacturer: 'Tanson', imgPath: `${A_CHIPWARE}/chemical-sniffer.png`,
     folder: 'Chipware', cost: 'EX',
-    description: 'Chipware — equipped in a shard socket. Identifies most compounds by comparing smell and touch against an onboard database.',
+    description: '<p>This chipware is equipped in a shard socket. It identifies most compounds by comparing smell and touch against an onboard database.</p>',
   }),
   gear({
     name: 'Language Chip', imgPath: `${A_CHIPWARE}/language.png`,
     folder: 'Chipware', cost: 'EX',
-    description: 'Chipware — equipped in a shard socket. Full language comprehension while installed; sub-second processing lag.',
+    description: '<p>This chipware is equipped in a shard socket. It grants full comprehension of one language while installed, with a sub-second processing lag.</p>',
   }),
   gear({
     name: 'Olfactory Boost Chip', manufacturer: 'Zetatech', imgPath: `${A_CHIPWARE}/olfactory-boost.png`,
     folder: 'Chipware', cost: 'PR',
-    description: '<p>Chipware — equipped in a shard socket. Scent-based tracking using Survival; <strong>+2</strong> to scent-based <strong>Perception</strong> checks.</p>',
+    description: '<p>This chipware is equipped in a shard socket. It enables scent-based tracking using <strong>Survival</strong> and grants <strong>+2</strong> to scent-based <strong>Perception</strong> checks.</p>',
     effects: [reminder('Scent Perception +2 (situational)')],
   }),
   gear({
     name: 'Pain Editor Chip', manufacturer: 'Militech', imgPath: `${A_CHIPWARE}/pain-editor.png`,
     folder: 'Chipware', cost: 'EX',
-    description: 'Chipware — equipped in a shard socket. Ignore <strong>Seriously Wounded</strong> penalties while installed.',
+    description: '<p>This chipware is equipped in a shard socket. The user ignores <strong>Seriously Wounded</strong> penalties while it is installed.</p>',
     effects: [{
       name: 'Pain Editor: Ignore Seriously Wounded',
       disabled: false, transfer: true, changes: [],
@@ -791,12 +805,12 @@ export const EQUIPMENT_CATALOGUE = [
   gear({
     name: 'Skill Chip', imgPath: `${A_CHIPWARE}/skill-chip.png`,
     folder: 'Chipware', cost: 'EX',
-    description: '<p>Chipware — equipped in a shard socket. Covers one Skill or Component.</p><p><strong>WHILE INSTALLED:</strong> if the user has fewer than 3 ranks in that Skill or Component, it is treated as 3.</p>',
+    description: '<p>This chipware is equipped in a shard socket and covers one Skill or Component.</p><p><strong>WHILE INSTALLED:</strong> If the user has fewer than 3 ranks in that Skill or Component, it is treated as 3.</p>',
   }),
   gear({
     name: 'Tactile Boost Chip', manufacturer: 'Zetatech', imgPath: `${A_CHIPWARE}/tactile-boost.png`,
     folder: 'Chipware', cost: 'PR',
-    description: 'Chipware — equipped in a shard socket. Detects motion within 20 units on any surface being touched.',
+    description: '<p>This chipware is equipped in a shard socket. It detects motion within 20 units on any surface the user is touching.</p>',
   }),
 
   // ── Architecture Hardware ─────────────────────────────────────────────────
@@ -807,61 +821,61 @@ export const EQUIPMENT_CATALOGUE = [
     folder: 'Architecture Hardware', cost: 'CO',
     isComputer: true,
     computer: { nodes: 2, softwareSlots: 4 },
-    description: 'Architecture Hardware. 2 nodes, 4 active program slots.',
+    description: 'This Architecture Hardware supports 2 nodes and 4 active program slots.',
   }),
   gear({
     name: 'MicroComp, Advanced',
     folder: 'Architecture Hardware', cost: 'PR',
     isComputer: true,
     computer: { nodes: 3, softwareSlots: 5 },
-    description: 'Architecture Hardware. 3 nodes, 5 active program slots.',
+    description: 'This Architecture Hardware supports 3 nodes and 5 active program slots.',
   }),
   gear({
     name: 'Laptop', manufacturer: 'SoftSys',
     folder: 'Architecture Hardware', imgPath: `${A_GEAR}/laptop.png`, cost: 'PR',
     isComputer: true,
     computer: { nodes: 4, softwareSlots: 5 },
-    description: 'Architecture Hardware. 4 nodes, 5 active program slots.',
+    description: 'This Architecture Hardware supports 4 nodes and 5 active program slots.',
   }),
   gear({
     name: 'Laptop, Advanced', manufacturer: 'SoftSys',
     folder: 'Architecture Hardware', cost: 'EX',
     isComputer: true,
     computer: { nodes: 6, softwareSlots: 7 },
-    description: 'Architecture Hardware. 6 nodes, 7 active program slots.',
+    description: 'This Architecture Hardware supports 6 nodes and 7 active program slots.',
   }),
   gear({
     name: 'Desktop', manufacturer: 'Data Inc',
     folder: 'Architecture Hardware', cost: 'EX',
     isComputer: true,
     computer: { nodes: 5, softwareSlots: 8 },
-    description: 'Architecture Hardware. 5 nodes, 8 active program slots.',
+    description: 'This Architecture Hardware supports 5 nodes and 8 active program slots.',
   }),
   gear({
     name: 'Desktop, Advanced', manufacturer: 'Data Inc',
     folder: 'Architecture Hardware', cost: 'VEX',
     isComputer: true,
     computer: { nodes: 7, softwareSlots: 10 },
-    description: 'Architecture Hardware. 7 nodes, 10 active program slots.',
+    description: 'This Architecture Hardware supports 7 nodes and 10 active program slots.',
   }),
   gear({
     name: 'Server', manufacturer: 'Microtech',
     folder: 'Architecture Hardware', imgPath: `${A_GEAR}/server.png`, cost: 'VEX',
     isComputer: true,
     computer: { nodes: 8, softwareSlots: 11 },
-    description: 'Architecture Hardware. 8 nodes, 11 active program slots.',
+    description: 'This Architecture Hardware supports 8 nodes and 11 active program slots.',
   }),
   gear({
     name: 'Server, High Capacity', manufacturer: 'Microtech',
     folder: 'Architecture Hardware', imgPath: `${A_GEAR}/server-advanced.png`, cost: 'LUX',
     isComputer: true,
     computer: { nodes: 12, softwareSlots: 16 },
-    description: 'Architecture Hardware. 12 nodes, 16 active program slots.',
+    description: 'This Architecture Hardware supports 12 nodes and 16 active program slots.',
   }),
   gear({
     name: 'Access Point',
     folder: 'Architecture Hardware', cost: 'CO',
-    description: 'Architecture Hardware add-on. Provides a wired and wireless (10m; each toggled independently via circuitboard) connection to a node.',
+    description: 'This Architecture Hardware add-on provides a wired and a wireless connection to a node. The wireless link reaches 10m, and each connection is toggled independently via the circuitboard.',
   }),
   // Coolant, Insulation, and Memory Upgrade are computerMod items — see mod-catalogue.mjs
 
@@ -871,21 +885,21 @@ export const EQUIPMENT_CATALOGUE = [
     manufacturer: 'Aldecaldos',
     folder: 'Body Armor', imgPath: `${A_ARMOR}/leather-armor.png`, cost: 'EV',
     isArmor: true, maxSp: 4,
-    description: 'Favored by Nomads and \'punks on bikes.',
+    description: 'This armor is favored by Nomads and by &rsquo;punks on bikes.',
   }),
   gear({
     name: 'Kevlar',
     manufacturer: 'Militech',
     folder: 'Body Armor', imgPath: `${A_ARMOR}/kevlar-armor.png`, cost: 'CO',
     isArmor: true, maxSp: 7,
-    description: 'Woven into clothes; from business suits to bikinis.',
+    description: 'This armor is Kevlar woven into clothes, from business suits to bikinis.',
   }),
   gear({
     name: 'Heavy Armorjack',
     manufacturer: 'Militech',
     folder: 'Body Armor', imgPath: `${A_ARMOR}/heavy-armorjack.png`, cost: 'EX',
     isArmor: true, maxSp: 13,
-    description: 'Metal-supported heavy Kevlar with layered polymer meshes.',
+    description: 'This armor is metal-supported heavy Kevlar with layered polymer meshes.',
     effects: [ae('Heavy Armorjack', [stat('rflx', -2), stat('move', -1)])],
   }),
   gear({
@@ -893,14 +907,14 @@ export const EQUIPMENT_CATALOGUE = [
     manufacturer: 'Militech',
     folder: 'Body Armor', imgPath: `${A_ARMOR}/medium-armorjack.png`, cost: 'PR',
     isArmor: true, maxSp: 12,
-    description: 'Solid polymer plating, reinforced by a Kevlar® mesh.',
+    description: 'This armor is solid polymer plating reinforced by a Kevlar&reg; mesh.',
     effects: [ae('Medium Armorjack', [stat('rflx', -2), stat('move', -1)])],
   }),
   gear({
     name: 'Light Armorjack',
     folder: 'Body Armor', imgPath: `${A_ARMOR}/light-armorjack.png`, cost: 'PR',
     isArmor: true, maxSp: 11,
-    description: 'Kevlar® and plastics woven into reinforced fabric fibers that can be part of, or under, clothes.',
+    description: 'This armor is Kevlar&reg; and plastics woven into reinforced fabric fibers, which can be worn as part of clothing or underneath it.',
   }),
   gear({
     name: 'Light Bodyweight Suit',
@@ -928,7 +942,7 @@ export const EQUIPMENT_CATALOGUE = [
     name: 'Flak', manufacturer: 'Gibson Battlegear',
     folder: 'Body Armor', imgPath: `${A_ARMOR}/flak-armor.png`, cost: 'EX',
     isArmor: true, maxSp: 15,
-    description: 'Flack vest and pants. Inflexible, solid armor.',
+    description: 'This armor is a flak vest and pants. It is inflexible, solid protection.',
     effects: [ae('Flak', [stat('rflx', -4), stat('move', -3)])],
   }),
   gear({
@@ -936,13 +950,13 @@ export const EQUIPMENT_CATALOGUE = [
     manufacturer: 'Gibson Battlegear',
     folder: 'Body Armor', imgPath: `${A_ARMOR}/metalgear-armor.png`, cost: 'LUX',
     isArmor: true, maxSp: 18,
-    description: 'Thick armor-plating. Inflexible.',
+    description: 'This armor is thick plating, and it is completely inflexible.',
     effects: [ae('Metalgear', [stat('rflx', -4), stat('move', -4)])],
   }),
   gear({
     name: 'Bulletproof Shield',
     folder: 'Body Armor', imgPath: `${A_ARMOR}/bulletproof-shield.png`, cost: 'EX',
     isArmor: true, maxSp: 15,
-    description: 'SP 15. Held in one hand; provides frontal cover. While held, cannot use a two-handed weapon or carry anything in that hand.',
+    description: 'This shield has SP 15 and is held in one hand, providing frontal cover. While it is held, the user cannot wield a two-handed weapon or carry anything else in that hand.',
   }),
 ];
