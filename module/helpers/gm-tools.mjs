@@ -116,7 +116,7 @@ export class CyberBlueWeaponImportDialog extends CyberBlueSimpleDialog {
     const div = document.createElement('div');
     div.style.cssText = 'padding:1rem; display:flex; flex-direction:column; gap:0.75rem;';
     div.innerHTML = `
-      <p>Import weapons (gear / cyberware) into the <strong>Weapons</strong> compendium, organised into folders by weapon type. Mod items are routed to <strong>Weapon Mods</strong>.</p>
+      <p>Import weapons (gear / cyberware) into the <strong>Weapons</strong> compendium, organized into folders by weapon type. Mod items are routed to <strong>Weapon Mods</strong>.</p>
       <label>JSON file: <input type="file" id="weapon-import-file" accept=".json" /></label>
       <div id="weapon-import-preview" style="max-height:220px;overflow-y:auto;font-size:0.85em;color:var(--color-text-light-6);"></div>
       <button id="weapon-import-btn" type="button" disabled>

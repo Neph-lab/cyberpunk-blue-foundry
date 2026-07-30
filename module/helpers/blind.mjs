@@ -30,7 +30,7 @@ export const BLIND_ATTACK_CHANGE_KEYS = Object.freeze(
   BLIND_ATTACK_SKILLS.map((slug) => `system.skills.${slug}.generalBonus`),
 );
 
-/** Beyond this distance (metres) those attacks always miss. */
+/** Beyond this distance (meters) those attacks always miss. */
 export const BLIND_ATTACK_RANGE_M = 5;
 
 /** True when `actor` currently has the Blind condition. */
@@ -51,7 +51,7 @@ export function isBlindAttackSkill(skillSlug) {
  *
  * @param {Actor}       attacker
  * @param {string}      skillSlug        Skill the attack rolls.
- * @param {number|null} distanceMeters   Attacker → target distance in metres.
+ * @param {number|null} distanceMeters   Attacker → target distance in meters.
  * @returns {boolean}
  */
 export function isBlindAutoMiss(attacker, skillSlug, distanceMeters) {

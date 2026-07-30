@@ -6,7 +6,7 @@
  * configured netrunning Architecture Scene:
  *   - a Scene in the "Subnets" folder (off-navigation, black, gridless
  *     100px/20ms, glitch transition, subnet background + unexplored image),
- *   - node video Tiles (randomised per type) with type-label banner Tiles,
+ *   - node video Tiles (randomized per type) with type-label banner Tiles,
  *   - hexagon Regions carrying the accNode / netNode behaviors,
  *   - walls along every edge (solid / door / locked door per connection state),
  *   - bidirectional Access-Point links for ACC nodes,
@@ -53,14 +53,14 @@ export async function buildSubnetScene(design, name) {
     return null;
   }
 
-  // ── Layout: normalise node pixel coords into a positive scene rectangle ──
+  // ── Layout: normalize node pixel coords into a positive scene rectangle ──
   const bounds = latticeBounds(nodes);
   const offX = MARGIN - bounds.minX;
   const offY = MARGIN - bounds.minY;
   const width = Math.max(TILE_SIZE, Math.round(bounds.maxX - bounds.minX + MARGIN * 2));
   const height = Math.max(TILE_SIZE, Math.round(bounds.maxY - bounds.minY + MARGIN * 2));
 
-  /** Placed (scene-space) centre of a node. */
+  /** Placed (scene-space) center of a node. */
   const centreOf = (n) => {
     const c = axialToPixel(n.q, n.r);
     return { x: c.x + offX, y: c.y + offY };
@@ -79,7 +79,7 @@ export async function buildSubnetScene(design, name) {
     tokenVision: true,
     grid: { type: CONST.GRID_TYPES.GRIDLESS, size: 100, distance: 20, units: 'ms' },
     transition: { type: 'glitch', duration: 500 },
-    // v14.365: background / unexplored image / background colour live on a Level.
+    // v14.365: background / unexplored image / background color live on a Level.
     levels: [{
       name: game.i18n.localize('CYBER_BLUE.SubnetBuilder.LevelName'),
       elevation: { bottom: 0, top: 20 },
@@ -96,8 +96,8 @@ export async function buildSubnetScene(design, name) {
     const assets = TYPE_ASSETS[n.type] ?? TYPE_ASSETS.data;
     const c = centreOf(n);
     const variant = 1 + Math.floor(Math.random() * NODE_VIDEO_COUNT);
-    // Node hexagon video. Tile x/y is the CENTRE anchor (v14 default 0.5/0.5),
-    // so place it on the node centre — do NOT subtract half-size.
+    // Node hexagon video. Tile x/y is the CENTER anchor (v14 default 0.5/0.5),
+    // so place it on the node center — do NOT subtract half-size.
     tileData.push({
       texture: { src: `${ASSET_BASE}${assets.prefix}${variant}.webm` },
       x: Math.round(c.x),
@@ -113,7 +113,7 @@ export async function buildSubnetScene(design, name) {
     const be = bottomEdge(c.x, c.y);
     const lw = Math.round(be.length);
     const lh = Math.max(1, Math.round(lw * LABEL_RATIO));
-    // Centre anchor: x = bottom-edge midpoint; y = half a banner-height above the
+    // Center anchor: x = bottom-edge midpoint; y = half a banner-height above the
     // edge so the banner rests just inside the hex's flat bottom edge.
     tileData.push({
       texture: { src: `${ASSET_BASE}${assets.label}` },

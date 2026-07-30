@@ -8,7 +8,7 @@ export default class CyberBlueProgramExecutable extends CyberBlueItemBase {
     const schema = super.defineSchema();
 
     schema.programType = new fields.StringField({ required: true, blank: false, initial: 'antipersonnel' });
-    // Category used for compendium organisation and display
+    // Category used for compendium organization and display
     // Values: 'attack' | 'black-ice' | 'defender' | 'booster' | 'daemon' | 'quickhack' | 'malware'
     schema.category = new fields.StringField({ required: true, blank: true, initial: '' });
     schema.cost = new fields.StringField({ required: true, blank: true });

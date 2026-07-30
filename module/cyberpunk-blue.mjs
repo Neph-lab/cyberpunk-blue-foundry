@@ -634,7 +634,7 @@ const resolveItemFromHookDocument = (document) => {
 };
 
 /**
- * Register a document hook with a normalised handler signature.
+ * Register a document hook with a normalized handler signature.
  *
  * Foundry calls the two hook families with different argument shapes:
  *   create* / delete*  →  (doc, options, userId)
@@ -683,7 +683,7 @@ const makeItemSyncHook = ({ guardOption, type, name = null, run }) => (document,
   return run(item, options);
 };
 
-// Serialises wound syncs per actor. A sync is check-then-create, and Foundry does
+// Serializes wound syncs per actor. A sync is check-then-create, and Foundry does
 // not await hook callbacks, so back-to-back writes (the Stabilize macro's
 // `update(hp)` then `toggleStatusEffect('unconscious')`) can overlap: the second
 // sync reads the actor before the first one's AE create has returned from the
@@ -1438,7 +1438,7 @@ Hooks.on('updateToken', async (tokenDoc, change) => {
     return;
   }
 
-  // Get new token centre in pixels
+  // Get new token center in pixels
   const gridSize = scene.grid.size;
   const newX = (change.x ?? tokenDoc.x) + tokenDoc.width  * gridSize / 2;
   const newY = (change.y ?? tokenDoc.y) + tokenDoc.height * gridSize / 2;
@@ -2326,7 +2326,7 @@ async function ensureCritInjuryTables() {
   const docs = await pack.getDocuments();
 
   // Match on the flag, falling back to the known name so tables written by
-  // versions predating the flag are still recognised as ours. Anything else in
+  // versions predating the flag are still recognized as ours. Anything else in
   // the pack is left alone.
   const ourTables = (type, name) => docs.filter((t) =>
     t.getFlag('cyberpunk-blue', 'critTableType') === type || t.name === name);
@@ -2583,7 +2583,7 @@ async function _syncMissingItems(packId, catalogue, getFolderName = (it) => it._
 }
 
 /**
- * Synchronise system fields of existing mod items in the weapon-mods compendium
+ * Synchronize system fields of existing mod items in the weapon-mods compendium
  * against the current catalogue definition. Any field the catalogue entry
  * specifies is compared and re-synced generically, so catalogue updates
  * propagate without a full pack wipe or per-field bookkeeping.
@@ -2649,7 +2649,7 @@ async function _syncModEntries(catalogue) {
 }
 
 /**
- * Compare two range-band DV tables for equality, normalised to 8 numeric bands.
+ * Compare two range-band DV tables for equality, normalized to 8 numeric bands.
  * Missing/short tables are treated as zero-padded, so an absent table and an
  * all-zero table compare equal (avoids spurious melee re-syncs).
  */
@@ -2679,7 +2679,7 @@ function _weaponEntryDiffers(current, catalogueEntry) {
 }
 
 /**
- * Synchronise the `system.weapons` array of existing gear items in the weapons
+ * Synchronize the `system.weapons` array of existing gear items in the weapons
  * compendium against the current catalogue definition.  Runs on every GM load
  * so removing a duplicate SS entry or changing autofireDamage propagates
  * without requiring a full pack wipe.
@@ -2825,7 +2825,7 @@ async function ensureAmmoCatalogue() {
 // ─── Equipment catalogue ──────────────────────────────────────────────────────
 
 /**
- * Synchronise the `system.weapons` and `system.isWeapon` fields of existing
+ * Synchronize the `system.weapons` and `system.isWeapon` fields of existing
  * cyberware items in the cyberware compendium against the current catalogue.
  * Runs on every GM load so changes like Monowire / Mantis Blades weapons
  * propagate without requiring a full pack wipe.

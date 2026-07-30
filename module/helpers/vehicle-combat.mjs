@@ -72,7 +72,7 @@ export async function rollVehicleInitiative(combatant) {
 
   const handling = getVehicleHandling(actor);
 
-  // Sticky tiebreak — kept for the entire combat, never re-randomised.
+  // Sticky tiebreak — kept for the entire combat, never re-randomized.
   let tiebreak = combatant.getFlag(FLAG_SCOPE, INIT_TIEBREAK_FLAG);
   if (tiebreak == null) {
     tiebreak = Math.random(); // [0, 1)
@@ -275,7 +275,7 @@ async function _executeDrift(vehicleCombatant, actor, vehicleToken) {
   const dirRoll = await new Roll('1d2').evaluate();
   const direction = dirRoll.total === 1 ? 'Left' : 'Right';
 
-  // Speed reduction: half-ACC per turn (minimum 1, floor towards 0)
+  // Speed reduction: half-ACC per turn (minimum 1, floor toward 0)
   const speedReduction = Math.max(1, Math.floor(acc / 2));
   const newSpeed       = currentSpeed > 0
     ? Math.max(0, currentSpeed - speedReduction)

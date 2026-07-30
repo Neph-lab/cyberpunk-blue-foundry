@@ -22,7 +22,7 @@
   /* ---- Foreground / accents — ELECTRIC dystopia ---- */
   --cpb-text: rgb(234, 252, 255);            /* near-white, cool */
   --cpb-text-inverted: rgb(15, 6, 18); /* for text/icons on bright panels */
-  --cpb-muted: rgb(111, 133, 151);            /* desaturated blue-grey */
+  --cpb-muted: rgb(111, 133, 151);            /* desaturated blue-gray */
   --cpb-accent: rgb(0, 240, 255);           /* CYAN — electric, primary signal */
   --cpb-accent-strong: #c6ff00;    /* LIME — acid neon, dice & always-on */
   --cpb-accent-warm: #c46bff;      /* WARM VIOLET — secondary accent reserved for BORDERS, hairlines, dividers, and decorative ticks/glyphs. NEVER for body text or runs longer than a single short word — at this saturation against the legibility floor. Use cyan for text in violet-bordered surfaces. */
@@ -88,7 +88,7 @@
   --cpb-stroke: 2px;
   --cpb-stroke-thick: 3px;
 
-  /* HUD side-stripe on buttons — 3px coloured bar on interior left. */
+  /* HUD side-stripe on buttons — 3px colored bar on interior left. */
   --cpb-stripe: 3px;
 
   /* ---- Spacing — typically 0.35 / 0.5 / 0.7 / 1rem rhythm ---- */
@@ -198,7 +198,7 @@
  * brackets (left + right) with notched, asymmetric profiles. Violet
  * lives here as ornament, not text. Modifiers `--l`, `--r` and `--lr`
  * pick sides. `--minimal` swaps to thin spine-only brackets for tight
- * spaces. Use sparingly — these are flavour, not structure. */
+ * spaces. Use sparingly — these are flavor, not structure. */
 .cpb-chrome { position: relative; }
 .cpb-chrome::before,
 .cpb-chrome::after {

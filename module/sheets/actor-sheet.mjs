@@ -1488,7 +1488,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
     const { pickVehicleVitalArea } = await import('../helpers/vehicle-vitals-canvas.mjs');
     const regionId = await pickVehicleVitalArea(targetToken.document);
-    if (regionId === null) return; // cancelled
+    if (regionId === null) return; // canceled
 
     await item.setFlag('cyberpunk-blue', `targetVehicleVitalRegionId-${weaponIndex}`, regionId);
   }
@@ -2050,7 +2050,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
   }
 
   // Flip an owned-but-uninstalled cyberware item to installed so it moves into
-  // the appropriate installed section. Mirrors the role-grant behaviour, which
+  // the appropriate installed section. Mirrors the role-grant behavior, which
   // sets installed:true because granted gear is "already surgically fitted".
   async _onInstallCyberware(event) {
     event.preventDefault();

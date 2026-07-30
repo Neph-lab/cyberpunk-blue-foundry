@@ -3,7 +3,7 @@
  *
  * Martial Arts is the skill; Aikido / Brawling / Karate / Judo / Taekwondo
  * are its Components.  Each attack uses BODY + Martial Arts (Component).
- * Two attacks per turn (RoF 2), must be within 2 metres, can target vitals.
+ * Two attacks per turn (RoF 2), must be within 2 meters, can target vitals.
  *
  * Damage by attacker BODY:
  *   < 5  → 1d6     5–7 → 2d6     8–10 → 3d6     > 10 → 4d6
@@ -246,7 +246,7 @@ export async function resolveMartialArtsAttack(attacker, componentSlug, {
     ? ` (${CONFIG.CYBER_BLUE.components?.[componentSlug]?.label ?? componentSlug})` : '';
   const attackTitle = `Martial Arts${compLabel}`;
 
-  // Show attack dialog — no DV input or evasion checkbox; evasion is auto-rolled afterwards.
+  // Show attack dialog — no DV input or evasion checkbox; evasion is auto-rolled afterward.
   const targetLine = targetActor
     ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.Target')}: <strong>${targetActor.name}</strong>${sp !== null ? ` (SP ${sp}${rawSP !== sp ? `, raw ${rawSP}` : ''})` : ''}</p>` : '';
   const meleeEvasionNote = targetActor

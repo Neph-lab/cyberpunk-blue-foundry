@@ -373,7 +373,7 @@ export class CyberBlueActor extends Actor {
   async applyDamage(amount, { ignoreArmor = false, armorPen = 0 } = {}) {
     const totalDamage = Math.max(Number(amount) || 0, 0);
     // Armor-Piercing: the target's effective SP is reduced by `armorPen` for this
-    // hit's penetration (SP still degrades from its real value). The extra armour
+    // hit's penetration (SP still degrades from its real value). The extra armor
     // ablation AP causes is applied separately by the resolver (armorPiercing flag).
     const pen = Math.max(Number(armorPen) || 0, 0);
 

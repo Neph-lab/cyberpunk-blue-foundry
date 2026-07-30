@@ -29,7 +29,7 @@ export default class CyberBlueMod extends CyberBlueItemBase {
     // EFMO2 Boulder, WA20 GL) occupy 2.
     schema.modSlots = new fields.NumberField({ ...requiredInteger, initial: 1, min: 1 });
 
-    // ── Scope categorisation ──────────────────────────────────────────────
+    // ── Scope categorization ──────────────────────────────────────────────
     // 'short' (pistols + SMGs), 'long' (SG/MG/AR/PR), 'sniper' (SR-only),
     // or '' for non-scope mods.
     schema.scopeType = new fields.StringField({ required: true, blank: true, initial: '' });
@@ -113,7 +113,7 @@ export default class CyberBlueMod extends CyberBlueItemBase {
     // ── Muzzle-break family (RC-7 muzzle breaks) ──────────────────────────
     // All muzzle breaks have "Lost Force" (crit needs 6 on extra die).
     schema.lostForce = new fields.BooleanField({ initial: false });
-    // Stabilised Recoil: +recoilBonus to attack rolls. recoilAFOnly ⇒ autofire only.
+    // Stabilized Recoil: +recoilBonus to attack rolls. recoilAFOnly ⇒ autofire only.
     schema.recoilBonus = new fields.NumberField({ required: true, nullable: false, integer: true, initial: 0 });
     schema.recoilAFOnly = new fields.BooleanField({ initial: false });
     // Directed Recoil: PW ricochet penalty becomes -1 instead of -4.

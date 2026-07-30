@@ -17,7 +17,7 @@
  *   • RIGHT-CLICK or ESC cancels.
  *
  * Mirrors the PIXI overlay pattern in ricochet-canvas.mjs (stage overlay for
- * input, canvas.controls for the visualisation, world coords via
+ * input, canvas.controls for the visualization, world coords via
  * getLocalPosition(canvas.stage)).
  */
 
@@ -38,7 +38,7 @@ function _tokenCentre(tokenDoc) {
 
 /**
  * Enter vector-draw mode for a vehicle token and resolve with the drawn,
- * relative path or null if cancelled.
+ * relative path or null if canceled.
  *
  * @param {TokenDocument} vehicleToken
  * @param {object} [opts]
@@ -102,9 +102,9 @@ export async function startVectorDraw(vehicleToken, opts = {}) {
       g.lineTo(centre.x + u.x * maxPx, centre.y + u.y * maxPx);
     };
 
-    const xMarker = (p, colour) => {
+    const xMarker = (p, color) => {
       const r = 7;
-      g.lineStyle(3, colour, 0.95);
+      g.lineStyle(3, color, 0.95);
       g.moveTo(p.x - r, p.y - r); g.lineTo(p.x + r, p.y + r);
       g.moveTo(p.x + r, p.y - r); g.lineTo(p.x - r, p.y + r);
     };

@@ -12,7 +12,7 @@
  *   - Addiction AEs are enabled by a permanent 'effect' step and never reverted.
  *
  * Instruction sequence structure (each drug may vary):
- *   Step 0 — effect (Usage AE) OR pause — PAUSE, labelled "[Wear off]"
+ *   Step 0 — effect (Usage AE) OR pause — PAUSE, labeled "[Wear off]"
  *   Step 1 — message — narrative text describing the drug's effect (auto-advance)
  *   Step 2 — check   — BODY + Endurance vs DV (auto-rolls; failIndex → step 4)
  *   Step 3 — message — success text, terminates=true → END

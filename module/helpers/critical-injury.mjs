@@ -46,14 +46,14 @@ const addAll = (val) => ['body', 'rflx', 'int', 'tech', 'cool'].map((s) => add(s
 // Entry metadata:
 //   key           - unique stable identifier used in AE flags and macro lookup
 //   nameKey       - i18n key for the injury name
-//   descKey       - i18n key for the flavour description
+//   descKey       - i18n key for the flavor description
 //   mortal        - true → Mortal Wound note in chat card
 //   changes       - Foundry AE changes array (applied immediately)
-//   lateralize    - 'arm'|'hand'|'leg'|'eye'|'ear' → randomise L/R side
+//   lateralize    - 'arm'|'hand'|'leg'|'eye'|'ear' → randomize L/R side
 //   noQuickFix    - true → quick fix not possible for this injury
 //   quickFixDv    - DV for the Medicine quick-fix check (null if noQuickFix)
 //   treatmentDv   - DV for the standard Medicine treatment check
-//   surgeryRequired - true → treatment requires Medtech role + Surgery specialisation
+//   surgeryRequired - true → treatment requires Medtech role + Surgery specialization
 //   surgeryDv     - DV when treating with Surgery (lower DV option; null if not applicable)
 //   deathSavePenalty - true → -1 to Death Save stat (encoded in changes via addDeathSave)
 
@@ -481,7 +481,7 @@ export function detectCriticalDice(roll) {
  * @returns {Promise<{ confirmed: boolean }|null>}
  */
 export async function confirmDamageDialog({ targetActor, finalDamage, sp, netDamage, ablatesArmor, isCritical, critDiceCount, armorPiercing = false }) {
-  // Armour-Piercing hits (Tactician slug, AP ammo, an active Riptide) degrade 2
+  // Armor-Piercing hits (Tactician slug, AP ammo, an active Riptide) degrade 2
   // SP rather than 1 — mirror the chat damage card instead of always saying -1.
   const ablateNote = ablatesArmor ? (armorPiercing ? ' (SP -2)' : ' (SP -1)') : '';
   const spNote = sp !== null

@@ -221,7 +221,7 @@ export class VehicleManeuverDialog extends HandlebarsApplicationMixin(Applicatio
   /**
    * Enter canvas vector-draw mode, then apply the drawn relative path:
    * set the angle bucket + direction from the drawn turn and store the path so
-   * `_readParams` carries it into the declaration. Minimises the dialog while
+   * `_readParams` carries it into the declaration. Minimizes the dialog while
    * drawing so the canvas is clear.
    */
   async _onDrawPath(root) {
@@ -239,7 +239,7 @@ export class VehicleManeuverDialog extends HandlebarsApplicationMixin(Applicatio
     } finally {
       await this.maximize();
     }
-    if (!path) return; // cancelled
+    if (!path) return; // canceled
 
     this._drawnPath = path;
 

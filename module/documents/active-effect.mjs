@@ -1,7 +1,7 @@
 /**
  * CyberBlueActiveEffect — custom ActiveEffect subclass for Cyberpunk BLUE.
  *
- * Extends the standard Foundry ActiveEffect with system-specific behaviours:
+ * Extends the standard Foundry ActiveEffect with system-specific behaviors:
  *
  *   One-use AEs (flags.cyberpunk-blue.oneUse: true)
  *     The AE applies its changes normally during data preparation.  After the

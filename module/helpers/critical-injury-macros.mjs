@@ -575,8 +575,8 @@ export const CLEAR_ROLE_GRANTED_ITEMS_MACRO = `
 // GM macro. Select a token (or set a default character) and run.
 // Finds every item on the actor whose name appears in the role's
 // grantedItemGroups list and offers to delete them, giving a clean slate for
-// manual setup. Delete and re-add the Role item afterwards to re-trigger the
-// automatic gear grant with current behaviour.
+// manual setup. Delete and re-add the Role item afterward to re-trigger the
+// automatic gear grant with current behavior.
 // If the role has no grantedItemGroups data, run
 // Settings → Re-sync Role Starting Gear first.
 

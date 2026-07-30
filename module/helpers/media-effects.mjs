@@ -34,7 +34,7 @@ function _ColorClass() {
  * @param {number} radiusPx                Maximum reach in pixels.
  * @param {object} [opts]
  * @param {number} [opts.angleDeg=360]     Cone width in degrees (360 = full circle).
- * @param {number} [opts.directionRad=0]   Cone centre direction (screen radians, 0 = +x).
+ * @param {number} [opts.directionRad=0]   Cone center direction (screen radians, 0 = +x).
  * @returns {PIXI.Polygon|null}
  */
 export function computeWallClip(origin, radiusPx, { angleDeg = 360, directionRad = 0 } = {}) {
@@ -46,7 +46,7 @@ export function computeWallClip(origin, radiusPx, { angleDeg = 360, directionRad
     const cfg = { type: 'move', radius: radiusPx };
     if (angleDeg > 0 && angleDeg < 360) {
       cfg.angle = angleDeg;
-      // LimitedAnglePolygon centres emission on (rotation + 90)°; convert our
+      // LimitedAnglePolygon centers emission on (rotation + 90)°; convert our
       // screen-radian direction accordingly.
       cfg.rotation = (directionRad * 180 / Math.PI) - 90;
     }
@@ -95,7 +95,7 @@ function _applyTint(sprite, tint) {
  *
  * @param {string} src                     Video path.
  * @param {object} opts
- * @param {{x:number,y:number}} opts.origin  Explosion centre, or cone origin point.
+ * @param {{x:number,y:number}} opts.origin  Explosion center, or cone origin point.
  * @param {number} opts.radiusPx           Blast radius / cone spread in pixels.
  * @param {'explosion'|'cone'} [opts.mode='explosion']
  * @param {number} [opts.angleDeg]         Cone width (cone mode only).
@@ -128,7 +128,7 @@ export async function playMediaEffect(src, {
   _applyTint(sprite, tint);
 
   if (mode === 'cone') {
-    // Bottom-centre of the video sits at the origin; the video points "up" by
+    // Bottom-center of the video sits at the origin; the video points "up" by
     // default, so rotate it to face the cone direction. Scale proportionally so
     // its height equals the spread.
     sprite.anchor?.set?.(0.5, 1.0);
@@ -138,7 +138,7 @@ export async function playMediaEffect(src, {
     sprite.position?.set?.(origin.x, origin.y);
     sprite.rotation = directionRad + (Math.PI / 2);
   } else {
-    // Explosion: centre the video and stretch it to the blast diameter.
+    // Explosion: center the video and stretch it to the blast diameter.
     sprite.anchor?.set?.(0.5, 0.5);
     sprite.width = radiusPx * 2;
     sprite.height = radiusPx * 2;
@@ -181,7 +181,7 @@ export async function playMediaEffect(src, {
 // The residue Region drives the visibility mechanics; a linked Tile renders the
 // looping smoke/cloud video. The Tile uses RADIAL occlusion so it fades to 0.5
 // opacity around controlled tokens (Foundry's default radius), and its elevation
-// sits at the centre of the Region's elevation range.
+// sits at the center of the Region's elevation range.
 
 const _OCCLUSION_RADIAL = globalThis.CONST?.OCCLUSION_MODES?.RADIAL
   ?? foundry.CONST?.OCCLUSION_MODES?.RADIAL ?? 4;

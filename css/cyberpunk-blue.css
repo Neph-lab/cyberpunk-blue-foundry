@@ -5,7 +5,7 @@
 
 /* #region Primitives ——————— */
 /* ===============================================
-SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace the previous border-radius vocabulary. Every component that uses clip-path applies the fake-border technique: outer element = border colour, ::before = 1px-inset inner fill, clip-path: inherit keeps the shapes in register. See README in design handoff.
+SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace the previous border-radius vocabulary. Every component that uses clip-path applies the fake-border technique: outer element = border color, ::before = 1px-inset inner fill, clip-path: inherit keeps the shapes in register. See README in design handoff.
 ================================================== */
 
 /* NOTE: each class writes its polygon() inline next to its own --c.
@@ -89,7 +89,7 @@ SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace 
    Pairs with any .cpb-shape--* to paint a 1px hairline border
    + interior fill, working around the border+clip-path limit.
 
-   Outer element   = border colour (--cpb-frame-border)
+   Outer element   = border color (--cpb-frame-border)
    ::before        = 1px-inset inner fill (--cpb-frame-fill)
    clip-path:inherit keeps both shapes in register.
    Content must sit at z-index ≥ 1 (set below on > *).
@@ -604,7 +604,7 @@ section.chat-sidebar:not(.sidebar-popout),
 /* #endregion */
 /* #region Roll button — warm violet variant with HUD stripe. */
 /* Inherits ::before fake-border from .cyberpunk-blue button;
-   overrides the tint tokens so the 1px ring and fill use warm colours. */
+   overrides the tint tokens so the 1px ring and fill use warm colors. */
 .cyberpunk-blue .roll-button {
   --btn-tint: var(--cpb-accent-warm);
   --btn-fill: var(--cpb-accent-warm-wash);
@@ -629,7 +629,7 @@ section.chat-sidebar:not(.sidebar-popout),
   width: 1.05em;
   height: 1.05em;
   flex: 0 0 auto;
-  background-color: currentColor; /* tints the d10 to the button's text colour */
+  background-color: currentColor; /* tints the d10 to the button's text color */
   -webkit-mask: url('/systems/cyberpunk-blue/assets/icons/bk_d10.svg') center / contain no-repeat;
           mask: url('/systems/cyberpunk-blue/assets/icons/bk_d10.svg') center / contain no-repeat;
 }
@@ -892,7 +892,7 @@ section.chat-sidebar:not(.sidebar-popout),
   overflow: hidden;
 }
 /* ::after = chamfer inner fill (::before is reserved for icons).
-   z-index: -1 puts the fill above the element background (border colour)
+   z-index: -1 puts the fill above the element background (border color)
    but below text nodes and the icon ::before, so labels stay readable. */
 .cyberpunk-blue .sheet-tabs .item::after {
   content: "";
@@ -1215,7 +1215,7 @@ CHARACTER SHEET SPECIFIC
   color: #fff;
 }
 /* Critical-condition effects (low HP / low PSYCHE / Critical Injury): icon + text in error red.
-   The <button> resets `color`, so the text colour must be set on the button/label
+   The <button> resets `color`, so the text color must be set on the button/label
    explicitly rather than relying on inheritance from the cell. */
 .cyberpunk-blue .effect-cell.is-error,
 .cyberpunk-blue .effect-cell.is-error .effect-open,

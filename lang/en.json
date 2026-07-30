@@ -354,7 +354,7 @@
         "Suppression": "Bandit Suppression"
       },
       "Media": {
-        "PickUpRumours": "Pick Up Rumours",
+        "PickUpRumours": "Pick Up Rumors",
         "RumourSkill": "Skill",
         "RumourVague": "Vague",
         "RumourTypical": "Typical",
@@ -457,7 +457,7 @@
       "ImportWeapons": {
         "Name": "Import Weapons to Compendium",
         "Label": "Import Weapons",
-        "Hint": "Import weapon items from a JSON file into the Weapons compendium, organised into folders by weapon type."
+        "Hint": "Import weapon items from a JSON file into the Weapons compendium, organized into folders by weapon type."
       },
       "AreaEffectDuration": {
         "Name": "Area Effect Region Duration (seconds)",
@@ -626,7 +626,7 @@
       "CalibrateHint": "Roll DV15 INT+Shoulder Arms. On success: +8 or ×2 Shoulder Arms rank (lower) until you fire or move. Click again to cancel.",
       "CalibrateSuccess": "Calibration successful! +{n} to next attack with this weapon.",
       "CalibrateFail": "Calibration failed — DV15 not met.",
-      "CalibrationCancelled": "Calibration cancelled.",
+      "CalibrationCancelled": "Calibration canceled.",
       "SilencedShot": "This shot was silenced (DV {dv} INT+Perception to hear; +1 per 4m).",
       "StealthAdvantageAlert": "{name} → {target}: Stealth Advantage — targeted vitals, a damage die showed 6, no Critical Injury triggered. Consider granting stealth benefit.",
       "SilencerDestroyed": "The silencer on {weapon} was destroyed by this shot.",
@@ -645,7 +645,7 @@
       "CarnageCritOnBody": "{name} fires the Carnage without sufficient BODY ({body} < {required}) — Torn Muscle critical applied!",
       "ChargeHint": "Charge this Tech Weapon. Requires no movement used this turn. Sets MOVE to 0 (or halved with mods). Charged shots ignore ½ SP and see through thin cover.",
       "ChargeBegun": "⚡ {weapon} is now charged.",
-      "ChargeCancelled": "⚡ {weapon} charge cancelled. Cannot re-charge until next turn.",
+      "ChargeCancelled": "⚡ {weapon} charge canceled. Cannot re-charge until next turn.",
       "ChargeExpendedOnAttack": "⚡ {weapon} charge expended.",
       "ChargeExpired": "⚡ {weapon} charge expired after 20 rounds.",
       "ChargeMoveZero": "(MOVE set to 0.)",
@@ -722,7 +722,7 @@
       "HazardDeployed": "Hazard deployed — tokens moving through the area must save or take damage.",
       "MovementOutsideTurn": "Not your turn — token movement is locked during encounters.",
       "MovementExhausted": "No movement remaining this turn (budget: {max}m).",
-      "MovementExceeded": "Not enough movement remaining ({remaining}m left) — move cancelled.",
+      "MovementExceeded": "Not enough movement remaining ({remaining}m left) — move canceled.",
       "Panel": {
         "Move": "Move",
         "Action": "Action",
@@ -1203,7 +1203,7 @@
         "SavePrimary": "Save stat (slug, e.g. rflx)",
         "SaveSkill": "Save skill (slug, e.g. athletics)",
         "DamageDie": "Damage per step (e.g. 1d6)",
-        "MetersPerStep": "Metres per damage step",
+        "MetersPerStep": "Meters per damage step",
         "MovedThrough": "Moved {m} m through the hazard."
       },
       "AccessPoint": {
@@ -1249,11 +1249,11 @@
         "KindDarkness": "Darkness",
         "KindObscuration": "Obscuration (Smoke/Gas)",
         "LightBandWidth": "Light Band Width (m)",
-        "LightBandWidthHint": "Width of the DIM (lightly obscured) band measured inward from the edge, in metres. 0 = no dim band (whole region is DARK).",
+        "LightBandWidthHint": "Width of the DIM (lightly obscured) band measured inward from the edge, in meters. 0 = no dim band (whole region is DARK).",
         "EnableNoVisibility": "Enable NOT_VISIBLE Core",
         "EnableNoVisibilityHint": "When enabled, the innermost zone hard-blocks attacks. Bypassed only by a full bypass Active Effect flag.",
         "NoVisInset": "Dark Band Width Before Core (m)",
-        "NoVisInsetHint": "Width of the DARK band between the light band and the NOT_VISIBLE core, in metres. Only used when NOT_VISIBLE core is enabled.",
+        "NoVisInsetHint": "Width of the DARK band between the light band and the NOT_VISIBLE core, in meters. Only used when NOT_VISIBLE core is enabled.",
         "ExpiresInRounds": "Expires After (rounds)",
         "ExpiresInRoundsHint": "Number of combat rounds until this region auto-deletes. 0 = permanent until the GM deletes it manually.",
         "NotVisibleDark": "Target is not visible (darkness).",

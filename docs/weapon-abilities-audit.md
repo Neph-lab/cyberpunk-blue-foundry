@@ -36,7 +36,7 @@ Last updated: 2026-05-11 (stun weapons → affliction; gear AEs require equipped
 | ✅ +10 damage on criticals — Power Weapon | all PW | isPowerWeapon → critBonus = 10 |
 | ✅ +1 dmg/die — Synergy (same brand) | RC-7 Yokai/Kutrub/Aswang | synergyBrand matches weapon manufacturer |
 | ✅ +1 dmg/die extra — Synergy (≥N damage dice) | same mods | synergyDiceThreshold check |
-| ✅ +1 dmg/die — Dybbuk specialised | Malorian RC-7 Dybbuk | treated as always-active since GM attaches it to revolver |
+| ✅ +1 dmg/die — Dybbuk specialized | Malorian RC-7 Dybbuk | treated as always-active since GM attaches it to revolver |
 | ✅ +1 dmg/die on ricochet — Critical Ricochet | Malorian Critical Ricochet (mod) | improvedRicochet flag; +damageDiceCount on ricochet hit |
 | ✅ +2 damage — Burn (incendiary ammo) | Nokota Osprey SR | 'incendiary' in ammo name + penetration check |
 | ✅ +2 damage — Concussive (explosive ammo) | Midnight Arms MA70 HB | 'explosive' in ammo name; no penetration required |

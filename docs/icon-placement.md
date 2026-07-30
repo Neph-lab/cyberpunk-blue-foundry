@@ -9,14 +9,14 @@ Every location in the system that needs a custom SVG icon, with enough selector 
 - **Item-tab / sheet icons** live at `assets/icons/bk_*.svg` (PascalCase, `bk_` prefix). Other icons in `assets/icons/` (e.g. role icons like `Solo.svg`, `Netrunner.svg`) follow plain PascalCase.
 - **Manufacturer logos** live at `assets/logo/<Brand-Name>.svg`. Filename is the brand name, hyphenated, matched against `system.manufacturer` strings via `branding.mjs` (case-insensitive, whitespace → hyphens).
 - **Color**: the canonical (`bk_`) SVGs in `assets/logo/` and `assets/icons/` are authored **black on transparent** (`fill:#000`, `fill:none` for groups). This is the default — see the wiring patterns below for how each kind of icon ends up the right color in-app via CSS at runtime.
-- **Color prefixes**: an icon's filename prefix declares the colour baked into the file. Prefer the `bk_` version recoloured at runtime via CSS (Pattern A/B below); only ship a separate pre-coloured file when runtime recolouring won't work for the use case.
+- **Color prefixes**: an icon's filename prefix declares the color baked into the file. Prefer the `bk_` version recoloured at runtime via CSS (Pattern A/B below); only ship a separate pre-colored file when runtime recolouring won't work for the use case.
 
   | Prefix | Meaning |
   | --- | --- |
   | `bk_` | Black on transparent (the canonical/default version). |
   | `wt_` | White on transparent. |
-  | `acc_` | System accent colour (`--cpb-accent` in the CSS) on transparent. |
-  | `col_` | Some other fixed colour scheme, e.g. a logo's official brand colours. |
+  | `acc_` | System accent color (`--cpb-accent` in the CSS) on transparent. |
+  | `col_` | Some other fixed color scheme, e.g. a logo's official brand colors. |
 
   Same base name across variants (e.g. `bk_d10.svg`, `wt_d10.svg`, `acc_d10.svg`). When a non-`bk_` file is genuinely needed, create it and name it with the matching prefix.
 
@@ -464,7 +464,7 @@ The five Martial Arts Components (`module/helpers/config.mjs` → `martialArts.c
 
 ### 20. Compendium Macros **(new)**
 
-The `cyberpunk-blue.macros` compendium is auto-seeded at GM login by `ensureMacroCatalogue()` (`module/cyberpunk-blue.mjs`); the entries live in `MACRO_CATALOGUE` (`module/helpers/critical-injury-macros.mjs`, each with a `name` / `img` / `_folder`). Every macro currently uses a **stock Foundry `icons/svg/*` image**. Macro images render as raw pictures in the Macro Directory / hotbar (NOT Pattern A masks), so custom art can be full-colour. Suggested filenames `assets/icons/mac_<Name>.svg`; point the catalogue entry's `img:` at the new path once authored.
+The `cyberpunk-blue.macros` compendium is auto-seeded at GM login by `ensureMacroCatalogue()` (`module/cyberpunk-blue.mjs`); the entries live in `MACRO_CATALOGUE` (`module/helpers/critical-injury-macros.mjs`, each with a `name` / `img` / `_folder`). Every macro currently uses a **stock Foundry `icons/svg/*` image**. Macro images render as raw pictures in the Macro Directory / hotbar (NOT Pattern A masks), so custom art can be full-color. Suggested filenames `assets/icons/mac_<Name>.svg`; point the catalogue entry's `img:` at the new path once authored.
 
 | Macro | Folder | Current stock icon | Suggested icon concept | SVG file |
 |-------|--------|--------------------|------------------------|----------|
@@ -508,7 +508,7 @@ System-managed ActiveEffects that mark the HP-down → death pipeline (see the "
    - Sheet/section icons: `bk_PascalCase.svg`
    - Role icons: plain `PascalCase.svg`
    - Status effect icons (new): `cond_PascalCase.svg` — also used for the wound/death-state effect AEs in §21
-   - Compendium macro icons (new): `mac_PascalCase.svg` — raw full-colour images, not Pattern A masks (§20)
+   - Compendium macro icons (new): `mac_PascalCase.svg` — raw full-color images, not Pattern A masks (§20)
    - Manufacturer logos: `Brand-Name.svg` (matched by `branding.mjs`)
 
 5. **`.cpb-frame` interaction**: elements styled with `.cpb-frame` use `::before` for the chamfer inner fill. Don't add Pattern A icons directly on a `.cpb-frame` element — put them on an inner element (label, heading) instead.

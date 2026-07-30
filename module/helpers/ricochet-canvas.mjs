@@ -10,7 +10,7 @@
 
 import { getPixelsPerMeter, getTokenCenter } from './targeting.mjs';
 
-/** Singleton PIXI.Graphics used for the persistent ricochet line visualisation. */
+/** Singleton PIXI.Graphics used for the persistent ricochet line visualization. */
 let _lineGraphics = null;
 
 /**
@@ -34,9 +34,9 @@ export function refreshAllRicochetLines() {
   if (!canvas?.controls || !canvas?.tokens) return;
 
   const ppm = getPixelsPerMeter();
-  const maxRicochetPx = 4 * ppm; // 4 metres in pixels
+  const maxRicochetPx = 4 * ppm; // 4 meters in pixels
 
-  // Current user's target token centre (null if no target)
+  // Current user's target token center (null if no target)
   const targetToken = game.user.targets.first() ?? null;
   const targetCenter = targetToken ? getTokenCenter(targetToken.document) : null;
 
@@ -91,7 +91,7 @@ export function refreshAllRicochetLines() {
  * user to left-click a point on the canvas.  Right-click cancels.
  *
  * @param {Actor} actor  The actor whose ricochetPoint flag will be set.
- * @returns {Promise<{x:number,y:number}|null>}  The chosen point, or null if cancelled.
+ * @returns {Promise<{x:number,y:number}|null>}  The chosen point, or null if canceled.
  */
 export async function startRicochetPlacement(actor) {
   ui.notifications.info(game.i18n.localize('CYBER_BLUE.Combat.RicochetClickToPlace'));
@@ -130,7 +130,7 @@ export async function startRicochetPlacement(actor) {
 }
 
 /**
- * Clear the actor's ricochet point flag and remove the canvas visualisation.
+ * Clear the actor's ricochet point flag and remove the canvas visualization.
  *
  * @param {Actor} actor
  */

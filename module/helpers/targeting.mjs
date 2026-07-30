@@ -28,7 +28,7 @@ export function getMetersPerPixel() {
   return getMetersPerGridUnit(canvas.scene) / canvas.grid.size;
 }
 
-/** Pixel centre of a TokenDocument (also accepts create-data-like objects). */
+/** Pixel center of a TokenDocument (also accepts create-data-like objects). */
 export function getTokenCenter(tokenDoc) {
   const gridSize = canvas.grid.size;
   return {
@@ -43,7 +43,7 @@ export function getTarget() {
   return { token, actor: token?.actor ?? null };
 }
 
-/** Distance in meters between two token documents' centres, or null off-canvas. */
+/** Distance in meters between two token documents' centers, or null off-canvas. */
 export function getTokenDistanceMeters(tokenDocA, tokenDocB) {
   if (!canvas?.scene || !canvas?.grid || !tokenDocA || !tokenDocB) return null;
   const a = getTokenCenter(tokenDocA);

@@ -14,11 +14,11 @@ import { isBlindAutoMiss, postBlindAutoMiss, postBlindAutoMissTarget } from './b
 
 /**
  * After an explosion resolves, optionally create a persistent visibility Region
- * at the blast centre.  Called on activeGM only (visibility setting checked here).
+ * at the blast center.  Called on activeGM only (visibility setting checked here).
  *
  * @param {Item}   item          the weapon item
  * @param {object} weapon        the effective weapon entry
- * @param {{x:number,y:number}} explosionCenter  pixel coordinates of blast centre
+ * @param {{x:number,y:number}} explosionCenter  pixel coordinates of blast center
  * @param {number} spreadPx      blast radius in pixels (used as fallback residue radius)
  * @param {number} pixelsPerMeter
  */
@@ -64,8 +64,8 @@ async function createResidueRegion(item, weapon, explosionCenter, spreadPx, pixe
     }
   }
 
-  // Elevation: start at the ground level under the blast centre and rise by
-  // (Spread − ½-damage distance) metres.
+  // Elevation: start at the ground level under the blast center and rise by
+  // (Spread − ½-damage distance) meters.
   const bottom = sampleGroundElevation(explosionCenter);
   const heightMeters = Math.max(0, (weapon.coneSpread ?? 0) - (weapon.coneHalfDamageDistance ?? 0));
   const top = bottom + heightMeters;
@@ -203,7 +203,7 @@ async function placeConeOverlay(ax, ay, spreadPx, halfDamagePx, angleDeg) {
 
 function drawExplosionGraphics(graphics, ax, ay, maxRangePx, spreadPx, halfDamagePx, targetX, targetY, inRange, losBlocked) {
   graphics.clear();
-  // Max-range ring (dark grey guide)
+  // Max-range ring (dark gray guide)
   graphics.lineStyle(1, 0x888888, 0.5);
   graphics.drawCircle(ax, ay, maxRangePx);
 
@@ -505,7 +505,7 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
   // other weapons decrement ammoCurrent by `shots`.
   await spendWeaponUse(item, weaponIndex, shots);
 
-  // Determine explosion centre (hit or scatter)
+  // Determine explosion center (hit or scatter)
   let explosionCenter = aimPoint;
   if (!hit) {
     const scatter = 1 + Math.max(0, resolvedDV - attackRoll.total);
@@ -524,7 +524,7 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
     }
   }
 
-  // Show persistent area graphic now that the explosion centre is finalised
+  // Show persistent area graphic now that the explosion center is finalised
   showAreaEffectExplosion(explosionCenter.x, explosionCenter.y, spreadPx, halfDamagePx);
   if (weapon.damageType === 'affliction-explosion') {
     // Gas release: persistent looping smoke/cloud in the residue region (default smoke.webm).
@@ -1200,7 +1200,7 @@ export async function resolveAfflictionExplosionAttack(attacker, item, weaponInd
     });
   }
 
-  // Show persistent area graphic now that the explosion centre is finalised
+  // Show persistent area graphic now that the explosion center is finalised
   showAreaEffectExplosion(explosionCenter.x, explosionCenter.y, spreadPx, halfDamagePx);
   if (weapon.damageType === 'affliction-explosion') {
     // Gas release: persistent looping smoke/cloud in the residue region (default smoke.webm).

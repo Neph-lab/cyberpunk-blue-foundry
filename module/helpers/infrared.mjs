@@ -13,7 +13,7 @@
  *   - Bypasses darkness and obscuration entirely (never light-gated).
  *   - Attenuates through cover instead of hard-blocking: each wall that blocks
  *     Light or Sight halves the REMAINING range beyond it; a Region with a
- *     light/sight-affecting behaviour counts as a single wall.
+ *     light/sight-affecting behavior counts as a single wall.
  *   - IR-only detections are drawn monochrome red (getDetectionFilter).
  *
  * Public API:
@@ -80,7 +80,7 @@ function countWallBlockers(origin, dest) {
   return count;
 }
 
-/** True when a Region has a non-disabled behaviour that affects light/sight. */
+/** True when a Region has a non-disabled behavior that affects light/sight. */
 function regionBlocksLightOrSight(regionDoc) {
   for (const beh of regionDoc.behaviors ?? []) {
     if (beh.disabled) continue;
@@ -125,10 +125,10 @@ export function countInfraredBlockers(origin, dest) {
   return countWallBlockers(origin, dest) + countRegionBlockers(origin, dest);
 }
 
-/** Region behaviour types that make a Region fully opaque to IR (subnet nodes). */
+/** Region behavior types that make a Region fully opaque to IR (subnet nodes). */
 const IR_BLOCKING_REGION_BEHAVIORS = new Set(['accNode', 'netNode']);
 
-/** True when a Region carries a non-disabled subnet-node behaviour. */
+/** True when a Region carries a non-disabled subnet-node behavior. */
 function regionBlocksInfrared(regionDoc) {
   for (const beh of regionDoc.behaviors ?? []) {
     if (beh.disabled) continue;

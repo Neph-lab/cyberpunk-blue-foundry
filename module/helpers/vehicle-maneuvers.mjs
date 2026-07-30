@@ -727,7 +727,7 @@ export function angleToBucket(absAngle) {
  * Resolve the vehicle's rotation pivot in scene pixels. Uses the authored
  * `system.pivot` (token-local pixels at the blueprint reference grid) when set
  * to a non-zero point (e.g. the rear axle for arc-correct turns); otherwise
- * falls back to the token centre (rotate-in-place).
+ * falls back to the token center (rotate-in-place).
  *
  * @param {TokenDocument} vehicleToken
  * @param {Actor}         actor
@@ -774,7 +774,7 @@ async function _moveVehicleToHeading(vehicleToken, actor, newHeading, { distance
   const curRot = vehicleToken.rotation ?? 0;
   const advance = distance ?? (actor.system?.stats?.currentSpeed?.value ?? 0);
 
-  // 1. Arc the token centre about the pivot by the applied rotation delta.
+  // 1. Arc the token center about the pivot by the applied rotation delta.
   const oldCentre = { x: (vehicleToken.x ?? 0) + w / 2, y: (vehicleToken.y ?? 0) + h / 2 };
   const pivotWorld = _resolvePivotWorld(vehicleToken, actor, scene);
   const arced = rotatePointAboutPivot(oldCentre, pivotWorld, newHeading - curRot);
@@ -790,7 +790,7 @@ async function _moveVehicleToHeading(vehicleToken, actor, newHeading, { distance
 }
 
 /**
- * Post a standardised Maneuver execution chat card.
+ * Post a standardized Maneuver execution chat card.
  *
  * @param {Actor}           actor
  * @param {TokenDocument|null} vehicleToken

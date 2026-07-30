@@ -21,7 +21,7 @@ export const VIS = Object.freeze({ NONE: 0, DIM: 1, DARK: 2, NOT_VISIBLE: 3 });
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
 
-/** Build an ElevatedPoint {x, y, elevation} from a TokenDocument centre. */
+/** Build an ElevatedPoint {x, y, elevation} from a TokenDocument center. */
 function tokenPoint(tokenDoc) {
   const gridSize = canvas.grid.size;
   return {

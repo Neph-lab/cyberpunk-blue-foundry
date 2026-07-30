@@ -98,7 +98,7 @@ export class CyberBlueNetNodeBehavior extends foundry.data.regionBehaviors.Regio
   // ── Black ICE auto-attack on token entry ────────────────────────────────
 
   // Handler registered as a wrapper so the class name is resolved at call time
-  // (not at class-field initialisation time, when the binding may still be in TDZ).
+  // (not at class-field initialization time, when the binding may still be in TDZ).
   static events = {
     [CONST.REGION_EVENTS.TOKEN_ENTER]: async function _tokenEnterProxy(event) {
       return CyberBlueNetNodeBehavior._onNetrunnerEntersNode.call(this, event);
@@ -436,7 +436,7 @@ function offsetPolygonsInward(polys, deltaPx) {
  *   [lightBandWidth .. lightBandWidth + noVisInset m] → DARK  (heavily obscured / dark)
  *   inner core (if enableNoVisibility)                → NOT_VISIBLE (hard block)
  *
- * All band widths are in **metres** (scene distance units).
+ * All band widths are in **meters** (scene distance units).
  *
  * Bypass:
  *   ignoreDarknessPenalty / ignoreObscurationPenalty — removes −2/−4; NOT_VISIBLE still blocks.
@@ -509,7 +509,7 @@ export class CyberBlueVisibilityRegionBehavior extends foundry.data.regionBehavi
   _buildBandCache() {
     if (this._bandCache && !this._bandCacheInvalid) return this._bandCache;
 
-    const mPx = canvas.dimensions?.distancePixels ?? 1; // px per metre
+    const mPx = canvas.dimensions?.distancePixels ?? 1; // px per meter
     const polys = this.region?.polygons ?? [];
 
     const dimInner = offsetPolygonsInward(polys, this.lightBandWidth * mPx);
@@ -668,7 +668,7 @@ export class CyberBlueHazardRegionBehavior extends foundry.data.regionBehaviors.
   }
 
   /**
-   * Metres travelled by the token's centre inside this region during `movement`.
+   * Meters traveled by the token's center inside this region during `movement`.
    * Uses Region#segmentizeMovementPath; falls back to one step on any failure.
    * @returns {number}
    */
@@ -704,7 +704,7 @@ export class CyberBlueHazardRegionBehavior extends foundry.data.regionBehaviors.
   }
 
   /**
-   * In-region metres for a straight from→to move (token top-left positions),
+   * In-region meters for a straight from→to move (token top-left positions),
    * used by the updateToken-hook driver.
    */
   _inRegionMetersForMove(token, from, to) {

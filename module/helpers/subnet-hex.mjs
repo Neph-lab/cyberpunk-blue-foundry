@@ -21,7 +21,7 @@
  * adjacent hexes — so walls run along shared edges meet exactly with no gap.
  */
 
-/** Distance from a hex centre to a vertex (px). Node tiles are 2*size wide. */
+/** Distance from a hex center to a vertex (px). Node tiles are 2*size wide. */
 export const HEX_SIZE = 200;
 
 /** Native node-tile / hex bounding-box width in px (vertex-to-vertex). */
@@ -31,7 +31,7 @@ export const TILE_SIZE = HEX_SIZE * 2;
 const SQRT3 = Math.sqrt(3);
 
 /**
- * Axial step to the neighbour that shares edge i (i = 0..5), where edge i is
+ * Axial step to the neighbor that shares edge i (i = 0..5), where edge i is
  * the segment (vertex i → vertex i+1) going clockwise from the right vertex.
  *   0: lower-right edge  → (+1,  0)
  *   1: bottom edge       → ( 0, +1)
@@ -49,19 +49,19 @@ export function axialKey(q, r) {
   return `${q},${r}`;
 }
 
-/** The neighbour axial coordinate across edge `edge` (0..5) from (q, r). */
+/** The neighbor axial coordinate across edge `edge` (0..5) from (q, r). */
 export function neighborAxial(q, r, edge) {
   const [dq, dr] = NEIGHBOR_DELTAS[((edge % 6) + 6) % 6];
   return { q: q + dq, r: r + dr };
 }
 
-/** All six neighbour axial coordinates of (q, r), indexed by edge. */
+/** All six neighbor axial coordinates of (q, r), indexed by edge. */
 export function neighbors(q, r) {
   return NEIGHBOR_DELTAS.map(([dq, dr]) => ({ q: q + dq, r: r + dr }));
 }
 
 /**
- * Centre pixel of hex (q, r).
+ * Center pixel of hex (q, r).
  * @returns {{x:number, y:number}}
  */
 export function axialToPixel(q, r, size = HEX_SIZE) {
@@ -99,7 +99,7 @@ function cubeRound(qf, rf) {
 }
 
 /**
- * The six vertices of the hex centred at (cx, cy), clockwise from the right
+ * The six vertices of the hex centerd at (cx, cy), clockwise from the right
  * vertex (angles 0, 60, 120, 180, 240, 300 degrees).
  * @returns {{x:number, y:number}[]}
  */
@@ -190,7 +190,7 @@ export function cornerTriangles(cx, cy, size = HEX_SIZE, inset = 6) {
     const len = Math.hypot(dx, dy) || 1;
     const nx = dx / len;
     const ny = dy / len;
-    // Two points inset from the vertex toward the centre, offset perpendicular.
+    // Two points inset from the vertex toward the center, offset perpendicular.
     const px = -ny;
     const py = nx;
     const a = { x: v.x - nx * inset + px * inset, y: v.y - ny * inset + py * inset };

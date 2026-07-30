@@ -717,7 +717,7 @@ export const CYBERWARE_CATALOGUE = [
     cost: 'EX', facilities: 'mall', installationCost: 'CO', installationDv: 15,
     psycheLoss: '1d6/2',
     description: 'Once the user has been stabilized, they heal <strong>BODY</strong>&times;2 HP per day with light activity, rather than at the standard recovery rate.',
-    effects: [reminder('Heals BODY×2 HP/day when stabilised (GM-handled)')],
+    effects: [reminder('Heals BODY×2 HP/day when stabilized (GM-handled)')],
   }),
   cw({
     name: 'Gills',

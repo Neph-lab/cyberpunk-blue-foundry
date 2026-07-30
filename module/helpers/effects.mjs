@@ -69,7 +69,7 @@ export function getActiveAEFlag(actor, flagKey) {
 /**
  * Active-effect flags that mark an effect as triggered by a critical condition
  * (low HP, low PSYCHE, or a Critical Injury). The Effects panel renders these
- * in the --cpb-error colour so they stand out from ordinary buffs.
+ * in the --cpb-error color so they stand out from ordinary buffs.
  */
 const ERROR_EFFECT_FLAGS = Object.freeze([
   'autoSeriousWound',    // low HP (below Serious Wound threshold)

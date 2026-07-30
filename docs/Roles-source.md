@@ -396,7 +396,7 @@ There are four components to your ability as a fixer’s to act as a smooth oper
 **Contacts:** The kinds of people you can easily get in touch with to ask for information, procure gear from, or otherwise deal with.
 **Reach:** You can always source items in this price category or lower with little effort.
 **Haggle:** Add your Role ability rank to the result of any Trading check to negotiate a price. You may also use COOL instead of INT as the primary Stat for such a roll. Only one Fixer can negotiate per side. Extra benefits from these are noted for various ranks.
-**Grease:** Fixers quickly take in the cultural codes around them. As you gain ranks, you get increased understanding of those you live amongst.
+**Grease:** Fixers quickly take in the cultural codes around them. As you gain ranks, you get increased understanding of those you live among.
 
 ### Abilities
 | Unlock rank | Name | Description | Effect |
@@ -636,7 +636,7 @@ Of course, there are areas of the City where not even the Law dare go most of th
 | 2 | Fair and honest policing, but hard on law-breakers. |
 | 3 | Will occasionally, but rarely, slip into unethical actions. |
 | 4 | Willing to bend any rules to get to the bad guys. |
-| 5 | Ruthless to control the Street, even breaking the law to, ostensiably, uphold it. |
+| 5 | Ruthless to control the Street, even breaking the law to, ostensibly, uphold it. |
 | 6 | Corrupt, taking bribes and engage in illegal and unethical business all the time. |
 
 ### Who’s gunning for your unit?
@@ -655,11 +655,11 @@ Of course, there are areas of the City where not even the Law dare go most of th
 | 1 | Organized Crime. |
 | 2 | Trafficking and kidnapping. |
 | 3 | Illicit trade. 1d6: 1: Drugs, 2: XBDs 3: Weapons 4: Counterfeit luxury items 5: Organs or Cyberware 6: Fenced stolen goods |
-| 4 | Burgulars and robbers. |
+| 4 | Burglars and robbers. |
 | 5 | Illegal gambling. |
 | 6 | Street Criminals. |
 
-### Connection Qustions
+### Connection Questions
 Ask these questions to different players about their characters to build existing relationships.
 * *What crime did I let you get away with and why?
 * What enemy of yours did I take out?
@@ -680,8 +680,8 @@ Backup uses the NPC Mook sheet. When the Law unlocks a certain type, a copy of t
 | 3 | Beat cops | Four local cops on the beat arrive in two separate compact cars. They carry heavy pistols and are armored in Kevlar®. | DV to call: 9; Beat Cop: CombatN 10, SP 7, MOVE 5, BODY 5; Gear: Militech M-10AF Lexington, Flashlight, Handcuffs, Radio Communicator, Road Flare; Cyberware: Neuroport |
 | 5 | Precinct officers | Two local advanced duty officers arrive in a high performance car. They are armed with heavy pistols and assault rifles and are wearing heavy armorjack. | DV to call: 11; Police officer: CombatN 12, SP 13, BODY 5; Gear: Militech M-76E Omaha, Arasaka Nowaki, Flashlight, Handcuffs ×2, Radio Communicator, Road Flare ×2; Cyberware: Neuroport
 | 8 | SWAT | An officer that’s an expert in dealing with the harshest parts of the city arrives on a motorcycle. They’re carrying a very heavy pistol, an assault rifle, and a grenade launcher. They’re wearing flak armor. | DV to call: 14; SWAT Officer: CombatN 14, SP 15, MOVE 5, BODY 7; Gear: Arasaka JKE-X2 Kenshin, Militech M362s Ajax with Militech EFMO2 Boulder and Militech ClearVue Mk.8 mods, Stun Baton, Anti-Smog Breathing Mask, Handcuffs ×2, Radio Communicator, Road Flare ×2, Rope, Chipware: Pain Editor; Cyberware: Neuroport, Self-ICE, Kerenzikov, Cybereyes ×2, Wide-Spectrum Optics, Cyberarm, Subdermal Grip |
-| 9 | MaxTac | Two heavy-hitters from the cyberpsycho squad arrive in an AV-4. They’re carrying assault rifles and rocket launchers and are covered in Metalgear®. | DV to call: 16;  CombatN 15, SP 18, MOVE 4, BODY 8; Gear: Techtronica RT-46 Burya, Arasaka HJSH-18 Masamune, Arasaka Dojigiri Yatsuna, Chipware: Pain Editor; Cyberware: Neuroport, Self-ICE, Sandevistan, MultiOptic Mount, Standard Cybereye ×4, Anti-Dazzle, Image Enhance, Radiation Detector, Targeting Scope, TeleOptics, Wide-Spectrum Optics, Standard Cyberaudio Suite, Level Dampener, Standard Cyberarm ×2, Arasaka Daikon NT Mantis Blades ×2, Subdermal Grip, Nasal Filters |
-| 10 | International Special Agens | National law enforcement/Interpol/Netwatch. The serious heavy-hitters and specialists in their given fields. They travel in pairs and arrive on an AV-4. They'll stay after the fact and aid in the investigation. If the Law calls for backup connected to the same case in the future, the same officers will until the case is closed or they die in the line of duty. | No NPC Sheet as the situations vary too much and must be handled by the GM. |
+| 9 | MaxTac | Two heavy-hitters from the cyberpsycho squad arrive in an AV-4. They’re carrying assault rifles and rocket launchers and are covered in Metalgear®. | DV to call: 16;  CombatN 15, SP 18, MOVE 4, BODY 8; Gear: Techtronika RT-46 Burya, Arasaka HJSH-18 Masamune, Arasaka Dojigiri Yasutsuna, Chipware: Pain Editor; Cyberware: Neuroport, Self-ICE, Sandevistan, MultiOptic Mount, Standard Cybereye ×4, Anti-Dazzle, Image Enhance, Radiation Detector, Targeting Scope, TeleOptics, Wide-Spectrum Optics, Standard Cyberaudio Suite, Level Dampener, Standard Cyberarm ×2, Arasaka Daikon NT Mantis Blades ×2, Subdermal Grip, Nasal Filters |
+| 10 | International Special Agents | National law enforcement/Interpol/Netwatch. The serious heavy-hitters and specialists in their given fields. They travel in pairs and arrive on an AV-4. They'll stay after the fact and aid in the investigation. If the Law calls for backup connected to the same case in the future, the same officers will until the case is closed or they die in the line of duty. | No NPC Sheet as the situations vary too much and must be handled by the GM. |
 
 ### Law Starting Gear
 Weapons and Armor: 
@@ -779,7 +779,7 @@ The bad guys have tried to kill you several times. That’s why you need backup,
 | 5 | A conspiracy theorist convinced you're covering up the actual truth. |
 | 6 | Someone sending you secret threats. |
 
-### Connection Qustions
+### Connection Questions
 Ask these questions to different players about their characters to build existing relationships.
 * How did I make you out as the hero of a story?
 * What enemy of yours did I expose?
@@ -799,14 +799,14 @@ You may also go looking for rumors to see what you can pick up regarding a an ev
 | **Detailed rumor.** There’s additional information that, if verified, makes it immediately relevant for publication. | 25 | 22 |
 
 Your ability rank also shows your increasing influence in some key areas.
-* **Access:** Using your contanct, you can get hold of these kinds of people to ask questions.
+* **Access:** Using your contact, you can get hold of these kinds of people to ask questions.
 **Audience:** People in this group can largely be assumed to at least have heard about your work.
 **Impact:** The amount of change a scoop can reasonably facilitate.
 
 When you publish a story, roughly 10% of your audience buys into your premise. This increases by an additional 5% of the audience for each Role ability rank. Add 5% for each verifiable, easily understood, fact up to a maximum bonus of 20%. Even the most credible Medias aren’t trusted by everyone.
 
 ### Implementation of the Role ability
-The Character sheet's Role ability area should include two buttons, the second one of which is only visibible and available to GMs. The first is "Pick up rumours" and allows the the player to choose between Business, Government, and Streetwise. Don't apply any Components and the roll is 1d10 + INT (or Cool for Streetwise, if it's higher) + the chosen skill + Media rank. Repoer the result in chat, visible to the player and the GM, along with the corresponding description in the table for the highest active DV the roll reached. The second button offers the GM the same choice of skills and makes the roll for the Actor, with the result visible to the GM only. It uses the description for highest passive DV reached.
+The Character sheet's Role ability area should include two buttons, the second one of which is only visible and available to GMs. The first is "Pick up rumors" and allows the the player to choose between Business, Government, and Streetwise. Don't apply any Components and the roll is 1d10 + INT (or Cool for Streetwise, if it's higher) + the chosen skill + Media rank. reporter the result in chat, visible to the player and the GM, along with the corresponding description in the table for the highest active DV the roll reached. The second button offers the GM the same choice of skills and makes the roll for the Actor, with the result visible to the GM only. It uses the description for highest passive DV reached.
 
 Any Streetwise skill check uses INT instead of Cool as default if INT is higher.
 
@@ -924,7 +924,7 @@ It doesn’t matter how you got here. What matters is that you’re here, on The
 | 5 | You have a backdoor into a few corporate or hospital warehouses. |
 | 6 | You hit the Night Markets and score deals whenever you can. |
 
-### Connection Qustions
+### Connection Questions
 Ask these questions to different players about their characters to build existing relationships.
 * When did I save your life?
 * Who, close to you, did I fail to save?
@@ -938,7 +938,7 @@ As a Medtech, you have access to specialties that allow you to perform tasks oth
 | Unlock rank | Name | Description | Implementation |
 | ----------- | ---- | ----------- | -------------- |
 | 1 | Emergency treatment | When you stabilize someone, applying a quick fix to a critical injury, or any other regular use of the Medicine skill not governed by this Role ability, add your ranks in this specialty to your roll. | Add specialty ranks to all non-Role Medicine checks. |
-| 1 | Patching up | Given ten minutes to care for someone’s wounds, you may heal them as many points as twice your ranks as Battle Medic. A person can only benefit from this healing once per day, but it is on top of other healing you can provide. | With at least 1 rank in Battle Medic a button is added to the Character sheets's Role Ability area for Patching up. Using it will offer the player a choice between all Actors with Tokens in the scene. The seleced Actor regains HP the Specialty rank×2. The button is diisabled until the GM has triggered the natural healing macro. |
+| 1 | Patching up | Given ten minutes to care for someone’s wounds, you may heal them as many points as twice your ranks as Battle Medic. A person can only benefit from this healing once per day, but it is on top of other healing you can provide. | With at least 1 rank in Battle Medic a button is added to the Character sheets's Role Ability area for Patching up. Using it will offer the player a choice between all Actors with Tokens in the scene. The selected Actor regains HP the Specialty rank×2. The button is disabled until the GM has triggered the natural healing macro. |
 
 ### Specialty: Surgery
 | Unlock rank | Name | Description | Implementation |
@@ -961,22 +961,22 @@ The drugs to choose from:
 | Roids | The target’s muscle fibers are strengthened on a nano-level, increasing their BODY by 1 for the next 2d6 hours. A person can only benefit from one dose/day. | Create an AE to represent the effects. |
 | Runner­speed | If the target can perform NET actions, they are able to perform an additional NET action per round for the next hour. | Create the correct AE. The GM handles the rest. |
 | Speedheal | A target who isn’t Mortally Wounded immediately heals Hit Points equal to their BODY. A person can only benefit from one Speedheal use/day. | Provide the heal, the GM handles the rest. |
-| Stim | For an hour, the target ignores all penalties from being Seriously Wounded and up to 1 HP per round of damage from the consequences of Critical Injuries. A person can only benefit from one Stim use/day. | Surpress Seriously Wounded with an AE. GM will handle the rest. |
+| Stim | For an hour, the target ignores all penalties from being Seriously Wounded and up to 1 HP per round of damage from the consequences of Critical Injuries. A person can only benefit from one Stim use/day. | suppress Seriously Wounded with an AE. GM will handle the rest. |
 | Surge | The need for sleep is effectively paused in the target for the next 24 hours. A person can only benefit from one Surge use/week. | Create an AE that's only descriptive. |
-| Torpor | After their a few minutes, the target Falls unconscious for 2d6 hours and it takes a DV15 Medicine check to detect any vital signs. You also produce an antidote to instantly wake the target as an action. | Apply the Unconcious Condition AE as well as an AE to describe this. |
+| Torpor | After their a few minutes, the target Falls unconscious for 2d6 hours and it takes a DV15 Medicine check to detect any vital signs. You also produce an antidote to instantly wake the target as an action. | Apply the unconscious Condition AE as well as an AE to describe this. |
 
 ### Cryosystem Operation
 | Unlock Rank | Name | Description | Implementation |
 | ----------- | ---- | ----------- | -------------- |
 | 1 | Cryosystem Use | A cryosystem requires a successful Medicine (Cryosystem Operation) check as an Action to put an enclosed body in stasis. The check is DV 13 for a pump, 15 for a tank. Either allows for surgery on the patient without a risk. A pump can maintain stasis for up to a week, while a tank lasts for as long as it has power. A tank also allow for complete body modification surgery. | The Role Ability area on the character gets two new buttons: One to operate a Cryobag (DV 13) and one to operate a Cryotank (DV 15) using Medicine and the specialty as Component-like. The GM will handle the details. |
-| 1 | Crypump | As a licenced cryotech, a corp, the government, or someone else has made sure you have access to a cryobag. | Add a cryobag from the Compandium to the Actor. |
-| 2 | Cryotank | You gain access to a cryotank. It's owned by the government or a corp (like Trauma Team) but available for use. The Medtech is resposible for refuelling, any damage, or the like.This is a perk of being licenced and well connected. | Narrative only |
+| 1 | Cryopump | As a licensed cryotech, a corp, the government, or someone else has made sure you have access to a cryobag. | Add a cryobag from the Compendium to the Actor. |
+| 2 | Cryotank | You gain access to a cryotank. It's owned by the government or a corp (like Trauma Team) but available for use. The Medtech is responsible for refueling, any damage, or the like.This is a perk of being licensed and well connected. | Narrative only |
 | 3 | Free Placement | If you prefer, the cryotank can be placed in a different suitable location of choice. | Narrative only |
-| 4 | Cryopunp Upgrade | You gain access to a second cryopump and a refill for each. | Add a cryopump from the Compendiun to the Actor. |
+| 4 | Cryopump Upgrade | You gain access to a second cryopump and a refill for each. | Add a cryopump from the Compendium to the Actor. |
 | 5 | Cryotank Expansion | You gain access to two more cryotanks to place where you direct. | Narrative only. |
-| 6 | Field Cryopump Pack | You are gratned a third cryopump along with a refill for all three. | Add another cryopump. |
+| 6 | Field Cryopump Pack | You are granted a third cryopump along with a refill for all three. | Add another cryopump. |
 | 7 | Cryogenic Lab | The space you've set up now have a full 6 cryotanks to use. | Narrative only. |
-| 10 | Cryotech Expert | You have four cryopumps along with a refill for each. Getting mroe of them is likely not difficult. And if you can provide a reason, there's surely a sponsor who will provide you with however many cryotanks you need. | Add another cryopump. The rest is narrative. |
+| 10 | Cryotech Expert | You have four cryopumps along with a refill for each. Getting more of them is likely not difficult. And if you can provide a reason, there's surely a sponsor who will provide you with however many cryotanks you need. | Add another cryopump. The rest is narrative. |
 
 ## Medtech Starting Gear
 Weapons and Armor:
@@ -1086,7 +1086,7 @@ Of course, the deadliest parts cyberspace is still out there in the remnants of 
 | 5 | Old client who thinks you screwed them over. |
 | 6 | Fixer or another client who wants you exclusively. |
 
-### Connection Qustions
+### Connection Questions
 Ask these questions to different players about their characters to build existing relationships.
 * Why did I break into a corp subnet for you?
 * What’s in the file I keep secure for you in my deck?
@@ -1206,7 +1206,7 @@ A good Ninja is highly sought after by corporations, governments and Fixers alik
 | 5 | Another Ninja who sees you as competition. |
 | 6 | Law enforcers who want you for murder charges. |
 
-### Connection Qustions
+### Connection Questions
 Ask these questions to different players about their characters to build existing relationships.
 * Who have I killed for you?
 * How did you catch on to what I do?
@@ -1221,13 +1221,13 @@ When is handled by the GM. The base UI is in place.
 
 | Unlock rank | Name | Description | Implementation |
 | ----------- | ---- | ----------- | -------------- |
-| 1 | Poison | You apply a toxin to a Melee Weapon. It requires your expertise to utilize this effectively and thus you can’t prepare someone else’s weapon like this. When you attack someone and penetrate their SP at all, they must make a BODY + Endurance check against a DV equal to 11 + the number of points allocated. On a failure, they take an additional 1d6 directly to HP. | WHen points are allocated, trigger the check and possible bonus damge. The GM will handle which weapon is used. |
+| 1 | Poison | You apply a toxin to a Melee Weapon. It requires your expertise to utilize this effectively and thus you can’t prepare someone else’s weapon like this. When you attack someone and penetrate their SP at all, they must make a BODY + Endurance check against a DV equal to 11 + the number of points allocated. On a failure, they take an additional 1d6 directly to HP. | WHen points are allocated, trigger the check and possible bonus damage. The GM will handle which weapon is used. |
 | 1 | Silent Death | Each point allocated gives you +1 to any Stealth checks you make. | Apply as AE |
-| 1 | Threat Detection | You have enhanced situational awareness. Each point adds +1 to Perception checks. This doesn’t stack with the same tactic from the Solo Role if you have both. | Apply as AE. The GM will prevent the conflice with the Solo tactic |
+| 1 | Threat Detection | You have enhanced situational awareness. Each point adds +1 to Perception checks. This doesn’t stack with the same tactic from the Solo Role if you have both. | Apply as AE. The GM will prevent the conflict with the Solo tactic |
 |  2 | Martial Skill | Your training allows you a bonus to any Melee or Martial Arts attack or use of a Martial Arts technique. Add +1 to your attack roll for each two points allocated, up to a maximum bonus of +3 for six points. | Add an AE  with the bonus to the Melee weapon and Martial Arts skills. |
 | 2 | Seek Cover | By allocating two points to this tactic, you increase your possibility of recovering from detection. Add +5 to your Initiative, but your first turn can only focus on hiding or retreating. | Handled by the GM. |
-| 2 | Weak-Spot | When you allocate two points to this tactic, you may bypass armor with 3 SP or less. Each 2 additional points increases the SP bypassed by another 3 for amaximum total of 15. The attack doesn't ablate armor because it doesn't interact with it. | Applies to standard damage only, not cones, explosions, or autofire. Apply if target's current SP is low enough. |
-| 3 | Precision Kill | When your target is unaware of an attack from you, it’s deadlier. Add 1d6 if you allocate three points to this tactic, or 2d6 if you allocate six points, or 3d6 if you allocate nine points. | Handeled bythe GM. |
+| 2 | Weak-Spot | When you allocate two points to this tactic, you may bypass armor with 3 SP or less. Each 2 additional points increases the SP bypassed by another 3 for a maximum total of 15. The attack doesn't ablate armor because it doesn't interact with it. | Applies to standard damage only, not cones, explosions, or autofire. Apply if target's current SP is low enough. |
+| 3 | Precision Kill | When your target is unaware of an attack from you, it’s deadlier. Add 1d6 if you allocate three points to this tactic, or 2d6 if you allocate six points, or 3d6 if you allocate nine points. | handled by the GM. |
 
 ## Ninja Starting Equipment
 Weapons and Armor:
@@ -1287,21 +1287,21 @@ Operatives are experts at covertly gathering and analyzing intelligence in meats
 
 ### What’s your supervisor like?
 
-### Connection Qustions
+### Connection Questions
 Ask these questions to different players about their characters to build existing relationships.
 * What secret have I uncovered about you?
 * What intel have you asked me to look for?
 * What kind of secret am I keeping from you?
 
 ## Operative Role Ability
-### General Descrition
+### General Description
 When an Operative gains a rank in their Role ability, they gain 1 rank each in two different specialties: Analysis, Infiltration, Preparation, or Undercover.
 
 ### Analysis
 | Unlock Rank | Name | Description | Implementation |
 | ----------- | ---- | ----------- | -------------- |
 | 1 | Coded Message  | You can encode information in seemingly innocuous text, or even an image. It can be decoded with an INT + Deduction (+ their Analysis rank if any) roll against a DV equal to 10 + your INT + your Analysis rank. You can select a number of individual equal to your Analysis rank who will automatically understand the message. In addition, you can let anyone with at least your rank in your organization automatically decode it. | Handled by the GM. |
-| 1 | Intelligence Analysis | Gathering intelligence isn’t useful if you don’t know what to do with it. Add your Analysis ranks to the INT checks when sorting through information or attempting to deducce patterns. | Handled by the GM. |
+| 1 | Intelligence Analysis | Gathering intelligence isn’t useful if you don’t know what to do with it. Add your Analysis ranks to the INT checks when sorting through information or attempting to deduce patterns. | Handled by the GM. |
 | 4 | Any pattern is easy for you to read. Add half your Analysis ranks (rounded down) to Deduction and Human Perception checks. | Apply the bonus to those checks. |
 
 ### Infiltration
@@ -1313,25 +1313,25 @@ When an Operative gains a rank in their Role ability, they gain 1 rank each in t
 
 | Strategy | Description | Implementation |
 | -------- | ----------- | -------------- |
-| Backup Equipment | A small satelite in orbit has a payload containing the equivalent of the Operative starting gear, but in any sift in style. With a signal through your cyberware, the sateline will set to crash in a less populated area within 2km of you and provide your cyberware with ways to track it. Once used, this benefit is gone but it can be selected multiple times. | Cna be selected multiple times (noting how many in the Role Ability area). THe rest is narrative. |
-| Badge | After seeing a symbol a group uses amongst themselves, you can quickly reproduce a replica with €$50 (Costly) materials. Those who normally use that type of badge have +2 to see throug it. | Narrative |
+| Backup Equipment | A small satellite in orbit has a payload containing the equivalent of the Operative starting gear, but in any sift in style. With a signal through your cyberware, the satellite will set to crash in a less populated area within 2km of you and provide your cyberware with ways to track it. Once used, this benefit is gone but it can be selected multiple times. | Can be selected multiple times (noting how many in the Role Ability area). The rest is narrative. |
+| Badge | After seeing a symbol a group uses among themselves, you can quickly reproduce a replica with €$50 (Costly) materials. Those who normally use that type of badge have +2 to see through it. | Narrative |
 | Convincing Disguise | You are able to very quickly alter your, or someone else’s, appearance through wigs, make-up, simple props, etc. This takes 30 minutes/person and uses up props worth €$20 (Everyday) + any clothes needed. Making someone look good, as opposed to believable, requires a Style check. | Handled by the GM |
-| Fake ID | You can produce believable ID cards or chips of a type you’ve had time to analyze. These take two hours and €$100 (Premium) to make. Only a check against a database will reveal them as fake. | Handeld by the GM |
+| Fake ID | You can produce believable ID cards or chips of a type you’ve had time to analyze. These take two hours and €$100 (Premium) to make. Only a check against a database will reveal them as fake. | handheld by the GM |
 | Quick Change | If you've prepared both your first outfit and a disguise, you can wear them at the same time and change from one to the other as an Action, no matter how different they are. | Narrative only. |
-| Safehouse | You have a secodary location that’s unknown to others. It’s cramped and rough but has all the amenities you might need. | Narrative only. |
-| Wardrobe | Your living space contains a very large and varied collection of outfits and disguise parts. Assuem you have access to a version of any non-specialty clothing worth €$100 (Premium) or less. It is in your size and might not fit others. | Narrative only |
+| Safehouse | You have a secondary location that’s unknown to others. It’s cramped and rough but has all the amenities you might need. | Narrative only. |
+| Wardrobe | Your living space contains a very large and varied collection of outfits and disguise parts. assume you have access to a version of any non-specialty clothing worth €$100 (Premium) or less. It is in your size and might not fit others. | Narrative only |
 
 ### Preparation
 | Unlock rank | Name | Description | Implementation |
 | ----------- | ---- | ----------- | -------------- |
-| 1 | Prepared | Once per session, you may declare that you have actually prepared for a situation and retroactively say that you brought something useful. If this is somethoing you wwould have bought, it can be no more than €$50 (Costly). | Handled by the GM. |
-| 2 | Hidden | You may declare that any one item you have is miniturized, disguised as something else, or otherwise easy to completely conceal. The item can't require more than one hand. If you ever lose this item for some reason, work with the GM to have a replacement boon. | Handled by the GM. |
+| 1 | Prepared | Once per session, you may declare that you have actually prepared for a situation and retroactively say that you brought something useful. If this is something you would have bought, it can be no more than €$50 (Costly). | Handled by the GM. |
+| 2 | Hidden | You may declare that any one item you have is miniaturized, disguised as something else, or otherwise easy to completely conceal. The item can't require more than one hand. If you ever lose this item for some reason, work with the GM to have a replacement boon. | Handled by the GM. |
 | 3 | There is More To It | You may designate an additional item as easily concealable. It may be something that requires more than one hand — but it must then be disguised as something of similar size. | Handled by the GM. |
 | 4 | Well prepared | You may use your Prepared ability twice per session. | Handled by the GM |
-| 5 | Already Did That | Instead of having brought something, you may use your Prepared ability to play out a scene retroactively, such as looking up a floorpan or bribing a guard. | Handled by the GM. |
+| 5 | Already Did That | Instead of having brought something, you may use your Prepared ability to play out a scene retroactively, such as looking up a floorplan or bribing a guard. | Handled by the GM. |
 | 6 | Well Spent | You uses of Prepared may each get you something worth up to €$100 (Premium). | Handled by the GM. |
 | 7 | Quartermaster's Pet | Using Prepared to establish something €$10 (Everyday) or less doesn't take a use of the ability. | Handled by the GM. |
-| 8 | Spy Gadgets | You may treat a number of items equal to half your Preparation rank (round down) has safely disguised into something else. If they can be handle in one hand, they can be miniturized. If you want, two items may be concealed as one item of the same size as the larger of the two. | Handled by the GM.
+| 8 | Spy Gadgets | You may treat a number of items equal to half your Preparation rank (round down) has safely disguised into something else. If they can be handle in one hand, they can be miniaturized. If you want, two items may be concealed as one item of the same size as the larger of the two. | Handled by the GM.
 | 10 | Always Prepared | Provided you can show any possibility to have prepared for an obstacle, you may use the Prepared ability with no limitation on uses. The uses you do have are for things you shouldn't have been able to forsee. | Handled by the GM |
 
 ### Undercover
@@ -1343,8 +1343,8 @@ When an Operative gains a rank in their Role ability, they gain 1 rank each in t
 | ------------- | ----------- | -------------- |
 | Connected background | Someone will answer the phone for your cover’s parents, for example. | Narrative only. |
 | Convincing training | You gain +2 on Acting tests to convincingly perform your cover. This may be taken up to 5 times for a cumulative bonus. | Allow for multiple selection and note the total bonus in the Role Ability area, but leave application to the GM. |
-| Cross-Culture | You’re trained in the intracacies of a culture your cover is supposedly from and can mimic its patterns exactly. As a bonus, you gain two level of the Ability for a language spoken by the culture. | Add the ability with a prompt for language to append to the Ability name. "Language: {name}" |
-| Faceplate | Your cover gets its own appearance through cybernetics and body-sculpting. Switching takes ten minutes. Others trying to change it for you take half an hour and must succeed on a Medicine check or an Electronics (Cybernetics) check (their choice). The modification results in 7 (2d6) PSYCHE loss, but there is no extra loss for additional plates for other covers. | Apply the PSYCHE loss. THe rest is handle dby the GM. |
+| Cross-Culture | You’re trained in the intricacies of a culture your cover is supposedly from and can mimic its patterns exactly. As a bonus, you gain two level of the Ability for a language spoken by the culture. | Add the ability with a prompt for language to append to the Ability name. "Language: {name}" |
+| Faceplate | Your cover gets its own appearance through cybernetics and body-sculpting. Switching takes ten minutes. Others trying to change it for you take half an hour and must succeed on a Medicine check or an Electronics (Cybernetics) check (their choice). The modification results in 7 (2d6) PSYCHE loss, but there is no extra loss for additional plates for other covers. | Apply the PSYCHE loss. The rest is handled by the GM. |
 | Seeded Secure Data | Information about your cover has been planted in closed government or corporate records, making you seem real to anyone who gains access there. | Narrative only.
 | Tabula Rasa | Your original identity is completely wiped from all records, or their death is staged, to make tracing you harder. Optionally, your organization has backups and proof to restore the old you. | Can only be selected once and treated as a cover that can't be upgraded called "??? Unknown identity" |
 
@@ -1444,7 +1444,7 @@ Rocker legends like Johnny Silverhand, Rockerboy Manson, and Kerry Eurodyne have
 | 9 | A manager who'll literally kill to secure your contract. |
 | 10 | Someone has taken out a contract on you for unknown reasons. |
 
-### Connection Qustions
+### Connection Questions
 Ask these questions to different players about their characters to build existing relationships.
 * What hit of mine is your favorite and why?
 * What have I created that’s about you?
@@ -1536,7 +1536,7 @@ As the battle damage piles up, you might rely more and more upon tech: cyberlimb
 | 3 | You occasionally, but rarely, slip into the unethical. |
 | 4 | Ruthless and profit-centered. You’ll work for anyone who’s willing to pay. |
 | 5 | You're willing to bend any rules (and law) to ge the job done. |
-| 6 | You engage in, and enjoy, unethical work all the time. It makes it mroe interesting. |
+| 6 | You engage in, and enjoy, unethical work all the time. It makes it more interesting. |
 
 ### What's your operational territory?
 | 1d6 | Area |
@@ -1557,7 +1557,7 @@ As the battle damage piles up, you might rely more and more upon tech: cyberlimb
 | 5 | A Fixer who sees you as a threat. |
 | 6 | A rival Solo or Ninja who sees you as a threat. |
 
-### Connection Qustions
+### Connection Questions
 Ask these questions to different players about their characters to build existing relationships.
 * How did I save your life?
 * What have you given me that I always have with me?
@@ -1619,7 +1619,7 @@ You can’t leave anything alone. If it’s near you for more than five minutes,
 
 You make your living building, fixing, and modifying — a crucial occupation in a technological world recovering from a War that broke the back of the supply chain. You can make some good bucks fixing everyday stuff, but for the serious money you need to tackle the big jobs. Illegal weapons. Illegal or stolen cybertech. Corporate espionage and counter-espionage gear for “black operations.” If you’re any good, you’re making a lot of money. And that money goes into new gadgets, hardware, and information.
 
-Your black market work isn’t just making you friends, it’s also racking you up an impressive number of enemies as well — so you invest a lot in defense systems and, if really pushed to the wall, call in a few markers on a Solo or two. You’ve fixed up tech for everybody from black ops Corporate samurai to Ms. Zepada down the block. No one’s ever come back to you with a complaint, but that might be because of the turrets guarding your front door. You’re addicted to technology in all its forms and that’s what makes you a Tech.
+Your black market work isn’t just making you friends, it’s also racking you up an impressive number of enemies as well — so you invest a lot in defense systems and, if really pushed to the wall, call in a few markers on a Solo or two. You’ve fixed up tech for everybody from black ops Corporate samurai to Ms. Zepeda down the block. No one’s ever come back to you with a complaint, but that might be because of the turrets guarding your front door. You’re addicted to technology in all its forms and that’s what makes you a Tech.
 
 > This City depends on technology to keep everything from going full-on post-apocalypse. And that means everyone depends on me.
 > ∆ João “Torch” Barbosa Alvés, Owner of Torch’s Total Repairs
@@ -1689,7 +1689,7 @@ Your black market work isn’t just making you friends, it’s also racking you 
 | 5 | Old client who thinks you screwed them over. |
 | 6 | Rival Tech trying to beat you out for resources. |
 
-### Connection Qustions
+### Connection Questions
 Ask these questions to different players about their characters to build existing relationships.
 * What have I built specifically for you?
 * How did you help me get a rare part?
@@ -1708,9 +1708,9 @@ A the Tech their truly amazing talents. Whenever you gain a rank in this role ab
 | Unlock rank | Name | Description | Implementation |
 | ----------- | ---- | ----------- | -------------- |
 | 1 | Modification | You are able to improve on an existing item by modifying it. This requires a roll with the appropriate TECH skill, but you also get to add your ranks in Upgrade Expertise on top of the normal roll. The upgrade consumes resources in the same price category as the item itself. For the time it takes and the DV, consult the repair table in the rules. On a failed roll, you waste half that time, but lose none of the components in the process. | The Role Ability area gains a button to Upgrade for each Skill/Component for the Electronics and Mechanics skills. |
-| 1 | Upgrades | Each rank in Upgrade Expertise means you learn one of the upgrades from the table. It is applied using the Modicifacion ability. Any given item can only recieve one of these upgrades | Handled by the GM. Including the upgrades |
+| 1 | Upgrades | Each rank in Upgrade Expertise means you learn one of the upgrades from the table. It is applied using the modification ability. Any given item can only receive one of these upgrades | Handled by the GM. Including the upgrades |
 
-Upgrandes
+Upgrades
 * Lower PSYCHE loss by non-borgware by 1d6 (or 4, chosen at the start of upgrading). This only applies if the typical loss would be 7 or greater.
 * For an item that has slots (for attachments, programs, etc), increase the number of slots by 1.
 * Simplify the item, halving the time for any future repair.

@@ -39,7 +39,7 @@ export function buildWeaponField() {
     coneHalfDamageDistance: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
     // Optional video used by all area damage types. Blank falls back to a
     // type-specific default at runtime, and the application differs per type:
-    //   cone / affliction-cone  → one-shot cone video, centre-bottom anchored at the
+    //   cone / affliction-cone  → one-shot cone video, center-bottom anchored at the
     //                             cone origin, scaled to spread, clipped by walls.
     //   explosion               → one-shot blast (default explosion.webm), stretched
     //                             to the blast region, clipped by walls.
@@ -233,13 +233,13 @@ export function buildWeaponField() {
     // ── Explosion residue (visibility region left behind after detonation) ──
     // leavesResidue: when true the explosion/affliction-explosion creates a
     //   persistent Region with a CyberBlueVisibilityRegionBehavior at the blast
-    //   centre after detonation (activeGM only).
+    //   center after detonation (activeGM only).
     // residueKind:          'obscuration' (smoke/gas) or 'darkness' (blinding flash soot).
     // residueRounds:        rounds until auto-deletion; 0 = permanent until GM deletes.
-    // residueRadius:        override blast radius in metres; 0 = use weapon's coneSpread.
-    // residueLightBandWidth: DIM-band width in metres from the edge (0 = whole region is DARK).
+    // residueRadius:        override blast radius in meters; 0 = use weapon's coneSpread.
+    // residueLightBandWidth: DIM-band width in meters from the edge (0 = whole region is DARK).
     // residueEnableNoVis:   whether the residue has a NOT_VISIBLE core.
-    // residueNoVisInset:    DARK-band width in metres before the NOT_VISIBLE core begins.
+    // residueNoVisInset:    DARK-band width in meters before the NOT_VISIBLE core begins.
     leavesResidue:         new fields.BooleanField({ initial: false }),
     residueKind:           new fields.StringField({ required: true, blank: true, initial: 'obscuration' }),
     residueRounds:         new fields.NumberField({ ...requiredInteger, initial: 3, min: 0 }),
@@ -279,7 +279,7 @@ export function buildInstructionStepField() {
     whisperGm:         new fields.BooleanField({ initial: false }),
     // Flow control
     // failIndex: on a failed check, jump to this step index instead of ending the sequence.
-    // -1 = end the sequence on failure (classic behaviour).
+    // -1 = end the sequence on failure (classic behavior).
     failIndex:         new fields.NumberField({ required: true, nullable: false, integer: true, initial: -1 }),
     // terminates: after this step auto-advances, end the sequence immediately.
     terminates:        new fields.BooleanField({ initial: false }),

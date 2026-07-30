@@ -22,7 +22,7 @@ import { buildSubnetScene } from '../helpers/subnet-build.mjs';
 /** Node types the GM can assign. ROOT is seeded; others added freely. */
 export const NODE_TYPES = ['root', 'acc', 'data', 'exe', 'ctrl'];
 
-/** Editor preview colour per node type (the real scene uses the node videos). */
+/** Editor preview color per node type (the real scene uses the node videos). */
 export const NODE_COLORS = {
   root: '#f0c000', // amber/gold
   acc:  '#00e0d0', // cyan
@@ -125,7 +125,7 @@ export class CyberBlueSubnetBuilder extends HandlebarsApplicationMixin(Applicati
     };
   }
 
-  /** Validate/normalise an arbitrary imported object into a design. */
+  /** Validate/normalize an arbitrary imported object into a design. */
   _normalizeDesign(raw) {
     if (!raw || typeof raw !== 'object' || !Array.isArray(raw.nodes)) return null;
     const seen = new Set();
@@ -850,7 +850,7 @@ export class CyberBlueSubnetBuilder extends HandlebarsApplicationMixin(Applicati
     this._pushHistory();
     const node = { id: foundry.utils.randomID(), q, r, type: 'data', label: '', programs: [], accessPointUuid: '' };
     this._design.nodes.push(node);
-    // Auto-connect (as doors) to every currently-placed neighbour, so the graph
+    // Auto-connect (as doors) to every currently-placed neighbor, so the graph
     // stays traversable; the GM downgrades to walls/passwalls by clicking.
     for (const o of this._design.nodes) {
       if (o.id !== node.id && this._areAdjacent(node, o)) this._setConnState(node.id, o.id, 'connected');

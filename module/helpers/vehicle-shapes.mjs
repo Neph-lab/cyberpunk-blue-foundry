@@ -46,7 +46,7 @@ export function pointInShape(shape, lx, ly) {
     if (rx <= 0 || ry <= 0) return false;
     return ((lx - cx) / rx) ** 2 + ((ly - cy) / ry) ** 2 <= 1;
   }
-  // Fallback: small square centred on the origin.
+  // Fallback: small square centerd on the origin.
   return lx >= -FALLBACK_HALF && lx <= FALLBACK_HALF
       && ly >= -FALLBACK_HALF && ly <= FALLBACK_HALF;
 }
@@ -143,7 +143,7 @@ function traceFallback(ctx) {
 }
 
 /**
- * Per-behaviorType display colour (hex string) for the editor + region list.
+ * Per-behaviorType display color (hex string) for the editor + region list.
  * Used as fill/stroke tint and the list swatch.
  *
  * @param {string} behaviorType
@@ -156,6 +156,6 @@ export function behaviorColor(behaviorType) {
     case 'passengerSeat': return '#27ae60'; // green
     case 'vitalArea':     return '#e67e22'; // orange
     case 'vehicleRoof':   return '#8e44ad'; // purple
-    default:              return '#7f8c8d'; // grey (untyped)
+    default:              return '#7f8c8d'; // gray (untyped)
   }
 }

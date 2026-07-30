@@ -25,7 +25,7 @@
 | `system.stats.size.bonus` | Adds to effective Size (to-hit modifier). | Uncapped. |
 | `flags.cyberpunk-blue.driveCheckBonus` | Per-roll bonus on Drive checks only (not the Handling stat). | Uncapped. Applied during Drive check resolution, not data prep. |
 | `flags.cyberpunk-blue.maneuverBonus.<maneuverKey>` | Bonus or penalty for a specific Maneuver type (e.g. `sharpTurn`, `ram`, `hardBrakes`). | Uncapped. Per-Maneuver override. |
-| `flags.cyberpunk-blue.mountedWeaponAttackBonus` | Attack roll bonus for mounted weapons (sights, stabilisers). | Uncapped. |
+| `flags.cyberpunk-blue.mountedWeaponAttackBonus` | Attack roll bonus for mounted weapons (sights, stabilizers). | Uncapped. |
 
 **AE naming convention for vehicle states** (applied by the system automatically):
 - `Serious Damage` (−2 Handling): `system.stats.handling.bonus` add −2, applied at ½ HP.
@@ -107,7 +107,7 @@
 - Card 12 (The Hanged Man): heal 5 HP + remove Fatigue — sheet button, not an AE.
 
 ### 9. Backup Drive (Netrunner architecture) — **RESOLVED via hook**
-- `preDeleteEmbeddedDocuments` hook on Program-type actors: if a Backup Drive item is installed and the item being deleted is not Black ICE, the deletion is cancelled and the program is instead marked `running: false` until the next Disconnect.
+- `preDeleteEmbeddedDocuments` hook on Program-type actors: if a Backup Drive item is installed and the item being deleted is not Black ICE, the deletion is canceled and the program is instead marked `running: false` until the next Disconnect.
 
 ### 10. Grenade / Affliction AEs without damage
 - Affliction-type explosions that apply an AE (e.g., smoke, tear gas) can be created as Affliction damage weapons, and the AE is applied on hit. However, the duration (minutes = margin of failure) is dynamic and can't be set in a static AE template. **GM sets duration manually on the applied AE.**

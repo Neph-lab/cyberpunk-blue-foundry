@@ -316,7 +316,7 @@ const COMPONENT_DESCRIPTIONS = {
   dancing:          'Expression through artistic movements of the body. Usually along with music.',
   dev:              'The development and analysis of programs. Only someone with NET Actions can use it to develop or analyze programs that require such.',
   forgery:          'With Government or Business, the Component can replicate believable paperwork along with a fake signature. With Performance, it can replicate someone\'s handwriting.',
-  ghost:            'Requires NET Actions to be useful. Hide within a network, sneaking into nodes undetected and wiping your traces afterwards.',
+  ghost:            'Requires NET Actions to be useful. Hide within a network, sneaking into nodes undetected and wiping your traces afterward.',
   judo:             'Soft techniques that focus on grabs, throws, and escapes.',
   karate:           'This form represents a focus on breaking bones and armor in order to crush their enemies.',
   landVehicles:     'Cars, motorcycles, trucks. Probably most vehicles you\'ll encounter.',

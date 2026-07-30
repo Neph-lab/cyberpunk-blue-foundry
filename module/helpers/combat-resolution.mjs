@@ -73,7 +73,7 @@ function projectAmmoOntoWeapon(weapon, ammoData) {
   if (ammoData.nonTechOnly && weapon.isTechWeapon) return weapon; // inert on Tech
   if (ammoData.armorPiercing) {
     // Armor-Piercing: effective SP is reduced by 2 for this shot's pierce + damage
-    // (spReduction → armorPen at applyDamage), and the armour permanently ablates 2
+    // (spReduction → armorPen at applyDamage), and the armor permanently ablates 2
     // instead of 1 (armorPiercing flag → ablateArmorExtra). spReduction takes the
     // max across sources ("reduced by at least 2, higher if another source set more").
     weapon.armorPiercing = true;
@@ -172,7 +172,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
 
   // ── Range DV with scope range improvement ─────────────────────────────────
   // For each mod with rangeImprovementMeters: compute DV for adjusted distances
-  // and use the most favourable (lowest non-zero) DV.
+  // and use the most favorable (lowest non-zero) DV.
   let rangeDV = distanceMeters !== null ? getDvForRange(definition, distanceMeters) : null;
   if (distanceMeters !== null && rangeDV !== null) {
     for (const mod of installedMods) {
@@ -377,7 +377,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const attackerBody = Number(attacker.system?.stats?.body?.value) || 0;
   const minBodyReq = Number(item.system?.minBodyReq) || 0;
   const critOnBodyReq = Number(weapon.critOnBodyReq) || 0;
-  // Soft requirement (Carnage): attack allowed but Torn Muscle applied afterwards.
+  // Soft requirement (Carnage): attack allowed but Torn Muscle applied afterward.
   // Hard requirement (Hurricane, Helix, MA70, Defender): UI disables button; show warning.
   if (minBodyReq > 0 && attackerBody < minBodyReq && critOnBodyReq === 0) {
     ui.notifications.warn(game.i18n.format('CYBER_BLUE.Combat.MinBodyReqWarning', { weapon: item.name, body: attackerBody, required: minBodyReq }));
@@ -420,7 +420,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
                                     && targetActor?.type === 'vehicle';
   // Resolve the subsystem item linked to the targeted vital area. When present
   // and not yet destroyed, damage is routed to the subsystem's own HP/SP pools
-  // instead of the vehicle's main armour/structure.
+  // instead of the vehicle's main armor/structure.
   const vitalSubsystem = isTargetingVehicleVital
     ? getVitalAreaSubsystem(targetActor, targetVehicleVitalRegionId)
     : null;
@@ -952,7 +952,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   const tableType = targetVitals ? 'head' : 'body';
 
   const netDamage = sp !== null ? Math.max(finalDamage - sp, 0) : finalDamage;
-  // Rubber ammo (noAblate): the round still interacts with armour normally for
+  // Rubber ammo (noAblate): the round still interacts with armor normally for
   // penetration, but degrades none of it.
   const ablatesArmor = sp !== null && finalDamage >= sp && !(weapon.noAblate ?? false);
 
@@ -1077,14 +1077,14 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
 
       if (vitalSubsystemActive) {
         // Route raw damage to the linked vital-area subsystem's own HP/SP pools.
-        // The subsystem applies its own SP ablation, so the vehicle's main armour
+        // The subsystem applies its own SP ablation, so the vehicle's main armor
         // is untouched (no extra Armor-Piercing ablation against main SP).
         await applyDamageToSubsystemWithPermission(targetActor, vitalSubsystem.id, actualDamage);
       } else if (isToxicPayload) {
         // Toxic ammo: the round's damage only established that it broke skin —
         // none of it carries through. The payload is resolved instead: a
         // BODY+Endurance check, full toxic damage on a failure and half on a
-        // success, both bypassing SP. The round still scuffs armour normally
+        // success, both bypassing SP. The round still scuffs armor normally
         // (ablateArmorExtra applies exactly 1 point here, since the bypassing
         // payload never reaches applyDamage's own ablation).
         if (ablatesArmor) {
@@ -1714,7 +1714,7 @@ export async function resolveDoubleLockAttack(attacker, item, weaponIndex) {
   // Consume 4 ammo
   await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: currentAmmo - AMMO_COST }));
 
-  // Roll once (use primary target DV — lower DV = easier = more favourable for single-roll)
+  // Roll once (use primary target DV — lower DV = easier = more favorable for single-roll)
   const primaryDV = dvA !== null && dvB !== null ? Math.min(dvA, dvB) : (dvA ?? dvB);
   const attackRoll = await attacker.rollSkill({ skillSlug, dv: primaryDV, modifier: modRecoilBonus });
 

@@ -40,7 +40,7 @@ export async function materialiseVehicleBlueprint(tokenDoc) {
   const refGrid = actor.system?.blueprint?.referenceGrid ?? 100;
   const k = gridScale(scene, refGrid);
 
-  // Free art-tracking: regions rotate with the token around its centre so the
+  // Free art-tracking: regions rotate with the token around its center so the
   // vital areas / seats stay aligned with the rotated token artwork.
   const { angle, pivotX, pivotY } = tokenRotationPivot(tokenDoc, scene);
 
@@ -76,7 +76,7 @@ export async function materialiseVehicleBlueprint(tokenDoc) {
       },
     };
 
-    // Attach the behavior if a recognised type is provided.
+    // Attach the behavior if a recognized type is provided.
     if (entry.behaviorType) {
       regionData.behaviors = [{
         type: entry.behaviorType,
@@ -147,7 +147,7 @@ export async function syncVehicleRegionPositions(tokenDoc) {
   const tx = tokenDoc.x ?? 0;
   const ty = tokenDoc.y ?? 0;
 
-  // Free art-tracking: rotate region shapes with the token around its centre.
+  // Free art-tracking: rotate region shapes with the token around its center.
   const { angle, pivotX, pivotY } = tokenRotationPivot(tokenDoc, scene);
 
   const updates = linked.map((region) => {
@@ -191,7 +191,7 @@ export async function recordVehicleBaseFootprint(tokenDoc) {
 /**
  * Optional 90° snap mode: when enabled, snap a vehicle token's rotation to the
  * nearest quarter-turn and swap its grid footprint (width/height) at 90°/270°
- * so the occupied squares match the rotated artwork. The token centre is held
+ * so the occupied squares match the rotated artwork. The token center is held
  * fixed across the swap.
  *
  * Performs the token update with the `cyberpunkBlueVehicleSnap` guard so the
@@ -221,7 +221,7 @@ export async function applyVehicleRotationSnap(tokenDoc, options = {}) {
              || newH !== tokenDoc.height;
   if (!needs) return false;
 
-  // Hold the token centre fixed across the footprint swap.
+  // Hold the token center fixed across the footprint swap.
   const gridSize = scene.grid?.size ?? 100;
   const cx = (tokenDoc.x ?? 0) + (tokenDoc.width ?? 1) * gridSize / 2;
   const cy = (tokenDoc.y ?? 0) + (tokenDoc.height ?? 1) * gridSize / 2;
@@ -268,7 +268,7 @@ export function captureRegionsFromToken(tokenDoc, referenceGrid = 100) {
   const ty = tokenDoc.y ?? 0;
 
   // Regions on the scene are rotated to track the token's art; undo that
-  // rotation around the token centre before mapping back to blueprint space so
+  // rotation around the token center before mapping back to blueprint space so
   // the captured blueprint is always stored at rotation 0.
   const { angle, pivotX, pivotY } = tokenRotationPivot(tokenDoc, scene);
 
@@ -298,10 +298,10 @@ function gridScale(scene, referenceGrid) {
 }
 
 /**
- * Compute the rotation angle and scene-pixel pivot (token centre) used to make
+ * Compute the rotation angle and scene-pixel pivot (token center) used to make
  * linked regions track the token's rotated artwork.
  *
- * Foundry tokens rotate their artwork about the token centre; we rotate region
+ * Foundry tokens rotate their artwork about the token center; we rotate region
  * shapes about the same point so vital areas / seats stay aligned with the art.
  *
  * @param {TokenDocument} tokenDoc
@@ -325,7 +325,7 @@ function tokenRotationPivot(tokenDoc, scene) {
  * returns the shape unchanged.
  *
  * Supports polygon / rectangle / circle / ellipse. Rectangle and ellipse carry
- * their own `rotation` field, so we rotate their centre about the pivot and add
+ * their own `rotation` field, so we rotate their center about the pivot and add
  * the angle to that field; polygons rotate every vertex; circles only move.
  *
  * @param {object|null} shape

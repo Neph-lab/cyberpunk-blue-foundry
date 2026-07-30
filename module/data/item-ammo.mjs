@@ -19,7 +19,7 @@ export default class CyberBlueAmmo extends CyberBlueItemBase {
     schema.smartMissReroll = new fields.BooleanField({ initial: false });
 
     // ── Special-ammo effect payload (projected onto the fired weapon) ─────────
-    // These let an ammo Item grant weapon-entry behaviour at resolve time. See
+    // These let an ammo Item grant weapon-entry behavior at resolve time. See
     // projectAmmoOntoWeapon() in combat-resolution.mjs. Ammo wins where it sets a
     // value; nonTechOnly ammo is inert on Tech Weapons (and can't be loaded).
     // nonTechOnly: loading/effect gate — this ammo is for non-Tech weapons only.

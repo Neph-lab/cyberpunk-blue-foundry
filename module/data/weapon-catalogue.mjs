@@ -6,7 +6,7 @@
  * The accompanying mod catalogue lives in `mod-catalogue.mjs`.
  *
  * Excluded by design (per memory/weapon-cards-excluded.md):
- *   - Arasaka Daikon NT Mantis Blades (cyberware, modelled separately)
+ *   - Arasaka Daikon NT Mantis Blades (cyberware, modeled separately)
  *
  * Previously excluded, now implemented from tmp/items-supplemental.md:
  *   - Arasaka Onibi Plasma Caster (flamethrower cone + self-cone malfunction)
@@ -181,7 +181,7 @@ function weaponItem({ name, manufacturer = '', cost = '', minBody = 0, weapons =
   };
 }
 
-// ─── Standardised firing-mode shorthands ──────────────────────────────────────
+// ─── Standardized firing-mode shorthands ──────────────────────────────────────
 
 // AF factories carry both attack modes in a single entry:
 //   damage         = single-shot damage (used by the Attack button)

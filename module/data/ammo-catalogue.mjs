@@ -259,7 +259,7 @@ export const AMMO_CATALOGUE = [
   // Each family covers the same six weapon types; the `smg` type serves both SMG
   // and Heavy SMG (as with Basic SMG Ammo), and Rifle serves AR / PR / MG.
   ...(() => {
-    const CALIBRES = [
+    const CALIBERS = [
       ['Medium Pistol Ammo',     { mediumPistol: true },    '9mm.'],
       ['Heavy Pistol Ammo',      { heavyPistol: true },     '.44.'],
       ['Very Heavy Pistol Ammo', { veryHeavyPistol: true }, '.50.'],
@@ -267,9 +267,9 @@ export const AMMO_CATALOGUE = [
       ['Rifle Ammo',             { assault: true },         'Fits Assault Rifle, Precision Rifle, and Machine Gun.'],
       ['Shotgun Slugs',          { shotgunSlug: true },     '12-gauge slug.'],
     ];
-    const family = (prefix, img, effectNote, extra) => CALIBRES.map(([label, ammoTypes, calibre]) => ammoItem({
+    const family = (prefix, img, effectNote, extra) => CALIBERS.map(([label, ammoTypes, caliber]) => ammoItem({
       name: `${prefix} ${label}`, ammoTypes, cost: '€$100 (Premium)', img,
-      nonTechOnly: true, note: `${calibre} ${effectNote}`, ...extra,
+      nonTechOnly: true, note: `${caliber} ${effectNote}`, ...extra,
     }));
     return [
       ...family('Armor-Piercing', `${ASSET_BASE}/Armor-Piercing.png`,

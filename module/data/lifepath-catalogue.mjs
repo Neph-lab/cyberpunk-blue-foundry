@@ -1123,12 +1123,12 @@ export const LIFEPATH_CATALOGUE = [
 
   {
     _id: 'GenLp07000000000',
-    name: 'Attitude towards People',
+    name: 'Attitude toward People',
     img: 'modules/game-icons-net/whitetransparent/human-pyramid.svg',
     _folder: 'General Lifepath',
     formula: '1d10',
     results: [
-      { range: [1,  1],  text: 'Neutral towards nearly everyone.',          type: 'text' },
+      { range: [1,  1],  text: 'Neutral toward nearly everyone.',          type: 'text' },
       { range: [2,  2],  text: 'You like almost everyone.',                 type: 'text' },
       { range: [3,  3],  text: 'You hate almost everyone.',                 type: 'text' },
       { range: [4,  4],  text: 'People are tools to be used.',              type: 'text' },
@@ -1368,7 +1368,7 @@ export const LIFEPATH_CATALOGUE = [
       { range: [1, 1], type: 'document', documentUuid: 'Compendium.cyberpunk-blue.lifepath-tables.RollTable.GenLp04000000000', text: 'Your Crisis' },
       { range: [1, 1], type: 'document', documentUuid: 'Compendium.cyberpunk-blue.lifepath-tables.RollTable.GenLp05000000000', text: 'Personality' },
       { range: [1, 1], type: 'document', documentUuid: 'Compendium.cyberpunk-blue.lifepath-tables.RollTable.GenLp06000000000', text: 'Motivation You Value' },
-      { range: [1, 1], type: 'document', documentUuid: 'Compendium.cyberpunk-blue.lifepath-tables.RollTable.GenLp07000000000', text: 'Attitude towards People' },
+      { range: [1, 1], type: 'document', documentUuid: 'Compendium.cyberpunk-blue.lifepath-tables.RollTable.GenLp07000000000', text: 'Attitude toward People' },
       { range: [1, 1], type: 'document', documentUuid: 'Compendium.cyberpunk-blue.lifepath-tables.RollTable.GenLp08000000000', text: 'Life Goal' },
       { range: [1, 1], type: 'document', documentUuid: 'Compendium.cyberpunk-blue.lifepath-tables.RollTable.GenLp09000000000', text: 'Wardrobe Style' },
       { range: [1, 1], type: 'document', documentUuid: 'Compendium.cyberpunk-blue.lifepath-tables.RollTable.GenLp10000000000', text: 'Hairstyle' },

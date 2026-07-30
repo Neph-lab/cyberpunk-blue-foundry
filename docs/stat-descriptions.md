@@ -185,7 +185,7 @@ A corp that doesn't understand where to do business, and with whom isn't likely 
 Requires NET Actions to be useful. Break through firewalls and encrypt/decrypt data.
 
 ### Cracker
-Requires NET Actions to be useful. Deal with dangerous Black ICE programs trying to attack you within a subnet, or even with enemy Netruners.
+Requires NET Actions to be useful. Deal with dangerous Black ICE programs trying to attack you within a subnet, or even with enemy netrunners.
 
 ### Cybernetics
 The technology of cyberware itself and the internal structures needed to both mimic and enhance human function.
@@ -200,7 +200,7 @@ The development and analysis of programs. Only someone with NET Actions can use 
 With Government or Business, the Component can replicate believable paperwork along with a fake signature. With Performance, it can replicate someone's handwriting.
 
 ### Ghost
-Requires NET Actions to be useful. Hide within a network, sneaking into nodes undetected and wiping your traces afterwards.
+Requires NET Actions to be useful. Hide within a network, sneaking into nodes undetected and wiping your traces afterward.
 
 ### Judo
 Soft techniques that focus on grabs, throws, and escapes.

@@ -200,7 +200,7 @@ export function registerSocketHandlers() {
 
 /**
  * Emit a socket message to the GM.
- * Resolves immediately (fire-and-forget, no acknowledgement).
+ * Resolves immediately (fire-and-forget, no acknowledgment).
  */
 export function emitToGM(type, data = {}) {
   game.socket.emit(SOCKET_NAME, { type, ...data });
@@ -318,7 +318,7 @@ export async function unsetFlagWithPermission(actor, scope, key) {
  * Create an ActiveEffect on an actor, delegating to the GM if needed.
  *
  * @param {Actor}  actor
- * @param {object} aeData  Plain object (serialisable) passed to createEmbeddedDocuments.
+ * @param {object} aeData  Plain object (serializable) passed to createEmbeddedDocuments.
  */
 export async function createActiveEffectWithPermission(actor, aeData) {
   if (actor.isOwner || game.user.isGM) {

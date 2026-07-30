@@ -112,7 +112,7 @@ test('turnAngleBetween signed (clockwise positive)', () => {
   assert.ok(near(turnAngleBetween(up, left), -90));
   // straight ahead = 0
   assert.ok(near(turnAngleBetween(up, up), 0));
-  // 180° opposite normalises to +180
+  // 180° opposite normalizes to +180
   assert.ok(near(Math.abs(turnAngleBetween(up, down)), 180));
 });
 

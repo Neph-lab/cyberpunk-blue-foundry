@@ -41,7 +41,7 @@ Blue has **6** stats:
 - **EMP / Empathy** — no Blue equivalent. (The string `EMP` does appear in Blue content, but always meaning *electromagnetic pulse* — weapons, drugs, cyberware features.)
 - **HUM / Humanity** — Blue does not track Humanity. Psyche fills a *related but distinct* role; do not equate them.
 - **LUCK** is a *resource* in Blue, not a stat.
-- **MOVE** *is* a Blue stat, but its mechanics differ significantly from Red — don't import Red MOVE behaviour assumptions.
+- **MOVE** *is* a Blue stat, but its mechanics differ significantly from Red — don't import Red MOVE behavior assumptions.
 
 ---
 

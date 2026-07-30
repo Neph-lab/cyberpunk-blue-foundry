@@ -35,7 +35,7 @@ All entries below exist in the catalogue with descriptive text but apply **no me
 AE flag `maExtraDamageDice: 1`; `buildMaDamageFormula()` in martial-arts.mjs adds extra dice to all MA rolls.
 | ✅ Toxin Binders | +2 Endurance vs blood-borne toxins/drugs | Situational; passive AE |
 AE adds +2 to Endurance skill rank.
-| ➖ Enhanced Antibodies | Heal BODY×2 HP/day after stabilised | Passive healing rate change |
+| ➖ Enhanced Antibodies | Heal BODY×2 HP/day after stabilized | Passive healing rate change |
 Reminder AE added. Bonus is GM-handled.
 | ✅ Implanted Linear Frame Sigma | BODY → 12 | Hard override via OVERRIDE AE |
 AE with mode 5 (OVERRIDE) sets BODY to 12. Can't be installed if Beta is installed.
@@ -221,7 +221,7 @@ The Role Ability area on an Actor's sheet gains a button to Connect to an Archit
 
 An actor has Unsafely Disconnected should any of the criteria to connect no longer be true (like being pushed out of the AP region). Also some Programs and other effects might cause an unsafe Disconnect. If they're unsafely disconnected, they immediately take 1d6 damage to HP (ignore SP). Any Black ICE programs in the Architecture that were aware of them automatically and immediately succeeds on an attack check against them just before the disconnect happens.
 
-Inside an Architecture, Executables and Program Actors need to be connected. NPC programs will have an Executable as part of them and any change in one is updated in the other, including name and picture. When character is connected and sets one of the Executables installed on their Cyebrdeck to Running, it should spawn a new Token linked to a temporary Program Actor. It takes up quarter of a Grid space and any time the spawning Actor moves, the spawned tokens will follow, in order of spawning, as close as they can without overlapping with tokens, walls, or other places that block movement. These Programs need to link to the UUID of the program set to running. Changes to one is updated in the other, just like an Executable attached to a Program. If the program is set to not running or the Actor is Disconnected, the Token is removed and the temporary Actor deleted. The player has bLimited permissions to these temporary Actors, but changes they make to their Executable will carry over.
+Inside an Architecture, Executables and Program Actors need to be connected. NPC programs will have an Executable as part of them and any change in one is updated in the other, including name and picture. When character is connected and sets one of the Executables installed on their cyberdeck to Running, it should spawn a new Token linked to a temporary Program Actor. It takes up quarter of a Grid space and any time the spawning Actor moves, the spawned tokens will follow, in order of spawning, as close as they can without overlapping with tokens, walls, or other places that block movement. These Programs need to link to the UUID of the program set to running. Changes to one is updated in the other, just like an Executable attached to a Program. If the program is set to not running or the Actor is Disconnected, the Token is removed and the temporary Actor deleted. The player has bLimited permissions to these temporary Actors, but changes they make to their Executable will carry over.
 
 If a Program's current REZ ≤ 0, has the "##ERROR##" AE: it can't move, use any attacks or abilities, provides no bonuses, is skipped in Encounter order, and its Token is given a glitch effect.
 
@@ -266,7 +266,7 @@ The tab needs to show what Executables and Hardware Mods are installed on each C
 The Quickhack buttons in the Role Ability area on the Character sheet is visible IF: They have NET actions, at least 1 rank in the Quickhacking Component, they have a Cyberdeck with the can Quickhack flag enabled, they have at least one Quickhack installed on their Cyberware, there target Token is within their Cyberdeck's range, AND that Token is within line of sight, the Actor linked to that Token has a Cyberware Item that is Neuralware and a Platform installed.
 
 Attempting to Quickhack uses up the Character's NET Actions.
-* Breaching: NET(Quickhacking) against the raget's ICE: 18 +2 per instllation of Self-ICE. On a success, apply "Breached" AE that references the hacker. If they target someone who is Breached by them, they skip this step. The AE ends in 1 minute or if any of the prerequisites of Quickhacking (most likely range) is false.
+* Breaching: NET(Quickhacking) against the target's ICE: 18 +2 per installation of Self-ICE. On a success, apply "Breached" AE that references the hacker. If they target someone who is Breached by them, they skip this step. The AE ends in 1 minute or if any of the prerequisites of Quickhacking (most likely range) is false.
 * If the target is Breached, the netrunner has the option to "Upload" a Quickhack. The player gets a dialog to choose between those installed on their Cyberdeck that requires ≤ the Cyberdeck's current RAM. Auto-select if there's only one. This applies an AE on the target that will trigger the effect of the Quickhack at the end of the hacker's next turn. This reduces the Cyberdeck's current RAM by the amount specified by the Quickhack. RAM is restored by the Defrag NET Action.
 
 ## From the non-weapon audit: 5. Non-weapon Mods (computerMod type) — architecture hardware
@@ -289,7 +289,7 @@ Same as Coolant. GM will handle restrictions.
 | ❌ KRASH-Barrier | Unsafe disconnections treated as safe | Changes disconnect trauma outcome |
 Ignore Unsafe Disconnect effects. Se Netrunning.
 | ❌ Range Upgrade | Doubles wireless range | Numeric range change |
-Since there might be later changes, the Range is hanled manually.
+Since there might be later changes, the Range is handled manually.
 | ❌ DNA Lock | Biometric lock — others cannot use device | Access control flag |
 Handled by the GM
 

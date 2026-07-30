@@ -173,7 +173,7 @@ export async function promptForCyberwarePlatform(eligiblePlatforms) {
 
 // Select the TWO platforms a paired extension installs into. Returns an array
 // of two distinct platform ids, or null if the pairing can't be made (fewer
-// than two eligible platforms, or the prompt was cancelled).
+// than two eligible platforms, or the prompt was canceled).
 export async function promptForCyberwarePlatformPair(eligiblePlatforms) {
   if (eligiblePlatforms.length < 2) {
     return null;

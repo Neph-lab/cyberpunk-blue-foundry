@@ -34,7 +34,7 @@ export default class CyberBlueVehicleMod extends CyberBlueItemBase {
       { initial: [] }
     );
 
-    // Broad weight/size class of the mod (flavour / future rules hook).
+    // Broad weight/size class of the mod (flavor / future rules hook).
     // Examples: 'light', 'standard', 'heavy'
     schema.weightClass = new fields.StringField({
       required: true,

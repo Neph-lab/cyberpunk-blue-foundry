@@ -25,9 +25,9 @@ export function signedModifier(value) {
 function activeEffectContributions(actor, { statSlug, skillSlug, componentSlug } = {}) {
   const keys = new Set();
   if (statSlug) keys.add(`system.stats.${statSlug}.rollMod`);
-  // General-channel bonuses are added on top of the min and shown itemised.
+  // General-channel bonuses are added on top of the min and shown itemized.
   // Scoped `.bonus` is folded into the rank line (usedRank), so it is NOT
-  // itemised here — EXCEPT for mooks, whose scoped bonus is applied flat
+  // itemized here — EXCEPT for mooks, whose scoped bonus is applied flat
   // (mooks have no ranks for it to be capped against).
   const isMook = actor?.type === 'mook';
   if (skillSlug) {

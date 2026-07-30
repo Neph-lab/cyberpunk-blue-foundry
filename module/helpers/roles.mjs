@@ -448,7 +448,7 @@ export async function applyFirstRoleSetup(actor, roleItem) {
       const primaryDeck = allCyberdecks.find((i) => i.system.equipped) ?? allCyberdecks[0] ?? null;
 
       if (primaryDeck) {
-        // Match newly-created actor item documents by name to the granted programme data.
+        // Match newly-created actor item documents by name to the granted program data.
         // Track already-queued IDs so that multiple programs sharing the same name
         // (e.g. three Sword programs when a Netrunner picks Sword in multiple pick groups)
         // each receive their own installedOnId rather than all resolving to the same item.
@@ -632,7 +632,7 @@ export function canEditRoleChoices(item) {
 // ─── Role condition AE sync ──────────────────────────────────────────────────
 
 /**
- * Synchronise actor-level AEs derived from role item AEs that carry a
+ * Synchronize actor-level AEs derived from role item AEs that carry a
  * `flags.cyberpunk-blue.isRoleConditionAE` marker.
  *
  * Three condition types are supported:
@@ -723,7 +723,7 @@ export async function syncAllRoleConditionAEs(actor) {
 // ─── Protean tactic AE sync ───────────────────────────────────────────────────
 
 /**
- * Synchronise ActiveEffects on the actor for all protean-tactic foci across
+ * Synchronize ActiveEffects on the actor for all protean-tactic foci across
  * every protean Role item on the actor.
  *
  * Deletes all AEs tagged `isProteanFocusAE`, then recreates them from the

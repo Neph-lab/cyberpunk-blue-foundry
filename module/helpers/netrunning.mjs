@@ -113,7 +113,7 @@ export function _getApBehavior(region) {
   return null;
 }
 
-/** Compute the pixel-space centre of a region from its shape list. */
+/** Compute the pixel-space center of a region from its shape list. */
 export function _regionCentre(region) {
   const shapes = region.shapes;
   if (!shapes?.length) return null;
@@ -299,7 +299,7 @@ export async function connectToArchitecture(actor, apRegion, { forUserId } = {})
     height:      proto.height ?? 1,
     disposition: proto.disposition ?? CONST.TOKEN_DISPOSITIONS.FRIENDLY,
     texture:     { src: proto.texture?.src ?? actor.img ?? '' },
-    // Match the character's own rotation behaviour. Architecture scenes are
+    // Match the character's own rotation behavior. Architecture scenes are
     // gridless, where tokens rotate to face movement by default; inherit the
     // prototype's lock so a portrait token stays upright if it does normally.
     lockRotation: proto.lockRotation ?? false,
@@ -311,7 +311,7 @@ export async function connectToArchitecture(actor, apRegion, { forUserId } = {})
     // prototype token vision is tuned for physical maps (here, range 1), which
     // would leave the jacked-in runner blind under the architecture fog. Always
     // enable sight and guarantee at least the architecture exploration range,
-    // while honouring a deliberately larger prototype range. This keeps
+    // while honoring a deliberately larger prototype range. This keeps
     // fog-of-war exploration: the runner reveals the architecture as they move.
     sight: { enabled: true, range: Math.max(Number(proto.sight?.range) || 0, NET_ARCH_SIGHT_RANGE) },
   };
@@ -630,7 +630,7 @@ export async function spawnProgramActor(actor, exeItem) {
       description:  sys.description ?? '',
       notes:        sys.notes ?? '',
       // Copy the exe's NET Combat config so the spawned actor can attack/defend
-      // immediately (the two-way sync keeps it current afterwards).
+      // immediately (the two-way sync keeps it current afterward).
       netCombat:    foundry.utils.deepClone(sys.netCombat ?? {}),
     },
     // Copy the exe's Active Effects (preserving _id) so affliction templates
@@ -1178,7 +1178,7 @@ export async function startEncryptDecryptTimer(actor, opLabel) {
  *                                                `effectsConfig.stopRunningAfter`.
  *   @param {number}      [opts.boostContext]     Booster modifier added to the attack roll.
  * @returns {Promise<{hit: boolean, roll: Roll, damage: number}|null>}
- *   null if the action was cancelled / refused.
+ *   null if the action was canceled / refused.
  */
 export async function resolveNetAttack(attackerActor, targetActor, atkModifier, attackerLabel, damageFormula, opts = {}) {
   if (typeof opts === 'number' || opts === null) opts = { dvOverride: opts };
@@ -1251,7 +1251,7 @@ export async function resolveNetAttack(attackerActor, targetActor, atkModifier, 
     const result = await npc.applyDefensePipeline(resolution, defenders, { attackerIsBlackIce });
     defNotes = result.notes;
 
-    // Apply final damage (program → REZ, character/NPC → HP, armour ignored).
+    // Apply final damage (program → REZ, character/NPC → HP, armor ignored).
     if (resolution.damage > 0) {
       if (targetActor.type === 'program') {
         const curRez = npc.progRez(targetActor);
@@ -1277,7 +1277,7 @@ export async function resolveNetAttack(attackerActor, targetActor, atkModifier, 
       }
     }
 
-    // Affliction (if not Cooled away) — rolls the target's defence + applies AE.
+    // Affliction (if not Cooled away) — rolls the target's defense + applies AE.
     if (resolution.affliction) {
       await npc.applyAfflictionFromConfig(resolution.affliction, targetActor);
     }
@@ -1326,7 +1326,7 @@ export async function resolveNetAttack(attackerActor, targetActor, atkModifier, 
 
 /**
  * Show a dialog prompting for the target's NET(Cracker) roll or a flat DV.
- * Returns the numeric value, or null if cancelled.
+ * Returns the numeric value, or null if canceled.
  */
 async function _promptNetDv(targetName) {
   const { promise, resolve } = Promise.withResolvers();

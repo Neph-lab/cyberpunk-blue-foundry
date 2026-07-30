@@ -12,8 +12,8 @@
  *     …
  *   ]
  *
- * `localX` / `localY` are the passenger token's *centre* relative to the vehicle
- * *centre*, expressed in the vehicle's un-rotated (body-local) frame, captured
+ * `localX` / `localY` are the passenger token's *center* relative to the vehicle
+ * *center*, expressed in the vehicle's un-rotated (body-local) frame, captured
  * at attach time. On every sync the offset is rotated by the vehicle's current
  * rotation, so passengers stay in their seats as the vehicle turns (no drift —
  * the offset is absolute, re-derived from the current rotation each move). The
@@ -38,7 +38,7 @@ import { applyDamageWithPermission } from './socket.mjs';
 import { rotatePointAboutPivot, normalise360 } from './vehicle-vector.mjs';
 
 /**
- * Centre of a token in scene pixels.
+ * Center of a token in scene pixels.
  * @param {TokenDocument} tokenDoc
  * @param {number} gridSize
  * @returns {{x: number, y: number}}
@@ -83,7 +83,7 @@ export async function attachTokenToVehicle(vehicleTokenDoc, passengerTokenDoc) {
   const offsetX = (passengerTokenDoc.x ?? 0) - (vehicleTokenDoc.x ?? 0);
   const offsetY = (passengerTokenDoc.y ?? 0) - (vehicleTokenDoc.y ?? 0);
 
-  // Rotation-aware model: passenger centre relative to vehicle centre, expressed
+  // Rotation-aware model: passenger center relative to vehicle center, expressed
   // in the vehicle's un-rotated body frame.
   const vC = _tokenCentre(vehicleTokenDoc, gridSize);
   const pC = _tokenCentre(passengerTokenDoc, gridSize);
@@ -156,8 +156,8 @@ export async function syncAttachedTokenPositions(vehicleTokenDoc) {
     if (!tokenDoc) continue;
 
     // Rotation-aware model: rotate the stored body-local offset by the vehicle's
-    // current rotation and place the passenger centre relative to the vehicle
-    // centre. Also rotate the passenger's facing by the vehicle's rotation delta.
+    // current rotation and place the passenger center relative to the vehicle
+    // center. Also rotate the passenger's facing by the vehicle's rotation delta.
     if (record.localX !== undefined && record.localY !== undefined) {
       const world = rotatePointAboutPivot(
         { x: record.localX, y: record.localY },
@@ -303,7 +303,7 @@ export async function resolveRammingCollision(vehicleTokenDoc, targetTokenDoc, o
  *
  * Method (exact for axis-aligned rects under translation): expand each other
  * token's rect by the vehicle's half-extents (Minkowski sum), then test whether
- * the segment traced by the vehicle CENTRE (from → to) intersects that expanded
+ * the segment traced by the vehicle CENTER (from → to) intersects that expanded
  * rect. If `fromPos` is omitted, falls back to a final-position overlap test.
  *
  * When a hit is found, `resolveRammingCollision` is called. Each pair is handled
@@ -323,7 +323,7 @@ export async function checkVehicleCollisions(vehicleTokenDoc, fromPos = null) {
   const halfW = vw / 2;
   const halfH = vh / 2;
 
-  // Centre path: from → to. Size is assumed constant across a single move.
+  // Center path: from → to. Size is assumed constant across a single move.
   const toX = vehicleTokenDoc.x ?? 0;
   const toY = vehicleTokenDoc.y ?? 0;
   const fromX = fromPos?.x ?? toX;
@@ -346,7 +346,7 @@ export async function checkVehicleCollisions(vehicleTokenDoc, fromPos = null) {
     const oh = (otherToken.height ?? 1) * gridSize;
 
     // Minkowski-expanded rect: vehicle (rect) overlaps the other token iff the
-    // vehicle centre lies inside [ox-halfW, ox+ow+halfW] × [oy-halfH, oy+oh+halfH].
+    // vehicle center lies inside [ox-halfW, ox+ow+halfW] × [oy-halfH, oy+oh+halfH].
     const minX = ox - halfW, maxX = ox + ow + halfW;
     const minY = oy - halfH, maxY = oy + oh + halfH;
 
