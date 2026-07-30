@@ -17,6 +17,19 @@
 /** Skills whose attacks the Blind condition cripples. */
 export const BLIND_ATTACK_SKILLS = Object.freeze(['handgun', 'shoulderArms', 'hvyWeapons']);
 
+/**
+ * Penalty applied to those attacks, on the skills' `generalBonus` channel.
+ * Shared by the Blind condition itself (CONFIG.statusEffects) and by anything
+ * that blinds a character as a side effect (Flashbang Grenade), so the two
+ * never drift apart.
+ */
+export const BLIND_ATTACK_PENALTY = -10;
+
+/** The AE change keys carrying that penalty, in BLIND_ATTACK_SKILLS order. */
+export const BLIND_ATTACK_CHANGE_KEYS = Object.freeze(
+  BLIND_ATTACK_SKILLS.map((slug) => `system.skills.${slug}.generalBonus`),
+);
+
 /** Beyond this distance (metres) those attacks always miss. */
 export const BLIND_ATTACK_RANGE_M = 5;
 

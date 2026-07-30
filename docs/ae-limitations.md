@@ -111,6 +111,8 @@
 
 ### 10. Grenade / Affliction AEs without damage
 - Affliction-type explosions that apply an AE (e.g., smoke, tear gas) can be created as Affliction damage weapons, and the AE is applied on hit. However, the duration (minutes = margin of failure) is dynamic and can't be set in a static AE template. **GM sets duration manually on the applied AE.**
+- **Fixed round counts are automated**: a template flagged `flags.cyberpunk-blue.afflictionRounds = N` (Flashbang: 1) has the applied AE stamped with `afflictionExpiresRound = current round + N`, and the `updateCombat` sweep (`expireTimedAfflictions`) deletes it when that round arrives, announcing it in chat. Foundry marks a duration as elapsed but never removes the effect, so without this the penalties linger. Applied outside combat there are no rounds to count and the GM removes it.
+- An affliction template can also confer conditions: `statuses: ['blind', 'deaf']` marks the token and drives any status-based rules, while the template's own `changes` carry the mechanical penalties (the Flashbang re-uses Blind's −10 from `helpers/blind.mjs` rather than restating it).
 
 ### 11. Blind condition — automatic miss past 5 m — **RESOLVED via helper**
 - The −10 to Handgun / Shoulder Arms / Heavy Weapons attacks is a plain AE on the `generalBonus` channel, but "those attacks always miss further away than 5 m" is range-conditional and has no change key. `module/helpers/blind.mjs` is consulted by every attack resolver (single-shot, autofire, Double Lock, cone, explosion and the affliction variants): the roll still happens and ammo is still spent, but the result cannot hit — an aimed explosion scatters instead. Guided rescues (Smart Ammo re-roll, beacon redirect) are skipped for a blind attacker.

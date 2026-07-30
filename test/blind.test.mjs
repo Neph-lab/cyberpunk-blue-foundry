@@ -9,11 +9,14 @@ import assert from 'node:assert/strict';
 
 import {
   BLIND_ATTACK_SKILLS,
+  BLIND_ATTACK_CHANGE_KEYS,
+  BLIND_ATTACK_PENALTY,
   BLIND_ATTACK_RANGE_M,
   isBlinded,
   isBlindAttackSkill,
   isBlindAutoMiss,
 } from '../module/helpers/blind.mjs';
+import { EQUIPMENT_CATALOGUE } from '../module/data/equipment-catalogue.mjs';
 
 const actorWith = (...statuses) => ({ statuses: new Set(statuses) });
 const blindActor = actorWith('blind');
@@ -59,4 +62,23 @@ test('isBlindAutoMiss leaves an unknown distance to the GM', () => {
   for (const dist of [null, undefined, NaN, Infinity]) {
     assert.equal(isBlindAutoMiss(blindActor, 'handgun', dist), false);
   }
+});
+
+test('Flashbang Grenade blinds and deafens for one round', () => {
+  const flashbang = EQUIPMENT_CATALOGUE.find((i) => i.name === 'Flashbang Grenade');
+  const effect = flashbang.effects.find((e) => e.flags?.['cyberpunk-blue']?.isAfflictionEffect);
+
+  // Conditions conferred, and the round count the combat sweep expires it on.
+  assert.deepEqual([...effect.statuses].sort(), ['blind', 'deaf']);
+  assert.equal(effect.flags['cyberpunk-blue'].afflictionRounds, 1);
+
+  // Blind's attack penalty rides along, single-sourced from blind.mjs.
+  assert.deepEqual(effect.changes.map((c) => c.key), [...BLIND_ATTACK_CHANGE_KEYS]);
+  for (const change of effect.changes) {
+    assert.equal(Number(change.value), BLIND_ATTACK_PENALTY);
+  }
+
+  // The check that gates all of it must name a real stat slug, or it rolls +0.
+  assert.equal(flashbang.system.weapons[0].afflictionPrimary, 'rflx');
+  assert.equal(flashbang.system.weapons[0].afflictionDv, 17);
 });

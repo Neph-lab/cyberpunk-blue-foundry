@@ -713,6 +713,7 @@
       "ToxinDamage": "{name} — toxin",
       "AfflictionOuterZone": "outer zone",
       "AfflictionApplied": "is afflicted with {effect}.",
+      "AfflictionExpired": "recovers — {effect} wears off.",
       "AfflictionRemove": "Remove affliction (GM only)",
       "AfflictionBlockedBySP": "{target}'s SP blocked the affliction.",
       "AfflictionHitNoTarget": "Affliction hit — no target selected to resolve against.",
