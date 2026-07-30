@@ -10,6 +10,7 @@
 | `system.stats.<stat>.value` | Changes the displayed stat value and all derived values (HP max from BODY, death save from BODY). Use only for permanent/structural changes; prefer `rollMod` for temporary effects. |
 | `system.stats.move.value` | Changes movement speed. Used by Skate Foot (+6), charging weapon AEs (Improved Charge → 1, SR Capacity → ½). |
 | `system.skills.<slug>.bonus` | Adds to rolls using that skill without corrupting the player-set rank. Primary target for cyberware skill bonuses (Medscanner +2 Medicine, Voice Stress Analyzer +2 Human Perception, etc.) and Ninja/Solo tactic bonuses. |
+| `system.skills.<slug>.generalBonus` | Flat modifier on every roll using that skill, added *on top of* the skill/component min instead of being folded into the skill side of it. Use when the full value must land regardless of ranks — e.g. the Blind condition's −10 to Handgun / Shoulder Arms / Heavy Weapons. |
 | `system.components.<slug>.bonus` | Adds to component (weapon/martial arts) rolls. Target for Ninja Martial Skill, Solo Precision Attack (if applied here), etc. |
 | `system.resources.hp.max` | Modifies maximum HP. |
 | `system.resources.psyche.maxBonus` | Modifies maximum Psyche pool. |
@@ -110,3 +111,7 @@
 
 ### 10. Grenade / Affliction AEs without damage
 - Affliction-type explosions that apply an AE (e.g., smoke, tear gas) can be created as Affliction damage weapons, and the AE is applied on hit. However, the duration (minutes = margin of failure) is dynamic and can't be set in a static AE template. **GM sets duration manually on the applied AE.**
+
+### 11. Blind condition — automatic miss past 5 m — **RESOLVED via helper**
+- The −10 to Handgun / Shoulder Arms / Heavy Weapons attacks is a plain AE on the `generalBonus` channel, but "those attacks always miss further away than 5 m" is range-conditional and has no change key. `module/helpers/blind.mjs` is consulted by every attack resolver (single-shot, autofire, Double Lock, cone, explosion and the affliction variants): the roll still happens and ammo is still spent, but the result cannot hit — an aimed explosion scatters instead. Guided rescues (Smart Ammo re-roll, beacon redirect) are skipped for a blind attacker.
+- The rest of the condition — no task that requires sight — stays GM-adjudicated; the condition description spells it out.

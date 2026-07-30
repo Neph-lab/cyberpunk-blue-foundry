@@ -17,6 +17,7 @@ import { getEffectiveItemWeapons } from './mods.mjs';
 import { getActiveAEFlag } from './effects.mjs';
 import { applyDamageWithPermission } from './socket.mjs';
 import { getTarget, getDistanceMeters, getDvForRange } from './targeting.mjs';
+import { isBlindAutoMiss, postBlindAutoMiss } from './blind.mjs';
 
 /** Flag key written onto every affliction AE applied to an actor. */
 export const AFFLICTION_EFFECT_FLAG = 'isAffliction';
@@ -281,7 +282,11 @@ export async function resolveAfflictionAttack(attacker, item, weaponIndex) {
     await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: Math.max(currentAmmo - shots, 0) }));
   }
 
-  const hit = resolvedDV === null || attackRoll.total >= resolvedDV;
+  // Blind: Handgun / Shoulder Arms / Heavy Weapons attacks miss past 5 m.
+  const blindMiss = isBlindAutoMiss(attacker, skillSlug, distanceMeters);
+  if (blindMiss) await postBlindAutoMiss(attacker, distanceMeters);
+
+  const hit = !blindMiss && (resolvedDV === null || attackRoll.total >= resolvedDV);
   if (!hit) return;
 
   // ── Shockwave (Kang Tao Mámù): BODY < 8 target pushed 2m ────────────────

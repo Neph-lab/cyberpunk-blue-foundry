@@ -583,8 +583,18 @@ Hooks.once('init', function () {
       id: 'blind',
       name: 'CYBER_BLUE.Condition.Blind',
       icon: 'icons/svg/blind.svg',
+      // Localized here rather than left as a key: Foundry localizes a status
+      // effect's `name`, but not every version localizes `description`.
+      // (i18nInit runs before init, so game.i18n is ready.)
+      description: game.i18n.localize('CYBER_BLUE.Condition.BlindDesc'),
+      // −10 on every attack rolled with these skills. The generalBonus channel
+      // adds on top of the skill/component min, so the full −10 lands whatever
+      // the character's ranks are. Attacks beyond 5 m always miss — enforced in
+      // the attack resolvers via module/helpers/blind.mjs.
       changes: [
-        { key: 'system.stats.rflx.rollMod', type: 'add', value: '-6' },
+        { key: 'system.skills.handgun.generalBonus',      type: 'add', value: '-10' },
+        { key: 'system.skills.shoulderArms.generalBonus', type: 'add', value: '-10' },
+        { key: 'system.skills.hvyWeapons.generalBonus',   type: 'add', value: '-10' },
       ],
       flags: { 'cyberpunk-blue': { conditionId: 'blind' } },
     },
