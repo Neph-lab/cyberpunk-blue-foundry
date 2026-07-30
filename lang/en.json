@@ -596,6 +596,8 @@
       "Target": "Target",
       "Distance": "Distance",
       "OutOfRange": "Out of range — this weapon cannot reach the target at this distance.",
+      "BlindAutoMissTitle": "Blind — Automatic Miss",
+      "BlindAutoMiss": "Blinded: a Handgun, Shoulder Arms or Heavy Weapons attack automatically misses past {range} m (target at {dist} m).",
       "SP": "SP",
       "NetDamage": "Damage",
       "ApplyDamage": "Apply Damage",
@@ -711,6 +713,7 @@
       "ToxinDamage": "{name} — toxin",
       "AfflictionOuterZone": "outer zone",
       "AfflictionApplied": "is afflicted with {effect}.",
+      "AfflictionExpired": "recovers — {effect} wears off.",
       "AfflictionRemove": "Remove affliction (GM only)",
       "AfflictionBlockedBySP": "{target}'s SP blocked the affliction.",
       "AfflictionHitNoTarget": "Affliction hit — no target selected to resolve against.",
@@ -892,7 +895,8 @@
       "SevereFatigue": "Severe Fatigue",
       "ExtremeFatigue": "Extreme Fatigue",
       "Deaf": "Deaf",
-      "Blind": "Blind"
+      "Blind": "Blind",
+      "BlindDesc": "Blinded — the character cannot perform any task that requires sight. −10 to any attack using Handgun, Shoulder Arms or Heavy Weapons, and those attacks automatically miss any target further away than 5 m."
     },
     "PsycheState": {
       "Disassociation": "Disassociation",

@@ -8,6 +8,7 @@ import { getActiveAEFlag } from './effects.mjs';
 import { computeVisibilityPenalty, makeElevatedPoint } from './visibility.mjs';
 import { playMediaEffect, DEFAULT_EXPLOSION_MEDIA, DEFAULT_SMOKE_MEDIA, createResidueMediaTile, sampleGroundElevation } from './media-effects.mjs';
 import { getPixelsPerMeter, getTokenCenter, rollTargetEvasion } from './targeting.mjs';
+import { isBlindAutoMiss, postBlindAutoMiss, postBlindAutoMissTarget } from './blind.mjs';
 
 // ── Explosion residue region ──────────────────────────────────────────────────
 
@@ -492,7 +493,11 @@ export async function resolveExplosionAttack(attacker, item, weaponIndex) {
   playSfx('explosion');
   const precisionBonus = (getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0) + _expVis.penalty;
   const attackRoll = await attacker.rollSkill({ skillSlug, modifier: precisionBonus });
-  const hit = attackRoll.total >= resolvedDV;
+  // Blind: a launcher/grenade aimed past 5 m never lands on the aim point — the
+  // round always scatters (see blind.mjs).
+  const blindMiss = isBlindAutoMiss(attacker, skillSlug, aimedDistMeters);
+  if (blindMiss) await postBlindAutoMiss(attacker, aimedDistMeters);
+  const hit = !blindMiss && attackRoll.total >= resolvedDV;
 
   // Consume ammo
   const shots = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;
@@ -732,7 +737,13 @@ export async function resolveConeAttack(attacker, item, weaponIndex) {
   // Crit detection uses the single baseDamage roll (same dice for all targets)
   const { count: coneCritDiceCount } = detectCriticalDice(damageRoll);
 
-  for (const { token: coneTargetToken, actor: targetActor, isFullDamage } of targets) {
+  for (const { token: coneTargetToken, actor: targetActor, isFullDamage, distMeters } of targets) {
+    // Blind: nothing further than 5 m can be hit, however wide the cone.
+    if (isBlindAutoMiss(attacker, skillSlug, distMeters)) {
+      await postBlindAutoMissTarget(attacker, targetActor.name, distMeters);
+      continue;
+    }
+
     // Per-target visibility: attacker must be able to see the target to hit them in a cone
     const _coneVis = computeVisibilityPenalty(attacker, attackerToken, coneTargetToken);
     if (_coneVis.blocked) {
@@ -992,7 +1003,7 @@ export async function resolveAfflictionConeAttack(attacker, item, weaponIndex) {
     if (isBlockedByWalls(attackerCenter, tc)) continue;
     const distMeters = dist / pixelsPerMeter;
     const isFullDamage = halfDamageDistance <= 0 || distMeters <= halfDamageDistance;
-    targets.push({ token, actor: token.actor, isFullDamage });
+    targets.push({ token, actor: token.actor, isFullDamage, distMeters });
   }
 
   if (targets.length === 0) {
@@ -1008,7 +1019,13 @@ export async function resolveAfflictionConeAttack(attacker, item, weaponIndex) {
     </div>`,
   });
 
-  for (const { token: affConeTargetToken, actor: targetActor, isFullDamage } of targets) {
+  for (const { token: affConeTargetToken, actor: targetActor, isFullDamage, distMeters } of targets) {
+    // Blind: nothing further than 5 m can be hit, however wide the cone.
+    if (isBlindAutoMiss(attacker, skillSlug, distMeters)) {
+      await postBlindAutoMissTarget(attacker, targetActor.name, distMeters);
+      continue;
+    }
+
     // Per-target visibility check
     const _affConeVis = computeVisibilityPenalty(attacker, attackerToken, affConeTargetToken);
     if (_affConeVis.blocked) {
@@ -1161,7 +1178,10 @@ export async function resolveAfflictionExplosionAttack(attacker, item, weaponInd
 
   const precisionBonus = (getActiveAEFlag(attacker, 'soloPrecisionAttack') ?? 0) + _affExpVis.penalty;
   const attackRoll = await attacker.rollSkill({ skillSlug, modifier: precisionBonus });
-  const hit = attackRoll.total >= resolvedDV;
+  // Blind: same as the damaging explosion — past 5 m the shell always scatters.
+  const blindMiss = isBlindAutoMiss(attacker, skillSlug, aimedDistMeters);
+  if (blindMiss) await postBlindAutoMiss(attacker, aimedDistMeters);
+  const hit = !blindMiss && attackRoll.total >= resolvedDV;
 
   // Consume ammo
   const shots = item.system.weapons?.[weaponIndex]?.shots ?? weapon.shots ?? 0;

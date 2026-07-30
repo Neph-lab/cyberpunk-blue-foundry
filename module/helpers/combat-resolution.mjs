@@ -15,6 +15,7 @@ import { clearWeaponCharge, countWallsBetweenTokens } from './tech-charge.mjs';
 import { getActiveAEFlag } from './effects.mjs';
 import { playUiSound, suppressNextFailSound, playSfx } from './audio.mjs';
 import { computeVisibilityPenalty } from './visibility.mjs';
+import { isBlindAutoMiss, postBlindAutoMiss, postBlindAutoMissTarget } from './blind.mjs';
 import {
   getTarget,
   getDistanceMeters,
@@ -651,7 +652,13 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     }
   }
 
-  const hit = resolvedDV === null || attackRoll.total >= resolvedDV;
+  // ── Blind: Handgun / Shoulder Arms / Heavy Weapons always miss past 5 m ───
+  // The shot is still fired (ammo spent, mods resolved above); it just cannot
+  // land, so everything downstream sees an ordinary miss.
+  const blindMiss = isBlindAutoMiss(attacker, skillSlug, distanceMeters);
+  if (blindMiss) await postBlindAutoMiss(attacker, distanceMeters);
+
+  const hit = !blindMiss && (resolvedDV === null || attackRoll.total >= resolvedDV);
 
   // ── Shattered Projectiles (Techtronika Metel) — trigger on MISS ──────────
   // Roll damage; if total > 15, post a 2d6 splash message for GM resolution.
@@ -677,8 +684,10 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // When Smart Ammo (smartMissReroll: true) is loaded in a Smart Weapon and
   // the attack misses by ≤5: the guided round self-corrects — roll 1d10+14 as
   // a replacement attack total.  The re-roll cannot itself trigger another re-roll.
+  // A blind attacker's shot cannot be rescued by guidance: no re-roll, and the
+  // beacon redirect below is skipped too.
   let effectiveAttackTotal = attackRoll.total;
-  if (!hit && weapon.isSmartWeapon && loadedAmmoData?.smartMissReroll && resolvedDV !== null) {
+  if (!blindMiss && !hit && weapon.isSmartWeapon && loadedAmmoData?.smartMissReroll && resolvedDV !== null) {
     const missMargin = resolvedDV - attackRoll.total;
     if (missMargin > 0 && missMargin <= 5) {
       const rerollRoll = await new Roll('1d10 + 14').evaluate();
@@ -690,7 +699,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
       effectiveAttackTotal = rerollRoll.total;
     }
   }
-  const effectiveHit = resolvedDV === null || effectiveAttackTotal >= resolvedDV;
+  const effectiveHit = !blindMiss && (resolvedDV === null || effectiveAttackTotal >= resolvedDV);
 
   // ── ISA miss-redirect (Malorian Arms Sonnet beacon system) ───────────────
   // Smart weapons that miss by ≤5 check if the target has a Beacon Tag AE.
@@ -698,7 +707,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   // Beacon redirect is checked after the Smart Ammo re-roll so it only fires if
   // the guided re-roll also failed (or no smart ammo was loaded).
   let beaconRedirected = false;
-  if (!effectiveHit && weapon.isSmartWeapon && resolvedDV !== null) {
+  if (!blindMiss && !effectiveHit && weapon.isSmartWeapon && resolvedDV !== null) {
     const missMargin = resolvedDV - effectiveAttackTotal;
     if (missMargin > 0 && missMargin <= 5 && targetActor) {
       const beaconAE = targetActor.effects.find((e) => e.getFlag('cyberpunk-blue', 'beaconTagged'));
@@ -1523,7 +1532,11 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
     }
   }
 
-  const hit = resolvedDV === null || attackRoll.total >= resolvedDV;
+  // ── Blind: the burst cannot land past 5 m (see blind.mjs) ────────────────
+  const blindMissAF = isBlindAutoMiss(attacker, skillSlug, distanceMeters);
+  if (blindMissAF) await postBlindAutoMiss(attacker, distanceMeters);
+
+  const hit = !blindMissAF && (resolvedDV === null || attackRoll.total >= resolvedDV);
   if (!hit) {
     // ── Chomp Ammo: stick on autofire miss by ≤ 5 ─────────────────────────
     if ((weapon.chompAmmo ?? false) && targetToken && resolvedDV !== null && (resolvedDV - attackRoll.total) <= 5) {
@@ -1705,9 +1718,13 @@ export async function resolveDoubleLockAttack(attacker, item, weaponIndex) {
   const primaryDV = dvA !== null && dvB !== null ? Math.min(dvA, dvB) : (dvA ?? dvB);
   const attackRoll = await attacker.rollSkill({ skillSlug, dv: primaryDV, modifier: modRecoilBonus });
 
-  // Determine hits
-  const hitA = dvA === null || attackRoll.total >= dvA;
-  const hitB = dvB === null || attackRoll.total >= dvB;
+  // Determine hits — a blind attacker misses either target sitting past 5 m.
+  const blindMissA = isBlindAutoMiss(attacker, skillSlug, distA);
+  const blindMissB = isBlindAutoMiss(attacker, skillSlug, distB);
+  if (blindMissA) await postBlindAutoMissTarget(attacker, actorA?.name ?? tokenA.name, distA);
+  if (blindMissB) await postBlindAutoMissTarget(attacker, actorB?.name ?? tokenB.name, distB);
+  const hitA = !blindMissA && (dvA === null || attackRoll.total >= dvA);
+  const hitB = !blindMissB && (dvB === null || attackRoll.total >= dvB);
 
   const summaryLines = [
     `${actorA?.name ?? tokenA.name}: ${hitA ? `<strong>${game.i18n.localize('CYBER_BLUE.Combat.Hit')}</strong>` : game.i18n.localize('CYBER_BLUE.Combat.Miss')}`,

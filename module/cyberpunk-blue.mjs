@@ -61,6 +61,8 @@ import { syncRoleGrantedItemGroups } from './helpers/world-init.mjs';
 import { refreshAllRicochetLines, clearRicochetLine } from './helpers/ricochet-canvas.mjs';
 import { INFRARED_ID, DetectionModeInfrared, syncActorInfrared } from './helpers/infrared.mjs';
 import { clearWeaponCharge } from './helpers/tech-charge.mjs';
+import { BLIND_ATTACK_CHANGE_KEYS, BLIND_ATTACK_PENALTY } from './helpers/blind.mjs';
+import { expireTimedAfflictions } from './helpers/affliction-attack.mjs';
 import {
   CyberBlueAccessPointBehavior,
   CyberBlueAccNodeBehavior,
@@ -583,9 +585,17 @@ Hooks.once('init', function () {
       id: 'blind',
       name: 'CYBER_BLUE.Condition.Blind',
       icon: 'icons/svg/blind.svg',
-      changes: [
-        { key: 'system.stats.rflx.rollMod', type: 'add', value: '-6' },
-      ],
+      // Localized here rather than left as a key: Foundry localizes a status
+      // effect's `name`, but not every version localizes `description`.
+      // (i18nInit runs before init, so game.i18n is ready.)
+      description: game.i18n.localize('CYBER_BLUE.Condition.BlindDesc'),
+      // −10 on every attack rolled with Handgun / Shoulder Arms / Heavy Weapons.
+      // The generalBonus channel adds on top of the skill/component min, so the
+      // full −10 lands whatever the character's ranks are. Attacks beyond 5 m
+      // always miss — enforced in the attack resolvers via helpers/blind.mjs.
+      changes: BLIND_ATTACK_CHANGE_KEYS.map((key) => ({
+        key, type: 'add', value: String(BLIND_ATTACK_PENALTY),
+      })),
       flags: { 'cyberpunk-blue': { conditionId: 'blind' } },
     },
   ];
@@ -2070,6 +2080,22 @@ Hooks.on('updateCombat', async (combat, changes) => {
   }
 });
 
+// ── Timed affliction expiry ──────────────────────────────────────────────────
+// Round-bounded affliction AEs (Flashbang: Blinded and Deafened for 1 round)
+// carry the round they come off on; remove them once it arrives.
+Hooks.on('updateCombat', async (combat, changes) => {
+  if (game.user !== game.users.activeGM) return;
+  if (!('round' in changes)) return;
+  await expireTimedAfflictions(combat);
+});
+
+// Ending the combat takes the round counter with it, so clear whatever is
+// still ticking rather than leaving a token blinded for good.
+Hooks.on('deleteCombat', async (combat) => {
+  if (game.user !== game.users.activeGM) return;
+  await expireTimedAfflictions(combat, { force: true });
+});
+
 // ── Combat tracker panel: movement + action display ───────────────────────────
 
 Hooks.on('renderCombatTracker', (app, htmlArg, _data) => {
@@ -2813,6 +2839,9 @@ function _catalogueEffectSig(e) {
     name:    (e.name ?? '').trim(),
     disabled: e.disabled ?? false,
     changes:  (e.changes ?? []).map((c) => ({ key: c.key, mode: c.type ?? c.mode, value: String(c.value) })),
+    // Conditions the effect confers (Flashbang → blind + deaf); compared from
+    // the source array on the doc side so a derived status can't fake drift.
+    statuses: [...(e.statuses ?? [])].sort(),
     flags:   e.flags?.['cyberpunk-blue'] ?? {},
   });
 }
@@ -3087,6 +3116,7 @@ async function _syncCyberwareEntries(catalogue) {
       name:    e.name,
       disabled: e.disabled,
       changes:  e.changes ?? [],
+      statuses: e._source?.statuses ?? [...(e.statuses ?? [])],
       flags:   { 'cyberpunk-blue': Object.fromEntries(
         Object.entries(e.flags?.['cyberpunk-blue'] ?? {})
           .filter(([k]) => k !== 'autoPsycheLoss' && k !== 'autoOperationalEffectState' && k !== 'autoGearEffectState')
@@ -3187,6 +3217,7 @@ async function _syncDrugEntries(catalogue) {
       name:    e.name,
       disabled: e.disabled,
       changes:  e.changes ?? [],
+      statuses: e._source?.statuses ?? [...(e.statuses ?? [])],
       flags:   { 'cyberpunk-blue': e.flags?.['cyberpunk-blue'] ?? {} },
     })).sort().join('\n');
     const effectsChanged = catSig !== docSig;
@@ -3290,6 +3321,7 @@ async function _syncGearEntries(catalogue) {
       name:    e.name,
       disabled: e.disabled,
       changes:  e.changes ?? [],
+      statuses: e._source?.statuses ?? [...(e.statuses ?? [])],
       flags:   { 'cyberpunk-blue': Object.fromEntries(
         Object.entries(e.flags?.['cyberpunk-blue'] ?? {})
           .filter(([k]) => k !== 'autoGearEffectState')

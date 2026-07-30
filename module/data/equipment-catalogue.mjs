@@ -9,6 +9,11 @@
  * The `_folder` property is stripped before the item is written to the pack.
  */
 
+import {
+  BLIND_ATTACK_SKILLS as BLIND_SKILLS,
+  BLIND_ATTACK_PENALTY as BLIND_PENALTY,
+} from '../helpers/blind.mjs';
+
 const COST = {
   CH:  '€$10 (Cheap)',
   EV:  '€$20 (Everyday)',
@@ -354,13 +359,21 @@ export const EQUIPMENT_CATALOGUE = [
       chargeType: '', silenceBuiltIn: false, silenceBuiltInDV: 0,
       jamOnRoll: 0, jamFiresFirst: false, shellDvModifier: 0, targetVitalsPenalty: 8,
       payloadDmgBonus: 0, critSlicing: false, critBlunt: false, critCrushing: false, critStun: false,
-      afflictionPrimary: 'reflexes', afflictionSkill: 'athletics', afflictionDv: 17, afflictionEffectId: '',
+      afflictionPrimary: 'rflx', afflictionSkill: 'athletics', afflictionDv: 17, afflictionEffectId: '',
       outerZoneResistBonus: 4,
     }],
+    // Failing the DV17 check applies the Blind and Deaf conditions for 1 round:
+    // `statuses` marks the token and drives the Blind attack rules in
+    // helpers/blind.mjs, the changes carry Blind's −10, and afflictionRounds
+    // has the combat sweep remove the whole thing a round later.
     effects: [{
       name: 'Flashbang: Blinded and Deafened',
-      disabled: true, transfer: false, changes: [],
-      flags: { 'cyberpunk-blue': { isAfflictionEffect: true } },
+      description: 'Blinded and Deafened for 1 round: no task that requires sight, −10 to Handgun / Shoulder Arms / Heavy Weapons attacks, and those attacks automatically miss past 5 m.',
+      disabled: true, transfer: false,
+      statuses: ['blind', 'deaf'],
+      duration: { value: 1, units: 'rounds' },
+      changes: BLIND_SKILLS.map((slug) => skillGen(slug, BLIND_PENALTY)),
+      flags: { 'cyberpunk-blue': { isAfflictionEffect: true, afflictionRounds: 1 } },
     }],
   }),
   gear({

@@ -17,9 +17,24 @@ import { getEffectiveItemWeapons } from './mods.mjs';
 import { getActiveAEFlag } from './effects.mjs';
 import { applyDamageWithPermission } from './socket.mjs';
 import { getTarget, getDistanceMeters, getDvForRange } from './targeting.mjs';
+import { isBlindAutoMiss, postBlindAutoMiss } from './blind.mjs';
 
 /** Flag key written onto every affliction AE applied to an actor. */
 export const AFFLICTION_EFFECT_FLAG = 'isAffliction';
+
+/**
+ * Flag on an affliction *template* declaring how many combat rounds it lasts
+ * (Flashbang: 1). Templates without it last until the GM removes them.
+ */
+export const AFFLICTION_ROUNDS_FLAG = 'afflictionRounds';
+
+/**
+ * Flag stamped on the *applied* AE naming the round it is removed on.
+ * Foundry marks a duration as elapsed but never deletes the effect, and a
+ * timed condition that lingers keeps handing out its penalties — so the round
+ * is recorded here and `expireTimedAfflictions` sweeps it up.
+ */
+export const AFFLICTION_EXPIRES_FLAG = 'afflictionExpiresRound';
 
 /**
  * Roll the target's affliction defense check.
@@ -128,6 +143,19 @@ export async function applyAfflictionEffect(item, weapon, targetActor, { duratio
     // Foundry v14 ActiveEffect duration is { value, units } (not seconds/rounds).
     aeData.duration = { ...(aeData.duration ?? {}), value: Math.round(durationSeconds), units: 'seconds' };
   }
+
+  // Round-bounded afflictions (Flashbang: Blinded and Deafened for 1 round):
+  // record the round they come off on so the combat sweep can delete them.
+  // Outside combat there are no rounds to count — the GM removes it.
+  const rounds = Number(sourceEffect.getFlag?.('cyberpunk-blue', AFFLICTION_ROUNDS_FLAG)) || 0;
+  if (rounds > 0) {
+    aeData.duration = { ...(aeData.duration ?? {}), value: rounds, units: 'rounds' };
+    if (game.combat?.started) {
+      foundry.utils.setProperty(
+        aeData, `flags.cyberpunk-blue.${AFFLICTION_EXPIRES_FLAG}`, (game.combat.round ?? 0) + rounds,
+      );
+    }
+  }
   delete aeData._id;
 
   await targetActor.createEmbeddedDocuments('ActiveEffect', [aeData]);
@@ -142,6 +170,52 @@ export async function applyAfflictionEffect(item, weapon, targetActor, { duratio
       </div>`,
   });
   return true;
+}
+
+/**
+ * Remove timed affliction AEs whose expiry round has arrived.  Driven from the
+ * `updateCombat` hook (activeGM only) so a Flashbang's Blinded/Deafened comes
+ * off on its own instead of waiting for the GM to notice it.
+ *
+ * Scans the combatants plus the active scene's tokens, so a bystander caught in
+ * the blast recovers even though they never rolled initiative.
+ *
+ * @param {Combat}  combat
+ * @param {object}  [options]
+ * @param {boolean} [options.force]  Remove every timed affliction regardless of
+ *   round — used when the combat ends, since the round counter it was waiting
+ *   on is about to disappear and the condition would otherwise never come off.
+ */
+export async function expireTimedAfflictions(combat, { force = false } = {}) {
+  const round = combat?.round ?? 0;
+  if (!round && !force) return;
+
+  const actors = new Map();
+  for (const combatant of combat?.combatants ?? []) {
+    if (combatant.actor) actors.set(combatant.actor.uuid, combatant.actor);
+  }
+  for (const token of game.scenes?.active?.tokens ?? []) {
+    if (token.actor) actors.set(token.actor.uuid, token.actor);
+  }
+
+  for (const actor of actors.values()) {
+    const expired = actor.effects.filter((e) => {
+      const expiresOn = e.getFlag('cyberpunk-blue', AFFLICTION_EXPIRES_FLAG);
+      return typeof expiresOn === 'number' && (force || round >= expiresOn);
+    });
+    for (const ae of expired) {
+      const name = ae.name;
+      await ae.delete();
+      ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor }),
+        content: `<div class="cyberpunk-blue chat-card">
+          <p><i class="fas fa-hourglass-end"></i>
+            <strong>${actor.name}</strong> ${game.i18n.format('CYBER_BLUE.Combat.AfflictionExpired', { effect: name })}
+          </p>
+        </div>`,
+      });
+    }
+  }
 }
 
 // ─── Standard Affliction attack ─────────────────────────────────────────────
@@ -281,7 +355,11 @@ export async function resolveAfflictionAttack(attacker, item, weaponIndex) {
     await item.update(buildWeaponUpdate(item, weaponIndex, { ammoCurrent: Math.max(currentAmmo - shots, 0) }));
   }
 
-  const hit = resolvedDV === null || attackRoll.total >= resolvedDV;
+  // Blind: Handgun / Shoulder Arms / Heavy Weapons attacks miss past 5 m.
+  const blindMiss = isBlindAutoMiss(attacker, skillSlug, distanceMeters);
+  if (blindMiss) await postBlindAutoMiss(attacker, distanceMeters);
+
+  const hit = !blindMiss && (resolvedDV === null || attackRoll.total >= resolvedDV);
   if (!hit) return;
 
   // ── Shockwave (Kang Tao Mámù): BODY < 8 target pushed 2m ────────────────
