@@ -151,11 +151,11 @@ export const DRUG_CATALOGUE = [
   drug({
     name:        'Antibiotics', img: `systems/cyberpunk-blue/assets/items/drugs/antibiotics.png`,
     cost:        'CO',
-    description: 'Sold in packs of 10 doses.',
+    description: 'These antibiotics are sold in packs of 10 doses.',
     duration:    '24 hours',
     primary: '<p><strong>−1</strong> to <strong>BODY</strong> checks. If the secondary effect is avoided, gain <strong>+2</strong> to natural healing for the day.</p>',
     secDv:       10,
-    secondary:   'Full day of nausea; no natural healing for the day.',
+    secondary: 'The user suffers a full day of nausea and gets no natural healing that day.',
     effects: [
       // BODY −1 while active, and +2 to Natural Healing for the day (read by the
       // Natural Healing macro via the naturalHealingBonus flag).
@@ -181,6 +181,7 @@ export const DRUG_CATALOGUE = [
   drug({
     name:      'Black Lace', img: `systems/cyberpunk-blue/assets/items/drugs/black-lace.png`,
     cost:      'CO',
+    description: 'This combat drug floods the user with rage and blocks out pain, at a steep and permanent cost to the mind.',
     duration:  '24 hours',
     primary: '<p>Lose <strong>2d6</strong> PSYCHE temporarily (regained if secondary is avoided). Ignore <strong>Seriously Wounded</strong>, Broken Arm/Leg/Ribs/Jaw, and Torn Muscle/Foreign Object Critical Injury effects; each turn you benefit from this immunity costs <strong>1d6</strong> HP.</p>',
     secDv:     17,
@@ -211,6 +212,7 @@ export const DRUG_CATALOGUE = [
   drug({
     name:      'Blue Glass', img: `systems/cyberpunk-blue/assets/items/drugs/blue-glass.png`,
     cost:      'EV',
+    description: 'This hallucinogen is brewed to repair a mind frayed by chrome, but it leaves the user drifting in and out of waking dreams.',
     duration:  '4 hours',
     primary:   'Restore 1 temporary PSYCHE (this benefit can only be gained once per week). Frequent minor hallucinations and synesthesia occur throughout; you cannot take normal actions during these episodes.',
     secDv:     15,
@@ -230,6 +232,7 @@ export const DRUG_CATALOGUE = [
   drug({
     name:      'Boost', img: `systems/cyberpunk-blue/assets/items/drugs/boost.png`,
     cost:      'CO',
+    description: 'This nootropic sharpens the user’s thinking to a fine edge for the better part of a day.',
     duration:  '20 hours',
     primary: '<p><strong>INT</strong> <strong>+2</strong> (maximum of 8 total).</p>',
     secDv:     17,
@@ -255,6 +258,7 @@ export const DRUG_CATALOGUE = [
   drug({
     name:      'Immunoblockers', img: `systems/cyberpunk-blue/assets/items/drugs/immunoblockers.png`,
     cost:      'PR',
+    description: 'These blockers hold cyberpsychosis at bay by suppressing the body’s rejection of its own chrome.',
     duration:  'Wears off at a stressful moment (likelihood increases over time); maximum 1 month.',
     primary: '<p>Immediately restore <strong>2d6</strong> PSYCHE. Characters in full cyberpsychosis may require multiple doses before any benefit is possible.</p>',
     secDv:     21,
@@ -273,10 +277,11 @@ export const DRUG_CATALOGUE = [
   drug({
     name:      'PDGF Injection', img: `systems/cyberpunk-blue/assets/items/drugs/pdgf-injection.png`,
     cost:      'CO',
+    description: 'This growth-factor injection knits wounds closed in seconds, sometimes closing rather more than intended.',
     duration:  '4 hours',
-    primary: '<p>Instantly regain <strong>1d6</strong> HP. Additional doses within 24 hours leave the user merely hungry, thirsty, and lightly anaemic.</p>',
+    primary: '<p>The user instantly regains <strong>1d6</strong> HP. Additional doses within 24 hours leave them merely hungry, thirsty, and lightly anemic.</p>',
     secDv:     15,
-    secondary: '<p>Tissues grow into each other abnormally. The user takes <strong>1d6</strong>÷2 damage each time they move more than half their <strong>MOVE</strong>, Evade, use <strong>Athletics</strong>, or perform similar advanced movement.</p><p><strong>FIX:</strong> <strong style="color: var(--cpb-accent);">DV13</strong> <strong>TECH</strong>+<strong>Medicine</strong> (Surgery) at a ripperdoc, or CO for the treatment.</p>',
+    secondary: '<p>Tissues grow into each other abnormally. The user takes <strong>1d6</strong>&divide;2 damage each time they move more than half their <strong>MOVE</strong>, Evade, use <strong>Athletics</strong>, or perform similar advanced movement.</p><p><strong>FIX:</strong> A <strong style="color: var(--cpb-accent);">DV 13</strong> <strong>TECH</strong>+<strong>Medicine</strong> (Surgery) check corrects it, or a ripperdoc will treat it for &euro;$50 (Costly).</p>',
     instructions: [
       S.pause('[Wear off]'),
       S.message('<p><strong>PDGF Injection taken.</strong> Regain 1d6 HP immediately. Effects last 4 hours.</p>'),
@@ -291,6 +296,7 @@ export const DRUG_CATALOGUE = [
   drug({
     name:      'RPM', img: `systems/cyberpunk-blue/assets/items/drugs/RPM.png`,
     cost:      'EV',
+    description: 'This stimulant pulls the user back from exhaustion and keeps them upright well past their limits.',
     duration:  '20 hours',
     primary: '<p>Reduce your current Fatigue level by one step (if merely <strong>Fatigued</strong>, you suffer no ill effects). If taken within the previous 24 hours, also lose <strong>1d6</strong>÷2 PSYCHE (round down).</p>',
     secDv:     13,
@@ -310,8 +316,9 @@ export const DRUG_CATALOGUE = [
   drug({
     name:      'Smash', img: `systems/cyberpunk-blue/assets/items/drugs/smash.png`,
     cost:      'CH',
+    description: 'This cheap street euphoric makes the user charming, fearless, and entirely too confident.',
     duration:  '4 hours',
-    primary: '<p>Euphoria and confidence; <strong>+2</strong> to <strong>Acting</strong>, <strong>Contortionist</strong>, <strong>Human Perception</strong>, <strong>Influence</strong>, and <strong>Performance</strong>.</p>',
+    primary: '<p>The user feels euphoric and confident, gaining <strong>+2</strong> to <strong>Acting</strong>, <strong>Contortionist</strong>, <strong>Human Perception</strong>, <strong>Influence</strong>, and <strong>Performance</strong>.</p>',
     secDv:     15,
     secondary: 'If not already addicted, you are now addicted.',
     addiction: '<p><strong>−2</strong> to <strong>Acting</strong>, <strong>Contortionist</strong>, <strong>Human Perception</strong>, <strong>Influence</strong>, and <strong>Performance</strong> while addicted but not using. Intense occasional cravings.</p>',
@@ -346,8 +353,9 @@ export const DRUG_CATALOGUE = [
   drug({
     name:      'Speed',
     cost:      'EV',
+    description: 'This stimulant kills the sense of hunger and keeps fatigue at arm’s length.',
     duration:  '8 hours',
-    primary:   'No sense of hunger (the physical need persists). Fatigue penalties reduced by 1.',
+    primary: '<p>The user loses all sense of hunger, though the physical need persists, and their Fatigue penalties are reduced by 1.</p>',
     secDv:     15,
     secondary: 'If not already addicted, you are now addicted.',
     addiction: '<p><strong>−2</strong> on tasks requiring extended focus while addicted but not using.</p>',
@@ -365,8 +373,9 @@ export const DRUG_CATALOGUE = [
   drug({
     name:      'Synthcoke', img: `systems/cyberpunk-blue/assets/items/drugs/synth-coke.png`,
     cost:      'EV',
+    description: 'This synthetic stimulant quickens the user’s reflexes and feeds a constant, gnawing paranoia.',
     duration:  '4 hours',
-    primary: '<p><strong>RFLX</strong> <strong>+1</strong>. Constant sense of paranoia and being watched.</p>',
+    primary: '<p>The user gains <strong>RFLX</strong> <strong>+1</strong>, along with a constant sense of paranoia and of being watched.</p>',
     secDv:     15,
     secondary: 'If not already addicted, you are now addicted.',
     addiction: '<p><strong>RFLX</strong> <strong>−2</strong> while addicted but not using. Intense, near-uncontrollable cravings.</p>',
