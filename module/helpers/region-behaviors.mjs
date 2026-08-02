@@ -129,16 +129,27 @@ export class CyberBlueNetNodeBehavior extends foundry.data.regionBehaviors.Regio
   }
 
   /**
-   * Program actor tokens inside this region that project a passive aura at the
-   * runners who meet them (N8 — Skunk). 'self' / 'allies' auras belong to the
-   * program's own owner and are applied when it is rezzed, not on node entry.
+   * True for a program that projects a passive aura at the runners who meet it
+   * in a node (N8 — Skunk).
+   *
+   * 'self' / 'allies' auras belong to the program's own owner and are applied
+   * when it is rezzed, not on node entry. Programs a Netrunner rezzed off their
+   * own deck are excluded outright: their aura is already resolved against the
+   * architecture by applyRunAura, and their tokens follow their runner from
+   * node to node, so node events would otherwise latch them onto their owner.
    */
+  static _projectsNodeAura(tokenDoc) {
+    if (!CyberBlueNetNodeBehavior._isLiveProgramToken(tokenDoc)) return false;
+    if (tokenDoc.actor.getFlag('cyberpunk-blue', 'isTemporaryProgramActor')) return false;
+    const aura = tokenDoc.actor.system.netCombat?.aura;
+    return Boolean(aura?.enabled) && aura.target === 'enemiesDetected';
+  }
+
+  /** Program actor tokens inside this region that project a node aura. */
   static _auraProgramsIn(region, { exclude = null } = {}) {
     return [...(region?.tokens ?? [])].filter((tok) => {
       if (exclude && tok.id === exclude) return false;
-      if (!CyberBlueNetNodeBehavior._isLiveProgramToken(tok)) return false;
-      const aura = tok.actor.system.netCombat?.aura;
-      return Boolean(aura?.enabled) && aura.target === 'enemiesDetected';
+      return CyberBlueNetNodeBehavior._projectsNodeAura(tok);
     });
   }
 
@@ -175,9 +186,7 @@ export class CyberBlueNetNodeBehavior extends foundry.data.regionBehaviors.Regio
 
     // An aura program moving into the node picks up whoever is already here.
     if (!netrunnerActor) {
-      if (!CyberBlueNetNodeBehavior._isLiveProgramToken(enteringToken)) return;
-      const aura = enteringToken.actor.system.netCombat?.aura;
-      if (!aura?.enabled || aura.target !== 'enemiesDetected') return;
+      if (!CyberBlueNetNodeBehavior._projectsNodeAura(enteringToken)) return;
       const runners = CyberBlueNetNodeBehavior._netrunnersIn(region, { exclude: enteringToken.id });
       if (runners.length) {
         await applyProgramAura(enteringToken.actor, runners, { clearOnDisconnect: true });

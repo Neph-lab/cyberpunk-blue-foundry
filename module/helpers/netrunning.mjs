@@ -594,11 +594,12 @@ export async function spawnProgramActor(actor, exeItem) {
 
   const sys = exeItem.system;
 
-  // Build limited ownership: owners of the actor get Limited on the program
+  // The program is the Netrunner's own software, so whoever owns the Netrunner
+  // owns it: they need to open its sheet, watch its REZ, and target with it.
   const ownership = { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE };
   for (const [userId, level] of Object.entries(actor.ownership ?? {})) {
     if (level >= CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER) {
-      ownership[userId] = CONST.DOCUMENT_OWNERSHIP_LEVELS.LIMITED;
+      ownership[userId] = CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER;
     }
   }
 
@@ -648,13 +649,11 @@ export async function spawnProgramActor(actor, exeItem) {
 
   if (!programActor) return;
 
-  // Determine token position next to the netrunner's architecture token
-  const netTok  = archScene.tokens.get(conn.archTokenId);
-  const gridSize = archScene.grid?.size ?? 100;
-  const runningCount = actor.items.filter((i) =>
-    i.type === 'programExecutable' && i.system.running && i.id !== exeItem.id
-  ).length;
-  const offsetX = (1 + runningCount) * Math.ceil(gridSize * 0.5);
+  // Spawn beside the Netrunner, inside their current node and clear of every
+  // other token there (see net-program-tokens.mjs). Falls back to overlapping
+  // only when the node has no free space left.
+  const { initialProgramTokenPosition } = await import('./net-program-tokens.mjs');
+  const spot = initialProgramTokenPosition(actor, archScene, 0.5);
 
   // Use the program actor's own image for the token (Task 4: always own image)
   await archScene.createEmbeddedDocuments('Token', [{
@@ -662,8 +661,8 @@ export async function spawnProgramActor(actor, exeItem) {
     actorLink:  true,
     name:       programActor.name,
     texture:    { src: programActor.img },
-    x:          (netTok?.x ?? 0) + offsetX,
-    y:          netTok?.y  ?? 0,
+    x:          spot.x,
+    y:          spot.y,
     width:      0.5,
     height:     0.5,
     disposition: CONST.TOKEN_DISPOSITIONS.FRIENDLY,

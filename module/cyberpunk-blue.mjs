@@ -1429,6 +1429,25 @@ Hooks.on('preCreateCombatant', (combatant) => {
   return true;
 });
 
+// ─── Netrunning: running programs follow their Netrunner ─────────────────────
+// A Netrunner's program tokens sit beside them in their current node. When the
+// Netrunner's architecture token moves, re-place them: they trail along inside
+// the node, and jump outright when the move crossed into a different one.
+// Only the arch token qualifies, so the program tokens this writes can't
+// re-enter the hook.
+Hooks.on('updateToken', async (tokenDoc, change) => {
+  if (game.user !== game.users.activeGM) return;
+  if (change.x === undefined && change.y === undefined) return;
+
+  const actor = tokenDoc.actor;
+  if (!actor) return;
+  const conn = getNetConnection(actor);
+  if (!conn || conn.archTokenId !== tokenDoc.id) return;
+
+  const { placeProgramTokens } = await import('./helpers/net-program-tokens.mjs');
+  await placeProgramTokens(actor);
+});
+
 // ─── Netrunning: unsafe disconnect when token leaves AP region ────────────────
 // If a connected netrunner's token moves out of every AP region that contains
 // their linked access point, trigger an unsafe disconnect (1d6 HP damage).
