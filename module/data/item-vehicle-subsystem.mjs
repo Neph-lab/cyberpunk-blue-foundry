@@ -46,7 +46,7 @@ export default class CyberBlueVehicleSubsystem extends CyberBlueItemBase {
     // ── Destruction effect template ───────────────────────────────────────────
     // Raw ActiveEffect data (sans _id/origin) applied to the parent vehicle actor
     // when this subsystem is destroyed.  Phase 6 destruction logic reads this.
-    // Example: { name: 'Engine Destroyed', changes: [{ key: 'system.stats.maxMove.value', mode: 2, value: '0' }] }
+    // Example: { name: 'Engine Destroyed', changes: [{ key: 'system.stats.maxMove.value', type: 'add', value: '0' }] }
     schema.destructionEffect = new fields.ObjectField({ initial: {} });
 
     // ── Deterministic crit override ───────────────────────────────────────────

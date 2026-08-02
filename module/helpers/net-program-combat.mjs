@@ -348,12 +348,12 @@ export async function applyAttackRiders(attack, targetActor, survivingConditions
         .map((s) => CONFIG.CYBER_BLUE.stats?.[s]?.shortLabel ?? s.toUpperCase()).join(', ');
       await targetActor.createEmbeddedDocuments('ActiveEffect', [{
         name: game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.StatPenaltyLabel', { stats: statLabels, amount: mag }),
-        icon: 'icons/svg/downgrade.svg',
+        img: 'icons/svg/downgrade.svg',
         disabled: false,
         transfer: false,
         duration: parseDurationLabel(sp.durationLabel),
         changes: sp.stats.map((stat) => ({
-          key: `system.stats.${stat}.value`, mode: CONST.ACTIVE_EFFECT_MODES.ADD, value: String(-mag),
+          key: `system.stats.${stat}.value`, type: 'add', value: String(-mag),
         })),
         flags: { 'cyberpunk-blue': { netStatPenalty: true } },
       }]);
@@ -368,10 +368,10 @@ export async function applyAttackRiders(attack, targetActor, survivingConditions
     if (reduce > 0) {
       await targetActor.createEmbeddedDocuments('ActiveEffect', [{
         name: game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.NetActionPenaltyLabel', { amount: reduce }),
-        icon: 'icons/svg/clockwork.svg',
+        img: 'icons/svg/clockwork.svg',
         disabled: false,
         transfer: false,
-        changes: [{ key: 'system.netActionsTotal', mode: CONST.ACTIVE_EFFECT_MODES.ADD, value: String(-reduce) }],
+        changes: [{ key: 'system.netActionsTotal', type: 'add', value: String(-reduce) }],
         flags: {
           'cyberpunk-blue': {
             netActionPenalty: true,
@@ -393,7 +393,7 @@ export async function applyAttackRiders(attack, targetActor, survivingConditions
     }
     await targetActor.createEmbeddedDocuments('ActiveEffect', [{
       name: game.i18n.localize('CYBER_BLUE.Netrunning.NetCombat.NodeLockLabel'),
-      icon: 'icons/svg/padlock.svg',
+      img: 'icons/svg/padlock.svg',
       disabled: false,
       transfer: false,
       changes: [],

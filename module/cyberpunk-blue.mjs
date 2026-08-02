@@ -430,7 +430,7 @@ Hooks.once('init', function () {
     {
       id: 'dying',
       name: 'CYBER_BLUE.Condition.Dying',
-      icon: 'icons/svg/skull.svg',
+      img: 'icons/svg/skull.svg',
       changes: [
         { key: 'system.stats.body.rollMod', type: 'add', value: '-2' },
         { key: 'system.stats.rflx.rollMod', type: 'add', value: '-2' },
@@ -444,14 +444,14 @@ Hooks.once('init', function () {
     {
       id: 'dead',
       name: 'CYBER_BLUE.Condition.Dead',
-      icon: 'icons/svg/tombstone.svg',
+      img: 'icons/svg/tombstone.svg',
       changes: [],
       flags: { 'cyberpunk-blue': { conditionId: 'dead' } },
     },
     {
       id: 'unconscious',
       name: 'CYBER_BLUE.Condition.Unconscious',
-      icon: 'icons/svg/unconscious.svg',
+      img: 'icons/svg/unconscious.svg',
       changes: [
         { key: 'system.stats.rflx.rollMod', type: 'override', value: '-99' },
         { key: 'system.stats.int.rollMod',  type: 'override', value: '-99' },
@@ -464,7 +464,7 @@ Hooks.once('init', function () {
     {
       id: 'prone',
       name: 'CYBER_BLUE.Condition.Prone',
-      icon: 'icons/svg/falling.svg',
+      img: 'icons/svg/falling.svg',
       changes: [
         { key: 'system.stats.move.value', type: 'add', value: '-2' },
       ],
@@ -473,7 +473,7 @@ Hooks.once('init', function () {
     {
       id: 'asleep',
       name: 'CYBER_BLUE.Condition.Asleep',
-      icon: 'icons/svg/sleep.svg',
+      img: 'icons/svg/sleep.svg',
       changes: [
         { key: 'system.stats.rflx.rollMod', type: 'override', value: '-99' },
         { key: 'system.stats.int.rollMod',  type: 'override', value: '-99' },
@@ -486,7 +486,7 @@ Hooks.once('init', function () {
     {
       id: 'stunned',
       name: 'CYBER_BLUE.Condition.Stunned',
-      icon: 'icons/svg/daze.svg',
+      img: 'icons/svg/daze.svg',
       changes: [
         { key: 'system.stats.body.rollMod', type: 'add', value: '-4' },
         { key: 'system.stats.rflx.rollMod', type: 'add', value: '-4' },
@@ -499,7 +499,7 @@ Hooks.once('init', function () {
     {
       id: 'restrained',
       name: 'CYBER_BLUE.Condition.Restrained',
-      icon: 'icons/svg/net.svg',
+      img: 'icons/svg/net.svg',
       changes: [
         { key: 'system.stats.move.value', type: 'override', value: '0' },
       ],
@@ -508,7 +508,7 @@ Hooks.once('init', function () {
     {
       id: 'grappled',
       name: 'CYBER_BLUE.Condition.Grappled',
-      icon: 'icons/svg/grab.svg',
+      img: 'icons/svg/grab.svg',
       changes: [
         { key: 'system.stats.move.value', type: 'override', value: '0' },
       ],
@@ -517,28 +517,28 @@ Hooks.once('init', function () {
     {
       id: 'burning-embers',
       name: 'CYBER_BLUE.Condition.BurningEmbers',
-      icon: 'icons/svg/fire.svg',
+      img: 'icons/svg/fire.svg',
       changes: [],
       flags: { 'cyberpunk-blue': { conditionId: 'burning-embers', burnDamage: 2 } },
     },
     {
       id: 'burning-fire',
       name: 'CYBER_BLUE.Condition.BurningFire',
-      icon: 'icons/svg/fire.svg',
+      img: 'icons/svg/fire.svg',
       changes: [],
       flags: { 'cyberpunk-blue': { conditionId: 'burning-fire', burnDamage: 4 } },
     },
     {
       id: 'burning-deadly',
       name: 'CYBER_BLUE.Condition.BurningDeadly',
-      icon: 'icons/svg/fire.svg',
+      img: 'icons/svg/fire.svg',
       changes: [],
       flags: { 'cyberpunk-blue': { conditionId: 'burning-deadly', burnDamage: 6 } },
     },
     {
       id: 'fatigued',
       name: 'CYBER_BLUE.Condition.Fatigued',
-      icon: 'icons/svg/downgrade.svg',
+      img: 'icons/svg/downgrade.svg',
       changes: [
         { key: 'system.stats.body.rollMod', type: 'add', value: '-2' },
         { key: 'system.stats.rflx.rollMod', type: 'add', value: '-2' },
@@ -551,7 +551,7 @@ Hooks.once('init', function () {
     {
       id: 'severe-fatigue',
       name: 'CYBER_BLUE.Condition.SevereFatigue',
-      icon: 'icons/svg/downgrade.svg',
+      img: 'icons/svg/downgrade.svg',
       changes: [
         { key: 'system.stats.body.rollMod', type: 'add', value: '-2' },
         { key: 'system.stats.rflx.rollMod', type: 'add', value: '-4' },
@@ -564,7 +564,7 @@ Hooks.once('init', function () {
     {
       id: 'extreme-fatigue',
       name: 'CYBER_BLUE.Condition.ExtremeFatigue',
-      icon: 'icons/svg/downgrade.svg',
+      img: 'icons/svg/downgrade.svg',
       changes: [
         { key: 'system.stats.body.rollMod', type: 'add', value: '-4' },
         { key: 'system.stats.rflx.rollMod', type: 'add', value: '-6' },
@@ -578,14 +578,14 @@ Hooks.once('init', function () {
     {
       id: 'deaf',
       name: 'CYBER_BLUE.Condition.Deaf',
-      icon: 'icons/svg/deaf.svg',
+      img: 'icons/svg/deaf.svg',
       changes: [],
       flags: { 'cyberpunk-blue': { conditionId: 'deaf' } },
     },
     {
       id: 'blind',
       name: 'CYBER_BLUE.Condition.Blind',
-      icon: 'icons/svg/blind.svg',
+      img: 'icons/svg/blind.svg',
       // Localized here rather than left as a key: Foundry localizes a status
       // effect's `name`, but not every version localizes `description`.
       // (i18nInit runs before init, so game.i18n is ready.)
@@ -749,8 +749,8 @@ const syncLargeFuelTankEffect = async (document) => {
   if (overloaded && !existing) {
     await actor.createEmbeddedDocuments('ActiveEffect', [{
       name: game.i18n.localize('CYBER_BLUE.Combat.LargeFuelTankAE'),
-      icon: 'icons/svg/downgrade.svg',
-      changes: [{ key: 'system.stats.move.value', mode: 2, value: '-1' }],
+      img: 'icons/svg/downgrade.svg',
+      changes: [{ key: 'system.stats.move.value', type: 'add', value: '-1' }],
       flags: { 'cyberpunk-blue': { [LARGE_TANK_AE_FLAG]: true } },
     }]);
   } else if (!overloaded && existing) {
@@ -1061,7 +1061,7 @@ async function syncPsycheStateEffect(actor, options = {}) {
   } else {
     await actor.createEmbeddedDocuments('ActiveEffect', [{
       name: game.i18n.localize(desiredState.nameKey),
-      icon: 'icons/svg/angel.svg',
+      img: 'icons/svg/angel.svg',
       origin: actor.uuid,
       disabled: false,
       transfer: false,
@@ -1640,7 +1640,7 @@ Hooks.on('combatTurn', async (combat, updateData) => {
         if (ae && ae.changes[0]?.value === '0') {
           const origMove = item.getFlag('cyberpunk-blue', `chargeOrigMove-${wi}`) ?? 0;
           const halfMove = String(Math.max(1, Math.ceil(origMove / 2)));
-          await ae.update({ changes: [{ key: 'system.stats.move.value', mode: 5, value: halfMove }] });
+          await ae.update({ changes: [{ key: 'system.stats.move.value', type: 'override', value: halfMove }] });
           ChatMessage.create({
             speaker: ChatMessage.getSpeaker({ actor }),
             content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt-lightning"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChargeMoveRestored', { weapon: item.name, move: halfMove })}</p></div>`,

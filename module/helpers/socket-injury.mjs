@@ -25,7 +25,7 @@ export async function applyForcedCriticalInjuryGM(targetActor, injuryKey, attack
   const name = game.i18n.localize(entry.nameKey);
   const aeData = {
     name,
-    icon: 'icons/svg/bones.svg',
+    img: 'icons/svg/bones.svg',
     origin: targetActor.uuid,
     disabled: false,
     transfer: false,

@@ -55,15 +55,15 @@ const CLOTHING_IMG = {
 const ae      = (name, changes) => ({ name, disabled: false, transfer: true, changes });
 const aeOff   = (name, changes) => ({ name, disabled: true,  transfer: true, changes, flags: { 'cyberpunk-blue': { noGearStateSync: true } } });
 const reminder = (name)         => ({ name, disabled: false, transfer: true, changes: [] });
-const stat    = (slug, val) => ({ key: `system.stats.${slug}.value`,    mode: 2, value: String(val) });
-const statOvr = (slug, val) => ({ key: `system.stats.${slug}.value`,    mode: 5, value: String(val) });
-const statMod = (slug, val) => ({ key: `system.stats.${slug}.rollMod`,  mode: 2, value: String(val) });
+const stat    = (slug, val) => ({ key: `system.stats.${slug}.value`,          type: 'add',      value: String(val) });
+const statOvr = (slug, val) => ({ key: `system.stats.${slug}.value`,          type: 'override', value: String(val) });
+const statMod = (slug, val) => ({ key: `system.stats.${slug}.rollMod`,        type: 'add',      value: String(val) });
 // Skill/component AEs target `.bonus` (a check bonus), never `.rank` — modifying
 // `.rank` corrupts the player-set rank. See module/data/actor-character.mjs.
-const skill   = (slug, val) => ({ key: `system.skills.${slug}.bonus`,    mode: 2, value: String(val) });
-const comp    = (slug, val) => ({ key: `system.components.${slug}.bonus`, mode: 2, value: String(val) });
+const skill   = (slug, val) => ({ key: `system.skills.${slug}.bonus`,         type: 'add',      value: String(val) });
+const comp    = (slug, val) => ({ key: `system.components.${slug}.bonus`,     type: 'add',      value: String(val) });
 // General channel: added on top of the min, never capped (tools that always help).
-const skillGen = (slug, val) => ({ key: `system.skills.${slug}.generalBonus`, mode: 2, value: String(val) });
+const skillGen = (slug, val) => ({ key: `system.skills.${slug}.generalBonus`, type: 'add',      value: String(val) });
 
 // ── Instruction step helpers ───────────────────────────────────────────────
 const S = {
@@ -257,7 +257,7 @@ export const EQUIPMENT_CATALOGUE = [
     effects: [{
       name: 'Cyberware Disabled (EMP)',
       disabled: true, transfer: false,
-      changes: [{ key: 'cyberblue.disableCyberware.random', mode: 2, value: '2' }],
+      changes: [{ key: 'cyberblue.disableCyberware.random', type: 'add', value: '2' }],
       duration: { value: 60, units: 'seconds' },
       flags: { 'cyberpunk-blue': { isAfflictionEffect: true } },
     }],

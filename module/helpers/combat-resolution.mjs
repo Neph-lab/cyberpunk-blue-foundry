@@ -736,7 +736,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     if (!existingTag) {
       await targetActor.createEmbeddedDocuments('ActiveEffect', [{
         name: game.i18n.localize('CYBER_BLUE.Combat.BeaconTagName'),
-        icon: 'icons/svg/target.svg',
+        img: 'icons/svg/target.svg',
         changes: [],
         flags: { 'cyberpunk-blue': { beaconTagged: true } },
       }]);
@@ -1147,8 +1147,8 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
         } else {
           await attacker.createEmbeddedDocuments('ActiveEffect', [{
             name: stName,
-            icon: 'icons/svg/target.svg',
-            changes: [{ key: `system.skills.${skillSlug}.bonus`, mode: 2, value: '1' }],
+            img: 'icons/svg/target.svg',
+            changes: [{ key: `system.skills.${skillSlug}.bonus`, type: 'add', value: '1' }],
             duration: { value: 1, units: 'turns' },
             flags: { 'cyberpunk-blue': { smartTargeting: true } },
           }]);

@@ -2562,7 +2562,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     // Apply suppression AE
     await actor.createEmbeddedDocuments('ActiveEffect', [{
       name: game.i18n.localize('CYBER_BLUE.Role.Bandit.Suppression'),
-      icon: 'icons/svg/shield.svg',
+      img: 'icons/svg/shield.svg',
       origin: actor.uuid,
       disabled: false,
       transfer: false,

@@ -137,8 +137,10 @@ export class CyberBlueActiveEffect extends ActiveEffect {
       if (description) this.updateSource({ description });
     }
 
-    // System effects set a deprecated `icon:` that v14 ignores (defaulting to
-    // aura.svg); stamp the correct white sheet-icon onto `img` instead.
+    // Give flagged system effects their white sheet-icon, overriding whatever
+    // the creation site asked for. (`img` is the only image field on an
+    // ActiveEffect — there is no `icon` in the v14 schema, and a stray `icon:`
+    // in creation data is silently discarded.)
     const icon = CyberBlueActiveEffect.resolveAutoIcon(this);
     if (icon && this.img !== icon) this.updateSource({ img: icon });
 

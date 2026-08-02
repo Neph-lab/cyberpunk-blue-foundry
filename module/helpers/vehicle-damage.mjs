@@ -54,7 +54,7 @@ export function getVehicleSeriousDamageEffect(vehicleActor) {
 function _buildVehicleSeriousDamageAE(vehicleActor) {
   return {
     name: game.i18n.localize('CYBER_BLUE.VehicleCombat.SeriousDamage'),
-    icon: 'systems/cyberpunk-blue/assets/pummeled.svg',
+    img: 'systems/cyberpunk-blue/assets/pummeled.svg',
     origin: vehicleActor.uuid,
     disabled: false,
     transfer: false,

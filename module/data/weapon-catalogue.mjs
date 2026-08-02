@@ -507,7 +507,7 @@ const special = [
   weaponItem({ name: 'Zetatech Microwaver-55', manufacturer: 'Zetatech', cost: 'VEX', imgPath: img(W_ROOT, 'Zetatech-Microwaver.png'),
     effects: [{
       name: 'Cyberware Disabled (Microwaver)', disabled: true, transfer: false,
-      changes: [{ key: 'cyberblue.disableCyberware.random', mode: 2, value: '2' }],
+      changes: [{ key: 'cyberblue.disableCyberware.random', type: 'add', value: '2' }],
       flags: { 'cyberpunk-blue': { isAfflictionEffect: true } },
     }],
     weapons: [entry({ type: 'veryHeavyPistol', damage: '0', rateOfFire: 1, magazine: 0, shots: 0, hands: 1, rangeTable: R.pistol, damageType: 'affliction', afflictionPrimary: 'tech', afflictionSkill: 'endurance', afflictionDv: 15 })],

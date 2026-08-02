@@ -816,7 +816,7 @@ export class CyberBlueActor extends Actor {
     }));
     const effectData = {
       name: game.i18n.localize('CYBER_BLUE.Effect.SeriouslyWounded'),
-      icon: 'systems/cyberpunk-blue/assets/pummeled.svg',
+      img: 'systems/cyberpunk-blue/assets/pummeled.svg',
       origin: this.uuid,
       disabled: false,
       transfer: false,
@@ -867,7 +867,7 @@ export class CyberBlueActor extends Actor {
     if (this.getNeedsStabilizationEffect()) return; // already flagged
     await this.createEmbeddedDocuments('ActiveEffect', [{
       name: game.i18n.localize('CYBER_BLUE.Effect.NeedsStabilization'),
-      icon: 'icons/svg/blood.svg',
+      img: 'icons/svg/blood.svg',
       origin: this.uuid,
       disabled: false,
       transfer: false,
@@ -895,7 +895,7 @@ export class CyberBlueActor extends Actor {
   getMortallyWoundedEffectData() {
     return {
       name: game.i18n.localize('CYBER_BLUE.Effect.MortallyWounded'),
-      icon: 'icons/svg/skull.svg',
+      img: 'icons/svg/skull.svg',
       origin: this.uuid,
       disabled: false,
       transfer: false,
@@ -973,7 +973,7 @@ export class CyberBlueActor extends Actor {
   getDeadEffectData(total) {
     return {
       name: game.i18n.format('CYBER_BLUE.Effect.DeadWithState', { state: total }),
-      icon: 'icons/svg/tombstone.svg',
+      img: 'icons/svg/tombstone.svg',
       origin: this.uuid,
       statuses: ['dead'],
       disabled: false,

@@ -465,7 +465,7 @@ export async function resolveIronGrip(attacker) {
 
   await createActiveEffectWithPermission(targetActor, {
     name: game.i18n.localize('CYBER_BLUE.MartialArts.IronGrip'),
-    icon: 'icons/svg/net.svg',
+    img: 'icons/svg/net.svg',
     origin: attacker.uuid,
     disabled: false,
     transfer: false,
@@ -756,7 +756,7 @@ export async function resolveGrabEscape(escapee) {
   if (entry) {
     await createActiveEffectWithPermission(grappler, {
       name: injName,
-      icon: 'icons/svg/bones.svg',
+      img: 'icons/svg/bones.svg',
       origin: grappler.uuid,
       disabled: false,
       transfer: false,

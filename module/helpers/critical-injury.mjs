@@ -772,7 +772,7 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
   // ── Apply Active Effect ──
   const aeData = {
     name,
-    icon: 'icons/svg/bones.svg',
+    img: 'icons/svg/bones.svg',
     origin: targetActor.uuid,
     disabled: false,
     transfer: false,
@@ -826,7 +826,7 @@ export async function rollCriticalInjury(targetActor, tableType = 'body', { atta
   if (crushingCascadeEntry) {
     const cascadeAeData = {
       name: game.i18n.localize(crushingCascadeEntry.nameKey),
-      icon: 'icons/svg/bones.svg',
+      img: 'icons/svg/bones.svg',
       origin: targetActor.uuid,
       disabled: false,
       transfer: false,

@@ -320,7 +320,7 @@ export class CyberBlueItem extends Item {
     ];
     return {
       name: game.i18n.localize('CYBER_BLUE.Effect.PsycheLoss'),
-      icon: 'icons/svg/daze.svg',
+      img: 'icons/svg/daze.svg',
       origin: this.uuid,
       disabled: !this.shouldApplyCyberwareEffects(),
       transfer: true,

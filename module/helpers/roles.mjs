@@ -738,7 +738,6 @@ export async function syncAllRoleConditionAEs(actor) {
 export async function syncAllProteanFociAEs(actor) {
   if (!(actor instanceof Actor) || !actor.isOwner) return;
 
-  const ADD = 2; // ACTIVE_EFFECT_MODES.ADD
 
   // 1. Remove all previously-synced tactic AEs.
   const toDelete = actor.effects.contents
@@ -784,7 +783,7 @@ export async function syncAllProteanFociAEs(actor) {
           name: `${roleName}: Initiative Reaction (+${pts} Initiative)`,
           disabled: false, transfer: false,
           flags: { 'cyberpunk-blue': baseCpbFlags },
-          changes: [{ key: 'system.stats.rflx.rollMod', mode: ADD, value: String(pts) }],
+          changes: [{ key: 'system.stats.rflx.rollMod', type: 'add', value: String(pts) }],
         });
         break;
 
@@ -807,7 +806,7 @@ export async function syncAllProteanFociAEs(actor) {
               name: `Threat Detection (+${threatDetectionMax} Perception)`,
               disabled: false, transfer: false,
               flags: { 'cyberpunk-blue': baseCpbFlags },
-              changes: [{ key: 'system.skills.perception.bonus', mode: ADD, value: String(threatDetectionMax) }],
+              changes: [{ key: 'system.skills.perception.bonus', type: 'add', value: String(threatDetectionMax) }],
             });
           }
         }
@@ -845,7 +844,7 @@ export async function syncAllProteanFociAEs(actor) {
           name: `${roleName}: Silent Death (+${pts} Stealth)`,
           disabled: false, transfer: false,
           flags: { 'cyberpunk-blue': baseCpbFlags },
-          changes: [{ key: 'system.skills.stealth.bonus', mode: ADD, value: String(pts) }],
+          changes: [{ key: 'system.skills.stealth.bonus', type: 'add', value: String(pts) }],
         });
         break;
 
@@ -858,8 +857,8 @@ export async function syncAllProteanFociAEs(actor) {
             disabled: false, transfer: false,
             flags: { 'cyberpunk-blue': baseCpbFlags },
             changes: [
-              { key: 'system.skills.meleeWeapon.bonus', mode: ADD, value: String(bonus) },
-              { key: 'system.skills.martialArts.bonus', mode: ADD, value: String(bonus) },
+              { key: 'system.skills.meleeWeapon.bonus', type: 'add', value: String(bonus) },
+              { key: 'system.skills.martialArts.bonus', type: 'add', value: String(bonus) },
             ],
           });
         }
@@ -873,7 +872,7 @@ export async function syncAllProteanFociAEs(actor) {
             name: `${roleName}: Seek Cover (+5 Initiative)`,
             disabled: false, transfer: false,
             flags: { 'cyberpunk-blue': baseCpbFlags },
-            changes: [{ key: 'system.stats.rflx.rollMod', mode: ADD, value: '5' }],
+            changes: [{ key: 'system.stats.rflx.rollMod', type: 'add', value: '5' }],
           });
         }
         break;
@@ -917,7 +916,7 @@ export async function syncAllProteanFociAEs(actor) {
       name: `Threat Detection (+${threatDetectionMax} Perception)`,
       disabled: false, transfer: false,
       flags: { 'cyberpunk-blue': { isProteanFocusAE: true, proteanFocusName: 'Threat Detection' } },
-      changes: [{ key: 'system.skills.perception.bonus', mode: ADD, value: String(threatDetectionMax) }],
+      changes: [{ key: 'system.skills.perception.bonus', type: 'add', value: String(threatDetectionMax) }],
     });
   }
 

@@ -17,7 +17,7 @@ export function onManageActiveEffect(event, owner) {
           name: game.i18n.format('DOCUMENT.New', {
             type: game.i18n.localize('DOCUMENT.ActiveEffect'),
           }),
-          icon: 'icons/svg/aura.svg',
+          img: 'icons/svg/aura.svg',
           origin: owner.uuid,
           'duration.rounds':
             li.dataset.effectType === 'temporary' ? 1 : undefined,
@@ -108,7 +108,7 @@ export function buildActorEffectGroups(actor) {
       (flag) => cb[flag] !== undefined && cb[flag] !== null && cb[flag] !== false,
     );
     const critFlag = cb[CRITICAL_INJURY_FLAG];
-    const icon = effect.img || effect.icon || 'icons/svg/aura.svg';
+    const icon = effect.img || 'icons/svg/aura.svg';
     const member = {
       id: effect.id,
       uuid: effect.uuid,

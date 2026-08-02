@@ -542,7 +542,7 @@ for (const token of tokens) {
   if (!actor) continue;
   await actor.createEmbeddedDocuments('ActiveEffect', [{
     name: effectName,
-    icon: 'icons/svg/aura.svg',
+    img: 'icons/svg/aura.svg',
     changes: [],
     flags: {
       'cyberpunk-blue': {

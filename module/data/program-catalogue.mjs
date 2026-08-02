@@ -299,15 +299,15 @@ export const PROGRAM_CATALOGUE = [
     effects: [{
       _id: 'skunkAuraSlideC0',
       name: 'Skunk: Slide & Cloak −2',
-      icon: 'icons/svg/daze.svg',
+      img: 'icons/svg/daze.svg',
       disabled: true,
       transfer: false,
       // Cloak and Slide are *uses* of the Ghost Component, not Components in
       // their own right — they live under system.componentUses, not
       // system.components. (See docs/blue-vs-red.md.)
       changes: [
-        { key: 'system.componentUses.cloak.bonus', mode: 2, value: '-2' },
-        { key: 'system.componentUses.slide.bonus', mode: 2, value: '-2' },
+        { key: 'system.componentUses.cloak.bonus', type: 'add', value: '-2' },
+        { key: 'system.componentUses.slide.bonus', type: 'add', value: '-2' },
       ],
       flags: { 'cyberpunk-blue': {} },
     }],
@@ -346,7 +346,7 @@ export const PROGRAM_CATALOGUE = [
     effects: [{
       _id: 'flackHalveIceAtk',
       name: 'Flack: ICE ATK halved',
-      icon: 'icons/svg/shield.svg',
+      img: 'icons/svg/shield.svg',
       disabled: true,
       transfer: false,
       changes: [],

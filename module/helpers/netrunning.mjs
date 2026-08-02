@@ -1064,7 +1064,7 @@ export async function performQuickhackBreach(actor, targetActor) {
   } else {
     await targetActor.createEmbeddedDocuments('ActiveEffect', [{
       name:     game.i18n.format('CYBER_BLUE.Netrunning.BreachedAEName', { name: actor.name }),
-      icon:     'icons/svg/regen.svg',
+      img:      'icons/svg/regen.svg',
       origin:   actor.uuid,
       disabled: false,
       transfer: false,
@@ -1138,7 +1138,7 @@ export async function performQuickhackUpload(actor, targetActor) {
   const qhDesc = (chosenExe.system.note ?? '') || (chosenExe.system.notes ?? '');
   await targetActor.createEmbeddedDocuments('ActiveEffect', [{
     name:     game.i18n.format('CYBER_BLUE.Netrunning.QuickhackUploading', { name: chosenExe.name }),
-    icon:     chosenExe.img || 'icons/svg/degen.svg',
+    img:      chosenExe.img || 'icons/svg/degen.svg',
     origin:   actor.uuid,
     disabled: false,
     transfer: false,
@@ -1246,7 +1246,7 @@ export async function startEncryptDecryptTimer(actor, opLabel) {
   const currentRound = game.combat?.round ?? 0;
   await actor.createEmbeddedDocuments('ActiveEffect', [{
     name:     game.i18n.format('CYBER_BLUE.Netrunning.EncryptDecryptPending', { op: opLabel }),
-    icon:     'icons/svg/padlock.svg',
+    img:      'icons/svg/padlock.svg',
     disabled: false,
     transfer: false,
     duration: { rounds: 1 },
@@ -1684,7 +1684,7 @@ export async function applyErrorState(programActor) {
 
   await programActor.createEmbeddedDocuments('ActiveEffect', [{
     name: '##ERROR##',
-    icon: 'icons/svg/skull.svg',
+    img: 'icons/svg/skull.svg',
     disabled: false,
     transfer: false,
     changes: [],
