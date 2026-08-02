@@ -17,7 +17,10 @@
  *   CyberBlueVehicleRoofBehavior   — roof zone; destruction toggles enclosesRiders.
  */
 
-import { getNetConnection, resolveNetAttack } from './netrunning.mjs';
+import {
+  getNetConnection, resolveNetAttack, getLinkedExecutable,
+  applyProgramAura, removeProgramAura,
+} from './netrunning.mjs';
 import { getNetCombat } from './net-program-combat.mjs';
 import { attachTokenToVehicle, detachTokenFromVehicle } from './vehicle-movement.mjs';
 import { DRIVER_TOKEN_FLAG } from './vehicle-combat.mjs';
@@ -73,6 +76,10 @@ export class CyberBlueAccNodeBehavior extends foundry.data.regionBehaviors.Regio
  * Also handles Black ICE auto-attack: when a Netrunner's Architecture token
  * enters this region, any Black ICE program actor tokens inside the same
  * region auto-attack the entering Netrunner.
+ *
+ * And passive auras (N8 — Skunk): a program in this node whose aura targets
+ * 'enemiesDetected' latches its template AE onto every Netrunner sharing the
+ * node, releasing it when either side leaves.
  */
 export class CyberBlueNetNodeBehavior extends foundry.data.regionBehaviors.RegionBehaviorType {
   static defineSchema() {
@@ -95,48 +102,101 @@ export class CyberBlueNetNodeBehavior extends foundry.data.regionBehaviors.Regio
     };
   }
 
-  // ── Black ICE auto-attack on token entry ────────────────────────────────
+  // ── Black ICE auto-attack + passive auras on token entry/exit ───────────
 
   // Handler registered as a wrapper so the class name is resolved at call time
   // (not at class-field initialization time, when the binding may still be in TDZ).
   static events = {
     [CONST.REGION_EVENTS.TOKEN_ENTER]: async function _tokenEnterProxy(event) {
-      return CyberBlueNetNodeBehavior._onNetrunnerEntersNode.call(this, event);
+      return CyberBlueNetNodeBehavior._onTokenEnterNode.call(this, event);
+    },
+    [CONST.REGION_EVENTS.TOKEN_EXIT]: async function _tokenExitProxy(event) {
+      return CyberBlueNetNodeBehavior._onTokenExitNode.call(this, event);
     },
   };
 
+  /** The connected Netrunner whose Architecture token this is, or null. */
+  static _netrunnerFor(tokenDoc) {
+    if (!tokenDoc?.actor) return null;
+    return game.actors.find((a) => getNetConnection(a)?.archTokenId === tokenDoc.id) ?? null;
+  }
+
+  /** True for a live (not ##ERROR##) Program actor token. */
+  static _isLiveProgramToken(tokenDoc) {
+    const actor = tokenDoc?.actor;
+    if (!actor || actor.type !== 'program') return false;
+    return !actor.effects.some((e) => e.getFlag('cyberpunk-blue', 'isErrorState'));
+  }
+
   /**
-   * When any token enters this region, check if it is a Netrunner's
-   * Architecture token. If so, find Black ICE program actor tokens already
-   * present in this region and have each one auto-attack the Netrunner.
+   * Program actor tokens inside this region that project a passive aura at the
+   * runners who meet them (N8 — Skunk). 'self' / 'allies' auras belong to the
+   * program's own owner and are applied when it is rezzed, not on node entry.
+   */
+  static _auraProgramsIn(region, { exclude = null } = {}) {
+    return [...(region?.tokens ?? [])].filter((tok) => {
+      if (exclude && tok.id === exclude) return false;
+      if (!CyberBlueNetNodeBehavior._isLiveProgramToken(tok)) return false;
+      const aura = tok.actor.system.netCombat?.aura;
+      return Boolean(aura?.enabled) && aura.target === 'enemiesDetected';
+    });
+  }
+
+  /** Connected Netrunners whose architecture token is inside this region. */
+  static _netrunnersIn(region, { exclude = null } = {}) {
+    const out = [];
+    for (const tok of (region?.tokens ?? [])) {
+      if (exclude && tok.id === exclude) continue;
+      const runner = CyberBlueNetNodeBehavior._netrunnerFor(tok);
+      if (runner) out.push(runner);
+    }
+    return out;
+  }
+
+  /**
+   * Token entering this region. Two symmetric cases:
+   *   • a Netrunner's Architecture token → any aura programs already in the node
+   *     latch onto them, and any Black ICE here auto-attacks;
+   *   • an aura program's token → it latches onto the runners already here.
    *
    * @param {RegionTokenEnterEvent} event
    * @this {CyberBlueNetNodeBehavior}
    */
-  static async _onNetrunnerEntersNode(event) {
-    // Only the active GM client handles Black ICE attacks (guards against
-    // multiple simultaneous GM-level users both processing the hook).
+  static async _onTokenEnterNode(event) {
+    // Only the active GM client handles this (guards against multiple
+    // simultaneous GM-level users both processing the event).
     if (game.user !== game.users.activeGM) return;
 
     const enteringToken = event.data.token;
     if (!enteringToken?.actor) return;
+    const region = this.region;
 
-    // Is this token the Architecture token of a connected Netrunner?
-    const netrunnerActor = game.actors.find(
-      (a) => getNetConnection(a)?.archTokenId === enteringToken.id,
-    );
-    if (!netrunnerActor) return;
+    const netrunnerActor = CyberBlueNetNodeBehavior._netrunnerFor(enteringToken);
+
+    // An aura program moving into the node picks up whoever is already here.
+    if (!netrunnerActor) {
+      if (!CyberBlueNetNodeBehavior._isLiveProgramToken(enteringToken)) return;
+      const aura = enteringToken.actor.system.netCombat?.aura;
+      if (!aura?.enabled || aura.target !== 'enemiesDetected') return;
+      const runners = CyberBlueNetNodeBehavior._netrunnersIn(region, { exclude: enteringToken.id });
+      if (runners.length) {
+        await applyProgramAura(enteringToken.actor, runners, { clearOnDisconnect: true });
+      }
+      return;
+    }
+
+    // A Netrunner entering: aura programs in this node latch onto them.
+    for (const tok of CyberBlueNetNodeBehavior._auraProgramsIn(region, { exclude: enteringToken.id })) {
+      await applyProgramAura(tok.actor, [netrunnerActor], { clearOnDisconnect: true });
+    }
 
     // Find Black ICE program actor tokens in this region (excluding the entering token).
     // `this.region.tokens` is the live set of tokens contained by the region.
-    const blackIceTokens = [...(this.region?.tokens ?? [])].filter((tok) => {
+    const blackIceTokens = [...(region?.tokens ?? [])].filter((tok) => {
       if (tok.id === enteringToken.id) return false;
-      const actor = tok.actor;
-      if (!actor || actor.type !== 'program') return false;
-      if (actor.system.programType !== 'blackice') return false;
-      // Skip Black ICE in ##ERROR## state (derezed / destroyed)
-      if (actor.effects.some((e) => e.getFlag('cyberpunk-blue', 'isErrorState'))) return false;
-      return true;
+      if (!CyberBlueNetNodeBehavior._isLiveProgramToken(tok)) return false;
+      if (tok.actor.system.programType !== 'blackice') return false;
+      return CyberBlueNetNodeBehavior._hasAutoAttack(tok.actor);
     });
 
     if (!blackIceTokens.length) return;
@@ -159,25 +219,70 @@ export class CyberBlueNetNodeBehavior extends foundry.data.regionBehaviors.Regio
       const atkLabel = `${iceActor.name} ${game.i18n.localize('CYBER_BLUE.Netrunning.BlackIceAutoAttack')}`;
 
       // Prefer the program's configured NET Combat Attack effects (damage /
-      // affliction / effectText). Fall back to the legacy damageFormula field,
-      // or an ATK-derived (ceil(atk/2))d6 approximation, when unconfigured.
+      // affliction / effectText / on-hit riders). Fall back to the legacy
+      // damageFormula field, or an ATK-derived (ceil(atk/2))d6 approximation,
+      // when Attack mode is on but nothing under it is configured.
       const attackCfg = getNetCombat(iceActor)?.attack ?? null;
-      const hasEffects = attackCfg?.mode === 'attack'
-        && (attackCfg.damage?.enabled || attackCfg.affliction?.enabled || attackCfg.effectText?.enabled);
+      const customFormula = (iceActor.system.damageFormula ?? '').trim();
 
-      if (hasEffects) {
+      if (attackCfg?.mode === 'attack' && CyberBlueNetNodeBehavior._attackIsConfigured(attackCfg)) {
         await resolveNetAttack(iceActor, netrunnerActor, atk, atkLabel, '', {
           effectsConfig: attackCfg,
           effectsSourceDoc: iceActor,
+          // Honors stopRunningAfter, which lives on the linked executable.
+          sourceExe: await getLinkedExecutable(iceActor),
         });
       } else {
-        const customFormula = iceActor.system.damageFormula;
-        const damageFormula = customFormula?.trim()
-          ? customFormula.trim()
-          : `${Math.max(1, Math.ceil(atk / 2))}d6`;
+        const damageFormula = customFormula || `${Math.max(1, Math.ceil(atk / 2))}d6`;
         await resolveNetAttack(iceActor, netrunnerActor, atk, atkLabel, damageFormula);
       }
     }
+  }
+
+  /**
+   * Token leaving this region: drop the aura link in whichever direction it was
+   * established. A program only ever occupies one node, so a leaving program
+   * releases every runner it had latched onto.
+   *
+   * @param {RegionTokenExitEvent} event
+   * @this {CyberBlueNetNodeBehavior}
+   */
+  static async _onTokenExitNode(event) {
+    if (game.user !== game.users.activeGM) return;
+
+    const leavingToken = event.data.token;
+    if (!leavingToken?.actor) return;
+
+    const netrunnerActor = CyberBlueNetNodeBehavior._netrunnerFor(leavingToken);
+    if (netrunnerActor) {
+      for (const tok of CyberBlueNetNodeBehavior._auraProgramsIn(this.region, { exclude: leavingToken.id })) {
+        await removeProgramAura(tok.actor, { actorId: netrunnerActor.id });
+      }
+      return;
+    }
+    if (leavingToken.actor.type === 'program') {
+      await removeProgramAura(leavingToken.actor);
+    }
+  }
+
+  /**
+   * True when a program has *something* configured to do on a node-entry
+   * attack. A program whose Attack mode is 'none' and that carries no legacy
+   * damageFormula (Skunk — an aura and nothing else) must not auto-attack.
+   */
+  static _hasAutoAttack(programActor) {
+    if (getNetCombat(programActor)?.attack?.mode === 'attack') return true;
+    return Boolean((programActor.system.damageFormula ?? '').trim());
+  }
+
+  /** True when any on-hit effect or rider is enabled under an Attack config. */
+  static _attackIsConfigured(attackCfg) {
+    return Boolean(
+      attackCfg.damage?.enabled || attackCfg.affliction?.enabled || attackCfg.effectText?.enabled
+      || attackCfg.statPenalty?.enabled || attackCfg.netActionPenalty?.enabled
+      || attackCfg.nodeLock?.enabled || attackCfg.applyCondition?.enabled
+      || attackCfg.programStrike?.enabled || attackCfg.forceDisconnect?.enabled,
+    );
   }
 }
 

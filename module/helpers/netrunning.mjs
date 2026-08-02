@@ -672,21 +672,113 @@ export async function spawnProgramActor(actor, exeItem) {
   await exeItem.setFlag('cyberpunk-blue', PROGRAM_ACTOR_FLAG, programActor.id);
 
   // Apply this program's passive aura (N8 — Skunk, Flack) while it runs.
-  await applyProgramAura(actor, exeItem);
+  await applyRunAura(actor, exeItem);
+}
+
+/**
+ * Resolve a program document's passive-aura config plus its template AE (N8).
+ * `doc` may be an Executable item OR a Program actor. The template normally
+ * lives on the document itself; for a Program actor it may only exist on the
+ * Executable it is linked to (worlds linked before `mirrorExecutableEffects`
+ * existed), so fall back to that.
+ *
+ * @param {Item|Actor} doc
+ * @returns {Promise<{aura: object, tpl: ActiveEffect}|null>}
+ */
+export async function resolveProgramAura(doc) {
+  const aura = doc?.system?.netCombat?.aura;
+  if (!aura?.enabled || !aura.effectId) return null;
+  let tpl = doc.effects?.get(aura.effectId) ?? null;
+  if (!tpl && doc.documentName === 'Actor') {
+    const exe = await getLinkedExecutable(doc);
+    tpl = exe?.effects?.get(aura.effectId) ?? null;
+  }
+  return tpl ? { aura, tpl } : null;
 }
 
 /**
  * Apply a program's passive aura (N8): copy its `aura.effectId` template AE onto
- * the resolved target set. Records the applied AE ids on the exe so the matching
- * despawn can remove them. Targets: 'self' = the running Netrunner; otherwise a
- * best-effort set of other actors connected to the same architecture (no
- * detection model exists — the GM prunes; see plan Part E).
+ * `targets`. The applied AE ids are recorded on `sourceDoc` so the matching
+ * removal takes off exactly what this program put on.
+ *
+ * @param {Item|Actor} sourceDoc  - the program document owning the aura
+ * @param {Actor[]}    targets
+ * @param {{clearOnDisconnect?: boolean}} [opts] - flag the applied AEs so a
+ *   Netrunner's disconnect sweeps them even if no exit event fires.
  */
-async function applyProgramAura(actor, exeItem) {
+export async function applyProgramAura(sourceDoc, targets, { clearOnDisconnect = false } = {}) {
+  if (!sourceDoc || !targets?.length) return;
+  const resolved = await resolveProgramAura(sourceDoc);
+  if (!resolved) return;
+
+  // Drop records whose AE no longer exists before deduplicating against them —
+  // a disconnect sweeps the applied AEs off the Netrunner without going through
+  // removeProgramAura, and a stale record would block re-application on re-entry.
+  const applied = [...(sourceDoc.getFlag('cyberpunk-blue', 'auraApplied') ?? [])]
+    .filter((a) => game.actors.get(a.actorId)?.effects.has(a.effectId));
+  const alreadyOn = new Set(applied.map((a) => a.actorId));
+
+  const effectData = resolved.tpl.toObject();
+  delete effectData._id;
+  effectData.disabled = false;
+  effectData.transfer = false;
+  effectData.flags = effectData.flags ?? {};
+  effectData.flags['cyberpunk-blue'] = {
+    ...(effectData.flags['cyberpunk-blue'] ?? {}),
+    programAuraSource: sourceDoc.id,
+    ...(clearOnDisconnect ? { clearOnDisconnect: true } : {}),
+  };
+
+  let changed = false;
+  for (const t of targets) {
+    if (!t || alreadyOn.has(t.id)) continue; // never double-apply one source
+    const [ae] = await t.createEmbeddedDocuments('ActiveEffect', [effectData]);
+    if (!ae) continue;
+    applied.push({ actorId: t.id, effectId: ae.id });
+    alreadyOn.add(t.id);
+    changed = true;
+  }
+  if (changed) await sourceDoc.setFlag('cyberpunk-blue', 'auraApplied', applied);
+}
+
+/**
+ * Remove aura AEs this program applied (N8), reversing applyProgramAura.
+ * Pass `actorId` to lift the aura off a single target (a Netrunner leaving the
+ * node) rather than all of them.
+ *
+ * @param {Item|Actor} sourceDoc
+ * @param {{actorId?: string|null}} [opts]
+ */
+export async function removeProgramAura(sourceDoc, { actorId = null } = {}) {
+  if (!sourceDoc) return;
+  const applied = sourceDoc.getFlag('cyberpunk-blue', 'auraApplied') ?? [];
+  if (!applied.length) return;
+
+  const kept = [];
+  for (const entry of applied) {
+    if (actorId && entry.actorId !== actorId) { kept.push(entry); continue; }
+    const ae = game.actors.get(entry.actorId)?.effects.get(entry.effectId);
+    if (ae) await ae.delete();
+  }
+  try {
+    if (kept.length) await sourceDoc.setFlag('cyberpunk-blue', 'auraApplied', kept);
+    else await sourceDoc.unsetFlag('cyberpunk-blue', 'auraApplied');
+  } catch (err) {
+    // The source itself may already be gone — this is the deleteActor /
+    // deleteToken cleanup path. The AEs are off the targets either way.
+    console.debug('Cyberpunk Blue | Could not clear auraApplied on a removed program:', err);
+  }
+}
+
+/**
+ * Aura application for the Netrunner-rezzes-a-program path: resolve the target
+ * set from `aura.target` ('self' = the running Netrunner; otherwise a
+ * best-effort set of other actors connected to the same architecture — no
+ * detection model exists, so the GM prunes) and apply.
+ */
+async function applyRunAura(actor, exeItem) {
   const aura = exeItem.system.netCombat?.aura;
-  if (!aura?.enabled || !aura.effectId) return;
-  const tpl = exeItem.effects.get(aura.effectId);
-  if (!tpl) return;
+  if (!aura?.enabled) return;
 
   let targets = [];
   if (aura.target === 'self') {
@@ -699,31 +791,7 @@ async function applyProgramAura(actor, exeItem) {
       if (c?.archSceneId && c.archSceneId === archSceneId) targets.push(a);
     }
   }
-  if (!targets.length) return;
-
-  const effectData = tpl.toObject();
-  delete effectData._id;
-  effectData.disabled = false;
-  effectData.transfer = false;
-  effectData.flags = effectData.flags ?? {};
-  effectData.flags['cyberpunk-blue'] = { ...(effectData.flags['cyberpunk-blue'] ?? {}), programAuraSource: exeItem.id };
-
-  const applied = [];
-  for (const t of targets) {
-    const [ae] = await t.createEmbeddedDocuments('ActiveEffect', [effectData]);
-    if (ae) applied.push({ actorId: t.id, effectId: ae.id });
-  }
-  await exeItem.setFlag('cyberpunk-blue', 'auraApplied', applied);
-}
-
-/** Remove any aura AEs this program applied (N8), reversing applyProgramAura. */
-async function removeProgramAura(exeItem) {
-  const applied = exeItem.getFlag('cyberpunk-blue', 'auraApplied') ?? [];
-  for (const { actorId, effectId } of applied) {
-    const ae = game.actors.get(actorId)?.effects.get(effectId);
-    if (ae) await ae.delete();
-  }
-  if (applied.length) await exeItem.unsetFlag('cyberpunk-blue', 'auraApplied');
+  await applyProgramAura(exeItem, targets, { clearOnDisconnect: aura.target !== 'self' });
 }
 
 /**
@@ -1382,6 +1450,7 @@ export const PROGRAM_LINK_FIELDS = [
   { actor: 'name',                       exe: 'name' },
   { actor: 'img',                        exe: 'img' },
   { actor: 'system.programType',         exe: 'system.programType' },
+  { actor: 'system.damageFormula',       exe: 'system.damageFormula' },
   { actor: 'system.stats.act.value',     exe: 'system.act' },
   { actor: 'system.stats.atk.value',     exe: 'system.atk' },
   { actor: 'system.stats.def.value',     exe: 'system.def' },
@@ -1445,6 +1514,50 @@ export async function copyExecutableToProgram(programActor, exeItem) {
   }
   if (Object.keys(update).length) {
     await programActor.update(update, { cyberblueProgramSync: true });
+  }
+  await mirrorExecutableEffects(programActor, exeItem);
+}
+
+/**
+ * Mirror the Executable's template Active Effects onto the Program Actor,
+ * preserving `_id` so the id references in `system.netCombat` (aura.effectId,
+ * attack.affliction.effectId) resolve against either document.
+ *
+ * `spawnProgramActor` gets this for free by passing `effects` at create time;
+ * actors linked afterwards (Subnet Builder, dropping an exe on a Program sheet)
+ * need it done explicitly, or they carry an `effectId` pointing at nothing.
+ * Runtime AEs on the actor (##ERROR##, applied auras) have no matching exe id
+ * and are left untouched.
+ */
+export async function mirrorExecutableEffects(programActor, exeItem) {
+  if (!programActor || !exeItem) return;
+  const creations = [];
+  const updates = [];
+  for (const tpl of exeItem.effects) {
+    const data = tpl.toObject();
+    const existing = programActor.effects.get(data._id);
+    if (!existing) { creations.push(data); continue; }
+    // Refresh a stale copy (e.g. a template whose changes were corrected in the
+    // catalogue) without disturbing anything the GM toggled on the actor.
+    // `img` is excluded — the effect-image sync owns it — as are core flags.
+    const current = existing.toObject();
+    const ns = (o) => JSON.stringify(o?.['cyberpunk-blue'] ?? {});
+    const differs = current.name !== data.name
+      || JSON.stringify(current.changes) !== JSON.stringify(data.changes)
+      || JSON.stringify(current.statuses) !== JSON.stringify(data.statuses)
+      || ns(current.flags) !== ns(data.flags);
+    if (differs) {
+      updates.push({
+        _id: data._id, name: data.name, changes: data.changes,
+        statuses: data.statuses, flags: { 'cyberpunk-blue': data.flags?.['cyberpunk-blue'] ?? {} },
+      });
+    }
+  }
+  if (creations.length) {
+    await programActor.createEmbeddedDocuments('ActiveEffect', creations, { keepId: true });
+  }
+  if (updates.length) {
+    await programActor.updateEmbeddedDocuments('ActiveEffect', updates);
   }
 }
 
@@ -1526,6 +1639,10 @@ export async function applyErrorState(programActor) {
     (e) => e.getFlag('cyberpunk-blue', 'isErrorState'),
   );
   if (existing) return;
+
+  // A derezzed program confers nothing — drop any passive aura it was projecting
+  // (N8). Covers node-resident Black ICE, whose aura is tracked on the actor.
+  await removeProgramAura(programActor);
 
   await programActor.createEmbeddedDocuments('ActiveEffect', [{
     name: '##ERROR##',

@@ -113,6 +113,7 @@ import {
   syncProgramActorToExecutable,
   syncExecutableToProgramActors,
   applyErrorState,
+  removeProgramAura,
   resolveNetTimers,
 } from './helpers/netrunning.mjs';
 import { isNonCombatant as isProgramNonCombatant } from './helpers/net-program-combat.mjs';
@@ -1397,6 +1398,24 @@ Hooks.on('deleteItem', async (item) => {
   await despawnProgramActor(actor, item, { skipRunningUpdate: true });
 });
 
+// ─── Netrunning: node program removed → drop its passive aura ────────────────
+// A node-resident program (Skunk) projects its aura at the Netrunners sharing
+// its node. Pulling its token off the Architecture, or deleting the actor
+// outright, must lift that penalty — neither goes through a region exit event.
+Hooks.on('deleteToken', async (tokenDoc) => {
+  if (game.user !== game.users.activeGM) return;
+  const actor = tokenDoc.actor;
+  if (actor?.type !== 'program') return;
+  await removeProgramAura(actor);
+});
+// The deleted Actor document is still in memory here, so its `auraApplied`
+// record is readable; the AEs being deleted live on the *targets*, not on it.
+Hooks.on('deleteActor', async (actor) => {
+  if (game.user !== game.users.activeGM) return;
+  if (actor.type !== 'program') return;
+  await removeProgramAura(actor);
+});
+
 // ─── Netrunning: keep non-combatant programs out of initiative ───────────────
 // A program with ATK & DEF both < 1, or a Quickhack, can never act or defend, so
 // it must never be added to the combat tracker.
@@ -1636,7 +1655,7 @@ Hooks.on('combatTurn', async (combat, updateData) => {
 const TURN_MARKER_SRC = 'systems/cyberpunk-blue/assets/effects/current-actor.webm';
 
 // Bump when adding a new one-time repair so it runs once on the next GM login.
-const REPAIRS_VERSION = 1;
+const REPAIRS_VERSION = 2;
 
 // Register a fully-static PIXI animation so the webm plays its own animation
 // without the core spin/pulse transforms fighting it.
@@ -1743,6 +1762,10 @@ Hooks.once('ready', async () => {
     // Backfill description text onto system effects created before descriptions
     // were added (PSYCHE states, wound/death markers, critical injuries, …).
     await backfillEffectDescriptions();
+
+    // Refresh stale catalogue template AEs on world program copies (the Skunk
+    // aura's changes targeted component paths that do not exist).
+    await repairProgramTemplateEffects();
 
     await game.settings.set('cyberpunk-blue', 'repairsVersion', REPAIRS_VERSION);
     console.log(`Cyberpunk Blue | One-time repairs pass ${REPAIRS_VERSION} completed.`);
@@ -3404,6 +3427,7 @@ async function _syncProgramEntries(catalogue) {
 
   const updates = [];
   const effectCreations = []; // { docId, effects } applied after the field updates
+  const effectUpdates = [];   // { docId, effects } refreshed template AEs
   for (const entry of pack.index) {
     if (entry.type !== 'programExecutable') continue;
     const def = byName.get(entry.name);
@@ -3431,9 +3455,22 @@ async function _syncProgramEntries(catalogue) {
     }
 
     // Create any catalogue template effects (e.g. aura templates) the pack entry
-    // is missing (matched by _id).
-    const missingEffects = (def.effects ?? []).filter((e) => e._id && !doc.effects.has(e._id));
+    // is missing, and refresh ones whose definition has since changed — both
+    // matched by _id. Without the refresh a template seeded with wrong `changes`
+    // (e.g. the Skunk aura's original non-existent component paths) would stay
+    // broken forever in already-populated worlds.
+    const missingEffects = [];
+    const staleEffects = [];
+    for (const e of (def.effects ?? [])) {
+      if (!e._id) continue;
+      const current = doc.effects.get(e._id);
+      if (!current) { missingEffects.push(e); continue; }
+      if (_templateEffectDiffers(current, e)) {
+        staleEffects.push({ _id: e._id, name: e.name, changes: e.changes ?? [], flags: e.flags ?? {} });
+      }
+    }
     if (missingEffects.length) effectCreations.push({ docId: doc.id, effects: missingEffects });
+    if (staleEffects.length)   effectUpdates.push({ docId: doc.id, effects: staleEffects });
 
     const catDescription = def.system?.description ?? '';
     const descriptionChanged = catDescription && doc.system?.description !== catDescription;
@@ -3449,7 +3486,7 @@ async function _syncProgramEntries(catalogue) {
     updates.push(update);
   }
 
-  if (updates.length === 0 && effectCreations.length === 0) return;
+  if (updates.length === 0 && effectCreations.length === 0 && effectUpdates.length === 0) return;
 
   await pack.configure({ locked: false });
   try {
@@ -3458,11 +3495,68 @@ async function _syncProgramEntries(catalogue) {
       const doc = await pack.getDocument(docId);
       if (doc) await doc.createEmbeddedDocuments('ActiveEffect', effects, { keepId: true });
     }
+    for (const { docId, effects } of effectUpdates) {
+      const doc = await pack.getDocument(docId);
+      if (doc) await doc.updateEmbeddedDocuments('ActiveEffect', effects);
+    }
     const imgCount = updates.filter((u) => 'img' in u).length;
-    console.log(`Cyberpunk Blue | Synced ${updates.length} programs (${imgCount} images, ${effectCreations.length} effect templates).`);
+    console.log(`Cyberpunk Blue | Synced ${updates.length} programs (${imgCount} images, ${effectCreations.length} new / ${effectUpdates.length} refreshed effect templates).`);
   } finally {
     await pack.configure({ locked: true });
   }
+}
+
+/**
+ * True when a stored template Active Effect no longer matches its catalogue
+ * definition. Only the mechanically meaningful parts are compared — `img` is
+ * deliberately excluded because bakeCompendiumEffectImages rewrites it, and
+ * `disabled` because a template copied onto a live document gets enabled.
+ */
+function _templateEffectDiffers(current, def) {
+  const norm = (v) => JSON.stringify(v ?? null);
+  if (def.name !== undefined && current.name !== def.name) return true;
+  if (norm(current.changes) !== norm(def.changes ?? [])) return true;
+  if (def.flags !== undefined && norm(current.flags?.['cyberpunk-blue'] ?? {}) !== norm(def.flags?.['cyberpunk-blue'] ?? {})) return true;
+  return false;
+}
+
+/**
+ * One-time repair: refresh catalogue template Active Effects on program copies
+ * that already exist in the world. Compendium entries are fixed by
+ * _syncProgramEntries, but every executable already dragged onto a cyberdeck or
+ * embedded on a Program actor carries its own stale copy of the template — and
+ * that copy is what the aura/affliction machinery actually reads.
+ */
+async function repairProgramTemplateEffects() {
+  const byName = new Map(
+    PROGRAM_CATALOGUE
+      .filter((it) => it.type === 'programExecutable' && (it.effects ?? []).length)
+      .map((it) => [it.name, it]),
+  );
+  if (!byName.size) return;
+
+  const docs = [
+    ...game.items.contents,
+    ...game.actors.contents.flatMap((a) => [a, ...a.items.contents]),
+  ].filter((d) => (d.documentName === 'Item' && d.type === 'programExecutable')
+    || (d.documentName === 'Actor' && d.type === 'program'));
+
+  let repaired = 0;
+  for (const doc of docs) {
+    const def = byName.get(doc.name);
+    if (!def) continue;
+    const updates = [];
+    for (const e of def.effects) {
+      const current = doc.effects.get(e._id);
+      if (!current || !_templateEffectDiffers(current, e)) continue;
+      updates.push({ _id: e._id, name: e.name, changes: e.changes ?? [], flags: e.flags ?? {} });
+    }
+    if (updates.length) {
+      await doc.updateEmbeddedDocuments('ActiveEffect', updates);
+      repaired += updates.length;
+    }
+  }
+  if (repaired) console.log(`Cyberpunk Blue | Repaired ${repaired} stale program template effects in the world.`);
 }
 
 /**

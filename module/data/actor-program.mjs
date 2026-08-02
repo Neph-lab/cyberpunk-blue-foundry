@@ -30,6 +30,11 @@ export default class CyberBlueProgram extends CyberBlueDataModel {
         }),
       }),
       programType: new fields.StringField({ required: true, blank: false, initial: 'antipersonnel' }),
+      // Legacy override for the dice formula rolled by the Black ICE node-entry
+      // auto-attack. Mirrors the identically-named field on the Executable item
+      // (kept in sync by PROGRAM_LINK_FIELDS); blank means "no legacy formula",
+      // which for a program with no configured Attack means no auto-attack.
+      damageFormula: new fields.StringField({ required: true, blank: true, initial: '' }),
       // Full UUID of the linked Program Executable item. Two link modes share
       // this single field:
       //   • Referenced (Mode A): a UUID pointing at an exe living elsewhere
