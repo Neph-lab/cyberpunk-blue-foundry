@@ -9,10 +9,10 @@
  *   • `placeProgramTokens` picks a free spot inside the Netrunner's current
  *     node for every running program, falling back to overlapping only when
  *     the node has genuinely run out of room.
- *   • The `updateToken` hook in cyberpunk-blue.mjs calls it again on every
- *     Netrunner move, so the programs trail along. When the move crosses into
- *     a different node the programs teleport rather than drift across the
- *     architecture.
+ *   • The `updateToken` hook in cyberpunk-blue.mjs calls it again once each
+ *     Netrunner move settles, so the programs keep station beside them —
+ *     within a node and across nodes alike. They always jump rather than
+ *     travel; see `placeProgramTokens` for why that is not just flavor.
  *
  * Architecture scenes are gridless (see subnet-build.mjs), so positions are
  * free pixel coordinates and nothing snaps.
@@ -20,12 +20,14 @@
 
 import { getNetConnection, PROGRAM_ACTOR_FLAG } from './netrunning.mjs';
 
-/** Clearance left between token bounding boxes, in pixels. */
+/** Clearance preferred between token bounding boxes, in pixels. */
 const TOKEN_GAP = 8;
 
-/** Candidate directions tried per ring, and how many rings out we search. */
-const RING_STEPS = 16;
-const RING_COUNT = 8;
+/** Candidate lattice spacing, as a fraction of the placed token's size. */
+const LATTICE_FRACTION = 0.5;
+
+/** Half-extent of the search area when there is no node to search within. */
+const NODE_LESS_RADIUS = 300;
 
 /**
  * Pixel bounding box of a token, optionally at a hypothetical position.
@@ -67,20 +69,22 @@ function pointInRegion(region, point) {
 }
 
 /**
- * The node Region a token currently sits in, or null.
+ * The node Region a token sits in, or null.
  *
  * Tests the token's center point rather than reading `region.tokens`: this runs
  * from the `updateToken` hook, where Foundry's region-containment bookkeeping
  * for the move may not have caught up yet, and a point test against the
- * document's own geometry always reflects the position we can see.
+ * document's own geometry always reflects the position we ask about.
  *
  * @param {TokenDocument} tokenDoc
+ * @param {{x: number, y: number}} [at] - test this position instead of the
+ *   document's own, which lags behind during a movement animation.
  * @returns {RegionDocument|null}
  */
-export function nodeRegionFor(tokenDoc) {
+export function nodeRegionFor(tokenDoc, at = null) {
   const scene = tokenDoc?.parent;
   if (!scene) return null;
-  const box = tokenRect(tokenDoc);
+  const box = tokenRect(tokenDoc, at);
   const centre = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
   for (const region of scene.regions) {
     if (!region.behaviors?.some((b) => b.type === 'netNode' || b.type === 'accNode')) continue;
@@ -123,48 +127,87 @@ export function runningProgramTokens(actor, scene) {
   return tokens;
 }
 
-/**
- * Search for a free spot for a `w`×`h` token beside the Netrunner.
- *
- * Candidates sit on rings of increasing radius around the Netrunner's center,
- * starting just clear of their token. A spot is taken when it lies wholly
- * inside `node` and clears every rect in `blockers`. If nothing qualifies the
- * innermost candidate is returned anyway — being visible in the right node
- * beats being pushed somewhere else.
- *
- * @param {object}   args
- * @param {object}   args.netBox      - the Netrunner token's rect
- * @param {?object}  args.node        - node Region to stay inside, or null
- * @param {number}   args.w
- * @param {number}   args.h
- * @param {object[]} args.blockers    - rects to avoid
- * @param {number}   [args.angleOffset] - rotate the ring so siblings fan out
- * @returns {{x: number, y: number}}
- */
-function findFreeSpot({ netBox, node, w, h, blockers, angleOffset = 0 }) {
-  const cx = netBox.x + netBox.w / 2;
-  const cy = netBox.y + netBox.h / 2;
-  // Innermost ring clears both tokens' half-extents plus the gap.
-  const baseRadius = Math.max(netBox.w, netBox.h) / 2 + Math.max(w, h) / 2 + TOKEN_GAP;
-  const ringStep = Math.max(w, h) / 2 + TOKEN_GAP;
-
-  let fallback = null;
-  for (let ring = 0; ring < RING_COUNT; ring++) {
-    const radius = baseRadius + ring * ringStep;
-    for (let step = 0; step < RING_STEPS; step++) {
-      const angle = angleOffset + (step / RING_STEPS) * Math.PI * 2;
-      const at = {
-        x: Math.round(cx + Math.cos(angle) * radius - w / 2),
-        y: Math.round(cy + Math.sin(angle) * radius - h / 2),
-      };
-      const candidate = { ...at, w, h };
-      fallback ??= at;
-      if (!rectCorners(candidate).every((p) => pointInRegion(node, p))) continue;
-      if (blockers.some((b) => rectsOverlap(candidate, b))) continue;
-      return at;
+/** Pixel bounding box of a Region, from its derived polygons. */
+function regionBounds(region) {
+  let minX = Infinity; let minY = Infinity; let maxX = -Infinity; let maxY = -Infinity;
+  for (const poly of (region?.polygons ?? [])) {
+    const pts = poly.points ?? [];
+    for (let i = 0; i < pts.length; i += 2) {
+      if (pts[i] < minX) minX = pts[i];
+      if (pts[i] > maxX) maxX = pts[i];
+      if (pts[i + 1] < minY) minY = pts[i + 1];
+      if (pts[i + 1] > maxY) maxY = pts[i + 1];
     }
   }
-  return fallback ?? { x: netBox.x, y: netBox.y };
+  return Number.isFinite(minX) ? { minX, minY, maxX, maxY } : null;
+}
+
+/**
+ * Find where to put a `w`×`h` token near the Netrunner, inside their node.
+ *
+ * Candidates are a lattice over the node's bounding box, tried nearest-first
+ * from the Netrunner's center, under progressively weaker requirements:
+ *
+ *   1. wholly inside the node, clear of everything by TOKEN_GAP
+ *   2. wholly inside the node, merely not overlapping
+ *   3. center inside the node (so Foundry counts it as in the node), not
+ *      overlapping — it may hang over the node's edge
+ *   4. center inside the node, overlapping — the node is genuinely full
+ *
+ * A ring search was the obvious shape for this and it was wrong: rings are
+ * anchored to a radius that clears the *corners* of the Netrunner's token, so
+ * in a node only twice the Netrunner's width every candidate landed outside the
+ * node and every program fell through to the overlap fallback. Searching the
+ * node itself has no such blind spot.
+ *
+ * @param {object}   args
+ * @param {object}   args.netBox   - the Netrunner token's rect
+ * @param {?object}  args.node     - node Region to stay inside, or null
+ * @param {number}   args.w
+ * @param {number}   args.h
+ * @param {object[]} args.blockers - rects to avoid
+ * @returns {{x: number, y: number}}
+ */
+function findFreeSpot({ netBox, node, w, h, blockers }) {
+  const cx = netBox.x + netBox.w / 2;
+  const cy = netBox.y + netBox.h / 2;
+
+  // Without a node, search a generous box around the Netrunner instead.
+  const bounds = (node && regionBounds(node)) ?? {
+    minX: cx - NODE_LESS_RADIUS, minY: cy - NODE_LESS_RADIUS,
+    maxX: cx + NODE_LESS_RADIUS, maxY: cy + NODE_LESS_RADIUS,
+  };
+
+  const step = Math.max(Math.round(Math.min(w, h) * LATTICE_FRACTION), 8);
+  const candidates = [];
+  for (let x = bounds.minX; x <= bounds.maxX - w; x += step) {
+    for (let y = bounds.minY; y <= bounds.maxY - h; y += step) {
+      const at = { x: Math.round(x), y: Math.round(y) };
+      const dx = at.x + w / 2 - cx;
+      const dy = at.y + h / 2 - cy;
+      candidates.push({ at, d2: dx * dx + dy * dy });
+    }
+  }
+  // Always include the edge-aligned column/row, which the stride can skip.
+  candidates.sort((a, b) => a.d2 - b.d2);
+
+  const fullyInside = (r) => rectCorners(r).every((p) => pointInRegion(node, p));
+  const centreInside = (r) => pointInRegion(node, { x: r.x + r.w / 2, y: r.y + r.h / 2 });
+  const clear = (r, gap) => !blockers.some((b) => rectsOverlap(r, b, gap));
+
+  const passes = [
+    (r) => fullyInside(r) && clear(r, TOKEN_GAP),
+    (r) => fullyInside(r) && clear(r, 0),
+    (r) => centreInside(r) && clear(r, 0),
+    (r) => centreInside(r),
+  ];
+  for (const accepts of passes) {
+    for (const { at } of candidates) {
+      if (accepts({ ...at, w, h })) return at;
+    }
+  }
+  // Nothing at all fits the node: sit on the Netrunner rather than leave the node.
+  return { x: Math.round(cx - w / 2), y: Math.round(cy - h / 2) };
 }
 
 /**
@@ -172,17 +215,22 @@ function findFreeSpot({ netBox, node, w, h, blockers, angleOffset = 0 }) {
  * token, inside the same node and without overlapping anything — including the
  * programs placed earlier in this same pass.
  *
- * When the Netrunner has changed node, the programs jump rather than sliding
- * across the architecture: they are not travelling, they are running on a deck
- * that went with them. Detected by comparing each program's current node with
- * the Netrunner's, so no pre-move state has to be carried around.
+ * Programs are repositioned as teleports, never as travel. They are not walking
+ * the architecture — they run on a deck that went with the Netrunner — and,
+ * practically, a plain x/y update in v14 is a *movement*: the token is pathed
+ * through generated waypoints, each committed to the document in turn. Issue a
+ * second one while the first is in flight (which a Netrunner crossing several
+ * nodes reliably does) and the token settles on some waypoint of the abandoned
+ * path instead of where it was sent. Verified live on 14.365, where a program
+ * ended a move stranded in a node the Netrunner had only passed through.
  *
  * @param {Actor} actor
  * @param {object} [opts]
- * @param {boolean|null} [opts.teleport] - force/forbid the jump; null = decide
- *   from whether the programs are still in the Netrunner's node.
+ * @param {{x: number, y: number}} [opts.netAt] - where the Netrunner token is
+ *   going. Required from the movement hook: during an animation the document's
+ *   own x/y are an interpolated, already-stale value.
  */
-export async function placeProgramTokens(actor, { teleport = null } = {}) {
+export async function placeProgramTokens(actor, { netAt = null } = {}) {
   const conn = getNetConnection(actor);
   if (!conn) return;
   const scene = game.scenes.get(conn.archSceneId);
@@ -194,39 +242,69 @@ export async function placeProgramTokens(actor, { teleport = null } = {}) {
   const programTokens = runningProgramTokens(actor, scene);
   if (!programTokens.length) return;
 
-  const node = nodeRegionFor(netTok);
-  const netBox = tokenRect(netTok);
-
-  const changedNode = programTokens.some((t) => (nodeRegionFor(t)?.id ?? null) !== (node?.id ?? null));
-  const jump = teleport ?? changedNode;
+  const node = nodeRegionFor(netTok, netAt);
+  const netBox = tokenRect(netTok, netAt);
 
   // Tokens that must be avoided: everything in the scene except the programs
   // this pass is (re)placing, which are added back as they get positions.
   const moving = new Set(programTokens.map((t) => t.id));
   const blockers = scene.tokens
     .filter((t) => !moving.has(t.id))
-    .map((t) => tokenRect(t));
+    .map((t) => tokenRect(t, t.id === netTok.id ? netAt : null));
 
   const updates = [];
-  for (const [index, progTok] of programTokens.entries()) {
+  for (const progTok of programTokens) {
     const box = tokenRect(progTok);
-    const at = findFreeSpot({
-      netBox,
-      node,
-      w: box.w,
-      h: box.h,
-      blockers,
-      // Stagger each program's starting angle so they fan out instead of
-      // queueing along one side.
-      angleOffset: (index / programTokens.length) * Math.PI * 2,
-    });
+    const at = findFreeSpot({ netBox, node, w: box.w, h: box.h, blockers });
+    // Each placed program becomes an obstacle for the next, so a second one
+    // takes the next-nearest spot rather than the same one.
     blockers.push({ ...at, w: box.w, h: box.h });
     if (progTok.x === at.x && progTok.y === at.y) continue;
     updates.push({ _id: progTok.id, x: at.x, y: at.y });
   }
 
   if (!updates.length) return;
-  await scene.updateEmbeddedDocuments('Token', updates, { animate: !jump, teleport: jump });
+  await scene.updateEmbeddedDocuments('Token', updates, { teleport: true, animate: false });
+}
+
+/** Per-Netrunner placement queues, keyed by actor id. */
+const _placementQueues = new Map();
+
+/**
+ * Run `placeProgramTokens` serialized per Netrunner, collapsing bursts.
+ *
+ * A single drag across the architecture arrives as a sequence of `updateToken`
+ * events, so unserialized runs would overlap and an earlier one could easily
+ * write its (already stale) positions last. Requests arriving while a run is in
+ * flight collapse into exactly one follow-up run, which starts after it and
+ * therefore reads the settled state.
+ *
+ * @param {Actor} actor
+ * @param {object} [opts] - forwarded to placeProgramTokens
+ * @returns {Promise<void>}
+ */
+export function schedulePlaceProgramTokens(actor, opts = {}) {
+  if (!actor?.id) return Promise.resolve();
+  const entry = _placementQueues.get(actor.id) ?? { chain: Promise.resolve(), queued: false };
+  _placementQueues.set(actor.id, entry);
+
+  // A run is already waiting to start; it will pick up this request's state too.
+  if (entry.queued) {
+    entry.opts = opts;
+    return entry.chain;
+  }
+  entry.queued = true;
+  entry.opts = opts;
+  entry.chain = entry.chain.then(async () => {
+    entry.queued = false;
+    const runOpts = entry.opts;
+    try {
+      await placeProgramTokens(actor, runOpts);
+    } catch (err) {
+      console.error('Cyberpunk Blue | Program token placement failed:', err);
+    }
+  });
+  return entry.chain;
 }
 
 /**

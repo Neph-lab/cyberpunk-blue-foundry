@@ -1435,6 +1435,14 @@ Hooks.on('preCreateCombatant', (combatant) => {
 // the node, and jump outright when the move crossed into a different one.
 // Only the arch token qualifies, so the program tokens this writes can't
 // re-enter the hook.
+//
+// v14 splits one move into a waypoint-by-waypoint sequence of updates, and the
+// token document's x/y during that sequence are an interpolated animation
+// value, not where the token is going (verified live on 14.365: the hook fired
+// three times for one drag, each reporting a document position a waypoint
+// behind). So wait for the movement to finish and take the position from
+// `movement.destination`, and serialize the placement so a burst can't let an
+// early, stale run write last.
 Hooks.on('updateToken', async (tokenDoc, change) => {
   if (game.user !== game.users.activeGM) return;
   if (change.x === undefined && change.y === undefined) return;
@@ -1444,8 +1452,18 @@ Hooks.on('updateToken', async (tokenDoc, change) => {
   const conn = getNetConnection(actor);
   if (!conn || conn.archTokenId !== tokenDoc.id) return;
 
-  const { placeProgramTokens } = await import('./helpers/net-program-tokens.mjs');
-  await placeProgramTokens(actor);
+  const movement = tokenDoc.movement;
+  if (movement) {
+    if (movement.state !== 'completed') return;
+    if ((movement.pending?.waypoints?.length ?? 0) > 0) return;
+  }
+  const dest = movement?.destination;
+  const netAt = dest
+    ? { x: dest.x, y: dest.y }
+    : { x: change.x ?? tokenDoc.x, y: change.y ?? tokenDoc.y };
+
+  const { schedulePlaceProgramTokens } = await import('./helpers/net-program-tokens.mjs');
+  await schedulePlaceProgramTokens(actor, { netAt });
 });
 
 // ─── Netrunning: unsafe disconnect when token leaves AP region ────────────────
@@ -1674,7 +1692,7 @@ Hooks.on('combatTurn', async (combat, updateData) => {
 const TURN_MARKER_SRC = 'systems/cyberpunk-blue/assets/effects/current-actor.webm';
 
 // Bump when adding a new one-time repair so it runs once on the next GM login.
-const REPAIRS_VERSION = 2;
+const REPAIRS_VERSION = 3;
 
 // Register a fully-static PIXI animation so the webm plays its own animation
 // without the core spin/pulse transforms fighting it.
@@ -1782,9 +1800,10 @@ Hooks.once('ready', async () => {
     // were added (PSYCHE states, wound/death markers, critical injuries, …).
     await backfillEffectDescriptions();
 
-    // Refresh stale catalogue template AEs on world program copies (the Skunk
-    // aura's changes targeted component paths that do not exist).
-    await repairProgramTemplateEffects();
+    // Refresh stale catalogue data on world program copies: the Skunk aura's
+    // changes targeted component paths that do not exist, and program copies
+    // seeded before netCombat was authored still carry an empty config.
+    await repairProgramCatalogueData();
 
     await game.settings.set('cyberpunk-blue', 'repairsVersion', REPAIRS_VERSION);
     console.log(`Cyberpunk Blue | One-time repairs pass ${REPAIRS_VERSION} completed.`);
@@ -1925,20 +1944,12 @@ Hooks.on('createActor', (actor) => {
 
 // ── preMoveToken: enforce turn restriction + budget (cancel on exceed) ────────
 
-// Stores old {x,y} of Architecture-scene tokens that are about to move, keyed
-// by tokenId. Used by the moveToken hook to chain-follow program tokens.
-const _tokenOldPositions = new Map();
-
 Hooks.on('preMoveToken', (tokenDoc, movement) => {
   // ── Architecture scene: exempt from all budget accounting ─────────────────
   // Tokens in Architecture/Network scenes move freely — node-to-node movement
   // in NET space does not consume the combatant's physical movement budget.
   const scene = tokenDoc.parent;
-  if (isNetArchitectureScene(scene)) {
-    // Record old position so the moveToken hook can chain-follow program tokens.
-    _tokenOldPositions.set(tokenDoc.id, { x: tokenDoc.x, y: tokenDoc.y });
-    return; // no budget enforcement
-  }
+  if (isNetArchitectureScene(scene)) return; // no budget enforcement
 
   if (!game.combat?.started) return;
 
@@ -1979,43 +1990,15 @@ Hooks.on('preMoveToken', (tokenDoc, movement) => {
   }
 });
 
-// ── moveToken: record actual cost + Architecture-scene program chain-follow ────
+// ── moveToken: record actual movement cost ───────────────────────────────────
+// Architecture-scene program tokens used to be chain-followed from here, onto
+// the Netrunner's *previous* position — which is what parked them underneath
+// each other and behind the runner. Placement now lives in
+// helpers/net-program-tokens.mjs, driven by the updateToken hook above.
 
 Hooks.on('moveToken', async (tokenDoc, movement, userId) => {
   const scene = tokenDoc.parent;
-
-  // ── Architecture scene: chain-follow program tokens → netrunner's old pos ──
-  // When a Netrunner's Architecture token moves, all their running program
-  // tokens follow to the netrunner's *previous* position (like a chain).
-  if (isNetArchitectureScene(scene)) {
-    // Read and immediately discard the stored old position.
-    const oldPos = _tokenOldPositions.get(tokenDoc.id) ?? null;
-    _tokenOldPositions.delete(tokenDoc.id);
-
-    // Only the GM moves program tokens (they are always GM-owned temp actors).
-    if (!game.user.isGM || !oldPos) return;
-
-    // Is this token the Architecture token of a connected Netrunner?
-    const netrunnerActor = game.actors.find(
-      (a) => getNetConnection(a)?.archTokenId === tokenDoc.id,
-    );
-    if (!netrunnerActor) return;
-
-    // Gather all running executables that have an active Program Actor with a
-    // token in this scene.
-    const runningExes = netrunnerActor.items.filter(
-      (i) => i.type === 'programExecutable' && i.system.running,
-    );
-    for (const exe of runningExes) {
-      const programActorId = exe.getFlag('cyberpunk-blue', PROGRAM_ACTOR_FLAG);
-      if (!programActorId) continue;
-      const programTok = scene.tokens.find((t) => t.actorId === programActorId);
-      if (!programTok) continue;
-      // Move silently without triggering budget hooks
-      await programTok.update({ x: oldPos.x, y: oldPos.y }, { animate: false });
-    }
-    return;
-  }
+  if (isNetArchitectureScene(scene)) return; // NET movement has no budget cost
 
   if (!game.combat?.started) return;
   if (game.user.id !== userId) return; // only the initiating client writes
@@ -3540,16 +3523,26 @@ function _templateEffectDiffers(current, def) {
 }
 
 /**
- * One-time repair: refresh catalogue template Active Effects on program copies
- * that already exist in the world. Compendium entries are fixed by
- * _syncProgramEntries, but every executable already dragged onto a cyberdeck or
- * embedded on a Program actor carries its own stale copy of the template — and
- * that copy is what the aura/affliction machinery actually reads.
+ * One-time repair for program copies that already exist in the world.
+ * _syncProgramEntries keeps the compendium current, but every executable that
+ * was dragged onto a cyberdeck or embedded on a Program actor before a given
+ * catalogue change carries its own stale copy — and that copy, not the pack, is
+ * what the combat and aura machinery reads.
+ *
+ * Two things are brought back in line with the catalogue:
+ *   • template Active Effects (the Skunk aura's changes were wrong), and
+ *   • `netCombat` + `damageFormula`, which most program entries did not carry
+ *     when the packs were first seeded. A Black ICE whose stored attack mode is
+ *     still 'none' does nothing on node entry now that an unconfigured attack no
+ *     longer falls back to an ATK-derived guess.
+ *
+ * netCombat is merged, not replaced, matching how _syncProgramEntries treats the
+ * pack: authored catalogue fields win, anything else the GM set is preserved.
  */
-async function repairProgramTemplateEffects() {
+async function repairProgramCatalogueData() {
   const byName = new Map(
     PROGRAM_CATALOGUE
-      .filter((it) => it.type === 'programExecutable' && (it.effects ?? []).length)
+      .filter((it) => it.type === 'programExecutable')
       .map((it) => [it.name, it]),
   );
   if (!byName.size) return;
@@ -3560,22 +3553,42 @@ async function repairProgramTemplateEffects() {
   ].filter((d) => (d.documentName === 'Item' && d.type === 'programExecutable')
     || (d.documentName === 'Actor' && d.type === 'program'));
 
-  let repaired = 0;
+  let effectsFixed = 0;
+  let netFixed = 0;
   for (const doc of docs) {
     const def = byName.get(doc.name);
     if (!def) continue;
-    const updates = [];
-    for (const e of def.effects) {
+
+    const effectUpdates = [];
+    for (const e of (def.effects ?? [])) {
       const current = doc.effects.get(e._id);
       if (!current || !_templateEffectDiffers(current, e)) continue;
-      updates.push({ _id: e._id, name: e.name, changes: e.changes ?? [], flags: e.flags ?? {} });
+      effectUpdates.push({ _id: e._id, name: e.name, changes: e.changes ?? [], flags: e.flags ?? {} });
     }
-    if (updates.length) {
-      await doc.updateEmbeddedDocuments('ActiveEffect', updates);
-      repaired += updates.length;
+    if (effectUpdates.length) {
+      await doc.updateEmbeddedDocuments('ActiveEffect', effectUpdates);
+      effectsFixed += effectUpdates.length;
+    }
+
+    const defNet = def.system?.netCombat ?? null;
+    const update = {};
+    if (defNet) {
+      const current = doc.system?.netCombat ?? {};
+      const merged = foundry.utils.mergeObject(foundry.utils.deepClone(current), defNet, { inplace: false });
+      if (JSON.stringify(current) !== JSON.stringify(merged)) update['system.netCombat'] = defNet;
+    }
+    const defFormula = def.system?.damageFormula ?? '';
+    if (defFormula && (doc.system?.damageFormula ?? '') !== defFormula) {
+      update['system.damageFormula'] = defFormula;
+    }
+    if (Object.keys(update).length) {
+      await doc.update(update);
+      netFixed++;
     }
   }
-  if (repaired) console.log(`Cyberpunk Blue | Repaired ${repaired} stale program template effects in the world.`);
+  if (effectsFixed || netFixed) {
+    console.log(`Cyberpunk Blue | Repaired ${effectsFixed} program template effects and ${netFixed} stale NET Combat configs in the world.`);
+  }
 }
 
 /**
