@@ -519,7 +519,9 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       ? await Promise.all((itemData.system.embeddedMods ?? []).map(async (mod) => ({
           ...mod,
           typeLabel: MOD_TYPES.find((t) => t.value === mod.modType)?.label ?? mod.modType,
-          enrichedDescription: mod.description ? await TextEditor.enrichHTML(mod.description, { async: true }) : '',
+          enrichedDescription: mod.description
+            ? await foundry.applications.ux.TextEditor.implementation.enrichHTML(mod.description, { async: true })
+            : '',
           weaponLabel: mod.targetWeaponIndex >= 0
             ? (itemData.system.weapons?.[mod.targetWeaponIndex]
                 ? `Weapon ${mod.targetWeaponIndex + 1}`

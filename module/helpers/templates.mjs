@@ -4,7 +4,7 @@
  * @return {Promise}
  */
 export const preloadHandlebarsTemplates = async function () {
-  return loadTemplates([
+  return foundry.applications.handlebars.loadTemplates([
     // Character Creation
     'systems/cyberpunk-blue/templates/character-creation/wizard.hbs',
     // Apps

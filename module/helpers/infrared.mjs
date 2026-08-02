@@ -260,8 +260,12 @@ function computeInfraredUpdate(doc, range, prefix = '') {
   }
 
   // range 0 → remove any IR entry (leave the token's sight setting untouched).
+  // `{-=key: null}` is deprecated since v14 (removed in v16) in favor of an
+  // explicit ForcedDeletion operator.
   if (!existing) return null;
-  return { [`${prefix}detectionModes.-=${INFRARED_ID}`]: null };
+  return {
+    [`${prefix}detectionModes`]: { [INFRARED_ID]: new foundry.data.operators.ForcedDeletion() },
+  };
 }
 
 /**

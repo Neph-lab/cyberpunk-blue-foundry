@@ -264,7 +264,13 @@ export async function placeProgramTokens(actor, { netAt = null } = {}) {
   }
 
   if (!updates.length) return;
-  await scene.updateEmbeddedDocuments('Token', updates, { teleport: true, animate: false });
+  // Displace rather than update: a bare x/y update is a *movement* (see above),
+  // and the `teleport` operation flag that used to suppress that is deprecated
+  // (removed in v15) — its own shim just rewrites it to this waypoint action.
+  // Measured on 14.365: one updateToken fire, lands exactly on target.
+  for (const { _id, x, y } of updates) {
+    await scene.tokens.get(_id)?.move([{ x, y, action: 'displace' }], { showRuler: false });
+  }
 }
 
 /** Per-Netrunner placement queues, keyed by actor id. */
