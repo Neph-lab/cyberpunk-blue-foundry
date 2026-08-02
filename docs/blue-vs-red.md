@@ -94,6 +94,7 @@ Categories are **buckets**, not Roles. Don't list "Leader" or "Specialist" as if
 ## Other notable terminology differences
 
 - **Skills** in Blue have a `components` field — sub-skill breakdowns. Don't import Red's flat skill list; consult `config.mjs` `SKILLS`.
+- **Component *uses* are not Components.** Cloak and Slide are two uses of the **Ghost** Component; Zap and Defend are uses of **Cracker**; Breach and Encrypt/Decrypt are uses of **Codebreak**; and so on. Only the names in `config.mjs` `COMPONENT_LABELS` exist as Components, and only those have a `system.components.<slug>` schema path. A use has *no* data of its own — an Active Effect keyed at `system.components.cloak.bonus` silently does nothing. Modify the parent Component instead (the full use list is `NET_COMPONENT_USES` in `net-program-combat.mjs`), and check whether the Component has other uses you'd be hitting too.
 - **Critical Injuries** exist in Blue, but the tables (`packs/critical-injury-tables`) are Blue-authored — don't reach for Red's tables.
 - **Cyberware** categories: neuralware, cyberoptics, cyberaudio, cyberarms, cyberlegs, internal, external, fashionware, borgware. See `cyberware-catalogue.mjs` field docs.
 - **Cost ladder**: Cheap, Everyday, Costly, Premium, Expensive, Very Expensive, Luxury, Super Luxury (the COST_LADDER in catalogue files). Same tier names as Red but **prices may differ** — never quote a price from memory; consult the catalogue.
