@@ -8,7 +8,7 @@
  * Excluded by design (per memory/weapon-cards-excluded.md):
  *   - Arasaka Daikon NT Mantis Blades (cyberware, modeled separately)
  *
- * Previously excluded, now implemented from tmp/items-supplemental.md:
+ * Previously excluded, now implemented (supplemental items batch):
  *   - Arasaka Onibi Plasma Caster (flamethrower cone + self-cone malfunction)
  *   - Zetatech Microwaver-55 (affliction: disable random cyberware, bypasses armor)
  *   - Budget Arms Slaught-O-Matic (single-use SMG, noReload flag)
