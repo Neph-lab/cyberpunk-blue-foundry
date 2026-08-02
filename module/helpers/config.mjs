@@ -358,6 +358,41 @@ function buildComponents(skills) {
   return components;
 }
 
+/**
+ * Component *uses* — the individual actions a Component can be rolled for.
+ * Only the Netrunning Components have them; every other Component is rolled
+ * as a whole.
+ *
+ * A use is not a Component: it has no rank and no training. What it does have
+ * is its own `bonus` channel (`system.componentUses.<slug>.bonus`) so an effect
+ * can hit exactly one action — Skunk penalizes Slide and Cloak but not the rest
+ * of Ghost, a deck mod might boost Breach but not Encrypt/Decrypt. The use
+ * bonus is added on top of the Component's modifier and is never folded into
+ * the min(skill, component) resolution.
+ *
+ * Slugs are unique across all Components, so the flat `componentUses` map below
+ * is unambiguous. Keep them that way — the AE key space is flat.
+ */
+const COMPONENT_USES = {
+  codebreak:    [{ slug: 'breach',  label: 'Breach' },  { slug: 'encryptDecrypt', label: 'Encrypt/Decrypt' }],
+  cracker:      [{ slug: 'defend',  label: 'Defend' },  { slug: 'zap', label: 'Zap' }],
+  dev:          [{ slug: 'code',    label: 'Code' },    { slug: 'deconstruct', label: 'Deconstruct' }],
+  ghost:        [{ slug: 'cloak',   label: 'Cloak' },   { slug: 'slide', label: 'Slide' }],
+  spider:       [{ slug: 'eyeDee',  label: 'Eye-Dee' }, { slug: 'pathfinder', label: 'Pathfinder' }, { slug: 'scanner', label: 'Scanner' }],
+  quickhacking: [{ slug: 'upload',  label: 'Upload' },  { slug: 'quickbreach', label: 'Quickbreach' }],
+};
+
+/** Flatten COMPONENT_USES to `{ <useSlug>: { label, component } }`. */
+function buildComponentUses(usesByComponent) {
+  const uses = {};
+  for (const [componentSlug, list] of Object.entries(usesByComponent)) {
+    for (const use of list) {
+      uses[use.slug] = { label: use.label, component: componentSlug };
+    }
+  }
+  return uses;
+}
+
 const COST_LADDER = [
   '€$10 (Cheap)',
   '€$20 (Everyday)',
@@ -516,6 +551,8 @@ export const CYBER_BLUE = {
   skills: SKILLS,
   skillCategories: SKILL_CATEGORIES,
   components: buildComponents(SKILLS),
+  usesByComponent: COMPONENT_USES,
+  componentUses: buildComponentUses(COMPONENT_USES),
   costLadder: COST_LADDER,
   manufacturers: MANUFACTURERS,
   resources: {

@@ -12,6 +12,7 @@
 | `system.skills.<slug>.bonus` | Adds to rolls using that skill without corrupting the player-set rank. Primary target for cyberware skill bonuses (Medscanner +2 Medicine, Voice Stress Analyzer +2 Human Perception, etc.) and Ninja/Solo tactic bonuses. |
 | `system.skills.<slug>.generalBonus` | Flat modifier on every roll using that skill, added *on top of* the skill/component min instead of being folded into the skill side of it. Use when the full value must land regardless of ranks — e.g. the Blind condition's −10 to Handgun / Shoulder Arms / Heavy Weapons. |
 | `system.components.<slug>.bonus` | Adds to component (weapon/martial arts) rolls. Target for Ninja Martial Skill, Solo Precision Attack (if applied here), etc. |
+| `system.componentUses.<slug>.bonus` | Adds to a *single use* of a Netrunning Component, leaving that Component's other uses alone — e.g. Skunk's −2 to `cloak` and `slide` but not the rest of Ghost. Slugs (`breach`, `encryptDecrypt`, `defend`, `zap`, `code`, `deconstruct`, `cloak`, `slide`, `eyeDee`, `pathfinder`, `scanner`, `upload`, `quickbreach`) are flat and unique; the list lives in `config.mjs` `COMPONENT_USES`. Added on top of the skill/component min, never folded into it. **A use is not a Component** — `system.components.cloak.bonus` is not a path. |
 | `system.resources.hp.max` | Modifies maximum HP. |
 | `system.resources.psyche.maxBonus` | Modifies maximum Psyche pool. |
 

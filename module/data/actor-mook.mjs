@@ -48,6 +48,16 @@ export default class CyberBlueMook extends CyberBlueDataModel {
           return accumulator;
         }, {})
       ),
+      // Per-use bonus channel, mirroring the character schema so effects that
+      // target `system.componentUses.<slug>.bonus` land on mooks too.
+      componentUses: new fields.SchemaField(
+        Object.keys(CONFIG.CYBER_BLUE.componentUses).reduce((accumulator, useSlug) => {
+          accumulator[useSlug] = new fields.SchemaField({
+            bonus: new fields.NumberField({ ...requiredInteger, initial: 0 }),
+          });
+          return accumulator;
+        }, {})
+      ),
       description: new fields.HTMLField({ initial: '' }),
       notes: new fields.HTMLField({ initial: '' }),
       money: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),

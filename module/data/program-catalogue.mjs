@@ -302,12 +302,12 @@ export const PROGRAM_CATALOGUE = [
       icon: 'icons/svg/daze.svg',
       disabled: true,
       transfer: false,
-      // Cloak and Slide are the two *uses* of the Ghost Component, not
-      // Components in their own right — there is no system.components.cloak /
-      // .slide to target. Ghost has no other use, so a −2 on the Component is
-      // exactly "all Slide and Cloak checks at −2".
+      // Cloak and Slide are *uses* of the Ghost Component, not Components in
+      // their own right — they live under system.componentUses, not
+      // system.components. (See docs/blue-vs-red.md.)
       changes: [
-        { key: 'system.components.ghost.bonus', mode: 2, value: '-2' },
+        { key: 'system.componentUses.cloak.bonus', mode: 2, value: '-2' },
+        { key: 'system.componentUses.slide.bonus', mode: 2, value: '-2' },
       ],
       flags: { 'cyberpunk-blue': {} },
     }],

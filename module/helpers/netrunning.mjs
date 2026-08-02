@@ -900,6 +900,59 @@ async function _despawnProgramActor(
   }
 }
 
+// ── Netrunning roll modifiers ──────────────────────────────────────────────────
+
+/**
+ * The roll modifier for a Netrunning Component, optionally narrowed to one of
+ * its uses. Single source of truth for every Netrunning roll — the Netrunner
+ * tab buttons, Zap, Support attacks, and Quickbreach all resolve through here.
+ *
+ *   INT
+ * + min(netrunning rank + skill bonus, component rank + component bonus)
+ * + Netrunner role rank                    (general)
+ * + general skill/component bonuses        (never capped by the min)
+ * + the use's own bonus                    (system.componentUses.<slug>.bonus)
+ *
+ * The use bonus sits outside the min deliberately: it models a situational
+ * effect on one action (Skunk's −2 to Slide and Cloak), not training.
+ *
+ * @param {Actor}       actor
+ * @param {string}      componentSlug
+ * @param {string|null} [useSlug] - a slug from CONFIG.CYBER_BLUE.componentUses
+ * @returns {{modifier: number, useBonus: number, tooltip: string}}
+ */
+export function getNetUseModifier(actor, componentSlug, useSlug = null) {
+  const sys = actor?.system ?? {};
+  const num = (v) => Number(v) || 0;
+
+  const netrunnerRole = actor?.items?.find((i) => i.type === 'role'
+    && i.name === 'Netrunner' && (Number(i.system.rank) || 0) >= 1);
+  const roleRank = num(netrunnerRole?.system?.rank);
+
+  const intVal          = num(sys.stats?.int?.value);
+  const skillRank       = num(sys.skills?.netrunning?.rank);
+  const skillBonus      = num(sys.skills?.netrunning?.bonus);
+  const skillGeneral    = num(sys.skills?.netrunning?.generalBonus);
+  const compRank        = num(sys.components?.[componentSlug]?.rank);
+  const compBonus       = num(sys.components?.[componentSlug]?.bonus);
+  const compGeneral     = num(sys.components?.[componentSlug]?.generalBonus);
+  const useBonus        = useSlug ? num(sys.componentUses?.[useSlug]?.bonus) : 0;
+
+  const usedRank = Math.min(skillRank + skillBonus, compRank + compBonus);
+  const general  = skillGeneral + compGeneral;
+  const modifier = intVal + usedRank + roleRank + general + useBonus;
+
+  const compLabel = CONFIG.CYBER_BLUE.components?.[componentSlug]?.label ?? componentSlug;
+  const lines = [`INT +${intVal}`, `Netrunner +${roleRank}`, `${compLabel} +${usedRank}`];
+  if (general) lines.push(`Bonus +${general}`);
+  if (useBonus) {
+    const useLabel = CONFIG.CYBER_BLUE.componentUses?.[useSlug]?.label ?? useSlug;
+    lines.push(`${useLabel} ${useBonus >= 0 ? '+' : ''}${useBonus}`);
+  }
+
+  return { modifier, useBonus, tooltip: lines.join('<br>') };
+}
+
 // ── Quickhacking ───────────────────────────────────────────────────────────────
 
 /**
@@ -984,21 +1037,7 @@ export function checkQuickhackPrereqs(actor, targetToken = null) {
  * @returns {Promise<boolean>} true if breach succeeded
  */
 export async function performQuickhackBreach(actor, targetActor) {
-  const sys            = actor.system;
-  const networkerRole  = actor.items.find((i) => i.type === 'role' && i.system.category === 'networker' && (Number(i.system.rank) || 0) >= 1);
-  const networkerRank  = Number(networkerRole?.system?.rank) || 0;
-  const intVal         = Number(sys.stats?.int?.value)          || 0;
-  const netrunningRank = Number(sys.skills?.netrunning?.rank)   || 0;
-  const netrunningBonus = Number(sys.skills?.netrunning?.bonus) || 0;
-  const netrunningGeneral = Number(sys.skills?.netrunning?.generalBonus) || 0;
-  const qhRank         = Number(sys.components?.quickhacking?.rank) || 0;
-  const qhBonus        = Number(sys.components?.quickhacking?.bonus) || 0;
-  const qhGeneral      = Number(sys.components?.quickhacking?.generalBonus) || 0;
-  // INT + min(netrunning+skillBonus, quickhacking+componentBonus) + Netrunner
-  // rank (general) + any general skill/component bonus.
-  const modifier       = intVal
-    + Math.min(netrunningRank + netrunningBonus, qhRank + qhBonus)
-    + networkerRank + netrunningGeneral + qhGeneral;
+  const { modifier } = getNetUseModifier(actor, 'quickhacking', 'quickbreach');
 
   const selfIceCount = targetActor.items?.filter((i) =>
     i.type === 'cyberware'

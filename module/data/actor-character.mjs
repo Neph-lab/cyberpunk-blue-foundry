@@ -35,6 +35,19 @@ export default class CyberBlueCharacter extends CyberBlueActorBase {
       }, {})
     );
 
+    // Per-use bonus channel. AE target: system.componentUses.<slug>.bonus.
+    // A use (Cloak, Slide, Breach, …) has no rank of its own — this is a flat
+    // modifier added on top of its parent Component's roll, so an effect can
+    // hit one action without touching the Component's other uses.
+    schema.componentUses = new fields.SchemaField(
+      Object.keys(CONFIG.CYBER_BLUE.componentUses).reduce((accumulator, useSlug) => {
+        accumulator[useSlug] = new fields.SchemaField({
+          bonus: new fields.NumberField({ ...requiredInteger, initial: 0 }),
+        });
+        return accumulator;
+      }, {})
+    );
+
     schema.roleState = new fields.SchemaField({
       activeLowRankRoleId: new fields.StringField({
         required: false,

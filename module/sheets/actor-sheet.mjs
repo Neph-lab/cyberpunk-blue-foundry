@@ -19,6 +19,7 @@ import {
   resolveNetAttack,
   startEncryptDecryptTimer,
   getLinkedExecutable,
+  getNetUseModifier,
 } from '../helpers/netrunning.mjs';
 import { getNetCombat, isInert, getBoost } from '../helpers/net-program-combat.mjs';
 import { resolveWeaponAttack, resolveAutofireAttack, resolveDoubleLockAttack } from '../helpers/combat-resolution.mjs';
@@ -858,8 +859,6 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       const rs = normalizeRoleSystemData(role.system);
       return role.name === 'Netrunner' && (Number(rs.rank) || 0) >= 1;
     });
-    const networkerRoleSystem = networkerRole ? normalizeRoleSystemData(networkerRole.system) : null;
-    const networkerRank = Number(networkerRoleSystem?.rank) || 0;
     // Operatives who've unlocked the "Infiltrate Network" specialty (rank ≥ 5)
     // also get net actions and should see the Netrunning tab even without the
     // Netrunner role. We detect this via a nonzero netActionsTotal.
@@ -868,54 +867,34 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
 
     // ── Netrunner tab context ──────────────────────────────────────────────
     if (context.showNetrunningTab) {
-      // Component uses (excluding Software)
-      const NETRUNNER_COMPONENT_USES = {
-        codebreak:   [{ slug: 'breach', label: 'Breach' }, { slug: 'encryptDecrypt', label: 'Encrypt/Decrypt' }],
-        cracker:     [{ slug: 'defend', label: 'Defend' }, { slug: 'zap', label: 'Zap' }],
-        dev:         [{ slug: 'code', label: 'Code' }, { slug: 'deconstruct', label: 'Deconstruct' }],
-        ghost:       [{ slug: 'cloak', label: 'Cloak' }, { slug: 'slide', label: 'Slide' }],
-        spider:      [{ slug: 'eyeDee', label: 'Eye-Dee' }, { slug: 'pathfinder', label: 'Pathfinder' }, { slug: 'scanner', label: 'Scanner' }],
-        quickhacking: [{ slug: 'upload', label: 'Upload' }, { slug: 'quickbreach', label: 'Quickbreach' }],
-      };
+      // Component uses (excluding Software, which has none). Every modifier —
+      // the Component header and each individual use — comes from
+      // getNetUseModifier so the sheet can never drift from the roll paths.
       const NETRUNNER_COMPONENTS_ORDER = ['codebreak', 'cracker', 'dev', 'ghost', 'spider', 'quickhacking'];
-      const intVal = system.stats?.int?.value ?? 0;
-      const netrunningSkillRank = system.skills?.netrunning?.rank ?? 0;
-      const netrunningBonus = system.skills?.netrunning?.bonus ?? 0;
-      const netrunningGeneral = system.skills?.netrunning?.generalBonus ?? 0;
 
       context.netrunnerComponents = NETRUNNER_COMPONENTS_ORDER.map((slug) => {
-        const componentRank = system.components?.[slug]?.rank ?? 0;
-        const componentBonus = system.components?.[slug]?.bonus ?? 0;
-        const componentGeneral = system.components?.[slug]?.generalBonus ?? 0;
-        // result = INT + min(netrunning+skillBonus, component+componentBonus)
-        //          + Netrunner rank (general) + any general skill/component bonus.
-        const usedRank = Math.min(netrunningSkillRank + netrunningBonus, componentRank + componentBonus);
-        const extraGeneral = netrunningGeneral + componentGeneral;
-        const modifier = intVal + usedRank + networkerRank + extraGeneral;
-        const modLabel = (modifier >= 0 ? '+' : '') + modifier;
-        // Breakdown tooltip mirroring the unified roll buttons.
-        const tooltipLines = [
-          `INT +${intVal}`,
-          `Netrunner +${networkerRank}`,
-          `${CONFIG.CYBER_BLUE.components[slug]?.label ?? slug} +${usedRank}`,
-        ];
-        if (extraGeneral) tooltipLines.push(`Bonus +${extraGeneral}`);
-        const tooltip = tooltipLines.join('<br>');
-        // Embed componentSlug + modifier into each use so the template doesn't need ../
-        const uses = (NETRUNNER_COMPONENT_USES[slug] ?? []).map((u) => ({
-          ...u,
-          componentSlug: slug,
-          modifier,
-          modLabel,
-          tooltip,
-        }));
+        const base = getNetUseModifier(this.document, slug);
+        const label = (n) => (n >= 0 ? '+' : '') + n;
+        // Each use carries its own modifier: the Component modifier plus that
+        // use's `system.componentUses.<slug>.bonus`, so a per-use effect shows
+        // on exactly the button it applies to.
+        const uses = (CONFIG.CYBER_BLUE.usesByComponent?.[slug] ?? []).map((u) => {
+          const useMod = getNetUseModifier(this.document, slug, u.slug);
+          return {
+            ...u,
+            componentSlug: slug,
+            modifier: useMod.modifier,
+            modLabel: label(useMod.modifier),
+            tooltip: useMod.tooltip,
+          };
+        });
         return {
           slug,
           label: CONFIG.CYBER_BLUE.components[slug]?.label ?? slug,
-          rank: componentRank,
-          modifier,
-          modLabel,
-          tooltip,
+          rank: system.components?.[slug]?.rank ?? 0,
+          modifier: base.modifier,
+          modLabel: label(base.modifier),
+          tooltip: base.tooltip,
           uses,
         };
       });
@@ -2396,22 +2375,9 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       return;
     }
 
-    // Cracker modifier (same math as Zap):
-    //   INT + min(netrunning+skillBonus, cracker+componentBonus) + Netrunner rank
-    //   (general) + any general skill/component bonus.
-    const sys = actor.system;
-    const networkerRole = actor.items.find((i) => i.type === 'role' && i.name === 'Netrunner' && (Number(i.system.rank) || 0) >= 1);
-    const networkerRank = Number(networkerRole?.system?.rank) || 0;
-    const intVal = Number(sys.stats?.int?.value) || 0;
-    const crackerRank = Number(sys.components?.cracker?.rank) || 0;
-    const crackerBonus = Number(sys.components?.cracker?.bonus) || 0;
-    const crackerGeneral = Number(sys.components?.cracker?.generalBonus) || 0;
-    const netrunningRank = Number(sys.skills?.netrunning?.rank) || 0;
-    const netrunningBonus = Number(sys.skills?.netrunning?.bonus) || 0;
-    const netrunningGeneral = Number(sys.skills?.netrunning?.generalBonus) || 0;
-    const crackerMod = intVal
-      + Math.min(netrunningRank + netrunningBonus, crackerRank + crackerBonus)
-      + networkerRank + netrunningGeneral + crackerGeneral;
+    // Cracker modifier (same math as Zap, including the Zap use bonus — a
+    // support attack is triggered through the same action).
+    const { modifier: crackerMod } = getNetUseModifier(actor, 'cracker', 'zap');
     const supportMod = Number(getNetCombat(exe)?.attack?.supportModifier) || 0;
 
     const label = game.i18n.format('CYBER_BLUE.Netrunning.NetCombat.SupportAttackLabel', { name: exe.name });
