@@ -136,7 +136,7 @@ async function rollGrabContest(actor, { displayChat = true, label = '' } = {}) {
  */
 async function applyMartialArtsDamage({
   attacker, targetActor, damageFormula, spMode = 'normal',
-  ablatesArmor: noAblation = false, targetVitals = false, label = 'Martial Arts',
+  noAblate = false, targetVitals = false, label = 'Martial Arts',
   forcedCritKey = null,
 }) {
   const rawSP = targetActor?.system?.resources?.armor?.value ?? null;
@@ -157,7 +157,7 @@ async function applyMartialArtsDamage({
 
   const tableType = targetVitals ? 'head' : 'body';
   const netDamage = sp !== null ? Math.max(finalDamage - sp, 0) : finalDamage;
-  const ablatesArmor = !noAblation && sp !== null && finalDamage >= sp;
+  const ablatesArmor = !noAblate && sp !== null && finalDamage >= sp;
 
   const bonusNotes = [];
   if (isCritical) bonusNotes.push(game.i18n.localize('CYBER_BLUE.CriticalInjury.CritBonus'));
@@ -184,7 +184,7 @@ async function applyMartialArtsDamage({
         flavor: damageFlavorHtml,
         rollMode: game.settings.get('core', 'rollMode'),
       });
-      await applyDamageWithPermission(targetActor, finalDamage, { armorPen });
+      await applyDamageWithPermission(targetActor, finalDamage, { armorPen, noAblate });
       if (isCritical) {
         if (forcedCritKey) {
           await applyForcedCriticalInjuryWithPermission(targetActor, forcedCritKey, attacker);
@@ -217,7 +217,6 @@ async function applyMartialArtsDamage({
  * @param {boolean} opts.noSpAblation  True for Brawling Strong Attack
  * @param {string}  opts.spMode        'normal' | 'half' | 'quarter'
  * @param {string|null} opts.forcedCritKey  Force a specific injury key
- * @param {boolean} opts.allowArmor    If false, no SP applied (Choke/Throw)
  */
 export async function resolveMartialArtsAttack(attacker, componentSlug, {
   targetVitals = false,
@@ -226,7 +225,6 @@ export async function resolveMartialArtsAttack(attacker, componentSlug, {
   noSpAblation = false,
   spMode = null,
   forcedCritKey = null,
-  allowArmor = true,
 } = {}) {
   const { token: targetToken, actor: targetActor } = getTarget();
 
@@ -237,7 +235,7 @@ export async function resolveMartialArtsAttack(attacker, componentSlug, {
     return;
   }
 
-  const rawSP = allowArmor && targetActor ? (targetActor.system?.resources?.armor?.value ?? null) : null;
+  const rawSP = targetActor ? (targetActor.system?.resources?.armor?.value ?? null) : null;
 
   // Determine SP mode from component if not overridden
   const resolvedSpMode = spMode ?? (HALF_SP_COMPONENTS.has(componentSlug) ? 'half' : 'normal');
@@ -318,7 +316,7 @@ export async function resolveMartialArtsAttack(attacker, componentSlug, {
     attacker, targetActor,
     damageFormula,
     spMode: resolvedSpMode,
-    ablatesArmor: !noSpAblation,
+    noAblate: noSpAblation,
     targetVitals,
     label: attackTitle,
     forcedCritKey,
@@ -364,7 +362,7 @@ export async function resolveGrab(attacker) {
   });
 }
 
-/** Choke — BODY damage ignoring SP to a grappled target. */
+/** Choke — BODY damage to a grappled target, ignoring armor entirely (no SP, no ablation). */
 export async function resolveChoke(attacker) {
   const { actor: targetActor } = getTarget();
   if (!targetActor) { ui.notifications.warn(game.i18n.localize('CYBER_BLUE.MartialArts.TargetRequired')); return; }
@@ -395,7 +393,8 @@ export async function resolveChoke(attacker) {
     await attacker.setFlag('cyberpunk-blue', chokeKey, 0);
     chatContent = `<p><strong>${targetActor.name}</strong> is reduced to 1 HP and is now <strong>Unconscious</strong> (${threeConsecutive ? 'three consecutive chokes' : 'would drop below 1 HP'}).</p>`;
   } else {
-    await applyDamageWithPermission(targetActor, bodyValue);
+    // Armor is bypassed completely — the same assumption the wouldDropBelow1 check above makes.
+    await applyDamageWithPermission(targetActor, bodyValue, { ignoreArmor: true });
     chatContent = `<p>${game.i18n.format('CYBER_BLUE.MartialArts.ChokeDamage', { target: targetActor.name, damage: bodyValue })} (choke ${chokeCount}/3)</p>`;
   }
 
@@ -424,7 +423,7 @@ export async function resolveRecovery(attacker) {
   }
 }
 
-/** Throw — BODY damage ignoring SP, applies Prone, ends grapple. */
+/** Throw — BODY damage ignoring half the target's SP, applies Prone, ends grapple. */
 export async function resolveThrow(attacker) {
   const { actor: targetActor } = getTarget();
   if (!targetActor) { ui.notifications.warn(game.i18n.localize('CYBER_BLUE.MartialArts.TargetRequired')); return; }
@@ -436,15 +435,23 @@ export async function resolveThrow(attacker) {
   }
 
   const bodyValue = attacker.system?.stats?.body?.value ?? 0;
-  await applyDamageWithPermission(targetActor, bodyValue); // ignores SP (direct HP)
+  // Throw ignores half the target's SP: effective SP is ceil(SP / 2), and armorPen
+  // carries the other half so the HP lost matches the net shown below.
+  const rawSP = targetActor.system?.resources?.armor?.value ?? null;
+  const sp = rawSP !== null ? effectiveSP(rawSP, 'half') : null;
+  const netDamage = sp !== null ? Math.max(bodyValue - sp, 0) : bodyValue;
+  await applyDamageWithPermission(targetActor, bodyValue, { armorPen: armorPenFor(rawSP, sp) });
   await toggleStatusEffectWithPermission(targetActor, 'prone', true);
   await toggleStatusEffectWithPermission(targetActor, 'grappled', false);
   await attacker.unsetFlag('cyberpunk-blue', `grapplingTarget-${targetActor.id}`);
   await attacker.unsetFlag('cyberpunk-blue', `chokeCount-${targetActor.id}`);
 
+  const throwSpNote = (sp !== null && rawSP > 0)
+    ? `<p>${game.i18n.localize('CYBER_BLUE.Combat.SP')}: ${sp} (${game.i18n.localize('CYBER_BLUE.MartialArts.HalfSpIgnored')}, raw ${rawSP})</p>`
+    : '';
   await ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: attacker }),
-    content: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.MartialArts.Throw')}</h3><p>${game.i18n.format('CYBER_BLUE.MartialArts.ThrowSuccess', { target: targetActor.name, damage: bodyValue })}</p></div>`,
+    content: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.MartialArts.Throw')}</h3><p>${game.i18n.format('CYBER_BLUE.MartialArts.ThrowSuccess', { target: targetActor.name, damage: netDamage })}</p>${throwSpNote}</div>`,
   });
 }
 

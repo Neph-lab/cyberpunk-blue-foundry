@@ -141,17 +141,38 @@ test('barrier penetration bonus arrives on top of the through-SP damage', () => 
   assert.equal(applyDamageHpLoss(barrierPenFinalDamage, realSP, armorPen), netDamage + barrierPenBonus);
 });
 
-test('martial arts half / quarter SP modes keep the contract', () => {
-  const effectiveSP = (rawSP, mode) =>
-    mode === 'half' ? Math.ceil(rawSP / 2) : mode === 'quarter' ? Math.ceil(rawSP / 4) : rawSP;
+/** Mirrors effectiveSP() in helpers/martial-arts.mjs. */
+const martialArtsSP = (rawSP, mode) =>
+  mode === 'half' ? Math.ceil(rawSP / 2) : mode === 'quarter' ? Math.ceil(rawSP / 4) : rawSP;
 
+test('martial arts half / quarter SP modes keep the contract', () => {
   for (const [realSP, mode, finalDamage] of [[7, 'half', 10], [11, 'quarter', 14], [9, 'normal', 12]]) {
-    const sp = effectiveSP(realSP, mode);
+    const sp = martialArtsSP(realSP, mode);
     const armorPen = armorPenFor(realSP, sp);
     assert.equal(
       applyDamageHpLoss(finalDamage, realSP, armorPen),
       Math.max(finalDamage - sp, 0),
       `${mode} SP ${realSP}`,
     );
+  }
+});
+
+test('Throw ignores half the target SP, rounded up', () => {
+  // BODY 8 thrown into SP 7 armor: effective SP 4, so 4 HP comes off.
+  const realSP = 7;
+  const body = 8;
+  const sp = martialArtsSP(realSP, 'half');
+  const armorPen = armorPenFor(realSP, sp);
+  assert.equal(sp, 4);
+  assert.equal(armorPen, 3);
+  assert.equal(applyDamageHpLoss(body, realSP, armorPen), 4);
+  assert.equal(applyDamageHpLoss(body, realSP, armorPen), Math.max(body - sp, 0));
+});
+
+test('Choke ignores armor outright — the full BODY value lands', () => {
+  // ignoreArmor short-circuits SP entirely, so armorPen is irrelevant.
+  const body = 8;
+  for (const realSP of [0, 7, 20]) {
+    assert.equal(applyDamageHpLoss(body, 0, 0), body, `SP ${realSP} must not matter`);
   }
 });

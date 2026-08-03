@@ -952,8 +952,10 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
 
   const netDamage = sp !== null ? Math.max(finalDamage - sp, 0) : finalDamage;
   // Rubber ammo (noAblate): the round still interacts with armor normally for
-  // penetration, but degrades none of it.
-  const ablatesArmor = sp !== null && finalDamage >= sp && !(weapon.noAblate ?? false);
+  // penetration, but degrades none of it — passed to applyDamage so the armor
+  // really does stay intact, not just on the card.
+  const noAblate = !!(weapon.noAblate ?? false);
+  const ablatesArmor = sp !== null && finalDamage >= sp && !noAblate;
 
   // Barrier Penetration: bonus points bypass SP entirely.
   // Compute what preSP value to pass so that applyDamage (which deducts SP
@@ -1079,7 +1081,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
         // The subsystem applies its own SP ablation, so the vehicle's main armor
         // is untouched (no extra Armor-Piercing ablation against main SP).
         // `sp` was derived from the subsystem's SP, so armorPen carries over unchanged.
-        await applyDamageToSubsystemWithPermission(targetActor, vitalSubsystem.id, actualDamage, { armorPen });
+        await applyDamageToSubsystemWithPermission(targetActor, vitalSubsystem.id, actualDamage, { armorPen, noAblate });
       } else if (isToxicPayload) {
         // Toxic ammo: the round's damage only established that it broke skin —
         // none of it carries through. The payload is resolved instead: a
@@ -1107,7 +1109,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
         });
         await applyDamageWithPermission(targetActor, toxDealt, { ignoreArmor: true });
       } else {
-        await applyDamageWithPermission(targetActor, actualDamage, { armorPen });
+        await applyDamageWithPermission(targetActor, actualDamage, { armorPen, noAblate });
         // Armor Piercing: ablate 1 extra SP (Tactician slug / AP ammo)
         if ((weapon.armorPiercing ?? false) && ablatesArmor) {
           await ablateArmorExtraWithPermission(targetActor);
@@ -1576,7 +1578,9 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
   const finalDamage = rawDamage + critBonusAF;
 
   const netDamage = sp !== null ? Math.max(finalDamage - sp, 0) : finalDamage;
-  const ablatesArmor = sp !== null && finalDamage >= sp;
+  // Rubber ammo (noAblate) degrades no armor, on autofire as on a single shot.
+  const noAblate = !!(weapon.noAblate ?? false);
+  const ablatesArmor = sp !== null && finalDamage >= sp && !noAblate;
 
   const critLine = isCritical
     ? `<p class="crit-roll-note"><i class="fas fa-skull"></i> ${game.i18n.format('CYBER_BLUE.CriticalInjury.CritDetected', { count: critDiceCount })} ${game.i18n.localize('CYBER_BLUE.CriticalInjury.CritBonus')}</p>`
@@ -1606,7 +1610,7 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
         flavor: autofireFlavorHtml,
         rollMode: game.settings.get('core', 'rollMode'),
       });
-      await applyDamageWithPermission(targetActor, finalDamage, { armorPen });
+      await applyDamageWithPermission(targetActor, finalDamage, { armorPen, noAblate });
       // Armor Piercing (ammo): ablate 1 extra SP.
       if ((weapon.armorPiercing ?? false) && ablatesArmor) {
         await ablateArmorExtraWithPermission(targetActor);

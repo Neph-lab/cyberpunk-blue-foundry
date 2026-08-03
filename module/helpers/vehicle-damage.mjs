@@ -299,9 +299,10 @@ export function getVitalAreaSubsystem(vehicleActor, regionId) {
  * @param {object} [options]
  * @param {number} [options.armorPen]  SP the hit ignores — mirrors `Actor#applyDamage`.
  *                                     The subsystem's SP still degrades from its real value.
+ * @param {boolean} [options.noAblate] leave the subsystem's SP intact
  * @returns {Promise<{sp:number, hpLoss:number, ablated:boolean}>}
  */
-export async function applyDamageToSubsystem(subsystemItem, rawDamage, { armorPen = 0 } = {}) {
+export async function applyDamageToSubsystem(subsystemItem, rawDamage, { armorPen = 0, noAblate = false } = {}) {
   const total = Math.max(Number(rawDamage) || 0, 0);
   const sp    = Math.max(subsystemItem.system?.sp?.value ?? 0, 0);
   const hp    = Math.max(subsystemItem.system?.hp?.value ?? 0, 0);
@@ -309,7 +310,7 @@ export async function applyDamageToSubsystem(subsystemItem, rawDamage, { armorPe
 
   const penetrated = total - effSp;
   const hpLoss     = Math.max(penetrated, 0);
-  const ablate     = sp > 0 && penetrated >= 0;
+  const ablate     = !noAblate && sp > 0 && penetrated >= 0;
 
   const update = {};
   if (hpLoss > 0)  update['system.hp.value'] = Math.max(hp - hpLoss, 0);

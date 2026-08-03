@@ -370,7 +370,25 @@ export class CyberBlueActor extends Actor {
     return availableArmor.find((item) => item.id === this.system.combat.activeArmorItemId) ?? availableArmor[0];
   }
 
-  async applyDamage(amount, { ignoreArmor = false, armorPen = 0 } = {}) {
+  /**
+   * Apply pre-SP damage: SP blocks part of it, the remainder comes off HP, and the
+   * armor ablates by 1 unless told otherwise.
+   *
+   * The three "how does armor behave" options are deliberately independent:
+   *   • `ignoreArmor` — armor isn't there at all: no blocking, no ablation.
+   *   • `armorPen`    — armor blocks less, but still degrades from its real value.
+   *                     Must equal whatever SP reduction the caller already showed
+   *                     the player (see helpers/armor-pen.mjs).
+   *   • `noAblate`    — armor blocks normally but takes no wear (Rubber ammo,
+   *                     Brawling Strong Attack).
+   *
+   * @param {number} amount               pre-SP damage total
+   * @param {object} [options]
+   * @param {boolean} [options.ignoreArmor]
+   * @param {number}  [options.armorPen]
+   * @param {boolean} [options.noAblate]
+   */
+  async applyDamage(amount, { ignoreArmor = false, armorPen = 0, noAblate = false } = {}) {
     const totalDamage = Math.max(Number(amount) || 0, 0);
     // Armor-Piercing: the target's effective SP is reduced by `armorPen` for this
     // hit's penetration (SP still degrades from its real value). The extra armor
@@ -384,7 +402,7 @@ export class CyberBlueActor extends Actor {
       const effSp = Math.max(realSp - pen, 0); // effective SP for penetration (AP)
       const penetrated = totalDamage - effSp;
       const hpLoss = Math.max(penetrated, 0);
-      const shouldAblate = !ignoreArmor && realSp > 0 && penetrated >= 0;
+      const shouldAblate = !ignoreArmor && !noAblate && realSp > 0 && penetrated >= 0;
       const updates = [];
 
       if (hpLoss > 0) {
@@ -424,7 +442,7 @@ export class CyberBlueActor extends Actor {
       const effSp      = Math.max(realSp - pen, 0); // effective SP for penetration (AP)
       const penetrated = totalDamage - effSp;
       const hpLoss     = Math.max(penetrated, 0);
-      const shouldAblate = !ignoreArmor && realSp > 0 && penetrated >= 0;
+      const shouldAblate = !ignoreArmor && !noAblate && realSp > 0 && penetrated >= 0;
       const updates    = [];
 
       if (hpLoss > 0) {
@@ -451,7 +469,7 @@ export class CyberBlueActor extends Actor {
     const effSp = Math.max(currentSp - pen, 0); // effective SP for penetration (AP)
     const penetrated = activeArmor ? totalDamage - effSp : totalDamage;
     const hpLoss = penetrated > 0 ? penetrated : 0;
-    const shouldAblateArmor = Boolean(activeArmor) && currentSp > 0 && penetrated >= 0;
+    const shouldAblateArmor = Boolean(activeArmor) && !noAblate && currentSp > 0 && penetrated >= 0;
     const updates = [];
 
     if (hpLoss > 0) {

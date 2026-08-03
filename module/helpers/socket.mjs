@@ -58,10 +58,14 @@ export function registerSocketHandlers() {
 
     switch (message.type) {
       case 'applyDamage': {
-        const { targetUuid, finalDamage, armorPen, ignoreArmor } = message;
+        const { targetUuid, finalDamage, armorPen, ignoreArmor, noAblate } = message;
         const actor = await fromUuid(targetUuid);
         if (!actor) return;
-        await actor.applyDamage(finalDamage, { armorPen: armorPen ?? 0, ignoreArmor: !!ignoreArmor });
+        await actor.applyDamage(finalDamage, {
+          armorPen: armorPen ?? 0,
+          ignoreArmor: !!ignoreArmor,
+          noAblate: !!noAblate,
+        });
         break;
       }
       case 'rollCriticalInjury': {
@@ -82,12 +86,12 @@ export function registerSocketHandlers() {
         break;
       }
       case 'applyDamageToSubsystem': {
-        const { vehicleUuid, subsystemItemId, rawDamage, armorPen } = message;
+        const { vehicleUuid, subsystemItemId, rawDamage, armorPen, noAblate } = message;
         const { applyDamageToSubsystem } = await import('./vehicle-damage.mjs');
         const vehicle = await fromUuid(vehicleUuid);
         const sub = vehicle?.items?.get(subsystemItemId);
         if (sub?.type !== 'vehicleSubsystem') return;
-        await applyDamageToSubsystem(sub, rawDamage, { armorPen: armorPen ?? 0 });
+        await applyDamageToSubsystem(sub, rawDamage, { armorPen: armorPen ?? 0, noAblate: !!noAblate });
         break;
       }
       case 'applyForcedCriticalInjury': {
@@ -210,13 +214,17 @@ export function emitToGM(type, data = {}) {
  * Apply damage to an actor, delegating to the GM if the current user lacks permission.
  *
  * @param {Actor} targetActor
- * @param {number} finalDamage
+ * @param {number} finalDamage        pre-SP damage total
+ * @param {object} [options]          see Actor#applyDamage for the three armor options
+ * @param {number} [options.armorPen]
+ * @param {boolean} [options.ignoreArmor]
+ * @param {boolean} [options.noAblate]
  */
-export async function applyDamageWithPermission(targetActor, finalDamage, { armorPen = 0, ignoreArmor = false } = {}) {
+export async function applyDamageWithPermission(targetActor, finalDamage, { armorPen = 0, ignoreArmor = false, noAblate = false } = {}) {
   if (targetActor.isOwner || game.user.isGM) {
-    await targetActor.applyDamage(finalDamage, { armorPen, ignoreArmor });
+    await targetActor.applyDamage(finalDamage, { armorPen, ignoreArmor, noAblate });
   } else {
-    emitToGM('applyDamage', { targetUuid: targetActor.uuid, finalDamage, armorPen, ignoreArmor });
+    emitToGM('applyDamage', { targetUuid: targetActor.uuid, finalDamage, armorPen, ignoreArmor, noAblate });
   }
 }
 
@@ -251,19 +259,21 @@ export async function rollCriticalInjuryWithPermission(targetActor, tableType, {
  * @param {number} rawDamage         pre-SP damage total
  * @param {object} [options]
  * @param {number} [options.armorPen] SP the hit ignores (see helpers/armor-pen.mjs)
+ * @param {boolean} [options.noAblate] leave the subsystem's SP intact
  */
-export async function applyDamageToSubsystemWithPermission(vehicleActor, subsystemItemId, rawDamage, { armorPen = 0 } = {}) {
+export async function applyDamageToSubsystemWithPermission(vehicleActor, subsystemItemId, rawDamage, { armorPen = 0, noAblate = false } = {}) {
   const sub = vehicleActor.items?.get(subsystemItemId);
   if (sub?.type !== 'vehicleSubsystem') return;
   if (vehicleActor.isOwner || game.user.isGM) {
     const { applyDamageToSubsystem } = await import('./vehicle-damage.mjs');
-    await applyDamageToSubsystem(sub, rawDamage, { armorPen });
+    await applyDamageToSubsystem(sub, rawDamage, { armorPen, noAblate });
   } else {
     emitToGM('applyDamageToSubsystem', {
       vehicleUuid: vehicleActor.uuid,
       subsystemItemId,
       rawDamage,
       armorPen,
+      noAblate,
     });
   }
 }
