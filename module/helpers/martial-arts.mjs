@@ -34,6 +34,7 @@ import {
 } from './socket.mjs';
 import { playSfx } from './audio.mjs';
 import { getTarget, getDistanceMeters, rollTargetEvasion } from './targeting.mjs';
+import { armorPenFor } from './armor-pen.mjs';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -140,6 +141,10 @@ async function applyMartialArtsDamage({
 }) {
   const rawSP = targetActor?.system?.resources?.armor?.value ?? null;
   const sp = rawSP !== null ? effectiveSP(rawSP, spMode) : null;
+  // Karate/Taekwondo and Strong Attack halve SP, Flying Kick quarters it. applyDamage
+  // only sees the target's real SP, so it needs the same reduction as armorPen or the
+  // HP it removes falls short of the net damage shown on the card.
+  const armorPen = armorPenFor(rawSP, sp);
 
   const damageRoll = await new Roll(damageFormula).evaluate();
   const { count: critDiceCount } = detectCriticalDice(damageRoll);
@@ -179,7 +184,7 @@ async function applyMartialArtsDamage({
         flavor: damageFlavorHtml,
         rollMode: game.settings.get('core', 'rollMode'),
       });
-      await applyDamageWithPermission(targetActor, finalDamage);
+      await applyDamageWithPermission(targetActor, finalDamage, { armorPen });
       if (isCritical) {
         if (forcedCritKey) {
           await applyForcedCriticalInjuryWithPermission(targetActor, forcedCritKey, attacker);

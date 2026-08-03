@@ -82,12 +82,12 @@ export function registerSocketHandlers() {
         break;
       }
       case 'applyDamageToSubsystem': {
-        const { vehicleUuid, subsystemItemId, rawDamage } = message;
+        const { vehicleUuid, subsystemItemId, rawDamage, armorPen } = message;
         const { applyDamageToSubsystem } = await import('./vehicle-damage.mjs');
         const vehicle = await fromUuid(vehicleUuid);
         const sub = vehicle?.items?.get(subsystemItemId);
         if (sub?.type !== 'vehicleSubsystem') return;
-        await applyDamageToSubsystem(sub, rawDamage);
+        await applyDamageToSubsystem(sub, rawDamage, { armorPen: armorPen ?? 0 });
         break;
       }
       case 'applyForcedCriticalInjury': {
@@ -249,18 +249,21 @@ export async function rollCriticalInjuryWithPermission(targetActor, tableType, {
  * @param {Actor}  vehicleActor
  * @param {string} subsystemItemId
  * @param {number} rawDamage         pre-SP damage total
+ * @param {object} [options]
+ * @param {number} [options.armorPen] SP the hit ignores (see helpers/armor-pen.mjs)
  */
-export async function applyDamageToSubsystemWithPermission(vehicleActor, subsystemItemId, rawDamage) {
+export async function applyDamageToSubsystemWithPermission(vehicleActor, subsystemItemId, rawDamage, { armorPen = 0 } = {}) {
   const sub = vehicleActor.items?.get(subsystemItemId);
   if (sub?.type !== 'vehicleSubsystem') return;
   if (vehicleActor.isOwner || game.user.isGM) {
     const { applyDamageToSubsystem } = await import('./vehicle-damage.mjs');
-    await applyDamageToSubsystem(sub, rawDamage);
+    await applyDamageToSubsystem(sub, rawDamage, { armorPen });
   } else {
     emitToGM('applyDamageToSubsystem', {
       vehicleUuid: vehicleActor.uuid,
       subsystemItemId,
       rawDamage,
+      armorPen,
     });
   }
 }

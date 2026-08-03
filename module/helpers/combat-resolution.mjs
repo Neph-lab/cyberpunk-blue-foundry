@@ -15,6 +15,7 @@ import { clearWeaponCharge, countWallsBetweenTokens } from './tech-charge.mjs';
 import { getActiveAEFlag } from './effects.mjs';
 import { playUiSound, suppressNextFailSound, playSfx } from './audio.mjs';
 import { computeVisibilityPenalty } from './visibility.mjs';
+import { resolveEffectiveSp, armorPenFor, BURNING_EDGE_SP_LIMIT } from './armor-pen.mjs';
 import { isBlindAutoMiss, postBlindAutoMiss, postBlindAutoMissTarget } from './blind.mjs';
 import {
   getTarget,
@@ -787,24 +788,22 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
     weapon.armorPiercing = true;
   }
 
-  // Charged: effective SP is halved (ignore ½ SP).
+  // Effective SP for this hit — Spot Weakness / Ninja Weak-Spot (bypass), Burning
+  // Edge (Mono-Three, SP < 11 → 0), halveSP (Kendachi Shi Bayonet), the charged
+  // Tech Weapon's ½ SP, and Armor-Piercing ammo's flat spReduction, in that order.
+  // `armorPen` is the whole real-vs-effective gap, not just the AP part: applyDamage
+  // subtracts (real SP − armorPen), so handing it the full gap is what makes the HP
+  // it removes equal the net damage shown below.
   const rawSP = targetSP !== null ? targetSP : null;
-  // Spot Weakness / Ninja Weak-Spot: treat SP as 0 for this hit.
-  // Burning Edge (Mono-Three): blade ignores any target SP < 11 (treat as 0).
   const hasBurningEdge = !!(weapon.burningEdge ?? false);
-  const spAfterBurningEdge = spBypassActive ? 0
-    : (rawSP !== null && hasBurningEdge && rawSP < 11 ? 0 : rawSP);
-  // halveSP (Kendachi Shi Bayonet): treat target SP as Math.ceil(SP / 2).
-  const hasHalveSP = !!(weapon.halveSP ?? false);
-  const spAfterHalve = (!spBypassActive && spAfterBurningEdge !== null && hasHalveSP)
-    ? Math.ceil(spAfterBurningEdge / 2)
-    : spAfterBurningEdge;
-  const spBeforeAP = spAfterHalve !== null ? (isCharged ? Math.floor(spAfterHalve / 2) : spAfterHalve) : null;
-  // Armor-Piercing (ammo): effective SP for pierce + damage is reduced by spReduction.
-  // The same value is passed to applyDamage as armorPen so actual HP loss matches
-  // the displayed net (applyDamage subtracts the target's real SP, which equals `sp`).
-  const armorPen = weapon.spReduction ?? 0;
-  const sp = (spBeforeAP !== null && armorPen > 0) ? Math.max(0, spBeforeAP - armorPen) : spBeforeAP;
+  const { sp, armorPen } = resolveEffectiveSp({
+    rawSP,
+    spBypass: spBypassActive,
+    burningEdge: hasBurningEdge,
+    halveSP: !!(weapon.halveSP ?? false),
+    charged: isCharged,
+    spReduction: weapon.spReduction ?? 0,
+  });
   const damageDiceCount = countDamageDice(damageRoll);
 
   // ── Ammo-based bonuses ─────────────────────────────────────────────────────
@@ -980,7 +979,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
   if (accidentalDischargeDmgBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.AccidentalDischargeDmg', { n: accidentalDischargeDmgBonus }));
   if (perDieBonus) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.PerDieDamageBonus', { n: perDieBonus }));
   if (srCapacityBonus) bonusNotes.push(game.i18n.localize('CYBER_BLUE.Combat.SRCapacityBonus'));
-  if (hasBurningEdge && rawSP !== null && rawSP < 11) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.BurningEdge', { sp: rawSP }));
+  if (hasBurningEdge && rawSP !== null && rawSP < BURNING_EDGE_SP_LIMIT) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.BurningEdge', { sp: rawSP }));
   if (silencerDmgReduction) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.SilencerReduction', { n: silencerDmgReduction }));
   if (chargeWallReduction) bonusNotes.push(game.i18n.format('CYBER_BLUE.Combat.ChargeWallReduction', { walls: chargeWallCount, dmg: chargeWallReduction }));
   if (vitalsExtraRoll) bonusNotes.push(`${game.i18n.localize('CYBER_BLUE.Combat.HighlightedVitalsRoll')}: [${vitalsExtraRoll.total}]${highlightedVitalsAutoCrit ? ' ★' : ''}`);
@@ -1079,7 +1078,8 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
         // Route raw damage to the linked vital-area subsystem's own HP/SP pools.
         // The subsystem applies its own SP ablation, so the vehicle's main armor
         // is untouched (no extra Armor-Piercing ablation against main SP).
-        await applyDamageToSubsystemWithPermission(targetActor, vitalSubsystem.id, actualDamage);
+        // `sp` was derived from the subsystem's SP, so armorPen carries over unchanged.
+        await applyDamageToSubsystemWithPermission(targetActor, vitalSubsystem.id, actualDamage, { armorPen });
       } else if (isToxicPayload) {
         // Toxic ammo: the round's damage only established that it broke skin —
         // none of it carries through. The payload is resolved instead: a
@@ -1305,7 +1305,7 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
   // Project special-ammo effects (Armor-Piercing, …) onto this attack's weapon.
   const loadedAmmoItemAF = await getLoadedAmmoItem(item, weaponIndex);
   projectAmmoOntoWeapon(weapon, loadedAmmoItemAF?.system ?? null);
-  const armorPen = weapon.spReduction ?? 0;
+  const spReduction = weapon.spReduction ?? 0;
 
   // ── Installed mod checks ───────────────────────────────────────────────────
   const installedMods = getInstalledWeaponMods(item, weaponIndex, attacker);
@@ -1562,9 +1562,12 @@ export async function resolveAutofireAttack(attacker, item, weaponIndex) {
   // ── Critical Injury detection ──────────────────────────────────────────────
   const { count: critDiceCount } = detectCriticalDice(damageRoll);
   const spBaseAF = targetSP !== null ? targetSP : null;
-  // Armor-Piercing (ammo): effective SP reduced for pierce + damage; same value
-  // passed to applyDamage as armorPen so actual HP loss matches the shown net.
-  const sp = (spBaseAF !== null && armorPen > 0) ? Math.max(0, spBaseAF - armorPen) : spBaseAF;
+  // Armor-Piercing (ammo) is the only SP-modifying effect autofire honours — the
+  // charge / Burning Edge / halveSP / Spot Weakness reductions are single-shot only.
+  // armorPen is still derived from the real-vs-effective gap so the invariant holds
+  // if another reduction is ever added here (see helpers/armor-pen.mjs).
+  const sp = (spBaseAF !== null && spReduction > 0) ? Math.max(0, spBaseAF - spReduction) : spBaseAF;
+  const armorPen = armorPenFor(spBaseAF, sp);
   // Penetration check uses rawDamage (post-multiplier, pre-bonus)
   const penetratesWithoutBonus = sp === null ? rawDamage > 0 : rawDamage > sp;
   const isCritical = critDiceCount >= 2 && penetratesWithoutBonus;
