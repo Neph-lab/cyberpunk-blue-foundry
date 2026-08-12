@@ -4604,6 +4604,14 @@ CHARACTER SHEET SPECIFIC
   clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
   transition: background-color 120ms ease, border-color 120ms ease;
 }
+/* align-items: flex-start sizes children to max-content, so the summary spans
+   would run off the card instead of wrapping. Let them fill the card's width. */
+.cyberpunk-blue.npc-quick .cpb-nqc-card > span {
+  align-self: stretch;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .cyberpunk-blue.npc-quick .cpb-nqc-card:hover {
   border-color: var(--cpb-accent);
   background: var(--cpb-accent-wash, rgba(0, 255, 255, 0.08));

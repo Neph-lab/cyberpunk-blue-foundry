@@ -16,7 +16,6 @@
  */
 
 import { getQuickEntry, PRIMARY_STATS, QUICK_MAX } from '../data/npc-quick-catalogue.mjs';
-import { resolveItemUuidByName } from './world-init.mjs';
 import { normalizeRoleSystemData, syncAllRoleConditionAEs, syncAllProteanFociAEs } from './roles.mjs';
 
 const FOLDER_NAME = 'NPCs';
@@ -189,11 +188,46 @@ export function buildNpcRecipe(selection) {
 
 // ─── Half two: the documents ──────────────────────────────────────────────────
 
-/** Name → source Item document, resolved once per build and cached. */
+/**
+ * Name → source Item document, resolved from the COMPENDIUMS ONLY.
+ *
+ * Deliberately not `resolveItemUuidByName` (helpers/world-init.mjs), which checks
+ * world items first. World items drift: a duplicate that merely shares a name can
+ * differ on exactly the fields these rules depend on — `multipleInstalls` and
+ * `paired` drive the cyberware caps and slot maths, and `componentTraining` /
+ * `specialties` / `proteanFoci` drive the Role sub-allocations. A stale world copy
+ * therefore degrades a build silently (a Netrunner losing its component-training
+ * picks, because `normalizeRoleSystemData` treats a blank skill as "feature off").
+ *
+ * The compendium is what `_sync*Entries` maintains from the catalogue files, so it
+ * is the reproducible source: the same three choices always give the same NPC. A
+ * name that exists only as a world item is reported as unresolved instead, and
+ * lands in the summary card.
+ */
 class ItemResolver {
   constructor() {
     this._cache = new Map();
+    this._index = null;
     this.missing = [];
+  }
+
+  /** One pass over every Item pack index, keyed exactly and case-insensitively. */
+  async _buildIndex() {
+    if (this._index) return this._index;
+    const exact = new Map();
+    const loose = new Map();
+    for (const pack of game.packs.filter((p) => p.documentName === 'Item')) {
+      await pack.getIndex({ fields: ['name', 'type'] });
+      for (const entry of pack.index) {
+        const uuid = `Compendium.${pack.collection}.${entry._id}`;
+        const exactKey = `${entry.type}::${entry.name}`;
+        const looseKey = `${entry.type}::${entry.name.toLowerCase()}`;
+        if (!exact.has(exactKey)) exact.set(exactKey, uuid);
+        if (!loose.has(looseKey)) loose.set(looseKey, uuid);
+      }
+    }
+    this._index = { exact, loose };
+    return this._index;
   }
 
   /**
@@ -205,13 +239,21 @@ class ItemResolver {
     const key = `${types.join('|')}::${name}`;
     if (this._cache.has(key)) return this._cache.get(key);
 
-    let doc = null;
+    const { exact, loose } = await this._buildIndex();
+    let uuid = null;
     for (const itemType of types) {
-      const uuid = await resolveItemUuidByName(name, { itemType });
-      if (!uuid) continue;
-      doc = await fromUuid(uuid).catch(() => null);
-      if (doc) break;
+      uuid = exact.get(`${itemType}::${name}`);
+      if (uuid) break;
+      uuid = loose.get(`${itemType}::${name.toLowerCase()}`);
+      if (uuid) {
+        // The catalogue names are meant to match exactly; a loose hit means one
+        // of them has drifted from the compendium and is worth fixing.
+        console.warn(`Cyberpunk Blue | NPC Quick: "${name}" only matched case-insensitively as ${itemType}`);
+        break;
+      }
     }
+
+    const doc = uuid ? await fromUuid(uuid).catch(() => null) : null;
     if (!doc) this.missing.push(name);
     this._cache.set(key, doc);
     return doc;
@@ -344,10 +386,34 @@ function buildRoleData(doc, spec) {
     else console.warn(`Cyberpunk Blue | NPC Quick: ${doc.name} has no protean focus "${name}"`);
   }
 
-  if (spec.componentPicks?.length) system.componentTraining.picks = [...spec.componentPicks];
+  if (spec.componentPicks?.length) {
+    // normalizeRoleSystemData drops every pick when componentTraining.skill is
+    // blank, which is how a stale source document loses these without a peep.
+    if (!system.componentTraining?.skill) {
+      console.warn(`Cyberpunk Blue | NPC Quick: ${doc.name} has no componentTraining skill — dropping picks ${spec.componentPicks.join(', ')}`);
+    }
+    system.componentTraining.picks = [...spec.componentPicks];
+  }
 
   // Re-normalize so the clamps run against the ranks just written.
   data.system = normalizeRoleSystemData(system);
+
+  // Report anything the normalizer clamped away, so a silently-degraded role
+  // shows up instead of looking like a correct build.
+  const wantedPicks = spec.componentPicks?.length ?? 0;
+  const gotPicks = data.system.componentTraining?.picks?.length ?? 0;
+  if (gotPicks !== wantedPicks) {
+    console.warn(`Cyberpunk Blue | NPC Quick: ${doc.name} kept ${gotPicks}/${wantedPicks} component picks`);
+  }
+  for (const [name, rank] of Object.entries(spec.specialties ?? {})) {
+    const got = data.system.specialties?.find((s) => s.name === name)?.rank;
+    if (got !== rank) console.warn(`Cyberpunk Blue | NPC Quick: ${doc.name} specialty "${name}" wanted ${rank}, got ${got}`);
+  }
+  for (const [name, points] of Object.entries(spec.foci ?? {})) {
+    const got = data.system.proteanFoci?.find((f) => f.name === name)?.points;
+    if (got !== points) console.warn(`Cyberpunk Blue | NPC Quick: ${doc.name} focus "${name}" wanted ${points}, got ${got}`);
+  }
+
   return data;
 }
 
@@ -406,13 +472,10 @@ export async function createNpcFromRecipe(name, recipe) {
   });
   if (!actor) return null;
 
-  // Start at full HP and PSYCHE. Read the maxima off the actor rather than
-  // recomputing them — base-actor clamps every resource to [0, max] each prepare,
-  // so the value has to be written against the max the actor actually has now.
-  await actor.update({
-    'system.resources.hp.value': actor.system.resources.hp.max,
-    'system.resources.psyche.value': actor.system.resources.psyche.max,
-  });
+  // HP and PSYCHE are deliberately NOT seeded here. Cyberware carries stat AEs —
+  // Grafted Muscle & Bone Lace alone is +2 BODY — so `hp.max` grows once the items
+  // land, and anything written now would leave the NPC short of full. Both are set
+  // at the end, once every effect is in place.
 
   // ── Resolve and order every item ──
   const { platforms, extensions, dropped } = await normalizeCyberware(recipe.cyberware, resolver);
@@ -504,6 +567,9 @@ export async function createNpcFromRecipe(name, recipe) {
 
   const psycheSpent = await applySuggestedPsycheLoss(actor);
 
+  // Full HP last of all, against the max the finished actor actually has.
+  await actor.update({ 'system.resources.hp.value': actor.system.resources.hp.max });
+
   await postSummary(actor, recipe, {
     psycheSpent,
     unconnected: unconnected.map((i) => i.name),
@@ -527,7 +593,6 @@ export async function createNpcFromRecipe(name, recipe) {
  */
 async function applySuggestedPsycheLoss(actor) {
   const cyberware = actor.items.filter((i) => i.type === 'cyberware' && !i.isUnconnectedExtension());
-  if (!cyberware.length) return 0;
 
   const flagKey = `flags.cyberpunk-blue.${psychePromptFlag()}`;
   let total = 0;
@@ -540,12 +605,14 @@ async function applySuggestedPsycheLoss(actor) {
 
   // Flag first: these updates don't touch installed/integration/parentCyberwareId,
   // so the update hook ignores them.
-  await actor.updateEmbeddedDocuments('Item', flagged);
+  if (flagged.length) await actor.updateEmbeddedDocuments('Item', flagged);
 
-  if (total > 0) {
-    const current = actor.system.resources.psyche.value ?? 0;
-    await actor.update({ 'system.resources.psyche.value': Math.max(current - total, 0) });
-  }
+  // Deduct from the max the actor now has, not from 60. The cyberware AEs have
+  // already pulled `psyche.max` down by each item's die count, and the engine's
+  // own install path likewise clamps to the reduced max before subtracting — so
+  // this reproduces what installing the same cyberware by hand would give.
+  const start = actor.system.resources.psyche.max ?? 0;
+  await actor.update({ 'system.resources.psyche.value': Math.max(start - total, 0) });
   return total;
 }
 
