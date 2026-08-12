@@ -4556,3 +4556,168 @@ CHARACTER SHEET SPECIFIC
 }
 /* #endregion */
 /* #endregion */
+
+/* #region NPC Quick Creation ─────────────────────────────────────────────────── */
+.cyberpunk-blue.npc-quick .window-content {
+  padding: 0;
+  overflow: hidden;
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  height: 100%;
+  width: 100%;
+  padding: 0.75rem;
+  overflow-y: auto;
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-intro {
+  margin: 0;
+  font-size: var(--cpb-fs-sm, 0.85rem);
+  color: var(--cpb-muted);
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* ── Selectable cards ── */
+.cyberpunk-blue.npc-quick .cpb-nqc-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.4rem;
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  width: 100%;
+  height: auto;
+  padding: 0.45rem 0.55rem;
+  text-align: left;
+  line-height: 1.25;
+  background: var(--cpb-panel, rgba(0, 0, 0, 0.15));
+  border: 1px solid var(--cpb-panel-border, rgba(255, 255, 255, 0.12));
+  --c: 8px;
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-card:hover {
+  border-color: var(--cpb-accent);
+  background: var(--cpb-accent-wash, rgba(0, 255, 255, 0.08));
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-card.is-selected {
+  border-color: var(--cpb-accent-strong);
+  background: var(--cpb-accent-wash, rgba(0, 255, 255, 0.12));
+  box-shadow: inset 0 0 0 1px var(--cpb-accent-strong);
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-card-name {
+  font-family: var(--cpb-font-display, inherit);
+  font-weight: 700;
+  font-size: var(--cpb-fs-body, 0.95rem);
+  letter-spacing: 0.04em;
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-card.is-selected .cpb-nqc-card-name {
+  color: var(--cpb-accent-strong);
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-card-stats {
+  font-family: var(--cpb-font-mono, monospace);
+  font-size: var(--cpb-fs-xs, 0.72rem);
+  color: var(--cpb-accent);
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-card-skills,
+.cyberpunk-blue.npc-quick .cpb-nqc-card-counts {
+  font-size: var(--cpb-fs-xs, 0.72rem);
+  color: var(--cpb-muted);
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-card-role {
+  font-size: var(--cpb-fs-xs, 0.72rem);
+  font-weight: 700;
+  color: var(--cpb-accent-warm, var(--cpb-accent));
+}
+
+/* ── Extras steppers ── */
+.cyberpunk-blue.npc-quick .cpb-nqc-extras {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 0.4rem;
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-extra {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.55rem;
+  background: var(--cpb-panel, rgba(0, 0, 0, 0.15));
+  border: 1px solid var(--cpb-panel-border, rgba(255, 255, 255, 0.12));
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-extra.is-active {
+  border-color: var(--cpb-accent-strong);
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-extra-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.2;
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-extra-name {
+  font-weight: 700;
+  font-size: var(--cpb-fs-sm, 0.85rem);
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-extra-hint {
+  font-size: var(--cpb-fs-xs, 0.72rem);
+  color: var(--cpb-muted);
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-step {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 auto;
+  padding: 0;
+  font-weight: 700;
+  line-height: 1;
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-step-count {
+  min-width: 1.75rem;
+  text-align: center;
+  font-family: var(--cpb-font-mono, monospace);
+  font-weight: 700;
+  font-size: var(--cpb-fs-body, 0.95rem);
+}
+
+/* ── Footer ── */
+.cyberpunk-blue.npc-quick .cpb-nqc-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--cpb-panel-border, rgba(255, 255, 255, 0.12));
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-reset {
+  flex: 0 0 auto;
+  width: auto;
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-create {
+  flex: 1 1 auto;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border-color: var(--cpb-accent-strong);
+}
+.cyberpunk-blue.npc-quick .cpb-nqc-create:disabled {
+  border-color: var(--cpb-panel-border, rgba(255, 255, 255, 0.12));
+}
+
+/* Actors-directory launch button */
+.cpb-npc-quick-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+/* #endregion */

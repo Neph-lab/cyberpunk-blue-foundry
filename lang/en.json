@@ -1403,6 +1403,32 @@
         "Exe": "EXE",
         "Ctrl": "CTRL"
       }
+    },
+    "NpcQuick": {
+      "Title": "NPC Quick Creation",
+      "OpenButton": "Quick NPC",
+      "GMOnly": "Only the GM can use NPC Quick Creation.",
+      "Intro": "Pick one of each, add any Extras, then create. The result is a starting point — edit the sheet freely afterwards.",
+      "BaseType": "Base Type",
+      "Background": "Background",
+      "Purpose": "Purpose",
+      "Extras": "Extras",
+      "RandomStat": "+1 to a random Primary Stat",
+      "CyberwareCount": "{count} cyberware",
+      "GearCount": "{count} gear",
+      "ProgramCount": "{count} programs",
+      "Increase": "Add one",
+      "Decrease": "Remove one",
+      "Reset": "Clear",
+      "Create": "Create NPC",
+      "Working": "Building…",
+      "NameTitle": "Name this NPC",
+      "NameLabel": "NPC name",
+      "NamePlaceholder": "e.g. Arasaka Gate Guard",
+      "Created": "Created NPC \"{name}\".",
+      "BuildFailed": "Could not build the NPC from that combination.",
+      "Error": "NPC Quick Creation failed: {error}",
+      "SummaryTitle": "{name} — Quick Creation"
     }
   },
   "TYPES": {

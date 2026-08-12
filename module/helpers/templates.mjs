@@ -10,6 +10,7 @@ export const preloadHandlebarsTemplates = async function () {
     // Apps
     'systems/cyberpunk-blue/templates/apps/vehicle-hud.hbs',
     'systems/cyberpunk-blue/templates/apps/ip-spender.hbs',
+    'systems/cyberpunk-blue/templates/apps/npc-quick-creation.hbs',
     // Dialogs
     'systems/cyberpunk-blue/templates/dialogs/vehicle-maneuver-picker.hbs',
     // Shared partials

@@ -5,6 +5,7 @@ import { CyberBlueCombat } from './documents/combat.mjs';
 import { VehicleManeuverDialog } from './apps/vehicle-maneuver-dialog.mjs';
 import { VehicleHud } from './apps/vehicle-hud.mjs';
 import { CyberBlueSubnetBuilder } from './apps/subnet-builder.mjs';
+import { CyberBlueNpcQuickCreation } from './apps/npc-quick-creation.mjs';
 import { CyberBlueActorSheet } from './sheets/actor-sheet.mjs';
 import { CyberBlueItemSheet } from './sheets/item-sheet.mjs';
 import { CyberBlueMookSheet } from './sheets/mook-sheet.mjs';
@@ -1311,6 +1312,25 @@ Hooks.on('renderSceneDirectory', (_app, html, _data) => {
   btn.classList.add('cpb-subnet-builder-btn');
   btn.innerHTML = `<i class="fa-solid fa-diagram-project"></i> ${game.i18n.localize('CYBER_BLUE.SubnetBuilder.OpenButton')}`;
   btn.addEventListener('click', () => CyberBlueSubnetBuilder.open());
+  header.appendChild(btn);
+});
+
+// ─── Actors directory: NPC Quick Creation launch button (GM only) ──────────────
+// Injects a header button next to "Create Actor" that opens NPC Quick Creation.
+Hooks.on('renderActorDirectory', (_app, html, _data) => {
+  if (!game.user.isGM) return;
+  const root = html instanceof HTMLElement ? html : html?.[0];
+  if (!root) return;
+  if (root.querySelector('.cpb-npc-quick-btn')) return;
+
+  const header = root.querySelector('.header-actions') || root.querySelector('.directory-header');
+  if (!header) return;
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.classList.add('cpb-npc-quick-btn');
+  btn.innerHTML = `<i class="fa-solid fa-user-plus"></i> ${game.i18n.localize('CYBER_BLUE.NpcQuick.OpenButton')}`;
+  btn.addEventListener('click', () => CyberBlueNpcQuickCreation.open());
   header.appendChild(btn);
 });
 

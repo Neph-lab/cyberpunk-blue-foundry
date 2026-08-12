@@ -1,0 +1,61 @@
+<div class="cpb-nqc-root">
+
+  <p class="cpb-nqc-intro">{{localize "CYBER_BLUE.NpcQuick.Intro"}}</p>
+
+  {{#each groups as |group|}}
+    <section class="cpb-nqc-group">
+      <div class="cpb-divider--header"><span>{{localize group.label}}</span></div>
+      <div class="cpb-nqc-cards">
+        {{#each group.cards as |card|}}
+          <button type="button"
+            class="cpb-nqc-card {{#if card.selected}}is-selected{{/if}}"
+            data-action="pick"
+            data-group="{{card.group}}"
+            data-key="{{card.key}}"
+            {{#if card.note}}data-tooltip="{{card.note}}"{{/if}}>
+            <span class="cpb-nqc-card-name">{{card.label}}</span>
+            {{#if card.stats}}<span class="cpb-nqc-card-stats">{{card.stats}}</span>{{/if}}
+            {{#if card.skills}}<span class="cpb-nqc-card-skills">{{card.skills}}</span>{{/if}}
+            {{#if card.role}}<span class="cpb-nqc-card-role">{{card.role}}</span>{{/if}}
+            {{#if card.counts}}<span class="cpb-nqc-card-counts">{{card.counts}}</span>{{/if}}
+          </button>
+        {{/each}}
+      </div>
+    </section>
+  {{/each}}
+
+  <section class="cpb-nqc-group">
+    <div class="cpb-divider--header"><span>{{localize "CYBER_BLUE.NpcQuick.Extras"}}</span></div>
+    <div class="cpb-nqc-extras">
+      {{#each extras as |extra|}}
+        <div class="cpb-nqc-extra {{#unless extra.atMin}}is-active{{/unless}}">
+          <div class="cpb-nqc-extra-text">
+            <span class="cpb-nqc-extra-name">{{extra.label}}</span>
+            <span class="cpb-nqc-extra-hint">{{extra.hint}}</span>
+          </div>
+          <div class="cpb-nqc-stepper">
+            <button type="button" class="cpb-nqc-step" data-action="bump" data-extra="{{extra.key}}" data-delta="-1"
+              aria-label="{{localize 'CYBER_BLUE.NpcQuick.Decrease'}}" {{#if extra.atMin}}disabled{{/if}}>&minus;</button>
+            <span class="cpb-nqc-step-count">{{extra.count}}</span>
+            <button type="button" class="cpb-nqc-step" data-action="bump" data-extra="{{extra.key}}" data-delta="1"
+              aria-label="{{localize 'CYBER_BLUE.NpcQuick.Increase'}}" {{#if extra.atMax}}disabled{{/if}}>+</button>
+          </div>
+        </div>
+      {{/each}}
+    </div>
+  </section>
+
+  <div class="cpb-nqc-footer">
+    <button type="button" class="cpb-nqc-reset" data-action="reset">
+      {{localize "CYBER_BLUE.NpcQuick.Reset"}}
+    </button>
+    <button type="button" class="cpb-nqc-create" data-action="create" {{#unless canCreate}}disabled{{/unless}}>
+      {{#if busy}}
+        <i class="fa-solid fa-spinner fa-spin"></i> {{localize "CYBER_BLUE.NpcQuick.Working"}}
+      {{else}}
+        <i class="fa-solid fa-user-plus"></i> {{localize "CYBER_BLUE.NpcQuick.Create"}}
+      {{/if}}
+    </button>
+  </div>
+
+</div>
