@@ -489,6 +489,10 @@ export const CYBERWARE_CATALOGUE = [
     name: 'Mantis Blades',
     folder: 'Cyberarms', manufacturer: 'Arasaka',
     cyberwareType: 'cyberarms', integration: 'extension', slotsUsed: 2,
+    // Installable in pairs — the RoF 1 combined strike below is only available
+    // with two. Rules-wise the two must sit in separate cyberarm platforms;
+    // that placement is the GM's to police, not the schema's.
+    multipleInstalls: true,
     cost: 'EX', facilities: 'clinic', installationCost: 'PR', installationDv: 17,
     useCyberneticsComponent: true, psycheLoss: '3d6',
     img: `${CW_ASSET}/arasaka-mantis-blades.png`,

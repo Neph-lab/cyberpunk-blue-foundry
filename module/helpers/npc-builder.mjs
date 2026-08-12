@@ -16,6 +16,7 @@
  */
 
 import { getQuickEntry, PRIMARY_STATS, QUICK_MAX } from '../data/npc-quick-catalogue.mjs';
+import { getEligiblePlatforms } from './cyberware.mjs';
 import { normalizeRoleSystemData, syncAllRoleConditionAEs, syncAllProteanFociAEs } from './roles.mjs';
 
 const FOLDER_NAME = 'NPCs';
@@ -537,6 +538,7 @@ export async function createNpcFromRecipe(name, recipe) {
   // spec's "leave what's left over as not installed". Recipe order therefore
   // decides who wins the scarce slots.
   for (const data of extensions) {
+    spreadDuplicateExtension(actor, data);
     await actor.createEmbeddedDocuments('Item', [data], opts);
   }
 
@@ -575,10 +577,80 @@ export async function createNpcFromRecipe(name, recipe) {
     unconnected: unconnected.map((i) => i.name),
     dropped,
     missing: resolver.missing,
+    stacked: findStackedDuplicates(actor),
   });
 
   actor.sheet.render(true);
   return actor;
+}
+
+/**
+ * Put a second copy of an extension on a DIFFERENT platform from the first.
+ *
+ * Two Mantis Blades belong in two separate cyberarms — that's the rule, and it is
+ * also what makes their RoF 1 combined strike available. Left alone, `_preCreate`
+ * takes `eligiblePlatforms[0]`, and a 4-slot cyberarm still has room for a second
+ * 2-slot blade, so both would stack in the same arm.
+ *
+ * Mutates `data.system.parentCyberwareId` in place. Only touches non-paired
+ * extensions: setting one parent on a paired item would make `_preCreate` skip its
+ * auto-assign entirely and leave `parentCyberwareId2` null (i.e. unconnected). If no
+ * free platform is left over, it does nothing and the default behaviour stands.
+ */
+function spreadDuplicateExtension(actor, data) {
+  if (data.system?.integration !== 'extension' || data.system.paired) return;
+  if (data.system.parentCyberwareId) return;
+
+  const twins = actor.items.filter((i) => i.type === 'cyberware' && i.name === data.name);
+  if (!twins.length) return;
+
+  const taken = new Set(twins.map((i) => i.system.parentCyberwareId).filter(Boolean));
+  const free = getEligiblePlatforms(actor, null, data.system).filter((p) => !taken.has(p.id));
+  if (free.length) data.system.parentCyberwareId = free[0].id;
+}
+
+/**
+ * Copies of one extension that ended up sharing a platform.
+ *
+ * spreadDuplicateExtension puts duplicates on separate platforms whenever one has
+ * room, but it can't always win: a 4-slot cyberarm already holding a 1-slot and a
+ * 2-slot extension has no room for a second 2-slot Mantis Blade, so both blades
+ * land in the same arm. That's a legal slot layout but the wrong anatomy — the two
+ * blades are meant to sit in different arms — and rearranging it properly is a
+ * bin-packing problem. Report it so the GM can move one rather than not notice.
+ */
+function findStackedDuplicates(actor) {
+  // How many platforms of each type exist — two copies sharing the only platform
+  // of their type had no alternative, so that is not worth reporting.
+  const platformsPerType = new Map();
+  for (const item of actor.items) {
+    if (item.type !== 'cyberware' || item.system.integration !== 'platform') continue;
+    const type = item.system.cyberwareType;
+    platformsPerType.set(type, (platformsPerType.get(type) ?? 0) + 1);
+  }
+
+  const groups = new Map();
+  for (const item of actor.items) {
+    if (item.type !== 'cyberware' || item.system.integration !== 'extension') continue;
+    const platform = item.system.parentCyberwareId;
+    if (!platform) continue;
+    // "Mantis Blades" and "Mantis Blades 2" are copies of one entry.
+    const base = item.name.replace(/ \d+$/, '');
+    const key = `${base}@@${platform}`;
+    const group = groups.get(key) ?? { count: 0, type: item.system.cyberwareType };
+    group.count += 1;
+    groups.set(key, group);
+  }
+
+  const stacked = [];
+  for (const [key, { count, type }] of groups) {
+    if (count < 2) continue;
+    // Only a genuine misplacement if another platform of that type exists.
+    if ((platformsPerType.get(type) ?? 0) < 2) continue;
+    const [base, platformId] = key.split('@@');
+    stacked.push(`${count} × ${base} share ${actor.items.get(platformId)?.name ?? 'one platform'}`);
+  }
+  return stacked;
 }
 
 /**
@@ -635,7 +707,7 @@ async function installPrograms(actor) {
 }
 
 /** One chat card covering everything the GM might want to know or fix. */
-async function postSummary(actor, recipe, { psycheSpent, unconnected, dropped, missing }) {
+async function postSummary(actor, recipe, { psycheSpent, unconnected, dropped, missing, stacked }) {
   const { baseType, background, purpose } = recipe.labels;
   const lines = [`<p><strong>${baseType} / ${background} / ${purpose}</strong></p>`];
 
@@ -649,6 +721,7 @@ async function postSummary(actor, recipe, { psycheSpent, unconnected, dropped, m
     : '');
 
   lines.push(list('Not installed — no free slots', unconnected));
+  lines.push(list('Sharing a platform — may want moving', stacked ?? []));
   lines.push(list('Left out of the combination', dropped));
   if (missing.length) {
     lines.push(`<p style="color: var(--cpb-error);"><strong>Could not be found:</strong></p><ul>${

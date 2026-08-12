@@ -350,7 +350,10 @@ export const PURPOSES = [
     components: { airVehicles: 3, landVehicles: 3, seaVehicles: 2 },
     cyberware: [
       cw('Kerenzikov'), cw('Enhanced Antibodies'), cw('Standard Cyberleg', 2), cw('Rocket Boost'),
-      cw('Standard Cyberaudio Suite'), cw('Radio / Music Player (Cyberaudio)'), cw('Tool Hand'),
+      cw('Standard Cyberaudio Suite'), cw('Radio / Music Player (Cyberaudio)'),
+      // The Cyberhand is the platform the Tool Hand needs — without it the Tool
+      // Hand is orphaned for every background that supplies no arm or hand.
+      cw('Standard Cyberhand'), cw('Tool Hand'),
     ],
     gear: [
       g('Arasaka Nowaki'), g('Arasaka HJRE-9 Asuka'), g('Road Flare', 4), g('Radar Detector'),

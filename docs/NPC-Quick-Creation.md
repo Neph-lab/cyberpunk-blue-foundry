@@ -441,7 +441,7 @@ NOT to be confused with the Role of the same name.
  - Air Vehicles: +3
  - Land Vehicles: +3
  - Sea Vehicles: +2
-* Cyberware: Kerenzikov, Enhanced Antibodies, Standard Cyberleg ×2, Rocket Boost, Standard Cyberaudio Suite, Radio / Music Player (Cyberaudio), Tool Hand
+* Cyberware: Kerenzikov, Enhanced Antibodies, Standard Cyberleg ×2, Rocket Boost, Standard Cyberaudio Suite, Radio / Music Player (Cyberaudio), Standard Cyberhand, Tool Hand
 * Gear: Arasaka Nowaki, Arasaka HJRE-9 Asuka, Road Flare ×4, Radar Detector, Duct Tape, Anti-Smog Breathing Mask, Auto-Level Ear Protectors, Techscanner, Tech Bag, Radio Communicator
 * Role: —
 
