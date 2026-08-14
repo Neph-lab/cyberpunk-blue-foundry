@@ -25,11 +25,13 @@ async function buildBrandLogoCache() {
 
     for (const path of files) {
       const filename = `${path}`.split('/').at(-1) ?? '';
-      // FilePicker.browse percent-encodes non-ASCII characters in the paths it
-      // returns (e.g. "Rostović.svg" → "Rostovi%C4%87.svg"), so decode before
-      // deriving the lookup key. The original (encoded) path stays the cached
-      // value — it is valid as-is for an <img src>. Decoding is a no-op for the
-      // ASCII filenames that make up every other logo.
+      // Foundry ≤14.365 had FilePicker.browse return non-ASCII characters
+      // percent-encoded (e.g. "Rostović.svg" → "Rostovi%C4%87.svg"); 14.366
+      // fixed the Files APIs to decode them (release #13217). Decode defensively
+      // so the lookup key is the same on either version — it is a no-op once the
+      // path already arrives decoded, and for the ASCII filenames that make up
+      // every other logo. Whatever `browse` returned stays the cached value; both
+      // the encoded and decoded forms are valid as-is for an <img src>.
       let decodedFilename = filename;
       try {
         decodedFilename = decodeURIComponent(filename);
