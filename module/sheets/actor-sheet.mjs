@@ -2038,7 +2038,34 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       return;
     }
 
-    await item.update({ 'system.installed': true });
+    const update = { 'system.installed': true };
+
+    // An extension can only be installed into a platform with room. Try to find
+    // one (or two, when paired) exactly as _preCreate does; if the slots aren't
+    // there the install FAILS and nothing changes — no max-PSYCHE reduction and
+    // no current-PSYCHE hit, since both are gated on `installed`.
+    if (item.system.integration === 'extension' && !isExtensionFullyConnected(item.system)) {
+      const eligible = getEligiblePlatforms(this.document, item.id, item.system);
+
+      if (item.system.paired) {
+        const pair = await promptForCyberwarePlatformPair(eligible);
+        if (!pair) {
+          ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Cyberware.Errors.NoPlatformForInstall'));
+          return;
+        }
+        update['system.parentCyberwareId'] = pair[0];
+        update['system.parentCyberwareId2'] = pair[1];
+      } else {
+        const platformId = await promptForCyberwarePlatform(eligible);
+        if (!platformId) {
+          ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Cyberware.Errors.NoPlatformForInstall'));
+          return;
+        }
+        update['system.parentCyberwareId'] = platformId;
+      }
+    }
+
+    await item.update(update);
   }
 
   async _onUninstallCyberware(event) {

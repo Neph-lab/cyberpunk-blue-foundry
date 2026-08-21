@@ -824,6 +824,12 @@ const promptCyberwarePsycheLoss = async (item, options = {}, userId = null) => {
     return;
   }
 
+  // Chrome that isn't fitted costs no current PSYCHE (and its max-PSYCHE AE is
+  // disabled to match). The hit lands when it is actually installed.
+  if (item.system.installed === false) {
+    return;
+  }
+
   // Role-granted cyberware: auto-apply suggested loss without prompting
   if (options?.cyberBlueSkipRoleGrant) {
     const psycheLoss = item.getCyberwarePsycheLossData();
@@ -933,6 +939,18 @@ const onUpdateCyberwarePsycheLoss = (item, changed, options, userId) => {
     || 'installed' in systemChange;
 
   if (!shouldCheckPrompt) {
+    return;
+  }
+
+  // Uninstalling re-arms the one-shot prompt flag, because every SUCCESSFUL
+  // install charges current PSYCHE afresh. Ripping chrome out and putting it
+  // back therefore costs again — deliberate: the max cap is released while it
+  // is out, so the character can heal back up to it, and re-fitting re-applies
+  // both the cap and the hit.
+  if (systemChange.installed === false) {
+    if (game.user.id === userId && item.getFlag('cyberpunk-blue', CyberBlueItem.PSYCHE_PROMPT_FLAG)) {
+      item.unsetFlag('cyberpunk-blue', CyberBlueItem.PSYCHE_PROMPT_FLAG);
+    }
     return;
   }
 

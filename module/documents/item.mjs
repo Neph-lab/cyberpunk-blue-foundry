@@ -144,6 +144,15 @@ export class CyberBlueItem extends Item {
       }
     }
 
+    // Cyberware attempts installation on creation. Whatever the platform/slot
+    // system won't accept — an extension that found no free slot, or a paired
+    // extension that found only one — lands UNINSTALLED, and so reduces neither
+    // max PSYCHE (the AE is disabled) nor current PSYCHE (the prompt bails).
+    // Installing it later by hand charges both, at that moment.
+    nextSystem.installed = isExtensionFullyConnected(nextSystem);
+    data.system = nextSystem;
+    this.updateSource({ system: nextSystem });
+
     const validation = validateCyberwareConfiguration(this.parent, {
       itemName: data.name ?? this.name,
       system: data.system ?? this.system,

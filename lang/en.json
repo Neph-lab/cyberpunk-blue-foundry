@@ -308,7 +308,8 @@
         "PlatformRequired": "Extensions must be attached to a platform cyberware item.",
         "TypeMismatch": "Extensions must use a platform of the same cyberware type.",
         "NotEnoughSlots": "The selected platform does not have enough free slots.",
-        "SamePlatform": "Paired cyberware must be installed on two different platforms."
+        "SamePlatform": "Paired cyberware must be installed on two different platforms.",
+        "NoPlatformForInstall": "No platform has a free slot for this cyberware. Install a suitable platform first, or free up slots."
       }
     },
     "Role": {

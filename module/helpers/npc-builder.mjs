@@ -664,7 +664,9 @@ function findStackedDuplicates(actor) {
  * @returns {Promise<number>} PSYCHE actually deducted
  */
 async function applySuggestedPsycheLoss(actor) {
-  const cyberware = actor.items.filter((i) => i.type === 'cyberware' && !i.isUnconnectedExtension());
+  const cyberware = actor.items.filter(
+    (i) => i.type === 'cyberware' && !i.isUnconnectedExtension() && i.system.installed !== false,
+  );
 
   const flagKey = `flags.cyberpunk-blue.${psychePromptFlag()}`;
   let total = 0;
