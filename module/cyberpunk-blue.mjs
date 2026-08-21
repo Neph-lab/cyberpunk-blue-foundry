@@ -1016,6 +1016,28 @@ const syncSkillChipEffectHook = makeItemSyncHook({
 
 onDocumentHook(['createItem', 'updateItem'], syncSkillChipEffectHook);
 
+// ─── Item Style bonus AE sync ─────────────────────────────────────────────────
+// Maintains the "<Item> — <Style>" AE granting the selected Style's bonus to the
+// Style skill. Registered once per supported item type because makeItemSyncHook
+// filters on a single type. Enable/disable by gear state or cyberware
+// installation is handled downstream by syncGearEffects /
+// syncCyberwareOperationalEffects, which see this AE like any other.
+
+const syncStyleBonusGearHook = makeItemSyncHook({
+  guardOption: 'cyberBlueSyncStyleBonus',
+  type: 'gear',
+  run: (item, options) => item.syncStyleBonusEffect(options),
+});
+
+const syncStyleBonusCyberwareHook = makeItemSyncHook({
+  guardOption: 'cyberBlueSyncStyleBonus',
+  type: 'cyberware',
+  run: (item, options) => item.syncStyleBonusEffect(options),
+});
+
+onDocumentHook(['createItem', 'updateItem'], syncStyleBonusGearHook);
+onDocumentHook(['createItem', 'updateItem'], syncStyleBonusCyberwareHook);
+
 // ─── PSYCHE state sync ────────────────────────────────────────────────────────
 
 const PSYCHE_STATE_FLAG = 'psycheState';
@@ -3194,6 +3216,14 @@ async function _syncCyberwareEntries(catalogue) {
       update.img = def.img;
       needsUpdate = true;
     }
+    // Styles: the catalogue owns the whole array for seeded items. Guarded on a
+    // non-empty catalogue value like every other field, so clearing styles in
+    // the catalogue never blanks an already-seeded entry.
+    const catStyles = def.system?.styles ?? [];
+    if (catStyles.length && !foundry.utils.equals(doc.system.styles ?? [], catStyles)) {
+      update['system.styles'] = catStyles;
+      needsUpdate = true;
+    }
     if (multipleInstallsChanged) {
       update['system.multipleInstalls'] = catMultipleInstalls;
       needsUpdate = true;
@@ -3398,6 +3428,14 @@ async function _syncGearEntries(catalogue) {
     }
     if (def.img && doc.img !== def.img) {
       update.img = def.img;
+      needsUpdate = true;
+    }
+    // Styles: the catalogue owns the whole array for seeded items. Guarded on a
+    // non-empty catalogue value like every other field, so clearing styles in
+    // the catalogue never blanks an already-seeded entry.
+    const catStyles = def.system?.styles ?? [];
+    if (catStyles.length && !foundry.utils.equals(doc.system.styles ?? [], catStyles)) {
+      update['system.styles'] = catStyles;
       needsUpdate = true;
     }
     if (descriptionChanged) {

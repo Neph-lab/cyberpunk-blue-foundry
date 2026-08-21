@@ -60,7 +60,8 @@
         "Lifepath": "Lifepath",
         "Netrunning": "Netrunning",
         "Mods": "Mods",
-        "Abilities": "Abilities"
+        "Abilities": "Abilities",
+        "Styles": "Styles"
       },
       "Labels": {
         "Components": "Components",
@@ -233,6 +234,19 @@
         "ActionCharge": "Charge",
         "ActionRicochet": "Set up Ricochet"
       }
+    },
+    "Style": {
+      "Default": "Default",
+      "DefaultHint": "The item's own look. Selecting Default restores its original picture, manufacturer and cost.",
+      "NewStyle": "New Style",
+      "NamePlaceholder": "Style name…",
+      "Add": "Add Style",
+      "Select": "Select",
+      "Selected": "Selected",
+      "EditImage": "Click to change the picture",
+      "NoOverride": "Unchanged",
+      "Bonus": "Style Bonus",
+      "BonusHint": "Added to the Style skill while this item is equipped or installed. GM only — players never see this field."
     },
     "Drug": {
       "PrimaryEffect": "Primary effect",

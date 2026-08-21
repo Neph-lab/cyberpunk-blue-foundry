@@ -11,7 +11,13 @@
   </datalist>
 
   <header class="sheet-header">
-    <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}" />
+    {{!-- A style overrides the picture: the header shows the styled art, and the
+          Default art is edited in the Styles tab instead of by the FilePicker. --}}
+    {{#if styleOverrides.img}}
+      <img class="profile-img is-styled" src="{{item.img}}" data-action="open-styles-tab" title="{{item.name}} — {{activeStyle.name}}" />
+    {{else}}
+      <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}" />
+    {{/if}}
     <div class="header-fields">
       <h1 class="charname">
         <input name="name" type="text" value="{{item.name}}" placeholder="Name" />
@@ -98,7 +104,7 @@
           <div class="item-meta-row cyberware-header">
             <label class="manufacturer-field">
               <span>{{localize "CYBER_BLUE.Sheet.Labels.Manufacturer"}}</span>
-              {{#if canManageRestricted}}
+              {{#if (and canManageRestricted (not styleOverrides.manufacturer))}}
                 <div class="manufacturer-input-row">
                   {{#if manufacturerLogo}}
                     <img class="manufacturer-logo" src="{{manufacturerLogo}}" alt="{{system.manufacturer}}" />
@@ -129,7 +135,11 @@
             </label>
             <label class="cost-field">
               <span>{{localize "CYBER_BLUE.Sheet.Labels.Cost"}}</span>
-              <input type="text" name="system.cost" value="{{system.cost}}" list="cyber-blue-cost-ladder" />
+              {{#if styleOverrides.cost}}
+                <div class="readonly-value">{{system.cost}}</div>
+              {{else}}
+                <input type="text" name="system.cost" value="{{system.cost}}" list="cyber-blue-cost-ladder" />
+              {{/if}}
             </label>
             <label class="checkbox-label">
               <span>{{localize "CYBER_BLUE.Sheet.Labels.MultipleInstalls"}}</span>
@@ -291,7 +301,7 @@
             {{#if isGear}}
               <label class="manufacturer-field">
                 <span>{{localize "CYBER_BLUE.Sheet.Labels.Manufacturer"}}</span>
-                {{#if canManageRestricted}}
+                {{#if (and canManageRestricted (not styleOverrides.manufacturer))}}
                   <div class="manufacturer-input-row">
                     {{#if manufacturerLogo}}
                       <img class="manufacturer-logo" src="{{manufacturerLogo}}" alt="{{system.manufacturer}}" />
@@ -310,7 +320,11 @@
               </label>
               <label class="cost-field">
                 <span>{{localize "CYBER_BLUE.Sheet.Labels.Cost"}}</span>
-                <input type="text" name="system.cost" value="{{system.cost}}" list="cyber-blue-cost-ladder" />
+                {{#if styleOverrides.cost}}
+                  <div class="readonly-value">{{system.cost}}</div>
+                {{else}}
+                  <input type="text" name="system.cost" value="{{system.cost}}" list="cyber-blue-cost-ladder" />
+                {{/if}}
               </label>
               <label class="compact-field">
                 <span>{{localize "CYBER_BLUE.Sheet.Labels.Quantity"}}</span>
@@ -397,6 +411,9 @@
     {{#if isCyberware}}
       <nav class="sheet-tabs tabs" data-group="primary">
         <a class="item" data-tab="description"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Overview.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</a>
+        {{#if showStylesTab}}
+          <a class="item" data-tab="styles"><i class="fas fa-shirt cpb-tab-fa"></i>{{localize "CYBER_BLUE.Sheet.Tabs.Styles"}}</a>
+        {{/if}}
         <a class="item" data-tab="details"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Details.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Details"}}</a>
         {{#if showAdvancedTab}}
           <a class="item" data-tab="advanced"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Advanced.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Advanced"}}</a>
@@ -423,6 +440,10 @@
             </section>
 
           </div>
+
+          {{#if showStylesTab}}
+            {{> "systems/cyberpunk-blue/templates/item/parts/item-styles-tab.hbs"}}
+          {{/if}}
 
           {{#if showModsTab}}
             {{> "systems/cyberpunk-blue/templates/item/parts/item-mods-tab.hbs"}}
@@ -520,6 +541,9 @@
     {{else}}
       <nav class="sheet-tabs tabs" data-group="primary">
         <a class="item" data-tab="description"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Overview.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Description"}}</a>
+        {{#if showStylesTab}}
+          <a class="item" data-tab="styles"><i class="fas fa-shirt cpb-tab-fa"></i>{{localize "CYBER_BLUE.Sheet.Tabs.Styles"}}</a>
+        {{/if}}
         {{#if isRole}}
           <a class="item" data-tab="lifepath"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Lifepath.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Lifepath"}}</a>
           <a class="item" data-tab="abilities"><span class="cpb-tab-icon" style="--cpb-icon: url('/systems/cyberpunk-blue/assets/icons/bk_Abilities.svg')"></span>{{localize "CYBER_BLUE.Sheet.Tabs.Abilities"}}</a>
@@ -570,6 +594,10 @@
             </section>
           {{/if}}
         </div>
+
+        {{#if showStylesTab}}
+          {{> "systems/cyberpunk-blue/templates/item/parts/item-styles-tab.hbs"}}
+        {{/if}}
 
         {{#if showModsTab}}
           {{> "systems/cyberpunk-blue/templates/item/parts/item-mods-tab.hbs"}}

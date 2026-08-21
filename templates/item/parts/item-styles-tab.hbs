@@ -1,0 +1,150 @@
+{{!-- Styles tab — cosmetic variants of a Gear or Cyberware item.
+     The GM authors them; the owner only picks one. The "Default" panel is the
+     item's own picture / manufacturer / cost and is never stored in the array,
+     so it is also where the GM edits those base values. --}}
+<div class="tab styles-tab" data-group="primary" data-tab="styles">
+
+  {{!-- ── Default ─────────────────────────────────────────────────────────── --}}
+  <section class="sheet-panel style-panel {{#if defaultStyle.isSelected}}is-selected{{/if}}">
+    <div class="panel-header panel-actions">
+      <span>{{localize "CYBER_BLUE.Style.Default"}}</span>
+      <div class="panel-action-buttons">
+        {{#if defaultStyle.isSelected}}
+          <span class="style-selected-chip"><i class="fas fa-check"></i> {{localize "CYBER_BLUE.Style.Selected"}}</span>
+        {{else if canEditAsOwner}}
+          <button type="button" data-action="style-select" data-style-id="" title="{{localize "CYBER_BLUE.Style.Select"}}">
+            <i class="fas fa-circle-check"></i> {{localize "CYBER_BLUE.Style.Select"}}
+          </button>
+        {{/if}}
+      </div>
+    </div>
+
+    <div class="style-body">
+      <img class="style-img {{#if canManageRestricted}}is-editable{{/if}}"
+           src="{{defaultStyle.img}}"
+           alt="{{localize "CYBER_BLUE.Style.Default"}}"
+           title="{{#if canManageRestricted}}{{localize "CYBER_BLUE.Style.EditImage"}}{{else}}{{localize "CYBER_BLUE.Style.Default"}}{{/if}}"
+           {{#if canManageRestricted}}data-action="style-edit-img" data-style-index="default"{{/if}} />
+
+      <div class="style-fields">
+        <p class="style-hint">{{localize "CYBER_BLUE.Style.DefaultHint"}}</p>
+        {{!-- These share `name` with the header's inputs, and two inputs with the
+              same name in one form collide on submit. So each field is editable
+              here ONLY while the header has it read-only (i.e. a style overrides
+              it); otherwise the header owns it and this panel just displays it. --}}
+        <div class="item-meta-row">
+          <label class="manufacturer-field">
+            <span>{{localize "CYBER_BLUE.Sheet.Labels.Manufacturer"}}</span>
+            {{#if (and canManageRestricted styleOverrides.manufacturer)}}
+              <input type="text" name="system.manufacturer" value="{{defaultStyle.manufacturer}}" list="cyber-blue-manufacturers" />
+            {{else}}
+              <div class="readonly-value">{{defaultStyle.manufacturer}}</div>
+            {{/if}}
+          </label>
+          <label class="cost-field">
+            <span>{{localize "CYBER_BLUE.Sheet.Labels.Cost"}}</span>
+            {{#if (and canManageRestricted styleOverrides.cost)}}
+              <input type="text" name="system.cost" value="{{defaultStyle.cost}}" list="cyber-blue-cost-ladder" />
+            {{else}}
+              <div class="readonly-value">{{defaultStyle.cost}}</div>
+            {{/if}}
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {{!-- ── Authored styles ─────────────────────────────────────────────────── --}}
+  {{#each styles as |style|}}
+    <section class="sheet-panel style-panel {{#if style.isSelected}}is-selected{{/if}}">
+      <div class="panel-header panel-actions">
+        {{#if @root.canManageRestricted}}
+          <input class="style-name-input" type="text" name="system.styles.{{style.index}}.name" value="{{style.name}}"
+                 placeholder="{{localize "CYBER_BLUE.Style.NamePlaceholder"}}" />
+        {{else}}
+          <span>{{style.name}}</span>
+        {{/if}}
+        <div class="panel-action-buttons">
+          {{#if style.isSelected}}
+            <span class="style-selected-chip"><i class="fas fa-check"></i> {{localize "CYBER_BLUE.Style.Selected"}}</span>
+          {{else if @root.canEditAsOwner}}
+            <button type="button" data-action="style-select" data-style-id="{{style.id}}" title="{{localize "CYBER_BLUE.Style.Select"}}">
+              <i class="fas fa-circle-check"></i> {{localize "CYBER_BLUE.Style.Select"}}
+            </button>
+          {{/if}}
+          {{#if @root.canManageRestricted}}
+            <button type="button" data-action="style-delete" data-style-index="{{style.index}}" title="{{localize "CYBER_BLUE.Sheet.Buttons.Delete"}}">
+              <i class="fas fa-trash"></i>
+            </button>
+          {{/if}}
+        </div>
+      </div>
+
+      <div class="style-body">
+        <img class="style-img {{#if @root.canManageRestricted}}is-editable{{/if}}"
+             src="{{style.resolvedImg}}"
+             alt="{{style.name}}"
+             title="{{#if @root.canManageRestricted}}{{localize "CYBER_BLUE.Style.EditImage"}}{{else}}{{style.name}}{{/if}}"
+             {{#if @root.canManageRestricted}}data-action="style-edit-img" data-style-index="{{style.index}}"{{/if}} />
+
+        <div class="style-fields">
+          {{#if @root.canManageRestricted}}
+            <div class="item-meta-row">
+              <label class="manufacturer-field">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Manufacturer"}}</span>
+                <input type="text" name="system.styles.{{style.index}}.manufacturer" value="{{style.manufacturer}}"
+                       list="cyber-blue-manufacturers" placeholder="{{localize "CYBER_BLUE.Style.NoOverride"}}" />
+              </label>
+              <label class="cost-field">
+                <span>{{localize "CYBER_BLUE.Sheet.Labels.Cost"}}</span>
+                <input type="text" name="system.styles.{{style.index}}.cost" value="{{style.cost}}"
+                       list="cyber-blue-cost-ladder" placeholder="{{localize "CYBER_BLUE.Style.NoOverride"}}" />
+              </label>
+              <label class="compact-field" title="{{localize "CYBER_BLUE.Style.BonusHint"}}">
+                <span>{{localize "CYBER_BLUE.Style.Bonus"}}</span>
+                <input type="number" name="system.styles.{{style.index}}.bonus" value="{{style.bonus}}" data-dtype="Number" />
+              </label>
+            </div>
+          {{else}}
+            {{#if style.manufacturer}}
+              <div class="item-meta-row">
+                <label class="manufacturer-field">
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.Manufacturer"}}</span>
+                  <div class="readonly-value">{{style.manufacturer}}</div>
+                </label>
+                {{#if style.cost}}
+                  <label class="cost-field">
+                    <span>{{localize "CYBER_BLUE.Sheet.Labels.Cost"}}</span>
+                    <div class="readonly-value">{{style.cost}}</div>
+                  </label>
+                {{/if}}
+              </div>
+            {{else if style.cost}}
+              <div class="item-meta-row">
+                <label class="cost-field">
+                  <span>{{localize "CYBER_BLUE.Sheet.Labels.Cost"}}</span>
+                  <div class="readonly-value">{{style.cost}}</div>
+                </label>
+              </div>
+            {{/if}}
+          {{/if}}
+
+          {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs"
+              name=(concat "system.styles." style.index ".description")
+              value=style.description
+              uuid=@root.item.uuid
+              enriched=style.enrichedDescription
+              editable=@root.canManageRestricted}}
+        </div>
+      </div>
+    </section>
+  {{/each}}
+
+  {{#if canManageRestricted}}
+    <section class="sheet-panel style-add-panel">
+      <button type="button" data-action="style-add">
+        <i class="fas fa-plus"></i> {{localize "CYBER_BLUE.Style.Add"}}
+      </button>
+    </section>
+  {{/if}}
+</div>

@@ -1,5 +1,6 @@
 import CyberBlueItemBase from "./base-item.mjs";
 import { buildWeaponField, buildInstructionStepField } from "./weapon-schema.mjs";
+import { buildStyleField } from "./style-schema.mjs";
 
 export default class CyberBlueCyberware extends CyberBlueItemBase {
   static defineSchema() {
@@ -22,6 +23,10 @@ export default class CyberBlueCyberware extends CyberBlueItemBase {
       currentSp: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
     });
     schema.weapons = new fields.ArrayField(buildWeaponField(), { initial: [] });
+    // ── Styles ────────────────────────────────────────────────────────────────
+    // GM-authored cosmetic variants; `selectedStyle` is '' for the implicit Default.
+    schema.styles = new fields.ArrayField(buildStyleField(), { initial: [] });
+    schema.selectedStyle = new fields.StringField({ required: true, blank: true, initial: '' });
     schema.multipleInstalls = new fields.BooleanField({ initial: false });
     // Paired extensions must occupy a slot on TWO separate platforms of their
     // type (e.g. cyberoptics installed in both eyes). slotsUsed is consumed on

@@ -1,5 +1,6 @@
 import CyberBlueItemBase from "./base-item.mjs";
 import { buildWeaponField, buildInstructionStepField } from "./weapon-schema.mjs";
+import { buildStyleField } from "./style-schema.mjs";
 
 export default class CyberBlueGear extends CyberBlueItemBase {
   static defineSchema() {
@@ -23,6 +24,10 @@ export default class CyberBlueGear extends CyberBlueItemBase {
       currentSp: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
     });
     schema.weapons = new fields.ArrayField(buildWeaponField(), { initial: [] });
+    // ── Styles ────────────────────────────────────────────────────────────────
+    // GM-authored cosmetic variants; `selectedStyle` is '' for the implicit Default.
+    schema.styles = new fields.ArrayField(buildStyleField(), { initial: [] });
+    schema.selectedStyle = new fields.StringField({ required: true, blank: true, initial: '' });
     schema.quantity = new fields.NumberField({ ...requiredInteger, initial: 1, min: 0 });
     schema.state = new fields.StringField({ required: true, blank: false, initial: 'carried' });
     schema.carried = new fields.BooleanField({ initial: true });

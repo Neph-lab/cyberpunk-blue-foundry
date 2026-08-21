@@ -5,6 +5,7 @@ import {
 import { getBrandLogoPath } from '../helpers/branding.mjs';
 import { applyWeaponTypeDefaults, buildWeaponUpdate, createWeaponData, getWeaponTypeDefinition } from '../helpers/combat.mjs';
 import { parsePsycheLossFormula } from '../helpers/cyberware.mjs';
+import { buildStylesSubmitData, getSelectedStyle } from '../data/style-schema.mjs';
 import { PROGRAM_ACTOR_FLAG } from '../helpers/netrunning.mjs';
 import { buildNetCombatContext } from '../helpers/net-program-combat.mjs';
 import { attachNetCombatListeners, preserveBoosterBoosts } from '../helpers/net-combat-ui.mjs';
@@ -117,6 +118,48 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       || (context.isDrug && canManageRestricted);
     context.showWeaponSection = itemData.system.isWeapon || canManageRestricted;
     context.showCyberwareDetailsTab = context.isCyberware;
+
+    // ── Styles ────────────────────────────────────────────────────────────
+    // Read the raw source array: `itemData.system` is derived, and the Default
+    // panel must edit the item's OWN values, not the styled ones.
+    const supportsStyles = context.isGear || context.isCyberware;
+    const rawStyles = supportsStyles ? (this.document._source?.system?.styles ?? []) : [];
+    const activeStyle = supportsStyles ? getSelectedStyle(this.document.system) : null;
+    const sourceImg = this.document._source?.img ?? '';
+    context.supportsStyles = supportsStyles;
+    // Players only get the tab once the GM has authored something beyond Default.
+    context.showStylesTab = supportsStyles && (canManageRestricted || rawStyles.length > 0);
+    context.activeStyle = activeStyle;
+    context.defaultStyle = supportsStyles
+      ? {
+        img: sourceImg,
+        manufacturer: this.document._source?.system?.manufacturer ?? '',
+        cost: this.document._source?.system?.cost ?? '',
+        isSelected: !activeStyle,
+      }
+      : null;
+    // Which header fields the active style is currently overriding. Those must
+    // render read-only, or submitting the header would write the styled value
+    // back over the item's own.
+    context.styleOverrides = {
+      img: !!activeStyle?.img,
+      manufacturer: !!activeStyle?.manufacturer,
+      cost: !!activeStyle?.cost,
+    };
+    context.styles = context.showStylesTab
+      ? await Promise.all(rawStyles.map(async (style, index) => ({
+        ...style,
+        index,
+        resolvedImg: style.img || sourceImg,
+        isSelected: style.id === (this.document._source?.system?.selectedStyle ?? ''),
+        enrichedDescription: await foundry.applications.ux.TextEditor.implementation.enrichHTML(style.description ?? '', {
+          secrets: this.document.isOwner,
+          async: true,
+          rollData: this.document.parent?.getRollData?.() ?? {},
+          relativeTo: this.document,
+        }),
+      })))
+      : [];
     context.enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(itemData.system.description, {
       secrets: this.document.isOwner,
       async: true,
@@ -590,6 +633,8 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     // If no weapon form fields were actually submitted, there's nothing more to do
     if (Object.keys(formWeaponFields).length === 0) {
       this._preserveInfraredFields(data, formObj);
+      this._rebuildStylesSubmitData(data, formObj);
+      this._preserveStyleOverriddenFields(data, formObj);
       return preserveBoosterBoosts(data, this.document);
     }
 
@@ -617,6 +662,8 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     }
 
     this._preserveInfraredFields(data, formObj);
+    this._rebuildStylesSubmitData(data, formObj);
+    this._preserveStyleOverriddenFields(data, formObj);
     return preserveBoosterBoosts(data, this.document);
   }
 
@@ -631,6 +678,48 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     for (const key of ['irEnabled', 'irRange']) {
       if (src[key] === undefined) continue;                 // field n/a for this item type
       if (`system.${key}` in (formObj ?? {})) continue;      // user actually submitted it
+      data[`system.${key}`] = src[key];
+    }
+  }
+
+  /**
+   * Same ArrayField trap as weapons (see the comment block in
+   * _prepareSubmitData): cleanData forces partial:false on each element, so any
+   * style field NOT present in the form is reset to its schema initial. A
+   * ProseMirror save submits only `system.styles.N.description`, which would
+   * otherwise wipe that style's name, cost and bonus — and the bonus field is
+   * never in a player's form at all.
+   *
+   * Seed every existing style from _source, overlay only what was submitted,
+   * and emit every field of every style as a flat dot-path key so nothing is
+   * left undefined.
+   */
+  _rebuildStylesSubmitData(data, formObj) {
+    // Always drop the nested array super produced — cleanData already corrupted it.
+    const hasStyles = Array.isArray(this.document._source?.system?.styles);
+    if (data?.system && 'styles' in data.system) {
+      delete data.system.styles;
+    }
+    if (!hasStyles) return;
+
+    const update = buildStylesSubmitData(this.document._source.system.styles, formObj);
+    if (update) Object.assign(data, update);
+  }
+
+  /**
+   * The header renders manufacturer / cost read-only while a style overrides
+   * them (it displays the DERIVED value, which must never be written back over
+   * the item's own). Read-only means not submitted, so restore them from
+   * _source — same reasoning as _preserveInfraredFields.
+   */
+  _preserveStyleOverriddenFields(data, formObj) {
+    const src = this.document._source?.system ?? {};
+    if (!Array.isArray(src.styles)) return;
+    const style = getSelectedStyle(src);
+    if (!style) return;
+    for (const key of ['manufacturer', 'cost']) {
+      if (!style[key]) continue;                          // not overridden
+      if (`system.${key}` in (formObj ?? {})) continue;    // the Styles tab's Default panel submitted it
       data[`system.${key}`] = src[key];
     }
   }
@@ -789,6 +878,19 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     this.element.querySelectorAll('[data-action="move-instruction"]').forEach((btn) => {
       btn.addEventListener('click', this._onMoveInstruction.bind(this));
     });
+    this.element.querySelector('[data-action="style-add"]')
+      ?.addEventListener('click', this._onAddStyle.bind(this));
+    this.element.querySelectorAll('[data-action="style-delete"]').forEach((btn) => {
+      btn.addEventListener('click', this._onDeleteStyle.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="style-select"]').forEach((btn) => {
+      btn.addEventListener('click', this._onSelectStyle.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="style-edit-img"]').forEach((el) => {
+      el.addEventListener('click', this._onEditStyleImage.bind(this));
+    });
+    this.element.querySelector('[data-action="open-styles-tab"]')
+      ?.addEventListener('click', this._onOpenStylesTab.bind(this));
     // Restore scroll positions after re-render
     if (this._savedScrolls?.length) {
       for (const { key, scrollTop } of this._savedScrolls) {
@@ -1321,7 +1423,9 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       return;
     }
 
-    const current = this.document.img || '';
+    // _source, not the derived picture: this edits the item's OWN art, which a
+    // selected Style may currently be covering.
+    const current = this.document._source?.img || '';
     const picker = new foundry.applications.apps.FilePicker.implementation({
       type: 'imagevideo',
       current,
@@ -1558,5 +1662,91 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     if (swapIndex < 0 || swapIndex >= instructions.length) return;
     [instructions[stepIndex], instructions[swapIndex]] = [instructions[swapIndex], instructions[stepIndex]];
     await this.document.update({ 'system.instructions': instructions });
+  }
+  // ── Styles ──────────────────────────────────────────────────────────────
+  // Every mutation writes the WHOLE array back (the _onAddInstruction pattern),
+  // because ArrayField cleaning would reset any element field left undefined.
+
+  /** Raw source styles — never the derived copy. */
+  _getSourceStyles() {
+    return foundry.utils.deepClone(this.document._source?.system?.styles ?? []);
+  }
+
+  async _onAddStyle(event) {
+    event.preventDefault();
+    if (game.user.role < CONST.USER_ROLES.ASSISTANT) return;
+    const styles = this._getSourceStyles();
+    styles.push({
+      id: foundry.utils.randomID(),
+      name: game.i18n.localize('CYBER_BLUE.Style.NewStyle'),
+      img: '',
+      description: '',
+      manufacturer: '',
+      cost: '',
+      bonus: 0,
+    });
+    await this.document.update({ 'system.styles': styles });
+  }
+
+  async _onDeleteStyle(event) {
+    event.preventDefault();
+    if (game.user.role < CONST.USER_ROLES.ASSISTANT) return;
+    const index = Number(event.currentTarget.dataset.styleIndex);
+    if (!Number.isInteger(index)) return;
+    const styles = this._getSourceStyles();
+    const [removed] = styles.splice(index, 1);
+    if (!removed) return;
+    const update = { 'system.styles': styles };
+    // Don't leave the item pointing at a style that no longer exists.
+    if (this.document._source?.system?.selectedStyle === removed.id) {
+      update['system.selectedStyle'] = '';
+    }
+    await this.document.update(update);
+  }
+
+  async _onSelectStyle(event) {
+    event.preventDefault();
+    if (!this.document.isOwner && game.user.role < CONST.USER_ROLES.ASSISTANT) return;
+    // '' is the implicit Default.
+    const styleId = event.currentTarget.dataset.styleId ?? '';
+    await this.document.update({ 'system.selectedStyle': styleId });
+  }
+
+  async _onEditStyleImage(event) {
+    event.preventDefault();
+    if (game.user.role < CONST.USER_ROLES.ASSISTANT) return;
+    const raw = event.currentTarget.dataset.styleIndex;
+
+    // The Default panel edits the item's own picture.
+    if (raw === 'default') {
+      const picker = new foundry.applications.apps.FilePicker.implementation({
+        type: 'imagevideo',
+        current: this.document._source?.img ?? '',
+        callback: async (path) => {
+          await this.document.update({ img: path });
+        },
+      });
+      return picker.browse();
+    }
+
+    const index = Number(raw);
+    if (!Number.isInteger(index)) return;
+    const picker = new foundry.applications.apps.FilePicker.implementation({
+      type: 'imagevideo',
+      current: this.document._source?.system?.styles?.[index]?.img ?? '',
+      callback: async (path) => {
+        const styles = this._getSourceStyles();
+        if (!styles[index]) return;
+        styles[index].img = path;
+        await this.document.update({ 'system.styles': styles });
+      },
+    });
+    return picker.browse();
+  }
+
+  _onOpenStylesTab(event) {
+    event.preventDefault();
+    const nav = this.element.querySelector('.sheet-tabs [data-tab="styles"]');
+    if (nav) nav.click();
   }
 }

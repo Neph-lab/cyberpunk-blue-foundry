@@ -15,6 +15,8 @@
  *   installationDv: DV for the installation check
  */
 
+import { stylesFor } from './style-catalogue.mjs';
+
 const COST = {
   CH:  '€$10 (Cheap)',
   EV:  '€$20 (Everyday)',
@@ -106,6 +108,8 @@ function cw({
       manufacturer,
       cost: c,
       hardwareCost: c,
+      styles: stylesFor(name),
+      selectedStyle: '',
       cyberwareType,
       integration,
       slotsUsed,

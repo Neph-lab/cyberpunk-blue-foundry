@@ -13,6 +13,7 @@ import {
   BLIND_ATTACK_SKILLS as BLIND_SKILLS,
   BLIND_ATTACK_PENALTY as BLIND_PENALTY,
 } from '../helpers/blind.mjs';
+import { stylesFor } from './style-catalogue.mjs';
 
 const COST = {
   CH:  '€$10 (Cheap)',
@@ -96,6 +97,8 @@ function gear({
     system: {
       manufacturer,
       cost: COST[cost] ?? cost,
+      styles: stylesFor(name),
+      selectedStyle: '',
       note: '',
       notes: '',
       isArmor,

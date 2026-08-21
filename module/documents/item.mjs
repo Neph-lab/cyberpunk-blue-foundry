@@ -10,6 +10,7 @@ import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs'
 import { getGearStateUpdateData, normalizeGearState } from '../helpers/gear.mjs';
 import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
 import { applyFirstRoleSetup, normalizeRoleSystemData } from '../helpers/roles.mjs';
+import { getSelectedStyle } from '../data/style-schema.mjs';
 import { CyberBlueActiveEffect } from './active-effect.mjs';
 
 function preserveRoleArrayIds(next, current) {
@@ -40,6 +41,25 @@ export class CyberBlueItem extends Item {
   static OPERATIONAL_EFFECT_FLAG = 'autoOperationalEffectState';
   static GEAR_EFFECT_STATE_FLAG = 'autoGearEffectState';
   static SKILL_CHIP_FLOOR_FLAG = 'skillChipFloor';
+  static STYLE_BONUS_FLAG = 'styleBonus';
+
+  /**
+   * Resolve the selected Style over the item's own picture, manufacturer and
+   * cost. This is deliberately DERIVED: `_source` keeps the Default values, so
+   * switching styles is never destructive and Default needs no stored copy.
+   * A blank field on the style means "no override" for that field alone.
+   */
+  prepareDerivedData() {
+    super.prepareDerivedData();
+    if (this.type !== 'gear' && this.type !== 'cyberware') return;
+
+    const style = getSelectedStyle(this.system);
+    if (!style) return;
+
+    if (style.img) this.img = style.img;
+    if (style.manufacturer) this.system.manufacturer = style.manufacturer;
+    if (style.cost) this.system.cost = style.cost;
+  }
 
   async _onCreate(data, options, userId) {
     await super._onCreate(data, options, userId);
@@ -58,7 +78,10 @@ export class CyberBlueItem extends Item {
     await super._onUpdate(changed, options, userId);
     // When the item's picture changes (incl. newly wired-up art), propagate it
     // to its effects' stored icons.
-    if (game.user.id === userId && 'img' in changed && !options?.cyberBlueSyncEffectImages) {
+    // A style change moves the DERIVED image without touching source `img`,
+    // so watch for it too.
+    const styleChanged = changed.system && 'selectedStyle' in changed.system;
+    if (game.user.id === userId && ('img' in changed || styleChanged) && !options?.cyberBlueSyncEffectImages) {
       await this.syncEffectImages();
     }
   }
@@ -199,6 +222,10 @@ export class CyberBlueItem extends Item {
     const result = this.toObject();
 
     result.id = this.id;
+    // toObject() returns the SOURCE img while toPlainObject() returns DERIVED
+    // system data. Take the derived picture too, so a styled item doesn't show
+    // its Default art beside its styled manufacturer.
+    result.img = this.img;
     result.system = this.system.toPlainObject();
     result.effects = this.effects?.size > 0
       ? this.effects.contents.map((effect) => effect.toObject())
@@ -228,7 +255,7 @@ export class CyberBlueItem extends Item {
   }
 
   shouldApplyCyberwareEffects() {
-    return !this.isUnconnectedExtension();
+    return !this.isUnconnectedExtension() && this.system.installed !== false;
   }
 
   shouldApplyGearEffects() {
@@ -322,7 +349,10 @@ export class CyberBlueItem extends Item {
       name: game.i18n.localize('CYBER_BLUE.Effect.PsycheLoss'),
       img: 'icons/svg/daze.svg',
       origin: this.uuid,
-      disabled: !this.shouldApplyCyberwareEffects(),
+      // Deliberately NOT shouldApplyCyberwareEffects(): pulling the chrome back
+      // out does not give the Psyche back. Only a never-connected extension
+      // (which was never really installed) is exempt.
+      disabled: this.isUnconnectedExtension(),
       transfer: true,
       system: { changes },
       flags: {
@@ -486,6 +516,74 @@ export class CyberBlueItem extends Item {
         { name: effectData.name, [`flags.cyberpunk-blue.${CyberBlueItem.SKILL_CHIP_FLOOR_FLAG}`]: slug },
         { ...options, cyberBlueSyncSkillChip: true },
       );
+    }
+  }
+
+  /**
+   * Maintains a single AE carrying the selected Style's bonus to the Style
+   * skill. Created when a non-Default style with a non-zero bonus is selected,
+   * deleted otherwise. Modelled on syncSkillChipEffect().
+   *
+   * The AE carries no `img` on purpose — CyberBlueActiveEffect inherits the
+   * parent item's picture, which is already the style's art.
+   */
+  async syncStyleBonusEffect(options = {}) {
+    if (this.type !== 'gear' && this.type !== 'cyberware') {
+      return;
+    }
+    // Compendium copies are handled by the catalogue sync, not here.
+    if (this.pack) return;
+
+    const style = getSelectedStyle(this.system);
+    const bonus = Number(style?.bonus ?? 0);
+    const existing = this.effects.find(
+      (e) => e.getFlag('cyberpunk-blue', CyberBlueItem.STYLE_BONUS_FLAG) != null,
+    );
+
+    if (!style || !Number.isFinite(bonus) || bonus === 0) {
+      if (existing) {
+        await existing.delete({ ...options, cyberBlueSyncStyleBonus: true });
+      }
+      return;
+    }
+
+    const name = `${this.name} — ${style.name}`;
+    // v14: AE changes live under `system.changes`, not at the top level (the
+    // top-level form only survives via a migration shim removed in v16). Matches
+    // getPsycheLossEffectData() and the actor's wound effects.
+    const changes = [{ key: 'system.skills.style.bonus', type: 'add', value: `${bonus}` }];
+    const disabled = this.type === 'gear'
+      ? !this.shouldApplyGearEffects()
+      : !this.shouldApplyCyberwareEffects();
+
+    if (!existing) {
+      await this.createEmbeddedDocuments('ActiveEffect', [{
+        name,
+        disabled,
+        transfer: true,
+        system: { changes },
+        flags: {
+          'cyberpunk-blue': {
+            [CyberBlueItem.STYLE_BONUS_FLAG]: style.id,
+          },
+        },
+      }], { ...options, cyberBlueSyncStyleBonus: true });
+      return;
+    }
+
+    const currentChange = existing.system?.changes?.[0] ?? {};
+    const needsUpdate = existing.name !== name
+      || existing.getFlag('cyberpunk-blue', CyberBlueItem.STYLE_BONUS_FLAG) !== style.id
+      || currentChange.key !== changes[0].key
+      || `${currentChange.value}` !== changes[0].value
+      || currentChange.type !== changes[0].type;
+
+    if (needsUpdate) {
+      await existing.update({
+        name,
+        'system.changes': changes,
+        [`flags.cyberpunk-blue.${CyberBlueItem.STYLE_BONUS_FLAG}`]: style.id,
+      }, { ...options, cyberBlueSyncStyleBonus: true });
     }
   }
 }

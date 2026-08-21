@@ -4729,3 +4729,90 @@ CHARACTER SHEET SPECIFIC
   white-space: nowrap;
 }
 /* #endregion */
+
+/* #region Item Styles tab ————————————————————————— */
+/* Cosmetic variants of a Gear/Cyberware item. One panel per style, Default
+   first. The selected panel is marked with the lime "always-on" accent so it
+   reads at a glance which look the item is currently wearing. */
+.cyberpunk-blue .styles-tab .style-panel {
+  padding: 0.85rem 1rem;
+}
+.cyberpunk-blue .styles-tab .style-panel.is-selected {
+  background: var(--cpb-accent-strong-wash);
+  outline: 1px solid var(--cpb-accent-strong-border);
+  outline-offset: -1px;
+}
+.cyberpunk-blue .styles-tab .panel-header.panel-actions {
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+.cyberpunk-blue .styles-tab .style-name-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--cpb-font-display);
+  font-size: var(--cpb-fs-h2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.cyberpunk-blue .styles-tab .style-selected-chip {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  color: var(--cpb-accent-strong);
+  font-family: var(--cpb-font-display);
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+}
+.cyberpunk-blue .styles-tab .style-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-top: 0.6rem;
+}
+.cyberpunk-blue .styles-tab .style-img {
+  flex: 0 0 auto;
+  width: 128px;
+  height: 128px;
+  object-fit: cover;
+  border: 1px solid var(--cpb-accent-wash-border);
+  --c: var(--cpb-cut-sm);
+  clip-path: polygon(
+    0 0, calc(100% - var(--c)) 0, 100% var(--c),
+    100% 100%, var(--c) 100%, 0 calc(100% - var(--c))
+  );
+}
+.cyberpunk-blue .styles-tab .style-img.is-editable {
+  cursor: pointer;
+}
+.cyberpunk-blue .styles-tab .style-img.is-editable:hover {
+  border-color: var(--cpb-accent);
+  box-shadow: var(--cpb-shadow-lift);
+}
+.cyberpunk-blue .styles-tab .style-fields {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cpb-space-2);
+}
+.cyberpunk-blue .styles-tab .style-hint {
+  margin: 0;
+  color: var(--cpb-muted);
+  font-size: 0.85rem;
+}
+.cyberpunk-blue .styles-tab .style-add-panel {
+  display: flex;
+  justify-content: center;
+}
+/* The header portrait is not a FilePicker target while a style overrides it —
+   clicking it jumps to the Styles tab instead. */
+.cyberpunk-blue .profile-img.is-styled {
+  cursor: pointer;
+  border-color: var(--cpb-accent-strong-border);
+}
+/* Font Awesome stand-in until a bk_Styles.svg exists to match the other tabs. */
+.cyberpunk-blue .cpb-tab-fa {
+  margin-right: var(--cpb-space-2);
+}
+/* #endregion */

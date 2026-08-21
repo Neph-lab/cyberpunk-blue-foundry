@@ -13,7 +13,7 @@ The compendium pack DBs are LevelDB and get regenerated when the GM loads the wo
 
 The user invokes this skill in one of two ways:
 
-1. **No arguments** → scan `git status` for untracked files under `assets/items/**` and wire those.
+1. **No arguments** → scan `git status` for untracked files under `assets/items/**` and wire those, **skipping anything under `assets/items/styles/`** (see below).
 2. **Path(s) given** (one or more files or folders, tracked or untracked) → wire exactly those. A folder means "every image file directly or recursively under it."
 
 If both apply (untracked files exist AND the user gave paths), only wire the given paths — don't sweep up unrelated untracked files.
@@ -31,6 +31,18 @@ If both apply (untracked files exist AND the user gave paths), only wire the giv
 | `programs/`               | `program-catalogue.mjs`           | `img:`     |
 | `vehicles/`               | `vehicle-catalogue.mjs`           | `img:`     |
 | `abilities/`              | `ability-catalogue.mjs`           | `img:`     |
+| `styles/`                 | **excluded — see below**          | —          |
+
+### Excluded: `assets/items/styles/`
+
+Item **Styles** are a different thing from item art: they are cosmetic variants
+carrying their own name, description, manufacturer, cost and Style-skill bonus,
+and they live in `module/data/style-catalogue.mjs`, not in an `img:` field.
+
+**Never wire anything under `assets/items/styles/` with this skill** — not in the
+untracked-file sweep, and not even when the user hands you one of those paths
+directly. A style image dropped into `equipment-catalogue.mjs` would silently
+replace an item's Default art. Point the user at `/wire-styles` instead.
 
 The weapon catalogue uses a helper: `imgPath: img(W_PISTOL, 'Filename.png')` where `W_PISTOL`, `W_SMG`, `W_SHOTGUN`, `W_AR`, `W_SNIPER`, `W_MELEE`, `W_ROOT` are constants defined at the top. Use the matching constant for the file's subfolder. Note the folder `Pisols/` is misspelled on disk — that's intentional, `W_PISTOL` points there.
 
