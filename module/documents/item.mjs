@@ -349,10 +349,12 @@ export class CyberBlueItem extends Item {
       name: game.i18n.localize('CYBER_BLUE.Effect.PsycheLoss'),
       img: 'icons/svg/daze.svg',
       origin: this.uuid,
-      // Deliberately NOT shouldApplyCyberwareEffects(): pulling the chrome back
-      // out does not give the Psyche back. Only a never-connected extension
-      // (which was never really installed) is exempt.
-      disabled: this.isUnconnectedExtension(),
+      // Follows installation like every other cyberware AE: uninstalled chrome
+      // stops reducing MAX Psyche. It never touches CURRENT Psyche — that is a
+      // one-time deduction made by promptCyberwarePsycheLoss on acquisition, and
+      // its PSYCHE_PROMPT_FLAG guard keeps an install/uninstall cycle from
+      // re-charging it.
+      disabled: !this.shouldApplyCyberwareEffects(),
       transfer: true,
       system: { changes },
       flags: {
