@@ -32,7 +32,7 @@ function consumableThrownStacksMatch(existingItem, entry) {
   if (existingItem.type !== entry.type || existingItem.name !== entry.name) return false;
   const existingObj = existingItem.toObject();
   if (!isConsumableThrownEntry(existingObj)) return false;
-  return foundry.utils.objectsEqual(
+  return foundry.utils.equals(
     normalizeStackSystem(existingObj.system),
     normalizeStackSystem(entry.system ?? {}),
   );

@@ -1069,7 +1069,7 @@ export async function performQuickhackBreach(actor, targetActor) {
       disabled: false,
       transfer: false,
       duration: { seconds: 60 },
-      changes:  [],
+      system: { changes: [] },
       flags: { 'cyberpunk-blue': { breachedBy: actor.id } },
     }]);
   }
@@ -1143,7 +1143,7 @@ export async function performQuickhackUpload(actor, targetActor) {
     disabled: false,
     transfer: false,
     duration: { rounds: 1 },
-    changes:  [],
+    system: { changes: [] },
     flags: {
       'cyberpunk-blue': {
         quickhackPending:    true,
@@ -1250,7 +1250,7 @@ export async function startEncryptDecryptTimer(actor, opLabel) {
     disabled: false,
     transfer: false,
     duration: { rounds: 1 },
-    changes:  [],
+    system: { changes: [] },
     flags: {
       'cyberpunk-blue': {
         encryptDecryptPending: true,
@@ -1581,12 +1581,12 @@ export async function mirrorExecutableEffects(programActor, exeItem) {
     const current = existing.toObject();
     const ns = (o) => JSON.stringify(o?.['cyberpunk-blue'] ?? {});
     const differs = current.name !== data.name
-      || JSON.stringify(current.changes) !== JSON.stringify(data.changes)
+      || JSON.stringify(current.system?.changes) !== JSON.stringify(data.system?.changes)
       || JSON.stringify(current.statuses) !== JSON.stringify(data.statuses)
       || ns(current.flags) !== ns(data.flags);
     if (differs) {
       updates.push({
-        _id: data._id, name: data.name, changes: data.changes,
+        _id: data._id, name: data.name, 'system.changes': data.system?.changes ?? [],
         statuses: data.statuses, flags: { 'cyberpunk-blue': data.flags?.['cyberpunk-blue'] ?? {} },
       });
     }
@@ -1687,7 +1687,7 @@ export async function applyErrorState(programActor) {
     img: 'icons/svg/skull.svg',
     disabled: false,
     transfer: false,
-    changes: [],
+    system: { changes: [] },
     statuses: ['dead'],
     flags: { 'cyberpunk-blue': { isErrorState: true } },
   }]);

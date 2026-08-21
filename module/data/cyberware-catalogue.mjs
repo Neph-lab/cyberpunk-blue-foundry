@@ -31,12 +31,15 @@ const COST = {
 const h = (text) => /^\s*<(p|ul|ol|div|h\d|table)\b/i.test(text) ? text : `<p>${text}</p>`;
 
 // ── AE helpers ─────────────────────────────────────────────────────────────
-const ae      = (name, changes) => ({ name, disabled: false, transfer: true, changes });
-const aeOff   = (name, changes) => ({ name, disabled: true,  transfer: true, changes });
-const reminder = (name)         => ({ name, disabled: false, transfer: true, changes: [] });
+// v14: AE changes live under `system.changes`, not at the top level. A top-level
+// `changes` array survives only through a deprecated creation-data migration
+// that is removed in v16, so effect create-data is authored nested here.
+const ae      = (name, changes) => ({ name, disabled: false, transfer: true, system: { changes } });
+const aeOff   = (name, changes) => ({ name, disabled: true,  transfer: true, system: { changes } });
+const reminder = (name)         => ({ name, disabled: false, transfer: true, system: { changes: [] } });
 /** AE with no stat changes but a cyberpunk-blue flag — used for combat-code hooks (TeleOptics, etc.). */
 const aeFlag  = (name, flagKey, flagVal = true) => ({
-  name, disabled: false, transfer: true, changes: [],
+  name, disabled: false, transfer: true, system: { changes: [] },
   flags: { 'cyberpunk-blue': { [flagKey]: flagVal } },
 });
 const stat    = (slug, val) => ({ key: `system.stats.${slug}.value`,          type: 'add',      value: String(val) });

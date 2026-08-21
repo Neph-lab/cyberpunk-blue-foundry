@@ -37,6 +37,28 @@ const { ItemSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { Tabs } = foundry.applications.ux;
 
+/**
+ * `system.embeddedMods[].importedEffects[].changes[].mode` is this system's own
+ * schema field and stores the legacy numeric change mode. v14 AE changes carry
+ * a string `type` instead, and the numeric `mode` accessor Foundry shims onto
+ * each change is removed in v16 — so the number is derived here rather than
+ * read off the change.
+ */
+const CHANGE_TYPE_TO_MODE = Object.freeze({
+  custom: 0, multiply: 1, add: 2, downgrade: 3, upgrade: 4, override: 5,
+});
+
+/** Map a v14 change `type` onto the legacy numeric mode `importedEffects` stores. */
+const changeTypeToMode = (type) => CHANGE_TYPE_TO_MODE[type]
+  ?? (Number(/^custom\.(-?\d+)$/.exec(type ?? '')?.[1]) || 0);
+
+/** Snapshot a live ActiveEffect's changes in the shape `importedEffects` stores. */
+const snapshotEffectChanges = (effect) => (effect.system?.changes ?? []).map((c) => ({
+  key: c.key,
+  mode: changeTypeToMode(c.type),
+  value: c.value,
+}));
+
 export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
     classes: ['cyberpunk-blue', 'sheet', 'item'],
@@ -1469,7 +1491,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       importedEffects: (sourceItem.effects ?? []).map((e) => ({
         label: e.name ?? e.label ?? '',
         icon: e.icon ?? '',
-        changes: (e.changes ?? []).map((c) => ({ key: c.key, mode: c.mode, value: c.value })),
+        changes: snapshotEffectChanges(e),
       })),
       targetWeaponIndex: sourceItem.system.targetWeaponIndex ?? -1,
       weaponChanges: foundry.utils.deepClone(sourceItem.system.weaponChanges ?? []),
@@ -1496,7 +1518,7 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       mod.importedEffects = (source.effects ?? []).map((e) => ({
         label: e.name ?? e.label ?? '',
         icon: e.icon ?? '',
-        changes: (e.changes ?? []).map((c) => ({ key: c.key, mode: c.mode, value: c.value })),
+        changes: snapshotEffectChanges(e),
       }));
       mod.targetWeaponIndex = source.system.targetWeaponIndex ?? -1;
       mod.weaponChanges = foundry.utils.deepClone(source.system.weaponChanges ?? []);

@@ -352,9 +352,11 @@ export async function applyAttackRiders(attack, targetActor, survivingConditions
         disabled: false,
         transfer: false,
         duration: parseDurationLabel(sp.durationLabel),
-        changes: sp.stats.map((stat) => ({
-          key: `system.stats.${stat}.value`, type: 'add', value: String(-mag),
-        })),
+        system: {
+          changes: sp.stats.map((stat) => ({
+            key: `system.stats.${stat}.value`, type: 'add', value: String(-mag),
+          })),
+        },
         flags: { 'cyberpunk-blue': { netStatPenalty: true } },
       }]);
     }
@@ -371,7 +373,7 @@ export async function applyAttackRiders(attack, targetActor, survivingConditions
         img: 'icons/svg/clockwork.svg',
         disabled: false,
         transfer: false,
-        changes: [{ key: 'system.netActionsTotal', type: 'add', value: String(-reduce) }],
+        system: { changes: [{ key: 'system.netActionsTotal', type: 'add', value: String(-reduce) }] },
         flags: {
           'cyberpunk-blue': {
             netActionPenalty: true,
@@ -396,7 +398,7 @@ export async function applyAttackRiders(attack, targetActor, survivingConditions
       img: 'icons/svg/padlock.svg',
       disabled: false,
       transfer: false,
-      changes: [],
+      system: { changes: [] },
       flags: {
         'cyberpunk-blue': {
           nodeLocked: true,

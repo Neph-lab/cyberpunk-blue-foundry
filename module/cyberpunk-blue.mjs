@@ -432,155 +432,175 @@ Hooks.once('init', function () {
       id: 'dying',
       name: 'CYBER_BLUE.Condition.Dying',
       img: 'icons/svg/skull.svg',
-      changes: [
-        { key: 'system.stats.body.rollMod', type: 'add', value: '-2' },
-        { key: 'system.stats.rflx.rollMod', type: 'add', value: '-2' },
-        { key: 'system.stats.int.rollMod',  type: 'add', value: '-2' },
-        { key: 'system.stats.tech.rollMod', type: 'add', value: '-2' },
-        { key: 'system.stats.cool.rollMod', type: 'add', value: '-2' },
-        { key: 'system.stats.move.value',   type: 'add', value: '-6' },
-      ],
+      system: {
+        changes: [
+          { key: 'system.stats.body.rollMod', type: 'add', value: '-2' },
+          { key: 'system.stats.rflx.rollMod', type: 'add', value: '-2' },
+          { key: 'system.stats.int.rollMod',  type: 'add', value: '-2' },
+          { key: 'system.stats.tech.rollMod', type: 'add', value: '-2' },
+          { key: 'system.stats.cool.rollMod', type: 'add', value: '-2' },
+          { key: 'system.stats.move.value',   type: 'add', value: '-6' },
+        ],
+      },
       flags: { 'cyberpunk-blue': { conditionId: 'dying' } },
     },
     {
       id: 'dead',
       name: 'CYBER_BLUE.Condition.Dead',
       img: 'icons/svg/tombstone.svg',
-      changes: [],
+      system: { changes: [] },
       flags: { 'cyberpunk-blue': { conditionId: 'dead' } },
     },
     {
       id: 'unconscious',
       name: 'CYBER_BLUE.Condition.Unconscious',
       img: 'icons/svg/unconscious.svg',
-      changes: [
-        { key: 'system.stats.rflx.rollMod', type: 'override', value: '-99' },
-        { key: 'system.stats.int.rollMod',  type: 'override', value: '-99' },
-        { key: 'system.stats.tech.rollMod', type: 'override', value: '-99' },
-        { key: 'system.stats.cool.rollMod', type: 'override', value: '-99' },
-        { key: 'system.stats.move.value',   type: 'override', value: '0' },
-      ],
+      system: {
+        changes: [
+          { key: 'system.stats.rflx.rollMod', type: 'override', value: '-99' },
+          { key: 'system.stats.int.rollMod',  type: 'override', value: '-99' },
+          { key: 'system.stats.tech.rollMod', type: 'override', value: '-99' },
+          { key: 'system.stats.cool.rollMod', type: 'override', value: '-99' },
+          { key: 'system.stats.move.value',   type: 'override', value: '0' },
+        ],
+      },
       flags: { 'cyberpunk-blue': { conditionId: 'unconscious' } },
     },
     {
       id: 'prone',
       name: 'CYBER_BLUE.Condition.Prone',
       img: 'icons/svg/falling.svg',
-      changes: [
-        { key: 'system.stats.move.value', type: 'add', value: '-2' },
-      ],
+      system: {
+        changes: [
+          { key: 'system.stats.move.value', type: 'add', value: '-2' },
+        ],
+      },
       flags: { 'cyberpunk-blue': { conditionId: 'prone' } },
     },
     {
       id: 'asleep',
       name: 'CYBER_BLUE.Condition.Asleep',
       img: 'icons/svg/sleep.svg',
-      changes: [
-        { key: 'system.stats.rflx.rollMod', type: 'override', value: '-99' },
-        { key: 'system.stats.int.rollMod',  type: 'override', value: '-99' },
-        { key: 'system.stats.tech.rollMod', type: 'override', value: '-99' },
-        { key: 'system.stats.cool.rollMod', type: 'override', value: '-99' },
-        { key: 'system.stats.move.value',   type: 'override', value: '0' },
-      ],
+      system: {
+        changes: [
+          { key: 'system.stats.rflx.rollMod', type: 'override', value: '-99' },
+          { key: 'system.stats.int.rollMod',  type: 'override', value: '-99' },
+          { key: 'system.stats.tech.rollMod', type: 'override', value: '-99' },
+          { key: 'system.stats.cool.rollMod', type: 'override', value: '-99' },
+          { key: 'system.stats.move.value',   type: 'override', value: '0' },
+        ],
+      },
       flags: { 'cyberpunk-blue': { conditionId: 'asleep' } },
     },
     {
       id: 'stunned',
       name: 'CYBER_BLUE.Condition.Stunned',
       img: 'icons/svg/daze.svg',
-      changes: [
-        { key: 'system.stats.body.rollMod', type: 'add', value: '-4' },
-        { key: 'system.stats.rflx.rollMod', type: 'add', value: '-4' },
-        { key: 'system.stats.int.rollMod',  type: 'add', value: '-4' },
-        { key: 'system.stats.tech.rollMod', type: 'add', value: '-4' },
-        { key: 'system.stats.cool.rollMod', type: 'add', value: '-4' },
-      ],
+      system: {
+        changes: [
+          { key: 'system.stats.body.rollMod', type: 'add', value: '-4' },
+          { key: 'system.stats.rflx.rollMod', type: 'add', value: '-4' },
+          { key: 'system.stats.int.rollMod',  type: 'add', value: '-4' },
+          { key: 'system.stats.tech.rollMod', type: 'add', value: '-4' },
+          { key: 'system.stats.cool.rollMod', type: 'add', value: '-4' },
+        ],
+      },
       flags: { 'cyberpunk-blue': { conditionId: 'stunned' } },
     },
     {
       id: 'restrained',
       name: 'CYBER_BLUE.Condition.Restrained',
       img: 'icons/svg/net.svg',
-      changes: [
-        { key: 'system.stats.move.value', type: 'override', value: '0' },
-      ],
+      system: {
+        changes: [
+          { key: 'system.stats.move.value', type: 'override', value: '0' },
+        ],
+      },
       flags: { 'cyberpunk-blue': { conditionId: 'restrained' } },
     },
     {
       id: 'grappled',
       name: 'CYBER_BLUE.Condition.Grappled',
       img: 'icons/svg/grab.svg',
-      changes: [
-        { key: 'system.stats.move.value', type: 'override', value: '0' },
-      ],
+      system: {
+        changes: [
+          { key: 'system.stats.move.value', type: 'override', value: '0' },
+        ],
+      },
       flags: { 'cyberpunk-blue': { conditionId: 'grappled' } },
     },
     {
       id: 'burning-embers',
       name: 'CYBER_BLUE.Condition.BurningEmbers',
       img: 'icons/svg/fire.svg',
-      changes: [],
+      system: { changes: [] },
       flags: { 'cyberpunk-blue': { conditionId: 'burning-embers', burnDamage: 2 } },
     },
     {
       id: 'burning-fire',
       name: 'CYBER_BLUE.Condition.BurningFire',
       img: 'icons/svg/fire.svg',
-      changes: [],
+      system: { changes: [] },
       flags: { 'cyberpunk-blue': { conditionId: 'burning-fire', burnDamage: 4 } },
     },
     {
       id: 'burning-deadly',
       name: 'CYBER_BLUE.Condition.BurningDeadly',
       img: 'icons/svg/fire.svg',
-      changes: [],
+      system: { changes: [] },
       flags: { 'cyberpunk-blue': { conditionId: 'burning-deadly', burnDamage: 6 } },
     },
     {
       id: 'fatigued',
       name: 'CYBER_BLUE.Condition.Fatigued',
       img: 'icons/svg/downgrade.svg',
-      changes: [
-        { key: 'system.stats.body.rollMod', type: 'add', value: '-2' },
-        { key: 'system.stats.rflx.rollMod', type: 'add', value: '-2' },
-        { key: 'system.stats.int.rollMod',  type: 'add', value: '-2' },
-        { key: 'system.stats.tech.rollMod', type: 'add', value: '-2' },
-        { key: 'system.stats.cool.rollMod', type: 'add', value: '-2' },
-      ],
+      system: {
+        changes: [
+          { key: 'system.stats.body.rollMod', type: 'add', value: '-2' },
+          { key: 'system.stats.rflx.rollMod', type: 'add', value: '-2' },
+          { key: 'system.stats.int.rollMod',  type: 'add', value: '-2' },
+          { key: 'system.stats.tech.rollMod', type: 'add', value: '-2' },
+          { key: 'system.stats.cool.rollMod', type: 'add', value: '-2' },
+        ],
+      },
       flags: { 'cyberpunk-blue': { conditionId: 'fatigued' } },
     },
     {
       id: 'severe-fatigue',
       name: 'CYBER_BLUE.Condition.SevereFatigue',
       img: 'icons/svg/downgrade.svg',
-      changes: [
-        { key: 'system.stats.body.rollMod', type: 'add', value: '-2' },
-        { key: 'system.stats.rflx.rollMod', type: 'add', value: '-4' },
-        { key: 'system.stats.int.rollMod',  type: 'add', value: '-4' },
-        { key: 'system.stats.tech.rollMod', type: 'add', value: '-2' },
-        { key: 'system.stats.cool.rollMod', type: 'add', value: '-2' },
-      ],
+      system: {
+        changes: [
+          { key: 'system.stats.body.rollMod', type: 'add', value: '-2' },
+          { key: 'system.stats.rflx.rollMod', type: 'add', value: '-4' },
+          { key: 'system.stats.int.rollMod',  type: 'add', value: '-4' },
+          { key: 'system.stats.tech.rollMod', type: 'add', value: '-2' },
+          { key: 'system.stats.cool.rollMod', type: 'add', value: '-2' },
+        ],
+      },
       flags: { 'cyberpunk-blue': { conditionId: 'severe-fatigue' } },
     },
     {
       id: 'extreme-fatigue',
       name: 'CYBER_BLUE.Condition.ExtremeFatigue',
       img: 'icons/svg/downgrade.svg',
-      changes: [
-        { key: 'system.stats.body.rollMod', type: 'add', value: '-4' },
-        { key: 'system.stats.rflx.rollMod', type: 'add', value: '-6' },
-        { key: 'system.stats.int.rollMod',  type: 'add', value: '-6' },
-        { key: 'system.stats.tech.rollMod', type: 'add', value: '-4' },
-        { key: 'system.stats.cool.rollMod', type: 'add', value: '-4' },
-        { key: 'system.stats.move.value',   type: 'override', value: '2' },
-      ],
+      system: {
+        changes: [
+          { key: 'system.stats.body.rollMod', type: 'add', value: '-4' },
+          { key: 'system.stats.rflx.rollMod', type: 'add', value: '-6' },
+          { key: 'system.stats.int.rollMod',  type: 'add', value: '-6' },
+          { key: 'system.stats.tech.rollMod', type: 'add', value: '-4' },
+          { key: 'system.stats.cool.rollMod', type: 'add', value: '-4' },
+          { key: 'system.stats.move.value',   type: 'override', value: '2' },
+        ],
+      },
       flags: { 'cyberpunk-blue': { conditionId: 'extreme-fatigue' } },
     },
     {
       id: 'deaf',
       name: 'CYBER_BLUE.Condition.Deaf',
       img: 'icons/svg/deaf.svg',
-      changes: [],
+      system: { changes: [] },
       flags: { 'cyberpunk-blue': { conditionId: 'deaf' } },
     },
     {
@@ -595,9 +615,11 @@ Hooks.once('init', function () {
       // The generalBonus channel adds on top of the skill/component min, so the
       // full −10 lands whatever the character's ranks are. Attacks beyond 5 m
       // always miss — enforced in the attack resolvers via helpers/blind.mjs.
-      changes: BLIND_ATTACK_CHANGE_KEYS.map((key) => ({
-        key, type: 'add', value: String(BLIND_ATTACK_PENALTY),
-      })),
+      system: {
+        changes: BLIND_ATTACK_CHANGE_KEYS.map((key) => ({
+          key, type: 'add', value: String(BLIND_ATTACK_PENALTY),
+        })),
+      },
       flags: { 'cyberpunk-blue': { conditionId: 'blind' } },
     },
   ];
@@ -751,7 +773,7 @@ const syncLargeFuelTankEffect = async (document) => {
     await actor.createEmbeddedDocuments('ActiveEffect', [{
       name: game.i18n.localize('CYBER_BLUE.Combat.LargeFuelTankAE'),
       img: 'icons/svg/downgrade.svg',
-      changes: [{ key: 'system.stats.move.value', type: 'add', value: '-1' }],
+      system: { changes: [{ key: 'system.stats.move.value', type: 'add', value: '-1' }] },
       flags: { 'cyberpunk-blue': { [LARGE_TANK_AE_FLAG]: true } },
     }]);
   } else if (!overloaded && existing) {
@@ -1697,10 +1719,10 @@ Hooks.on('combatTurn', async (combat, updateData) => {
       if (roundsElapsed >= 1) {
         const aeId = item.getFlag('cyberpunk-blue', `chargeAeId-${wi}`);
         const ae   = aeId ? actor.effects?.get(aeId) : null;
-        if (ae && ae.changes[0]?.value === '0') {
+        if (ae && ae.system?.changes?.[0]?.value === '0') {
           const origMove = item.getFlag('cyberpunk-blue', `chargeOrigMove-${wi}`) ?? 0;
           const halfMove = String(Math.max(1, Math.ceil(origMove / 2)));
-          await ae.update({ changes: [{ key: 'system.stats.move.value', type: 'override', value: halfMove }] });
+          await ae.update({ 'system.changes': [{ key: 'system.stats.move.value', type: 'override', value: halfMove }] });
           ChatMessage.create({
             speaker: ChatMessage.getSpeaker({ actor }),
             content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt-lightning"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChargeMoveRestored', { weapon: item.name, move: halfMove })}</p></div>`,
@@ -2918,12 +2940,19 @@ async function ensureAmmoCatalogue() {
 /**
  * Canonical form of a catalogue-defined effect for comparison purposes.
  * Excludes _id, origin, and system-generated flags (Psyche Loss, etc.).
+ *
+ * Called with plain catalogue objects on one side and normalized live-document
+ * data on the other, so the changes array is read from `system.changes` (v14's
+ * real location) with a top-level fallback for any caller still passing the
+ * pre-v14 shape. `type` is defaulted the same way the schema does, so a
+ * catalogue change that omits it still matches the stored document.
  */
 function _catalogueEffectSig(e) {
+  const changes = e.system?.changes ?? e.changes ?? [];
   return JSON.stringify({
     name:    (e.name ?? '').trim(),
     disabled: e.disabled ?? false,
-    changes:  (e.changes ?? []).map((c) => ({ key: c.key, mode: c.type ?? c.mode, value: String(c.value) })),
+    changes:  changes.map((c) => ({ key: c.key, type: c.type ?? 'add', value: String(c.value) })),
     // Conditions the effect confers (Flashbang → blind + deaf); compared from
     // the source array on the doc side so a derived status can't fake drift.
     statuses: [...(e.statuses ?? [])].sort(),
@@ -3128,7 +3157,7 @@ async function cleanupDuplicateItemEffects() {
   });
 
   const usesRollChannel = (effect) =>
-    (effect.changes ?? []).some((c) => /\.(bonus|rollMod)$/.test(c.key ?? ''));
+    (effect.system?.changes ?? []).some((c) => /\.(bonus|rollMod)$/.test(c.key ?? ''));
 
   let removed = 0;
   for (const item of items) {
@@ -3200,7 +3229,7 @@ async function _syncCyberwareEntries(catalogue) {
     const docSig = docEffects.map((e) => _catalogueEffectSig({
       name:    e.name,
       disabled: e.disabled,
-      changes:  e.changes ?? [],
+      changes:  e.system?.changes ?? [],
       statuses: e._source?.statuses ?? [...(e.statuses ?? [])],
       flags:   { 'cyberpunk-blue': Object.fromEntries(
         Object.entries(e.flags?.['cyberpunk-blue'] ?? {})
@@ -3309,7 +3338,7 @@ async function _syncDrugEntries(catalogue) {
     const docSig = docEffects.map((e) => _catalogueEffectSig({
       name:    e.name,
       disabled: e.disabled,
-      changes:  e.changes ?? [],
+      changes:  e.system?.changes ?? [],
       statuses: e._source?.statuses ?? [...(e.statuses ?? [])],
       flags:   { 'cyberpunk-blue': e.flags?.['cyberpunk-blue'] ?? {} },
     })).sort().join('\n');
@@ -3413,7 +3442,7 @@ async function _syncGearEntries(catalogue) {
     const docSig = docEffects.map((e) => _catalogueEffectSig({
       name:    e.name,
       disabled: e.disabled,
-      changes:  e.changes ?? [],
+      changes:  e.system?.changes ?? [],
       statuses: e._source?.statuses ?? [...(e.statuses ?? [])],
       flags:   { 'cyberpunk-blue': Object.fromEntries(
         Object.entries(e.flags?.['cyberpunk-blue'] ?? {})
@@ -3544,7 +3573,7 @@ async function _syncProgramEntries(catalogue) {
       const current = doc.effects.get(e._id);
       if (!current) { missingEffects.push(e); continue; }
       if (_templateEffectDiffers(current, e)) {
-        staleEffects.push({ _id: e._id, name: e.name, changes: e.changes ?? [], flags: e.flags ?? {} });
+        staleEffects.push({ _id: e._id, name: e.name, 'system.changes': e.system?.changes ?? [], flags: e.flags ?? {} });
       }
     }
     if (missingEffects.length) effectCreations.push({ docId: doc.id, effects: missingEffects });
@@ -3592,8 +3621,14 @@ async function _syncProgramEntries(catalogue) {
  */
 function _templateEffectDiffers(current, def) {
   const norm = (v) => JSON.stringify(v ?? null);
+  // v14: both sides carry their changes under `system.changes`. Only the fields
+  // the catalogue authors are compared — a stored change also carries the
+  // schema's `phase`/`priority` defaults plus the `effect` back-reference
+  // prepareBaseData stamps on it, all of which would otherwise read as drift.
+  const normChanges = (changes) => JSON.stringify((changes ?? []).map(
+    (c) => ({ key: c.key, type: c.type ?? 'add', value: String(c.value) })));
   if (def.name !== undefined && current.name !== def.name) return true;
-  if (norm(current.changes) !== norm(def.changes ?? [])) return true;
+  if (normChanges(current.system?.changes) !== normChanges(def.system?.changes)) return true;
   if (def.flags !== undefined && norm(current.flags?.['cyberpunk-blue'] ?? {}) !== norm(def.flags?.['cyberpunk-blue'] ?? {})) return true;
   return false;
 }
@@ -3639,7 +3674,7 @@ async function repairProgramCatalogueData() {
     for (const e of (def.effects ?? [])) {
       const current = doc.effects.get(e._id);
       if (!current || !_templateEffectDiffers(current, e)) continue;
-      effectUpdates.push({ _id: e._id, name: e.name, changes: e.changes ?? [], flags: e.flags ?? {} });
+      effectUpdates.push({ _id: e._id, name: e.name, 'system.changes': e.system?.changes ?? [], flags: e.flags ?? {} });
     }
     if (effectUpdates.length) {
       await doc.updateEmbeddedDocuments('ActiveEffect', effectUpdates);

@@ -2594,7 +2594,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       disabled: false,
       transfer: false,
       duration: { rounds: 1 },
-      changes: [],
+      system: { changes: [] },
       flags: { 'cyberpunk-blue': { conditionId: 'bandit-suppression' } },
     }]);
     ChatMessage.create({

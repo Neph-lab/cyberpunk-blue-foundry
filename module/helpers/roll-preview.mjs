@@ -42,7 +42,7 @@ function activeEffectContributions(actor, { statSlug, skillSlug, componentSlug }
 
   const parts = [];
   for (const effect of actor.appliedEffects ?? []) {
-    for (const change of effect.changes ?? []) {
+    for (const change of effect.system?.changes ?? []) {
       if (!keys.has(change.key)) continue;
       const value = Number(change.value) || 0;
       if (!value) continue;

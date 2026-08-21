@@ -207,7 +207,7 @@ export async function toggleWeaponCharge(actor, item, weaponIndex) {
   const aeData = {
     name: game.i18n.format('CYBER_BLUE.Combat.ChargeAELabel', { weapon: item.name }),
     img: 'icons/svg/lightning.svg',
-    changes: [{ key: 'system.stats.move.value', type: 'override', value: aeValue }],
+    system: { changes: [{ key: 'system.stats.move.value', type: 'override', value: aeValue }] },
     flags: { 'cyberpunk-blue': { twCharge: true, weaponItemId: item.id, weaponIndex } },
   };
   const [ae] = await actor.createEmbeddedDocuments('ActiveEffect', [aeData]);
@@ -283,7 +283,7 @@ export async function toggleModActivation(actor, modDocId) {
     const [moveAe] = await actor.createEmbeddedDocuments('ActiveEffect', [{
       name: game.i18n.format('CYBER_BLUE.Combat.ModDeployedAELabel', { mod: modDoc.name }),
       img: 'icons/svg/anchor.svg',
-      changes: [{ key: 'system.stats.move.value', type: 'override', value: '0' }],
+      system: { changes: [{ key: 'system.stats.move.value', type: 'override', value: '0' }] },
       flags: { 'cyberpunk-blue': { modActivation: true, modDocId } },
     }]);
     await modDoc.setFlag('cyberpunk-blue', 'modActiveMoveAeId', moveAe.id);

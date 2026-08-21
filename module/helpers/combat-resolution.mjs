@@ -738,7 +738,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
       await targetActor.createEmbeddedDocuments('ActiveEffect', [{
         name: game.i18n.localize('CYBER_BLUE.Combat.BeaconTagName'),
         img: 'icons/svg/target.svg',
-        changes: [],
+        system: { changes: [] },
         flags: { 'cyberpunk-blue': { beaconTagged: true } },
       }]);
     }
@@ -1150,7 +1150,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
           await attacker.createEmbeddedDocuments('ActiveEffect', [{
             name: stName,
             img: 'icons/svg/target.svg',
-            changes: [{ key: `system.skills.${skillSlug}.bonus`, type: 'add', value: '1' }],
+            system: { changes: [{ key: `system.skills.${skillSlug}.bonus`, type: 'add', value: '1' }] },
             duration: { value: 1, units: 'turns' },
             flags: { 'cyberpunk-blue': { smartTargeting: true } },
           }]);
@@ -1170,7 +1170,7 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
             await createActiveEffectWithPermission(targetActor, {
               name: game.i18n.localize(statusDef.name),
               img: statusDef.icon ?? statusDef.img,
-              changes: foundry.utils.deepClone(statusDef.changes ?? []),
+              system: { changes: foundry.utils.deepClone(statusDef.system?.changes ?? []) },
               statuses: ['burning-embers'],
               duration: { value: burnRoll.total, units: 'rounds' },
               flags: foundry.utils.deepClone(statusDef.flags ?? {}),

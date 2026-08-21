@@ -504,7 +504,7 @@ export class CyberBlueItem extends Item {
       // Respect current gear state so the AE starts in the right condition.
       disabled: !this.shouldApplyGearEffects(),
       transfer: true,
-      changes: [],
+      system: { changes: [] },
       flags: {
         'cyberpunk-blue': {
           [CyberBlueItem.SKILL_CHIP_FLOOR_FLAG]: slug,

@@ -53,9 +53,12 @@ const CLOTHING_IMG = {
 
 
 // ── AE helpers ─────────────────────────────────────────────────────────────
-const ae      = (name, changes) => ({ name, disabled: false, transfer: true, changes });
-const aeOff   = (name, changes) => ({ name, disabled: true,  transfer: true, changes, flags: { 'cyberpunk-blue': { noGearStateSync: true } } });
-const reminder = (name)         => ({ name, disabled: false, transfer: true, changes: [] });
+// v14: AE changes live under `system.changes`, not at the top level. A top-level
+// `changes` array survives only through a deprecated creation-data migration
+// that is removed in v16, so effect create-data is authored nested here.
+const ae      = (name, changes) => ({ name, disabled: false, transfer: true, system: { changes } });
+const aeOff   = (name, changes) => ({ name, disabled: true,  transfer: true, system: { changes }, flags: { 'cyberpunk-blue': { noGearStateSync: true } } });
+const reminder = (name)         => ({ name, disabled: false, transfer: true, system: { changes: [] } });
 const stat    = (slug, val) => ({ key: `system.stats.${slug}.value`,          type: 'add',      value: String(val) });
 const statOvr = (slug, val) => ({ key: `system.stats.${slug}.value`,          type: 'override', value: String(val) });
 const statMod = (slug, val) => ({ key: `system.stats.${slug}.rollMod`,        type: 'add',      value: String(val) });
@@ -260,7 +263,7 @@ export const EQUIPMENT_CATALOGUE = [
     effects: [{
       name: 'Cyberware Disabled (EMP)',
       disabled: true, transfer: false,
-      changes: [{ key: 'cyberblue.disableCyberware.random', type: 'add', value: '2' }],
+      system: { changes: [{ key: 'cyberblue.disableCyberware.random', type: 'add', value: '2' }] },
       duration: { value: 60, units: 'seconds' },
       flags: { 'cyberpunk-blue': { isAfflictionEffect: true } },
     }],
@@ -306,7 +309,7 @@ export const EQUIPMENT_CATALOGUE = [
     }],
     effects: [{
       name: 'Knocked Out',
-      disabled: true, transfer: false, changes: [],
+      disabled: true, transfer: false, system: { changes: [] },
       flags: { 'cyberpunk-blue': { isAfflictionEffect: true } },
     }],
   }),
@@ -331,7 +334,7 @@ export const EQUIPMENT_CATALOGUE = [
     }],
     effects: [{
       name: 'Smoke: Damaged Eye',
-      disabled: true, transfer: false, changes: [],
+      disabled: true, transfer: false, system: { changes: [] },
       flags: { 'cyberpunk-blue': { isAfflictionEffect: true } },
     }],
   }),
@@ -356,7 +359,7 @@ export const EQUIPMENT_CATALOGUE = [
     }],
     effects: [{
       name: 'Teargas: Damaged Eye',
-      disabled: true, transfer: false, changes: [],
+      disabled: true, transfer: false, system: { changes: [] },
       flags: { 'cyberpunk-blue': { isAfflictionEffect: true } },
     }],
   }),
@@ -389,7 +392,7 @@ export const EQUIPMENT_CATALOGUE = [
       disabled: true, transfer: false,
       statuses: ['blind', 'deaf'],
       duration: { value: 1, units: 'rounds' },
-      changes: BLIND_SKILLS.map((slug) => skillGen(slug, BLIND_PENALTY)),
+      system: { changes: BLIND_SKILLS.map((slug) => skillGen(slug, BLIND_PENALTY)) },
       flags: { 'cyberpunk-blue': { isAfflictionEffect: true, afflictionRounds: 1 } },
     }],
   }),
@@ -574,7 +577,7 @@ export const EQUIPMENT_CATALOGUE = [
     }],
     effects: [{
       name: 'Drugged',
-      disabled: true, transfer: false, changes: [],
+      disabled: true, transfer: false, system: { changes: [] },
       flags: { 'cyberpunk-blue': { isAfflictionEffect: true } },
     }],
   }),
@@ -801,7 +804,7 @@ export const EQUIPMENT_CATALOGUE = [
     description: '<p>This chipware is equipped in a shard socket. The user ignores <strong>Seriously Wounded</strong> penalties while it is installed.</p>',
     effects: [{
       name: 'Pain Editor: Ignore Seriously Wounded',
-      disabled: false, transfer: true, changes: [],
+      disabled: false, transfer: true, system: { changes: [] },
       flags: { 'cyberpunk-blue': { painEditor: true } },
     }],
   }),

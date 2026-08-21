@@ -305,10 +305,12 @@ export const PROGRAM_CATALOGUE = [
       // Cloak and Slide are *uses* of the Ghost Component, not Components in
       // their own right — they live under system.componentUses, not
       // system.components. (See docs/blue-vs-red.md.)
-      changes: [
-        { key: 'system.componentUses.cloak.bonus', type: 'add', value: '-2' },
-        { key: 'system.componentUses.slide.bonus', type: 'add', value: '-2' },
-      ],
+      system: {
+        changes: [
+          { key: 'system.componentUses.cloak.bonus', type: 'add', value: '-2' },
+          { key: 'system.componentUses.slide.bonus', type: 'add', value: '-2' },
+        ],
+      },
       flags: { 'cyberpunk-blue': {} },
     }],
     description: '<p><strong>WHILE REZZED:</strong> any detected target runner makes all Slide and Cloak checks at <strong>−2</strong>. Follows one runner; penalties from multiple Skunks stack.</p>',
@@ -349,7 +351,7 @@ export const PROGRAM_CATALOGUE = [
       img: 'icons/svg/shield.svg',
       disabled: true,
       transfer: false,
-      changes: [],
+      system: { changes: [] },
       flags: { 'cyberpunk-blue': { netHalveIceAtk: true } },
     }],
     description: 'Halves the ATK of all ICE against the user while Flack is rezzed. Only one copy can run on any given Architecture at a time.',

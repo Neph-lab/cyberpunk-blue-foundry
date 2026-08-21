@@ -638,7 +638,7 @@ async function _effectWheelOfFortune(guideActor, cardDef) {
   await target.createEmbeddedDocuments('ActiveEffect', [{
     name: 'Wheel of Fortune: Next Check = 8',
     img:  'icons/magic/time/clock-analog-brown.webp',
-    changes: [],
+    system: { changes: [] },
     flags: { [GUIDE_FLAG]: { tarotEffect: true, tarotWheelOfFortune: true } },
   }]);
   _postChatCard(null, cardDef, guideActor, `<strong>${target.name}</strong> will use 8 instead of rolling on their next check. (Remove the AE when it triggers.)`);
@@ -693,7 +693,7 @@ async function _effectDevil(guideActor, cardDef) {
   await target.createEmbeddedDocuments('ActiveEffect', [{
     name: 'The Devil: +1 to All Checks',
     img:  'icons/creatures/unholy/demon-horned-winged-teal.webp',
-    changes: [],
+    system: { changes: [] },
     duration: { seconds: 3600, startTime: game.time.worldTime },
     flags: { [GUIDE_FLAG]: { tarotEffect: true, tarotDevil: true } },
   }]);

@@ -73,8 +73,8 @@ test('Flashbang Grenade blinds and deafens for one round', () => {
   assert.equal(effect.flags['cyberpunk-blue'].afflictionRounds, 1);
 
   // Blind's attack penalty rides along, single-sourced from blind.mjs.
-  assert.deepEqual(effect.changes.map((c) => c.key), [...BLIND_ATTACK_CHANGE_KEYS]);
-  for (const change of effect.changes) {
+  assert.deepEqual(effect.system.changes.map((c) => c.key), [...BLIND_ATTACK_CHANGE_KEYS]);
+  for (const change of effect.system.changes) {
     assert.equal(Number(change.value), BLIND_ATTACK_PENALTY);
   }
 

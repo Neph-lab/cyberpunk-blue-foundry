@@ -125,7 +125,7 @@ const toxinAE = (name, changes) => ({
   name,
   disabled: true,
   transfer: false,
-  changes: changes.map((c) => ({ priority: 20, type: 'add', ...c })),
+  system: { changes: changes.map((c) => ({ priority: 20, type: 'add', ...c })) },
   flags: { 'cyberpunk-blue': { isAfflictionEffect: true } },
 });
 
@@ -374,7 +374,7 @@ const accessories = [
     system: { activatable: true, activationIcon: 'wave-square', activeVibroStun: true, activationSelfEffect: 'Vibrations' },
     effects: [{
       name: 'Vibrations', disabled: true, transfer: false,
-      changes: [{ key: 'system.skills.meleeWeapons.bonus', type: 'add', value: '-1' }],
+      system: { changes: [{ key: 'system.skills.meleeWeapons.bonus', type: 'add', value: '-1' }] },
     }],
     description: desc("<p style=\"color: var(--cpb-error);\"><strong>Non-motorized, non-bladed melee weapons only.</strong></p><p>Activating or stopping the vibrations takes an Action. While active, an attack die showing <strong>10</strong> that also deals damage leaves the target <strong>Stunned</strong> until the end of their next turn.</p><p>The vibrations make precision difficult: while active — and for one turn after — the user's attacks are at <strong>-1</strong>.</p><p>The battery lasts 8 hours and takes 10 minutes to recharge.</p>") }),
 

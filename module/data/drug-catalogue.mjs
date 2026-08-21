@@ -38,22 +38,30 @@ const COST = {
 /** Wrap plain text in a paragraph, but pass through pre-formatted block HTML. */
 const h = (text) => /^\s*<(p|ul|ol|div|h\d|table)\b/i.test(text) ? text : `<p>${text}</p>`;
 
-/** ADD mode for ActiveEffect changes. */
-const ADD = 2;
+/** ADD change type for ActiveEffect changes. */
+const ADD = 'add';
 
 // ─── Effect helpers ───────────────────────────────────────────────────────────
 
 /**
  * Build a disabled, transferable ActiveEffect with one or more stat/skill changes.
+ *
+ * v14: AE changes live under `system.changes`, not at the top level, and a
+ * change carries a string `type` rather than a numeric `mode`. The top-level
+ * form survives only through a deprecated creation-data migration removed in
+ * v16, so effect create-data is authored nested here.
+ *
  * @param {string} name — must match the `effectName` used in instruction steps
- * @param {Array<{key:string, value:string|number}>} changes — each uses ADD mode
+ * @param {Array<{key:string, value:string|number}>} changes — each uses the ADD type
  */
 function ae(name, changes, extraFlags = {}) {
   return {
     name,
     disabled: true,
     transfer: true,
-    changes: changes.map(({ key, value }) => ({ key, mode: ADD, value: String(value) })),
+    system: {
+      changes: changes.map(({ key, value }) => ({ key, type: ADD, value: String(value) })),
+    },
     flags: { 'cyberpunk-blue': { noGearStateSync: true, ...extraFlags } },
   };
 }

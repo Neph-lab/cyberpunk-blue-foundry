@@ -408,7 +408,7 @@ async function igniteTarget(targetActor, attacker) {
   await createActiveEffectWithPermission(targetActor, {
     name: game.i18n.localize(statusDef.name),
     img: statusDef.icon ?? statusDef.img,
-    changes: foundry.utils.deepClone(statusDef.changes ?? []),
+    system: { changes: foundry.utils.deepClone(statusDef.system?.changes ?? []) },
     statuses: ['burning-embers'],
     flags: foundry.utils.deepClone(statusDef.flags ?? {}),
   });

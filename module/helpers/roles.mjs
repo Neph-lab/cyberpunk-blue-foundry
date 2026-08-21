@@ -783,7 +783,7 @@ export async function syncAllProteanFociAEs(actor) {
           name: `${roleName}: Initiative Reaction (+${pts} Initiative)`,
           disabled: false, transfer: false,
           flags: { 'cyberpunk-blue': baseCpbFlags },
-          changes: [{ key: 'system.stats.rflx.rollMod', type: 'add', value: String(pts) }],
+          system: { changes: [{ key: 'system.stats.rflx.rollMod', type: 'add', value: String(pts) }] },
         });
         break;
 
@@ -793,7 +793,7 @@ export async function syncAllProteanFociAEs(actor) {
           name: `${roleName}: Spot Weakness (SP bypassed, first hit)`,
           disabled: false, transfer: false,
           flags: { 'cyberpunk-blue': { ...baseCpbFlags, soloSpotWeakness: true } },
-          changes: [],
+          system: { changes: [] },
         });
         break;
 
@@ -806,7 +806,7 @@ export async function syncAllProteanFociAEs(actor) {
               name: `Threat Detection (+${threatDetectionMax} Perception)`,
               disabled: false, transfer: false,
               flags: { 'cyberpunk-blue': baseCpbFlags },
-              changes: [{ key: 'system.skills.perception.bonus', type: 'add', value: String(threatDetectionMax) }],
+              system: { changes: [{ key: 'system.skills.perception.bonus', type: 'add', value: String(threatDetectionMax) }] },
             });
           }
         }
@@ -820,7 +820,7 @@ export async function syncAllProteanFociAEs(actor) {
             name: `${roleName}: Damage Deflection (−${reduction} first damage)`,
             disabled: false, transfer: false,
             flags: { 'cyberpunk-blue': { ...baseCpbFlags, soloDamageDeflection: reduction } },
-            changes: [],
+            system: { changes: [] },
           });
         }
         break;
@@ -833,7 +833,7 @@ export async function syncAllProteanFociAEs(actor) {
             name: `${roleName}: Fumble Recovery (reroll 1s)`,
             disabled: false, transfer: false,
             flags: { 'cyberpunk-blue': { ...baseCpbFlags, soloFumbleRecovery: true } },
-            changes: [],
+            system: { changes: [] },
           });
         }
         break;
@@ -844,7 +844,7 @@ export async function syncAllProteanFociAEs(actor) {
           name: `${roleName}: Silent Death (+${pts} Stealth)`,
           disabled: false, transfer: false,
           flags: { 'cyberpunk-blue': baseCpbFlags },
-          changes: [{ key: 'system.skills.stealth.bonus', type: 'add', value: String(pts) }],
+          system: { changes: [{ key: 'system.skills.stealth.bonus', type: 'add', value: String(pts) }] },
         });
         break;
 
@@ -856,10 +856,12 @@ export async function syncAllProteanFociAEs(actor) {
             name: `${roleName}: Martial Skill (+${bonus} Melee & Martial Arts)`,
             disabled: false, transfer: false,
             flags: { 'cyberpunk-blue': baseCpbFlags },
-            changes: [
-              { key: 'system.skills.meleeWeapon.bonus', type: 'add', value: String(bonus) },
-              { key: 'system.skills.martialArts.bonus', type: 'add', value: String(bonus) },
-            ],
+            system: {
+              changes: [
+                { key: 'system.skills.meleeWeapon.bonus', type: 'add', value: String(bonus) },
+                { key: 'system.skills.martialArts.bonus', type: 'add', value: String(bonus) },
+              ],
+            },
           });
         }
         break;
@@ -872,7 +874,7 @@ export async function syncAllProteanFociAEs(actor) {
             name: `${roleName}: Seek Cover (+5 Initiative)`,
             disabled: false, transfer: false,
             flags: { 'cyberpunk-blue': baseCpbFlags },
-            changes: [{ key: 'system.stats.rflx.rollMod', type: 'add', value: '5' }],
+            system: { changes: [{ key: 'system.stats.rflx.rollMod', type: 'add', value: '5' }] },
           });
         }
         break;
@@ -884,7 +886,7 @@ export async function syncAllProteanFociAEs(actor) {
           name: `${roleName}: Weak-Spot (SP ≤ ${threshold} bypassed)`,
           disabled: false, transfer: false,
           flags: { 'cyberpunk-blue': { ...baseCpbFlags, ninjaWeakSpot: true } },
-          changes: [],
+          system: { changes: [] },
         });
         break;
       }
@@ -897,7 +899,7 @@ export async function syncAllProteanFociAEs(actor) {
             name: `${roleName}: Precision Attack (+${bonus} all attacks)`,
             disabled: false, transfer: false,
             flags: { 'cyberpunk-blue': { ...baseCpbFlags, soloPrecisionAttack: bonus } },
-            changes: [],
+            system: { changes: [] },
           });
         }
         break;
@@ -916,7 +918,7 @@ export async function syncAllProteanFociAEs(actor) {
       name: `Threat Detection (+${threatDetectionMax} Perception)`,
       disabled: false, transfer: false,
       flags: { 'cyberpunk-blue': { isProteanFocusAE: true, proteanFocusName: 'Threat Detection' } },
-      changes: [{ key: 'system.skills.perception.bonus', type: 'add', value: String(threatDetectionMax) }],
+      system: { changes: [{ key: 'system.skills.perception.bonus', type: 'add', value: String(threatDetectionMax) }] },
     });
   }
 

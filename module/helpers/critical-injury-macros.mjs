@@ -543,7 +543,7 @@ for (const token of tokens) {
   await actor.createEmbeddedDocuments('ActiveEffect', [{
     name: effectName,
     img: 'icons/svg/aura.svg',
-    changes: [],
+    system: { changes: [] },
     flags: {
       'cyberpunk-blue': {
         rollTableEffect: true,
