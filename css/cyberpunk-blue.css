@@ -4746,9 +4746,14 @@ CHARACTER SHEET SPECIFIC
   justify-content: space-between;
   align-items: center;
   gap: 0.6rem;
+  /* .panel-header wraps by default; without this the name input's flex-grow
+     takes the whole row and pushes Selected/Delete onto a second line. */
+  flex-wrap: nowrap;
 }
 .cyberpunk-blue .styles-tab .style-name-input {
-  flex: 1 1 auto;
+  /* A small basis, not `auto`: the input must share the header row with the
+     Selected chip and the delete button rather than claim all of it. */
+  flex: 1 1 6rem;
   min-width: 0;
   font-family: var(--cpb-font-display);
   font-size: var(--cpb-fs-h2);
@@ -4804,6 +4809,12 @@ CHARACTER SHEET SPECIFIC
 .cyberpunk-blue .styles-tab .style-add-panel {
   display: flex;
   justify-content: center;
+}
+/* Item sheets carry up to six tabs at 720px wide, which overflows the nav and
+   truncates EVERY label ("DESCRIPTI", "NOTE"). It overflowed at five tabs too;
+   the Styles tab just made it obvious. Wrap to a second row instead of clipping. */
+.cyberpunk-blue.sheet.item .sheet-tabs {
+  flex-wrap: wrap;
 }
 /* The header portrait is not a FilePicker target while a style overrides it —
    clicking it jumps to the Styles tab instead. */
