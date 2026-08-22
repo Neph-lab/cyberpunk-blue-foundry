@@ -758,7 +758,7 @@ export const EQUIPMENT_CATALOGUE = [
   }),
   gear({
     name: 'Linear Frame Sigma',
-    folder: 'Miscellaneous', cost: 'VEX',
+    folder: 'Miscellaneous', imgPath: `${A_GEAR}/frame-sigma.png`, cost: 'VEX',
     description: 'This exoskeleton is connected via Personal Link as an Action, and the wearer&rsquo;s own limbs are unavailable until it is disconnected, which is also an Action. While connected, the wearer performs strength-based tasks as if their <strong>BODY</strong> were 12.',
     effects: [aeOff('Linear Frame Sigma Connected (BODY 12)', [statOvr('body', 12)])],
     instructions: [

@@ -957,6 +957,7 @@ export const CYBERWARE_CATALOGUE = [
   }),
   cw({
     name: 'Sensor Array',
+    img: `systems/cyberpunk-blue/assets/items/cyberware/sensor-array.png`,
     folder: 'Borgware',
     cyberwareType: 'borgware', integration: 'standalone', slotsProvided: 7,
     cost: 'EX', facilities: 'hospital', installationCost: 'EX', installationDv: 18,
