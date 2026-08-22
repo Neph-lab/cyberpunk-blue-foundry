@@ -341,8 +341,26 @@ export class CyberBlueItem extends Item {
     return getEffectiveItemWeapons(this, this.parent);
   }
 
-  getPsycheLossEffect() {
-    return this.effects.find((effect) => effect.getFlag('cyberpunk-blue', CyberBlueItem.PSYCHE_LOSS_FLAG));
+  /**
+   * The single AE carrying `flag`, deleting any extras first.
+   *
+   * Every flag-keyed sync below is check-then-create, and Foundry neither awaits
+   * hook callbacks nor confines them to one client: `createItem` and
+   * `createActiveEffect` can both fire a sync before the first one's create has
+   * returned, and a GM plus the actor's owner each run the same handler. Either
+   * race leaves two flagged AEs stacking their changes forever, and a
+   * `find`-first lookup keeps serving the first one and never notices — which is
+   * how a test cyberdeck ended up with two PSYCHE Loss effects created 7ms
+   * apart. So the lookup collapses the group instead of merely reading it.
+   */
+  async _collapseFlaggedEffects(flag, options = {}) {
+    const [survivor, ...extras] = this.effects.filter(
+      (effect) => effect.getFlag('cyberpunk-blue', flag) != null,
+    );
+    if (extras.length) {
+      await this.deleteEmbeddedDocuments('ActiveEffect', extras.map((e) => e.id), options);
+    }
+    return survivor ?? null;
   }
 
   getPsycheLossEffectData() {
@@ -380,7 +398,10 @@ export class CyberBlueItem extends Item {
     }
 
     const effectData = this.getPsycheLossEffectData();
-    const existingEffect = this.getPsycheLossEffect();
+    const existingEffect = await this._collapseFlaggedEffects(CyberBlueItem.PSYCHE_LOSS_FLAG, {
+      ...options,
+      cyberBlueSyncPsycheLoss: true,
+    });
 
     if (!existingEffect) {
       await this.createEmbeddedDocuments('ActiveEffect', [effectData], {
@@ -488,9 +509,10 @@ export class CyberBlueItem extends Item {
     const isComponent = !isSkill && !!CONFIG.CYBER_BLUE?.components?.[slug];
     const isValid     = isSkill || isComponent;
 
-    const existing = this.effects.find(
-      (e) => e.getFlag('cyberpunk-blue', CyberBlueItem.SKILL_CHIP_FLOOR_FLAG) != null,
-    );
+    const existing = await this._collapseFlaggedEffects(CyberBlueItem.SKILL_CHIP_FLOOR_FLAG, {
+      ...options,
+      cyberBlueSyncSkillChip: true,
+    });
 
     if (!isValid) {
       if (existing) {
@@ -547,9 +569,10 @@ export class CyberBlueItem extends Item {
 
     const style = getSelectedStyle(this.system);
     const bonus = Number(style?.bonus ?? 0);
-    const existing = this.effects.find(
-      (e) => e.getFlag('cyberpunk-blue', CyberBlueItem.STYLE_BONUS_FLAG) != null,
-    );
+    const existing = await this._collapseFlaggedEffects(CyberBlueItem.STYLE_BONUS_FLAG, {
+      ...options,
+      cyberBlueSyncStyleBonus: true,
+    });
 
     if (!style || !Number.isFinite(bonus) || bonus === 0) {
       if (existing) {

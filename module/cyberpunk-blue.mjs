@@ -697,15 +697,24 @@ const onDocumentHook = (hooks, handler, { activeGMOnly = false } = {}) => {
  * Compendium items are skipped because they are locked and cannot have
  * embedded documents updated from these hooks (the pack is re-locked before
  * the async sync resolves); the catalogue sync maintains their effects instead.
+ *
+ * `actingUserOnly` restricts the handler to the client whose write triggered the
+ * hook. Set it on any handler that CREATES an effect: hooks fire on every
+ * connected client and every owner may write, so a GM and the player who owns
+ * the actor would otherwise each find no effect and each create one. Gating on
+ * the acting user rather than `activeGMOnly` keeps the sync working when no GM
+ * is connected — the writing client always exists and always has permission.
  */
-const makeItemSyncHook = ({ guardOption, type, name = null, run }) => (document, { options }) => {
-  if (guardOption && options?.[guardOption]) return;
-  const item = resolveItemFromHookDocument(document);
-  if (!item || item.type !== type) return;
-  if (name && item.name !== name) return;
-  if (item.pack) return;
-  return run(item, options);
-};
+const makeItemSyncHook = ({ guardOption, type, name = null, actingUserOnly = false, run }) =>
+  (document, { options, userId }) => {
+    if (guardOption && options?.[guardOption]) return;
+    if (actingUserOnly && userId && userId !== game.user.id) return;
+    const item = resolveItemFromHookDocument(document);
+    if (!item || item.type !== type) return;
+    if (name && item.name !== name) return;
+    if (item.pack) return;
+    return run(item, options);
+  };
 
 // Serializes wound syncs per actor. A sync is check-then-create, and Foundry does
 // not await hook callbacks, so back-to-back writes (the Stabilize macro's
@@ -1051,6 +1060,7 @@ const syncSkillChipEffectHook = makeItemSyncHook({
   guardOption: 'cyberBlueSyncSkillChip',
   type: 'gear',
   name: 'Skill Chip',
+  actingUserOnly: true,
   run: (item, options) => item.syncSkillChipEffect(options),
 });
 
@@ -1066,12 +1076,14 @@ onDocumentHook(['createItem', 'updateItem'], syncSkillChipEffectHook);
 const syncStyleBonusGearHook = makeItemSyncHook({
   guardOption: 'cyberBlueSyncStyleBonus',
   type: 'gear',
+  actingUserOnly: true,
   run: (item, options) => item.syncStyleBonusEffect(options),
 });
 
 const syncStyleBonusCyberwareHook = makeItemSyncHook({
   guardOption: 'cyberBlueSyncStyleBonus',
   type: 'cyberware',
+  actingUserOnly: true,
   run: (item, options) => item.syncStyleBonusEffect(options),
 });
 
@@ -1774,7 +1786,7 @@ Hooks.on('combatTurn', async (combat, updateData) => {
 const TURN_MARKER_SRC = 'systems/cyberpunk-blue/assets/effects/current-actor.webm';
 
 // Bump when adding a new one-time repair so it runs once on the next GM login.
-const REPAIRS_VERSION = 3;
+const REPAIRS_VERSION = 4;
 
 // Register a fully-static PIXI animation so the webm plays its own animation
 // without the core spin/pulse transforms fighting it.
@@ -2960,12 +2972,49 @@ function _catalogueEffectSig(e) {
   });
 }
 
-/** True if a document-level AE was added by the system (not from the catalogue). */
+/**
+ * Flags the system stamps ONTO an existing effect to remember the state it was
+ * in before gear state / cyberware installation forcibly disabled it. They say
+ * nothing about who created the effect — a catalogue-sourced AE wears one the
+ * moment its item is unequipped or uninstalled.
+ */
+const EFFECT_STATE_FLAGS = ['autoGearEffectState', 'autoOperationalEffectState'];
+
+/**
+ * Flags that mark an AE the system CREATED, so the catalogue does not own it.
+ *
+ * Keep this list to creation markers only. Listing a state-annotation flag here
+ * instead (see EFFECT_STATE_FLAGS) makes a catalogue effect invisible to the
+ * compendium diff *and* immune to replacement, so every rebuild found the
+ * effects "missing" and appended one more copy — the Medscanner and Anti-Smog
+ * Mask entries had grown to 38 and 100 copies of a single AE.
+ */
 function _isSystemGeneratedEffect(effect) {
   return !!(effect.getFlag?.('cyberpunk-blue', 'autoPsycheLoss')
-    || effect.getFlag?.('cyberpunk-blue', 'autoOperationalEffectState')
-    || effect.getFlag?.('cyberpunk-blue', 'autoGearEffectState')
+    || effect.getFlag?.('cyberpunk-blue', 'styleBonus') != null
     || effect.getFlag?.('cyberpunk-blue', 'skillChipFloor') != null);
+}
+
+/**
+ * Canonical signature of a LIVE effect document, for comparison against
+ * `_catalogueEffectSig` of the catalogue definition it came from.
+ *
+ * State-annotation flags and the `disabled` value they force are normalized
+ * away: an unequipped item's AE is disabled with `previousDisabled` recording
+ * the catalogue's value, so comparing the raw `disabled` would report drift on
+ * every such item and trigger a pointless delete/recreate cycle.
+ */
+function _docEffectSig(effect) {
+  const cpbFlags = { ...(effect.flags?.['cyberpunk-blue'] ?? {}) };
+  const override = cpbFlags.autoGearEffectState ?? cpbFlags.autoOperationalEffectState ?? null;
+  for (const flag of [...EFFECT_STATE_FLAGS, 'autoPsycheLoss']) delete cpbFlags[flag];
+  return _catalogueEffectSig({
+    name:     effect.name,
+    disabled: override?.active === true ? override.previousDisabled === true : effect.disabled,
+    changes:  effect.system?.changes ?? [],
+    statuses: effect._source?.statuses ?? [...(effect.statuses ?? [])],
+    flags:    { 'cyberpunk-blue': cpbFlags },
+  });
 }
 
 /**
@@ -2976,8 +3025,9 @@ function _isSystemGeneratedEffect(effect) {
  * Passing an effects array to `Item.updateDocuments` APPENDS to the embedded
  * collection (the entries have no `_id`, so Foundry treats them as new) instead
  * of replacing it — which silently accumulated hundreds of duplicate effects,
- * one per GM login. System-generated effects (Psyche Loss, operational-state,
- * Skill Chip floor) are preserved.
+ * one per GM login. System-generated effects (Psyche Loss, Skill Chip floor,
+ * Style bonus) are preserved; catalogue effects wearing a state-annotation flag
+ * are NOT — they are the catalogue's to replace, flag and all.
  *
  * The pack must already be unlocked by the caller.
  */
@@ -3159,6 +3209,12 @@ async function cleanupDuplicateItemEffects() {
   const usesRollChannel = (effect) =>
     (effect.system?.changes ?? []).some((c) => /\.(bonus|rollMod)$/.test(c.key ?? ''));
 
+  // Higher score = better keeper. A state-annotation flag means the effect was
+  // already on the item when its gear/cyberware state last changed, so an
+  // unflagged sibling is the copy the catalogue sync has just refreshed.
+  const keeperScore = (effect) => (usesRollChannel(effect) ? 2 : 0)
+    + (EFFECT_STATE_FLAGS.some((f) => effect.getFlag('cyberpunk-blue', f)) ? 0 : 1);
+
   let removed = 0;
   for (const item of items) {
     if (!['cyberware', 'gear', 'drug'].includes(item.type)) continue;
@@ -3174,8 +3230,8 @@ async function cleanupDuplicateItemEffects() {
     const toDelete = [];
     for (const group of byName.values()) {
       if (group.length <= 1) continue;
-      // Keep one — prefer the effect that targets the correct roll channel.
-      group.sort((a, b) => (usesRollChannel(b) ? 1 : 0) - (usesRollChannel(a) ? 1 : 0));
+      // Keep the highest-scoring copy; the rest are the accumulated duplicates.
+      group.sort((a, b) => keeperScore(b) - keeperScore(a));
       toDelete.push(...group.slice(1).map((e) => e.id));
     }
 
@@ -3226,16 +3282,7 @@ async function _syncCyberwareEntries(catalogue) {
     const catEffects = def.effects ?? [];
     const docEffects = (doc.effects?.contents ?? []).filter((e) => !_isSystemGeneratedEffect(e));
     const catSig = catEffects.map(_catalogueEffectSig).sort().join('\n');
-    const docSig = docEffects.map((e) => _catalogueEffectSig({
-      name:    e.name,
-      disabled: e.disabled,
-      changes:  e.system?.changes ?? [],
-      statuses: e._source?.statuses ?? [...(e.statuses ?? [])],
-      flags:   { 'cyberpunk-blue': Object.fromEntries(
-        Object.entries(e.flags?.['cyberpunk-blue'] ?? {})
-          .filter(([k]) => k !== 'autoPsycheLoss' && k !== 'autoOperationalEffectState' && k !== 'autoGearEffectState')
-      ) },
-    })).sort().join('\n');
+    const docSig = docEffects.map(_docEffectSig).sort().join('\n');
     const effectsChanged = catSig !== docSig;
 
     const catMultipleInstalls = def.system?.multipleInstalls ?? false;
@@ -3335,13 +3382,7 @@ async function _syncDrugEntries(catalogue) {
     const catEffects = def.effects ?? [];
     const docEffects = (doc.effects?.contents ?? []).filter((e) => !_isSystemGeneratedEffect(e));
     const catSig = catEffects.map(_catalogueEffectSig).sort().join('\n');
-    const docSig = docEffects.map((e) => _catalogueEffectSig({
-      name:    e.name,
-      disabled: e.disabled,
-      changes:  e.system?.changes ?? [],
-      statuses: e._source?.statuses ?? [...(e.statuses ?? [])],
-      flags:   { 'cyberpunk-blue': e.flags?.['cyberpunk-blue'] ?? {} },
-    })).sort().join('\n');
+    const docSig = docEffects.map(_docEffectSig).sort().join('\n');
     const effectsChanged = catSig !== docSig;
 
     const catInstr = JSON.stringify(def.system?.instructions ?? []);
@@ -3439,16 +3480,7 @@ async function _syncGearEntries(catalogue) {
     const catEffects = def.effects ?? [];
     const docEffects = (doc.effects?.contents ?? []).filter((e) => !_isSystemGeneratedEffect(e));
     const catSig = catEffects.map(_catalogueEffectSig).sort().join('\n');
-    const docSig = docEffects.map((e) => _catalogueEffectSig({
-      name:    e.name,
-      disabled: e.disabled,
-      changes:  e.system?.changes ?? [],
-      statuses: e._source?.statuses ?? [...(e.statuses ?? [])],
-      flags:   { 'cyberpunk-blue': Object.fromEntries(
-        Object.entries(e.flags?.['cyberpunk-blue'] ?? {})
-          .filter(([k]) => k !== 'autoGearEffectState')
-      ) },
-    })).sort().join('\n');
+    const docSig = docEffects.map(_docEffectSig).sort().join('\n');
     const effectsChanged = catSig !== docSig;
 
     const catDescription = def.system?.description ?? '';
