@@ -108,7 +108,13 @@
     :root), where --c does not exist → it computes to empty and every
     descendant inherits that empty value; setting --c lower down is too late.
     To use a shape, write the polygon() literal inline in the rule that also
-    sets --c (see the .cpb-shape--* classes in cyberpunk-blue.css). ---- */
+    sets --c (see the .cpb-shape--* classes in cyberpunk-blue.css).
+
+    These are the FALLBACK geometry. Where `corner-shape: bevel` is supported
+    the same cuts come from border-radius + corner-shape (and carry a real
+    border); see the NATIVE CHAMFERS @supports block at the end of
+    cyberpunk-blue.css. Only the genuinely non-rectilinear shapes below
+    (tag, tag-left/right, arrow) still need a polygon in every browser. ---- */
   --cpb-shape--tr-bl: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, var(--c) 100%, 0 calc(100% - var(--c)));
   --cpb-shape--tl-br: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
   --cpb-shape--hex: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c));

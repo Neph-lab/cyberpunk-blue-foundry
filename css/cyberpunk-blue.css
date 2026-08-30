@@ -8,6 +8,12 @@
 SHAPE PRIMITIVES — clip-path polygon library    Chamfered silhouettes replace the previous border-radius vocabulary. Every component that uses clip-path applies the fake-border technique: outer element = border color, ::before = 1px-inset inner fill, clip-path: inherit keeps the shapes in register. See README in design handoff.
 ================================================== */
 
+/* THIS IS THE FALLBACK PATH. Browsers that support CSS Borders 4 get the
+   same chamfers from `corner-shape: bevel` + a real `border` instead — see
+   the "NATIVE CHAMFERS" @supports block at the very bottom of this file.
+   When you add or restyle a chamfered component here, add its counterpart
+   there too, or it will silently keep the pseudo-element in Chromium. */
+
 /* NOTE: each class writes its polygon() inline next to its own --c.
    The --cpb-shape--* variables in colors_and_type.css are reference
    templates ONLY — they CANNOT be consumed via `clip-path: var(--cpb-shape--x)`.
@@ -4843,5 +4849,512 @@ CHARACTER SHEET SPECIFIC
 /* Font Awesome stand-in until a bk_Styles.svg exists to match the other tabs. */
 .cyberpunk-blue .cpb-tab-fa {
   margin-right: var(--cpb-space-2);
+}
+/* #endregion */
+
+/* #region Native chamfers — corner-shape progressive enhancement */
+/* ==================================================================
+   NATIVE CHAMFERS — `corner-shape: bevel` + a real `border`
+   ==================================================================
+   Everything above builds chamfers the only way CSS used to allow:
+   `clip-path: polygon(...)` on the element — which clips the border
+   away, so a real border is impossible — plus a `::before` inset by
+   the stroke width that re-paints the interior. Element background =
+   the "border" color, pseudo-element = the fill, `clip-path: inherit`
+   keeps the two silhouettes in register.
+
+   CSS Borders 4 makes that unnecessary. `corner-shape: bevel` turns
+   each `border-radius` corner from a quarter-circle into a straight
+   diagonal cut of the same size, and — unlike clip-path — `border`,
+   `outline` and `box-shadow` all follow the shape. A chamfered panel
+   becomes an ordinary bordered box.
+
+   Shipped in Chromium 139+ (Foundry's Electron shell, and Chrome or
+   Edge in the browser); not yet in Firefox or Safari, hence the
+   @supports guard. Browsers without it keep the clip-path + ::before
+   path above, unchanged.
+
+   ── The recipe ───────────────────────────────────────────────────
+   Each component names its two colors as --cpb-ring and --cpb-fill,
+   then paints them with:
+
+     border: <w> solid var(--cpb-ring);
+     background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                 var(--cpb-ring) padding-box;
+
+   The two background layers are not decoration — they reproduce the
+   hack exactly. The pseudo-element sat ON TOP of the element's own
+   background, so a translucent fill has always composited over the
+   ring color, tinting every panel interior. A single opaque-ish
+   `background: <fill>` would drop that tint and visibly lighten the
+   whole sheet, so the ring is repainted inside the padding box and
+   the fill layered over it. Variants then only restate the two
+   custom properties (plus the shorthand, wherever the rule they are
+   overriding sets `background` at a higher specificity).
+
+   Padding is reduced by the new border width, because the fake ring
+   used to overlap the padding and a real border does not. For plain
+   <button>s the reduction is only the DIFFERENCE against the 1px
+   border Foundry core already puts on every button; for the handful
+   that zero that border out (`border: 0`), it is the full width.
+
+   NOT converted — genuinely non-rectilinear, where clip-path is still
+   the right tool: .cpb-shape--tag / --tag-r / --arrow, the peg-and-
+   notch button groups and sheet tabs, .cpb-divider--header, the money
+   and IP pennant tags, and the .cpb-glitch--* tear keyframes.
+   ================================================================== */
+@supports (corner-shape: bevel) {
+
+  /* ── Shape primitives ─────────────────────────────────────────── */
+  .cpb-shape,
+  .cpb-shape--tr-bl       { clip-path: none; corner-shape: bevel; border-radius: 0 var(--c) 0 var(--c); }
+  .cpb-shape--tl-br       { clip-path: none; corner-shape: bevel; border-radius: var(--c) 0 var(--c) 0; }
+  .cpb-shape--hex         { clip-path: none; corner-shape: bevel; border-radius: var(--c); }
+  .cpb-shape--card        { clip-path: none; corner-shape: bevel; border-radius: var(--c) var(--c) 0 0; }
+  .cpb-shape--panel-clean { clip-path: none; corner-shape: bevel; border-radius: 0 var(--c) 0 var(--c); }
+  .cpb-shape--notch-tr    { clip-path: none; corner-shape: bevel; border-radius: 0 var(--c) 0 0; }
+  .cpb-shape--check       { clip-path: none; corner-shape: bevel; border-radius: 0 var(--c) 0 0; }
+  /* corner-shape: notch is the square-cornered cut-out — exactly the
+     TL "step" that the panel polygon draws by hand. */
+  .cpb-shape--panel {
+    clip-path: none;
+    corner-shape: notch bevel round bevel;
+    border-radius: var(--s) var(--c) 0 var(--c);
+  }
+  /* A bevel at a 50% radius is a rhombus with vertices at the edge midpoints. */
+  .cpb-shape--radio       { clip-path: none; corner-shape: bevel; border-radius: 50%; }
+
+  /* ── .cpb-frame helper — now literally a border ───────────────── */
+  .cpb-frame {
+    --cpb-ring: var(--cpb-frame-border, var(--cpb-panel-border));
+    --cpb-fill: var(--cpb-frame-fill, var(--cpb-panel));
+    border: var(--cpb-stroke) solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+  }
+  .cpb-frame::before { display: none; }
+  .cpb-frame:focus-visible,
+  .cpb-frame--active { --cpb-fill: var(--cpb-accent-wash-soft); }
+  .cpb-frame--thick { border-width: var(--cpb-stroke-thick); }
+
+  /* ── Inputs — these already carried a real border, which clip-path
+        was slicing off at the chamfer. Now it wraps the cut. ─────── */
+  .cyberpunk-blue input[type=text],
+  .cyberpunk-blue input[type=number] {
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: 0 var(--c) 0 0;
+  }
+  .cyberpunk-blue input[type=checkbox] {
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: var(--c);
+  }
+
+  /* ── Buttons ──────────────────────────────────────────────────── */
+  .cyberpunk-blue button,
+  .cyberpunk-blue .button {
+    --cpb-ring: var(--btn-tint-border);
+    --cpb-fill: var(--btn-fill);
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: 0 var(--c) 0 var(--c);
+    border: var(--cpb-stroke) solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+    /* Foundry core already gives every <button> a 1px border that the fake
+       ring sat inside of, so only the DIFFERENCE comes out of the padding. */
+    padding: calc(0.35rem - (var(--cpb-stroke) - 1px))
+             calc(0.75rem + var(--cpb-stripe) + 6px - (var(--cpb-stroke) - 1px))
+             calc(0.35rem - (var(--cpb-stroke) - 1px))
+             calc(0.75rem - (var(--cpb-stroke) - 1px));
+  }
+  .cyberpunk-blue button::before,
+  .cyberpunk-blue .button::before { display: none; }
+  /* The HUD stripe is positioned against the padding box, which a real
+     border shifts inward — pull it back to its old offsets. */
+  .cyberpunk-blue button::after,
+  .cyberpunk-blue .roll-button::after {
+    left: calc(4px - (var(--cpb-stroke) - 1px));
+    top: calc(6px - (var(--cpb-stroke) - 1px));
+    bottom: calc(6px - (var(--cpb-stroke) - 1px));
+  }
+  .cyberpunk-blue button:hover,
+  .cyberpunk-blue button:focus,
+  .cyberpunk-blue .button:hover,
+  .cyberpunk-blue .button:focus { --cpb-fill: var(--btn-tint); }
+  .cyberpunk-blue button[disabled]:hover,
+  .cyberpunk-blue button:disabled:hover { --cpb-fill: var(--btn-fill); }
+  .cpb-btn--solid:hover,
+  .cpb-btn--solid:focus-visible { --cpb-fill: color-mix(in oklab, var(--cpb-accent) 80%, white); }
+  /* Variants below restate the shorthand because their own `background`
+     declaration out-specifies the button base and would otherwise wipe
+     the fill layer. */
+  .cyberpunk-blue .roll-button {
+    --cpb-ring: var(--cpb-accent-warm-border);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+  }
+  .cyberpunk-blue .skill-row .macro-button {
+    /* Its own `border-color: …0.24` was dead under clip-path and would come
+       alive here — pin the ring to the color that actually renders today. */
+    --cpb-ring: rgba(141, 227, 255, 0.08);
+    border-color: var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+  }
+  /* Peg-and-notch groups keep their polygon (their own clip-path already
+     out-specifies the reset above), so put their fake border back. */
+  .cpb-btn-group .cpb-btn {
+    border: 0;
+    border-radius: 0;
+    background: var(--btn-tint-border);
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+  }
+  .cpb-btn-group .cpb-btn::before { display: block; }
+  /* Chromeless button variants: no ring, and no bevel to clip against.
+     Their own transparent `background` still wins over the base. */
+  .cyberpunk-blue .effect-open,
+  .cyberpunk-blue .embedded-name { border-radius: 0; }
+
+  /* ── Sheet panel ──────────────────────────────────────────────── */
+  .cyberpunk-blue .sheet-panel {
+    --cpb-ring: var(--cpb-accent-wash);
+    --cpb-fill: var(--cpb-accent-wash);
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: 0 var(--c) 0 var(--c);
+    border: var(--cpb-stroke) solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+    padding: calc(1rem - var(--cpb-stroke));
+  }
+  .cyberpunk-blue .sheet-panel::before { display: none; }
+
+  .cyberpunk-blue .note-panel {
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: var(--c);
+  }
+
+  /* ── Netrunner computer card (stepped panel) ──────────────────── */
+  .cyberpunk-blue .netrunner-computer-card {
+    --cpb-ring: var(--cpb-accent-warm-border);
+    --cpb-fill: var(--cpb-panel);
+    clip-path: none;
+    corner-shape: notch bevel round bevel;
+    border-radius: var(--s) var(--c) 0 var(--c);
+    border: var(--cpb-stroke) solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+    padding: calc(0.5rem - var(--cpb-stroke)) calc(0.35rem - var(--cpb-stroke));
+  }
+  .cyberpunk-blue .netrunner-computer-card::before { display: none; }
+
+  /* ── Ammo pill ────────────────────────────────────────────────── */
+  .cyberpunk-blue .ammo-pill {
+    --cpb-ring: var(--cpb-accent-warm-wash);
+    --cpb-fill: var(--cpb-panel-deep);
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: 0 var(--c) 0 var(--c);
+    border: 1px solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+  }
+  .cyberpunk-blue .ammo-pill::before { display: none; }
+  .cyberpunk-blue .ammo-pill:hover {
+    --cpb-ring: var(--cpb-accent-warm);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+  }
+  /* Buttons inside the pill had no fake ring (transparent element
+     background) — only Foundry's own 1px border. Keep exactly that. */
+  .cyberpunk-blue .ammo-pill button {
+    --cpb-ring: transparent;
+    border: 1px solid var(--button-border-color);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+  }
+  .cyberpunk-blue .ammo-pill button:hover {
+    --cpb-fill: var(--cpb-accent-warm);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+  }
+
+  /* ── Component pill ───────────────────────────────────────────── */
+  .cyberpunk-blue .component-pill {
+    --cpb-ring: var(--cpb-panel);
+    --cpb-fill: var(--cpb-accent-wash-soft);
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: 0 var(--c) 0 var(--c);
+    border: 1px solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+    padding: calc(0.28rem - 1px) calc(0.6rem - 1px);
+  }
+  .cyberpunk-blue .component-pill::before { display: none; }
+
+  /* ── Character-creation wizard ────────────────────────────────── */
+  .character-creation-wizard .cc-points-counter {
+    --cpb-ring: var(--cpb-accent-wash-border);
+    --cpb-fill: var(--cpb-panel-deep);
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: 0 var(--c) 0 var(--c);
+    border: 1px solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+    padding: calc(0.4rem - 1px);
+  }
+  .character-creation-wizard .cc-points-counter::before { display: none; }
+  .character-creation-wizard .cc-points-counter.all-spent {
+    --cpb-ring: var(--cpb-accent-strong-border);
+    --cpb-fill: var(--cpb-accent-strong-wash);
+    border-color: var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+  }
+  .character-creation-wizard .cc-points-counter.over-budget {
+    --cpb-ring: rgba(255, 35, 80, 0.45);
+    --cpb-fill: rgba(255, 35, 80, 0.1);
+    border-color: var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+  }
+  .character-creation-wizard .cc-step-dot {
+    --cpb-ring: rgba(141, 227, 255, 0.2);
+    --cpb-fill: var(--cpb-panel-deep);
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: var(--c);
+    border: 1px solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+    padding: calc(0.2rem - 1px) calc(0.5rem - 1px);
+  }
+  .character-creation-wizard .cc-step-dot::before { display: none; }
+  .character-creation-wizard .cc-step-dot.done {
+    --cpb-ring: var(--cpb-accent-wash-border);
+    border-color: var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+  }
+  .character-creation-wizard .cc-step-dot.active {
+    --cpb-ring: var(--cpb-accent-strong-border);
+    --cpb-fill: var(--cpb-accent-strong-wash);
+    border-color: var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+  }
+
+  /* ── Derived field ────────────────────────────────────────────── */
+  .cyberpunk-blue .derived-field {
+    --cpb-ring: rgba(141, 227, 255, 0.14);
+    --cpb-fill: var(--cpb-panel-deep);
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: var(--c) 0 var(--c) 0;
+    border: 1px solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+    padding: calc(0.45rem - 1px);
+  }
+  .cyberpunk-blue .derived-field::before { display: none; }
+
+  /* ── State chips ──────────────────────────────────────────────── */
+  .cyberpunk-blue .state-chip {
+    --cpb-ring: rgba(0, 240, 255, 0.40);
+    --cpb-fill: var(--cpb-accent-wash-soft);
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: var(--c);
+    border: 1px solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+    padding: calc(0.24rem - 1px) calc(0.6rem - 1px);
+  }
+  .cyberpunk-blue .state-chip::before { display: none; }
+  .cyberpunk-blue .state-disabled {
+    --cpb-ring: var(--cpb-warning);
+    --cpb-fill: var(--cpb-warning);
+    border-color: var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+  }
+
+  /* ── Weapon block / mod card ──────────────────────────────────── */
+  .cyberpunk-blue .weapon-block,
+  .cyberpunk-blue .mod-card {
+    --cpb-ring: rgba(141, 227, 255, 0.14);
+    --cpb-fill: var(--cpb-panel-deep);
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: 0 var(--c) 0 var(--c);
+    border: 1px solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+    padding: calc(0.85rem - 1px);
+  }
+  .cyberpunk-blue .weapon-block::before,
+  .cyberpunk-blue .mod-card::before { display: none; }
+  .cyberpunk-blue .mod-card.is-invalid {
+    --cpb-ring: rgba(255, 35, 80, 0.42);
+    border-color: var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+  }
+
+  /* ── Netrunner component box + use button ─────────────────────── */
+  .cyberpunk-blue .netrunner-component-box {
+    --cpb-ring: var(--cpb-accent-warm-border);
+    --cpb-fill: var(--cpb-accent-warm-wash);
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: 0 var(--c) 0 var(--c);
+    border: 1px solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+    padding: calc(var(--cpb-space-3) - 1px) calc(var(--cpb-space-4) - 1px);
+  }
+  .cyberpunk-blue .netrunner-component-box::before { display: none; }
+  /* Shorthand, not just border-color: this rule's own `border: 0` in the
+     sheet above out-specifies the button base, so the width needs re-stating.
+     That also means the fallback has no real border — hence the full-stroke
+     padding reduction rather than the 1px delta used on plain buttons. */
+  .cyberpunk-blue .netrunner-use-btn {
+    --cpb-ring: var(--cpb-accent-warm-border);
+    --cpb-fill: var(--cpb-accent-warm-wash);
+    border: var(--cpb-stroke) solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+    padding: calc(var(--cpb-space-1) - var(--cpb-stroke)) calc(var(--cpb-space-2) - var(--cpb-stroke));
+  }
+  .cyberpunk-blue .netrunner-use-btn:hover {
+    --cpb-ring: var(--cpb-accent-warm);
+    --cpb-fill: var(--cpb-accent-warm);
+    border-color: var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+  }
+
+  /* ── Martial arts special entry ───────────────────────────────── */
+  .cyberpunk-blue .ma-special-entry {
+    --cpb-ring: rgba(0, 240, 255, 0.28);
+    --cpb-fill: var(--cpb-accent-wash);
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: 0 var(--c) 0 var(--c);
+    border: 2px solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+    padding: calc(var(--cpb-space-3) - 2px) calc(var(--cpb-space-4) - 2px);
+  }
+  .cyberpunk-blue .ma-special-entry::before { display: none; }
+
+  /* ── Weapon action buttons (unjam / calibrate / ricochet / charge) ─
+        These zero out Foundry's button border, so the fallback has no
+        real border at all and the full 1px ring comes out of the padding. */
+  .cyberpunk-blue .weapon-unjam-btn,
+  .cyberpunk-blue .weapon-calibrate-btn,
+  .cyberpunk-blue .weapon-ricochet-btn,
+  .cyberpunk-blue .weapon-charge-btn {
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: var(--c);
+    border: 1px solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+    padding: 0 5px;
+  }
+  .cyberpunk-blue .weapon-unjam-btn::before,
+  .cyberpunk-blue .weapon-calibrate-btn::before,
+  .cyberpunk-blue .weapon-ricochet-btn::before,
+  .cyberpunk-blue .weapon-charge-btn::before { display: none; }
+  .cyberpunk-blue .weapon-unjam-btn {
+    --cpb-ring: rgba(200, 149, 0, 0.42);
+    --cpb-fill: rgba(8, 16, 26, 0.9);
+  }
+  .cyberpunk-blue .weapon-unjam-btn:hover {
+    --cpb-ring: #c89500;
+    --cpb-fill: #c89500;
+  }
+  .cyberpunk-blue .weapon-calibrate-btn {
+    --cpb-ring: var(--cpb-accent-wash-border);
+    --cpb-fill: rgba(8, 16, 26, 0.92);
+  }
+  .cyberpunk-blue .weapon-calibrate-btn:hover,
+  .cyberpunk-blue .weapon-calibrate-btn.calibration-active {
+    --cpb-ring: var(--cpb-accent);
+    --cpb-fill: var(--cpb-accent);
+  }
+  .cyberpunk-blue .weapon-ricochet-btn {
+    --cpb-ring: rgba(68, 170, 255, 0.32);
+    --cpb-fill: rgba(8, 16, 26, 0.92);
+  }
+  .cyberpunk-blue .weapon-ricochet-btn:hover,
+  .cyberpunk-blue .weapon-ricochet-btn.ricochet-active {
+    --cpb-ring: #44aaff;
+    --cpb-fill: #44aaff;
+  }
+  .cyberpunk-blue .weapon-charge-btn {
+    --cpb-ring: rgba(0, 212, 255, 0.32);
+    --cpb-fill: rgba(8, 16, 26, 0.92);
+  }
+  .cyberpunk-blue .weapon-charge-btn:hover,
+  .cyberpunk-blue .weapon-charge-btn.charge-active {
+    --cpb-ring: #00d4ff;
+    --cpb-fill: #00d4ff;
+  }
+  .cyberpunk-blue .weapon-charge-btn.charge-cooldown {
+    --cpb-ring: rgba(255, 153, 0, 0.32);
+    --cpb-fill: rgba(8, 16, 26, 0.92);
+    border-color: var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+  }
+
+  /* ── Combat tracker panel ─────────────────────────────────────── */
+  .cyber-blue-combat-panel {
+    --cpb-ring: var(--cpb-panel-border);
+    --cpb-fill: rgba(0, 0, 0, 0.55);
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: 0 var(--c) 0 var(--c);
+    border: 1px solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+    padding: 5px 7px 7px;
+  }
+  .cyber-blue-combat-panel::before { display: none; }
+  /* NOTE: .cyber-blue-sprint-btn is deliberately absent. The combat tracker
+     is a core sidebar app and never carries the .cyberpunk-blue class, so
+     that button never matched the button base — it has no clip-path and no
+     fake border to convert, and remapping its background would recolor it. */
+
+  /* ── Chat messages ────────────────────────────────────────────── */
+  .chat-message {
+    --cpb-ring: rgba(141, 227, 255, 0.12);
+    --cpb-fill: var(--cpb-panel-deep);
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: 0 var(--c) 0 var(--c);
+    border: 1px solid var(--cpb-ring);
+    background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
+                var(--cpb-ring) padding-box;
+  }
+  .chat-message::before { display: none; }
+
+  /* ── NPC quick-creation cards — already a properly bordered card;
+        these only needed the chamfer to stop eating that border, and
+        the inherited button ::before to get out of the way. Their own
+        `background` and `border-color` out-specify the button base. ─ */
+  .cyberpunk-blue.npc-quick .cpb-nqc-card {
+    clip-path: none;
+    corner-shape: bevel;
+    border-radius: var(--c) 0 var(--c) 0;
+  }
 }
 /* #endregion */
