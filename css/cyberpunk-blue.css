@@ -1879,7 +1879,7 @@ CHARACTER SHEET SPECIFIC
   text-align: center;
   font-size: 0.85rem;
   --c: var(--cpb-cut-sm);
-  clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(c), 100% 100%, 0 100%) !important;
+  clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, 0 100%) !important;
 }
 .cyberpunk-blue .ammo-pill-qty:focus {
   border: none !important;
@@ -5082,6 +5082,10 @@ CHARACTER SHEET SPECIFIC
     background: linear-gradient(var(--cpb-fill), var(--cpb-fill)) padding-box,
                 var(--cpb-ring) padding-box;
   }
+  /* The qty input carries its fallback polygon with !important, so the
+     `clip-path: none` in the input rule above cannot reach it. Restate it
+     at the same weight; the bevel itself comes from input[type=number]. */
+  .cyberpunk-blue .ammo-pill-qty { clip-path: none !important; }
 
   /* ── Component pill ───────────────────────────────────────────── */
   .cyberpunk-blue .component-pill {
