@@ -131,7 +131,7 @@ Last updated: 2026-05-11 (stun weapons → affliction; gear AEs require equipped
 
 | Ability | Where | Notes |
 |---|---|---|
-| ✅ Electric Charge (battery) — DV15 TECH+End or 2d6 HP | Kendachi RA-5 Knife | electricCharge flag; 10-charge flag tracking; SS only |
+| ✅ Electric Charge (battery) — DV15 TECH+End or 2d6 HP | Kendachi RA-5 Knife | electricCharge flag; 10-charge flag tracking; SS only. The charge lives in the item's battery pool (capacity 1): no effect with 0 installed; at 0 charges the battery is spent; inserting a Battery restores 10 |
 | ✅ Burning Edge — ignores SP < 11 | Kendachi Mono-Three | burningEdge flag; always active (GM handles toggle cases) |
 | ✅ Bayonet — melee 1d6/RoF2, ignores ½ SP | Kendachi Shi Bayonet (mod) | bayonet mod flag; getEffectiveItemWeapons injects synthetic weapon |
 | ✅ halveSP — Bayonet weapon mode | synthetic bayonet entry | halveSP=true; Math.ceil(SP/2) in SP computation block |
@@ -166,7 +166,7 @@ Last updated: 2026-05-11 (stun weapons → affliction; gear AEs require equipped
 | Ability | Where | Notes |
 |---|---|---|
 | ➖ Tracker Dart / Dart alternate fire mode | Sonnet HP, Ashura SR | second weapon entries added; beacon/tag mechanic GM-handled |
-| ✅ Battery ammo category | Kang Tao Mámù stun gun | `stunGun` weapon type (category: ranged, skill: handgun); `battery` ammo flag; 'Basic Battery' entry (qty 1, €$50); reload prompts for battery ammo only |
+| ✅ Battery as Ammo | Kang Tao Mámù stun gun, Neko-Z d'Antoine, Zetatech Microwaver-55 | `system.battery.asAmmo` (stun guns always): one 'Battery' fills the magazine (12 / 5 / 5 shots); the battery becomes a 'Spent Battery' when the magazine empties or is swapped early. See `helpers/battery.mjs` |
 
 ---
 

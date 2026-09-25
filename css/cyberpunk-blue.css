@@ -1629,7 +1629,7 @@ CHARACTER SHEET SPECIFIC
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
 .cyberpunk-blue .cyberware-group:first-child { margin-top: 1rem; }
-.cyberpunk-blue .cyberware-row { grid-template-columns: minmax(180px, 1.4fr) minmax(110px, 0.8fr) 72px minmax(160px, 1fr) 80px minmax(180px, 1fr); }
+.cyberpunk-blue .cyberware-row { grid-template-columns: minmax(180px, 1.4fr) minmax(110px, 0.8fr) 72px minmax(160px, 1fr) minmax(80px, auto) minmax(180px, 1fr); }
 .cyberpunk-blue .cyberware-sheet.is-disabled .sheet-panel:not(.status-disabled) { opacity: 0.7; }
 /* #endregion */
 
@@ -1895,16 +1895,34 @@ CHARACTER SHEET SPECIFIC
   z-index: 0;
 }
 .cyberpunk-blue .ammo-pill > * { position: relative; z-index: 1; }
+/* Spent batteries: desaturated art, with a Charge button */
+.cyberpunk-blue .ammo-pill.is-spent .ammo-pill-name img { filter: saturate(0.2); }
+.cyberpunk-blue .ammo-pill .ammo-pill-charge { padding: 0 var(--cpb-space-3) 0 0; }
 /* #endregion */
 
 /* #region Inventory table */
 .cyberpunk-blue .inventory-row {
-  grid-template-columns: minmax(180px, 1.2fr) 70px minmax(220px, 1.6fr) 80px minmax(220px, 1fr);
+  grid-template-columns: minmax(180px, 1.2fr) 70px minmax(220px, 1.6fr) minmax(80px, auto) minmax(220px, 1fr);
 }
 .cyberpunk-blue .instruction-cell {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
+  gap: 0.25rem;
+}
+/* Battery pool: installed/capacity + Insert + Use */
+.cyberpunk-blue .battery-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  white-space: nowrap;
+}
+.cyberpunk-blue .battery-controls .battery-count { font-size: 0.85rem; }
+.cyberpunk-blue .battery-controls button {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 0 0.3rem;
 }
 .cyberpunk-blue .inventory-row .embedded-summary {
   display: flex;

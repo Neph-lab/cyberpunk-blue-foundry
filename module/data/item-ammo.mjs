@@ -40,6 +40,11 @@ export default class CyberBlueAmmo extends CyberBlueItemBase {
     // toxicDamage (halved on a success) directly to HP. Cannot crit.
     schema.toxicDv = new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 });
     schema.toxicDamage = new fields.StringField({ required: true, blank: true, initial: '' });
+    // ── Spent battery ───────────────────────────────────────────────────────
+    // A used-up battery: kept as its own stack ("Spent <spentOf>"), cannot be
+    // loaded or inserted, and is recharged back into `spentOf` from the sheet.
+    schema.spent = new fields.BooleanField({ initial: false });
+    schema.spentOf = new fields.StringField({ required: true, blank: true, initial: '' });
     schema.ammoTypes = new fields.SchemaField({
       mediumPistol: new fields.BooleanField({ initial: false }),
       heavyPistol: new fields.BooleanField({ initial: false }),

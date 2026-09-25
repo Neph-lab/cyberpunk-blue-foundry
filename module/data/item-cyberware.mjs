@@ -1,6 +1,7 @@
 import CyberBlueItemBase from "./base-item.mjs";
 import { buildWeaponField, buildInstructionStepField } from "./weapon-schema.mjs";
 import { buildStyleField } from "./style-schema.mjs";
+import { buildBatteryField, buildModBatteryFields } from "./battery-schema.mjs";
 
 export default class CyberBlueCyberware extends CyberBlueItemBase {
   static defineSchema() {
@@ -23,6 +24,8 @@ export default class CyberBlueCyberware extends CyberBlueItemBase {
       currentSp: new fields.NumberField({ ...requiredInteger, initial: 0, min: 0 }),
     });
     schema.weapons = new fields.ArrayField(buildWeaponField(), { initial: [] });
+    // ── Battery pool (see battery-schema.mjs) ─────────────────────────────────
+    schema.battery = buildBatteryField();
     // ── Styles ────────────────────────────────────────────────────────────────
     // GM-authored cosmetic variants; `selectedStyle` is '' for the implicit Default.
     schema.styles = new fields.ArrayField(buildStyleField(), { initial: [] });
@@ -82,6 +85,7 @@ export default class CyberBlueCyberware extends CyberBlueItemBase {
         cost: new fields.StringField({ required: true, blank: true }),
         note: new fields.StringField({ required: true, blank: true }),
         description: new fields.HTMLField({ initial: '' }),
+        ...buildModBatteryFields(),
         importedEffects: new fields.ArrayField(
           new fields.SchemaField({
             label: new fields.StringField({ required: true, blank: true }),

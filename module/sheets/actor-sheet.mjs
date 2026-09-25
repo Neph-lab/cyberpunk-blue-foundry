@@ -25,6 +25,7 @@ import { getNetCombat, isInert, getBoost } from '../helpers/net-program-combat.m
 import { resolveWeaponAttack, resolveAutofireAttack, resolveDoubleLockAttack } from '../helpers/combat-resolution.mjs';
 import { refreshAllRicochetLines } from '../helpers/ricochet-canvas.mjs';
 import { reloadWeapon, toggleWeaponCharge, toggleWeaponRicochet, toggleModActivation } from '../helpers/weapon-actions.mjs';
+import { getBatteryPool, hasChargedBattery, insertBattery, useBattery, rechargeBattery } from '../helpers/battery.mjs';
 import { playUiSound } from '../helpers/audio.mjs';
 import { findGuideStack } from '../helpers/guide-tarot.mjs';
 import {
@@ -312,6 +313,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
               canDetachPlatform: item.system.integration === 'extension'
                 && (Boolean(item.system.parentCyberwareId) || Boolean(item.system.parentCyberwareId2)),
               description: cyberwareDescriptionMap.get(item.id) ?? '',
+              battery: this._getBatteryContext(item.id),
               rowGapClass: 'embedded-entry',
               effectiveWeapons: getEffectiveItemWeapons(itemDoc ?? item).map((weapon, weaponIndex) => {
                 const definition = getWeaponTypeDefinition(weapon.type);
@@ -374,6 +376,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
               ? eligiblePlatforms.length >= 2
               : eligiblePlatforms.length > 0,
             description: cyberwareDescriptionMap.get(item.id) ?? '',
+            battery: this._getBatteryContext(item.id),
           };
         });
       unconnected.forEach((item, i, arr) => {
@@ -409,6 +412,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         ...item,
         ...getInstructionContext(item),
         state,
+        battery: this._getBatteryContext(itemDoc.id),
         manufacturerLogo: manufacturerLogoMap.get(item.system.manufacturer) ?? null,
         armorText: item.system.isArmor ? `${Math.max(item.system.armor?.currentSp ?? 0, 0)}/${Math.max(item.system.armor?.maxSp ?? 0, 0)}` : null,
         weaponSummaries: effectiveWeapons.map((weapon) => {
@@ -571,7 +575,7 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
         hasDoubleLock: !!(weapon.doubleLock ?? false),
         doubleLockAmmoOk: (weapon.doubleLock ?? false) && ammo.current >= 4,
         hasElectricCharge: !!(weapon.electricCharge ?? false),
-        electricChargeUses: (weapon.electricCharge ?? false)
+        electricChargeUses: ((weapon.electricCharge ?? false) && hasChargedBattery(itemDoc, this.document))
           ? (itemDoc.getFlag('cyberpunk-blue', `electricCharge-${weaponIndex}`) ?? (weapon.electricChargeMax ?? 0))
           : 0,
         electricChargeMax: weapon.electricChargeMax ?? 0,
@@ -1208,6 +1212,15 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
     });
     this.element.querySelectorAll('[data-action="weapon-reload"]').forEach((button) => {
       button.addEventListener('click', this._onWeaponReload.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="battery-insert"]').forEach((button) => {
+      button.addEventListener('click', this._onBatteryInsert.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="battery-use"]').forEach((button) => {
+      button.addEventListener('click', this._onBatteryUse.bind(this));
+    });
+    this.element.querySelectorAll('[data-action="battery-recharge"]').forEach((button) => {
+      button.addEventListener('click', this._onBatteryRecharge.bind(this));
     });
     this.element.querySelectorAll('[data-action="open-team-member"]').forEach((button) => {
       button.addEventListener('click', this._onOpenTeamMember.bind(this));
@@ -2168,6 +2181,46 @@ export class CyberBlueActorSheet extends HandlebarsApplicationMixin(ActorSheetV2
       flavor: `<div class="cyberpunk-blue chat-card"><h3>${game.i18n.localize('CYBER_BLUE.Sheet.Labels.Damage')}: ${weaponLabel}</h3></div>`,
       rollMode: game.settings.get('core', 'rollMode'),
     });
+  }
+
+  /**
+   * Battery pool context for a Gear/Cyberware row's Use column, or null when
+   * the item uses no batteries outside a battery-as-Ammo magazine.
+   */
+  _getBatteryContext(itemId) {
+    const itemDoc = this.document.items.get(itemId);
+    if (!itemDoc) return null;
+    const pool = getBatteryPool(itemDoc, this.document);
+    if (pool.capacity <= 0) return null;
+    const label = game.i18n.localize('CYBER_BLUE.Battery.Label');
+    const tooltip = pool.life ? `${label}: ${pool.life}` : label;
+    return {
+      ...pool,
+      canInsert: pool.installed < pool.capacity,
+      canUse: pool.installed > 0,
+      tooltip,
+      useTooltip: pool.life
+        ? `${game.i18n.localize('CYBER_BLUE.Battery.Use')} (${pool.life})`
+        : game.i18n.localize('CYBER_BLUE.Battery.Use'),
+    };
+  }
+
+  async _onBatteryInsert(event) {
+    event.preventDefault();
+    const item = this._getItemFromEvent(event);
+    if (item) await insertBattery(this.document, item);
+  }
+
+  async _onBatteryUse(event) {
+    event.preventDefault();
+    const item = this._getItemFromEvent(event);
+    if (item) await useBattery(this.document, item);
+  }
+
+  async _onBatteryRecharge(event) {
+    event.preventDefault();
+    const item = this._getItemFromEvent(event);
+    if (item) await rechargeBattery(this.document, item);
   }
 
   async _onWeaponReload(event) {

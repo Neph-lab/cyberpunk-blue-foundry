@@ -135,8 +135,11 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
     // GM has enabled a feature, always visible to GMs/Assistants.
     context.showMiscFeatures = (context.isCyberware || context.isGear || context.isMod)
       && (canManageRestricted || !!itemData.system.irEnabled);
+    // Battery panel: GMs always; players once the item actually uses batteries.
+    context.showBatteryPanel = (context.isCyberware || context.isGear)
+      && (canManageRestricted || (itemData.system.battery?.capacity ?? 0) > 0);
     context.showAdvancedTab = ((context.isCyberware || context.isGear)
-      && (itemData.system.isArmor || itemData.system.isWeapon || itemData.system.isComputer || canManageRestricted || context.showMiscFeatures))
+      && (itemData.system.isArmor || itemData.system.isWeapon || itemData.system.isComputer || canManageRestricted || context.showMiscFeatures || context.showBatteryPanel))
       || (context.isDrug && canManageRestricted);
     context.showWeaponSection = itemData.system.isWeapon || canManageRestricted;
     context.showCyberwareDetailsTab = context.isCyberware;
@@ -1488,6 +1491,8 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       cost: sourceItem.system.cost ?? '',
       note: sourceItem.system.note ?? '',
       description: sourceItem.system.description ?? '',
+      batteryCapacity: sourceItem.system.batteryCapacity ?? 0,
+      batteryLife: sourceItem.system.batteryLife ?? '',
       importedEffects: (sourceItem.effects ?? []).map((e) => ({
         label: e.name ?? e.label ?? '',
         icon: e.icon ?? '',
@@ -1515,6 +1520,8 @@ export class CyberBlueItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) 
       mod.cost = source.system.cost ?? '';
       mod.note = source.system.note ?? '';
       mod.description = source.system.description ?? '';
+      mod.batteryCapacity = source.system.batteryCapacity ?? 0;
+      mod.batteryLife = source.system.batteryLife ?? '';
       mod.importedEffects = (source.effects ?? []).map((e) => ({
         label: e.name ?? e.label ?? '',
         icon: e.icon ?? '',

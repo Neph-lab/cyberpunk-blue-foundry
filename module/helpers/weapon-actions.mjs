@@ -12,6 +12,10 @@ import { getTurnState } from './combat-tracker.mjs';
 import { playUiSound } from './audio.mjs';
 import { clearWeaponCharge } from './tech-charge.mjs';
 import { startRicochetPlacement, clearRicochetPoint } from './ricochet-canvas.mjs';
+import {
+  isBattery, usesBatteryAsAmmo, batterySourceRef, createSpentBattery,
+  promptChooseAmmo, getBatteryPool,
+} from './battery.mjs';
 
 /**
  * Reload a magazine-fed weapon, prompting for ammo choice when several
@@ -38,8 +42,10 @@ export async function reloadWeapon(actor, item, weaponIndex) {
     return;
   }
 
-  // Find compatible ammo types for this weapon type
-  const compatibleAmmoKeys = getWeaponAmmoTypes(sourceWeapon.type ?? '');
+  // Find compatible ammo types for this weapon type. A weapon that uses its
+  // item's battery as Ammo accepts batteries and nothing else.
+  const batteryAsAmmo = usesBatteryAsAmmo(item);
+  const compatibleAmmoKeys = batteryAsAmmo ? ['battery'] : getWeaponAmmoTypes(sourceWeapon.type ?? '');
   if (compatibleAmmoKeys.length === 0) {
     ui.notifications.warn(game.i18n.localize('CYBER_BLUE.Combat.NoAmmoType'));
     return;
@@ -47,10 +53,13 @@ export async function reloadWeapon(actor, item, weaponIndex) {
 
   // Filter actor's ammo items to those compatible with this weapon.
   // Smart-weapon-only ammo (e.g. Smart Ammo) is excluded for non-smart weapons.
+  // Spent batteries can never be loaded.
   const isSmartWeapon = !!(sourceWeapon.isSmartWeapon);
   const isTechWeapon = !!(sourceWeapon.isTechWeapon);
   const actorAmmoDocs = actor.items.filter((i) => {
     if (i.type !== 'ammo') return false;
+    if (i.system.spent) return false;
+    if ((Number(i.system.quantity) || 0) <= 0) return false;
     if (i.system.smartWeaponOnly && !isSmartWeapon) return false;
     if (i.system.nonTechOnly && isTechWeapon) return false; // AP/Hollow/Rubber/Toxic: non-Tech only
     return compatibleAmmoKeys.some((key) => i.system.ammoTypes?.[key]);
@@ -62,28 +71,24 @@ export async function reloadWeapon(actor, item, weaponIndex) {
   }
 
   // If multiple compatible ammo available, prompt player to choose
-  let chosenAmmoDoc = actorAmmoDocs[0];
-  if (actorAmmoDocs.length > 1) {
-    const { promise, resolve } = Promise.withResolvers();
-    const buttons = actorAmmoDocs.map((ammoDoc) => ({
-      action: ammoDoc.id,
-      label: `${ammoDoc.name} (×${ammoDoc.system.quantity})`,
-      icon: 'fas fa-box-open',
-      callback: () => resolve(ammoDoc.id),
-    }));
-    buttons.push({ action: 'cancel', label: game.i18n.localize('CYBER_BLUE.Sheet.Labels.Cancel'), icon: 'fas fa-times', callback: () => resolve(null) });
-    const dialog = new foundry.applications.api.DialogV2({
-      window: { title: game.i18n.localize('CYBER_BLUE.Combat.ChooseAmmo') },
-      content: `<div class="cyberpunk-blue"><p>${game.i18n.localize('CYBER_BLUE.Combat.ChooseAmmoHint')}</p></div>`,
-      buttons,
-      submit: (result) => resolve(result),
-    });
-    dialog.addEventListener('close', () => resolve(null), { once: true });
-    dialog.render(true);
-    const chosenId = await promise;
-    if (!chosenId) return;
-    chosenAmmoDoc = actorAmmoDocs.find((a) => a.id === chosenId);
-    if (!chosenAmmoDoc) return;
+  const chosenAmmoDoc = await promptChooseAmmo(actorAmmoDocs);
+  if (!chosenAmmoDoc) return;
+
+  const prevUuid = sourceWeapon.ammoTypeUuid ?? '';
+
+  // ── Battery: one battery fills the magazine ───────────────────────────────
+  // Swapping early assumes the battery being replaced is empty.
+  if (isBattery(chosenAmmoDoc)) {
+    if (ammoCurrent > 0) await createSpentBattery(actor, item.system.battery?.loadedUuid || prevUuid);
+    playUiSound('reload');
+    await item.update(buildWeaponUpdate(item, weaponIndex, {
+      ammoCurrent: magazine,
+      ammoTypeUuid: chosenAmmoDoc.uuid,
+    }, { 'system.battery.loadedUuid': batterySourceRef(chosenAmmoDoc) }));
+    const remaining = (Number(chosenAmmoDoc.system.quantity) || 0) - 1;
+    if (remaining <= 0) await chosenAmmoDoc.delete();
+    else await chosenAmmoDoc.update({ 'system.quantity': remaining });
+    return;
   }
 
   // Determine how many rounds we can load
@@ -91,7 +96,6 @@ export async function reloadWeapon(actor, item, weaponIndex) {
   let currentAfterUnload = ammoCurrent;
 
   // If loading a different ammo type than currently loaded → unload existing rounds first
-  const prevUuid = sourceWeapon.ammoTypeUuid ?? '';
   const sameAmmo = prevUuid && prevUuid === chosenAmmoDoc.uuid;
   if (!sameAmmo && prevUuid && ammoCurrent > 0) {
     // Try to resolve the previously loaded ammo
@@ -271,6 +275,14 @@ export async function toggleModActivation(actor, modDocId) {
   }
 
   // ── Activate ─────────────────────────────────────────────────────────────
+  // A mod that needs a battery only switches on while its host has one installed.
+  if ((Number(modDoc.system.batteryCapacity) || 0) > 0) {
+    const host = actor.items.get(modDoc.system.installedOnId);
+    if (!host || getBatteryPool(host, actor).installed <= 0) {
+      ui.notifications.warn(game.i18n.format('CYBER_BLUE.Battery.ModNeedsBattery', { mod: modDoc.name }));
+      return;
+    }
+  }
   if (modDoc.system.activationBlocksMove) {
     const combatant = game.combat?.started
       ? game.combat.combatants.find((c) => c.actorId === actor.id)

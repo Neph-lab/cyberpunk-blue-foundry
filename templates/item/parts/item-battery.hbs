@@ -1,0 +1,33 @@
+{{!--
+  Battery panel (Advanced tab, Gear + Cyberware).
+  capacity/life/asAmmo are GM-authored; installed is editable by the owner.
+  Installed Mods add their own battery capacity to the pool on the Actor sheet.
+--}}
+{{#if showBatteryPanel}}
+  <section class="sheet-panel">
+    <div class="panel-header"><h2>{{localize "CYBER_BLUE.Battery.Label"}}</h2></div>
+    <div class="item-meta-row">
+      <label class="compact-field">
+        <span>{{localize "CYBER_BLUE.Battery.Capacity"}}</span>
+        <input type="number" name="system.battery.capacity" value="{{system.battery.capacity}}" data-dtype="Number" min="0" {{#unless canManageRestricted}}disabled{{/unless}} />
+      </label>
+      {{#unless system.battery.asAmmo}}
+        <label class="compact-field">
+          <span>{{localize "CYBER_BLUE.Battery.Installed"}}</span>
+          <input type="number" name="system.battery.installed" value="{{system.battery.installed}}" data-dtype="Number" min="0" {{#unless canEditAsOwner}}disabled{{/unless}} />
+        </label>
+        <label>
+          <span>{{localize "CYBER_BLUE.Battery.Life"}}</span>
+          <input type="text" name="system.battery.life" value="{{system.battery.life}}" placeholder="8 hours" {{#unless canManageRestricted}}disabled{{/unless}} />
+        </label>
+      {{/unless}}
+      {{#if system.isWeapon}}
+        <label class="checkbox-label checkbox-bottom">
+          <span>{{localize "CYBER_BLUE.Battery.AsAmmo"}}</span>
+          <input type="checkbox" name="system.battery.asAmmo" {{checked system.battery.asAmmo}} {{#unless canManageRestricted}}disabled{{/unless}} />
+        </label>
+      {{/if}}
+    </div>
+    <p class="hint">{{#if system.battery.asAmmo}}{{localize "CYBER_BLUE.Battery.AsAmmoHint"}}{{else}}{{localize "CYBER_BLUE.Battery.Hint"}}{{/if}}</p>
+  </section>
+{{/if}}

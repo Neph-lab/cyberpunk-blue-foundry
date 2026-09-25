@@ -48,6 +48,9 @@ function modItem({ name, manufacturer = '', cost = '', description = '', imgPath
       weaponChanges: system.weaponChanges ?? [],
       // ── Mod-specific fields (default zeros; override below) ──
       modSlots: system.modSlots ?? 1,
+      // Battery need added to the host item's pool while installed.
+      batteryCapacity: system.batteryCapacity ?? 0,
+      batteryLife: system.batteryLife ?? '',
       scopeType: system.scopeType ?? '',
       rangeImprovementMeters: system.rangeImprovementMeters ?? 0,
       rangeImprovementBidirectional: !!system.rangeImprovementBidirectional,
@@ -266,7 +269,7 @@ const rifleMuzzleBreaks = [
 
 const attachments = [
   modItem({ name: 'Fuyutsuki Action Cam', manufacturer: 'Fuyutsuki', cost: 'PR', imgPath: img(M_ROOT, 'Fuyutsuki-Action-Cam.png'),
-    system: {},
+    system: { batteryCapacity: 1, batteryLife: '1 hour' },
     description: desc('<p><strong>CAMERA:</strong> The camera runs from an on/off switch or fires automatically with the trigger. Its battery and memory last 1 hour, and it takes 1 hour to recharge.</p>') }),
   modItem({ name: 'Arasaka Stability Calibrator', manufacturer: 'Arasaka', cost: 'PR', imgPath: img(M_ROOT, 'Arasaka-Stability-Calibrator.png'),
     system: { handlingComputer: true },
@@ -362,7 +365,7 @@ const accessories = [
     system: { activatable: true, activationIcon: 'bolt', damagePerDie: 1, requiresLightMelee: false },
     description: desc("<p style=\"color: var(--cpb-error);\"><strong>Melee weapons only.</strong></p><p>Takes an Action to turn on or off. While active, the electric edge deals <strong>+1 damage per die</strong>. Striking non-insulated cyberware (an Aimed shot, at least <strong>-4</strong>) forces a <strong style=\"color: var(--cpb-accent);\">DV15</strong> <strong>TECH</strong>+<strong>Endurance</strong> check or that device is disabled for 1 minute.</p>") }),
   modItem({ name: 'Arasaka Thermal Advantage', manufacturer: 'Arasaka', cost: 'PR', imgPath: img(M_ROOT, 'Arasaka-Thermal-Advantage.png'),
-    system: { activatable: true, activationIcon: 'fire', activeThermalBurn: true },
+    system: { activatable: true, activationIcon: 'fire', activeThermalBurn: true, batteryCapacity: 1, batteryLife: '8 hours' },
     description: desc("<p style=\"color: var(--cpb-error);\"><strong>Melee weapons only.</strong></p><p>The heating coil is switched on or off as an Action. While active, a hit dealing at least <strong>2</strong> HP applies <strong>Burning</strong> (2 HP at the start of each turn) for <strong>1d6</strong> rounds; the condition can be ended as an Action. Flammable objects ignite even without initial damage. A battery lasts 8 hours and takes ten minutes to recharge.</p>") }),
   modItem({ name: 'Budget Arms Riptide', manufacturer: 'Budget Arms', cost: 'PR', imgPath: img(M_ROOT, 'Budget-Arms-Riptide.png'),
     system: { activatable: true, activationIcon: 'gears', activeDamageDice: '1d6', activeAblateExtra: true },
@@ -371,7 +374,7 @@ const accessories = [
     system: { activatable: true, activationIcon: 'anchor', activationBlocksMove: true, activeAttackBonus: 1 },
     description: desc("<p style=\"color: var(--cpb-error);\"><strong>Two-handed weapons only.</strong></p><p>Deploys a gyroscopic stand against any surface. During a turn in which the user does not move, attacks gain <strong>+1</strong>. Deploying follows the same no-move restriction as a Tech Weapon charge.</p>") }),
   modItem({ name: 'Militech Vibro-Stun', manufacturer: 'Militech', cost: 'EX', imgPath: img(M_ROOT, 'Militech-Vibro-Stun.png'),
-    system: { activatable: true, activationIcon: 'wave-square', activeVibroStun: true, activationSelfEffect: 'Vibrations' },
+    system: { activatable: true, activationIcon: 'wave-square', activeVibroStun: true, activationSelfEffect: 'Vibrations', batteryCapacity: 1, batteryLife: '8 hours' },
     effects: [{
       name: 'Vibrations', disabled: true, transfer: false,
       system: { changes: [{ key: 'system.skills.meleeWeapons.bonus', type: 'add', value: '-1' }] },

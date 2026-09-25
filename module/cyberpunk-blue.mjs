@@ -2838,8 +2838,13 @@ async function _syncWeaponEntries(catalogue) {
     const descriptionChanged = catDescription && doc.system.description !== catDescription;
     const catManufacturer = def.system?.manufacturer ?? '';
     const manufacturerChanged = catManufacturer && doc.system.manufacturer !== catManufacturer;
-    if (weaponDataChanged || weaponImgChanged || descriptionChanged || manufacturerChanged) {
+    // Battery pool: sync only the fields the catalogue sets.
+    const catBattery = def.system?.battery ?? {};
+    const batteryKeys = Object.keys(catBattery)
+      .filter((key) => JSON.stringify(catBattery[key]) !== JSON.stringify(doc.system.battery?.[key]));
+    if (weaponDataChanged || weaponImgChanged || descriptionChanged || manufacturerChanged || batteryKeys.length) {
       const update = { _id: doc.id };
+      for (const key of batteryKeys) update[`system.battery.${key}`] = catBattery[key];
       if (weaponDataChanged) update['system.weapons'] = catalogueWeapons;
       if (weaponImgChanged)  update.img = def.img;
       if (descriptionChanged) update['system.description'] = catDescription;
@@ -2884,6 +2889,14 @@ async function _syncWeaponEntries(catalogue) {
 // ─── Ammo catalogue ───────────────────────────────────────────────────────────
 
 /**
+ * Ammo entries retired from the catalogue: "Basic Battery" was renamed to
+ * "Battery" when batteries became their own concept, and "Smart Battery" was
+ * dropped. Pruned from the already-seeded pack by name; actor-owned copies stay
+ * (they still carry ammoTypes.battery and keep working).
+ */
+const _RETIRED_AMMO = ['Basic Battery', 'Smart Battery'];
+
+/**
  * Ensure the basic ammo items exist in the weapons compendium.
  * Unlike _populatePack, this runs even if the pack is already populated —
  * it only creates items that don't already exist (matched by name).
@@ -2900,6 +2913,7 @@ async function ensureAmmoCatalogue() {
     const existingNames = new Set(ammoIndex.map((e) => e.name));
     const byName = new Map(AMMO_CATALOGUE.map((it) => [it.name, it]));
     const missing = AMMO_CATALOGUE.filter((it) => !existingNames.has(it.name));
+    const retiredIds = ammoIndex.filter((e) => _RETIRED_AMMO.includes(e.name)).map((e) => e._id);
 
     // Sync images on already-existing ammo items
     const imgUpdates = [];
@@ -2911,7 +2925,7 @@ async function ensureAmmoCatalogue() {
       imgUpdates.push({ _id: doc.id, img: def.img });
     }
 
-    if (missing.length === 0 && imgUpdates.length === 0) return;
+    if (missing.length === 0 && imgUpdates.length === 0 && retiredIds.length === 0) return;
 
     await pack.configure({ locked: false });
     try {
@@ -2932,6 +2946,10 @@ async function ensureAmmoCatalogue() {
       if (imgUpdates.length > 0) {
         await Item.updateDocuments(imgUpdates, { pack: PACK_ID });
         console.log(`Cyberpunk Blue | Ammo catalogue: synced images for ${imgUpdates.length} items.`);
+      }
+      if (retiredIds.length > 0) {
+        await Item.deleteDocuments(retiredIds, { pack: PACK_ID });
+        console.log(`Cyberpunk Blue | Ammo catalogue: pruned ${retiredIds.length} retired items.`);
       }
     } finally {
       await pack.configure({ locked: true });

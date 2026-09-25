@@ -1282,6 +1282,23 @@
     "Sense": {
       "Infrared": "Infrared"
     },
+    "Battery": {
+      "Label": "Battery",
+      "Capacity": "Batteries",
+      "Installed": "Installed",
+      "Life": "Battery Life",
+      "AsAmmo": "Battery as Ammo",
+      "AsAmmoHint": "The weapon's magazine is one battery: reloading uses a Battery and fills the magazine, and the battery is spent when the magazine runs dry. It then uses no other ammunition.",
+      "Hint": "How many batteries the item holds. Insert and Use buttons appear in the Use column of the Actor sheet. Installed Mods add their own battery capacity.",
+      "ModHint": "Batteries this mod adds to the item it is installed on.",
+      "Insert": "Insert a charged battery",
+      "Use": "Battery used up",
+      "Recharge": "Charge one battery",
+      "PoolFull": "All battery slots are already filled.",
+      "NoneAvailable": "No charged batteries in the inventory.",
+      "NoneInstalled": "No battery is installed.",
+      "ModNeedsBattery": "{mod} needs a battery installed in the item it modifies."
+    },
     "ExtraFeatures": {
       "Title": "Extra Features",
       "Infrared": "Infrared vision",
