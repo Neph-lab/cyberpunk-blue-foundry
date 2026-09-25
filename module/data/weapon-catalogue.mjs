@@ -541,7 +541,7 @@ const melee = [
   weaponItem({ name: 'Kendachi RA-5 Powered Knife', manufacturer: 'Kendachi', cost: 'PR', imgPath: img(W_MELEE, 'Kendachi-knife.png'),
     battery: { capacity: 1, installed: 1, life: '10 uses' },
     weapons: [lmw({ electricCharge: true, electricChargeMax: 10 })],
-    description: desc('<p>This is a Light Melee weapon that can also be thrown.</p><p><strong>ELECTRIC CHARGE:</strong> The battery holds 10 uses and takes 15 minutes to charge. A target that takes any damage from the knife must make a <strong>TECH</strong>+<strong>Endurance</strong> check against <strong style="color: var(--cpb-accent);">DV 15</strong> or take <strong>2d6</strong> directly to HP. A direct hit on an uninsulated electrical device disables it.</p>') }),
+    description: desc('<p>This is a Light Melee weapon that can also be thrown.</p><p><strong>ELECTRIC CHARGE:</strong> The battery holds 10 uses. A target that takes any damage from the knife must make a <strong>TECH</strong>+<strong>Endurance</strong> check against <strong style="color: var(--cpb-accent);">DV 15</strong> or take <strong>2d6</strong> directly to HP. A direct hit on an uninsulated electrical device disables it.</p>') }),
   weaponItem({ name: 'Militech M2 Combat Knife', manufacturer: 'Militech', cost: 'C', imgPath: img(W_MELEE, 'militech-combat-knife.png'),
     weapons: [lmw()],
     description: desc('<p>This is a standard-issue combat knife.</p>') }),
