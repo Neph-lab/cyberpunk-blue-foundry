@@ -653,9 +653,15 @@ Metalgear 18. Armor degrades as it takes hits and is repaired back toward its ma
 damage by 1 and stop programs setting the wearer alight.)
 
 **Ammo** comes in weapon-specific types (medium/heavy/very heavy pistol, SMG, shotgun slug
-and shell, rifle, sniper, arrow, grenade, rocket, fuel, battery), each with Basic, **Smart**
+and shell, rifle, sniper, arrow, grenade, rocket, fuel), each with Basic, **Smart**
 (guided, +to-hit and self-correcting), **Armor-Piercing** (reduces effective SP, ablates 2),
 **Incendiary**, **Rubber** (no ablation), **Toxic** and other variants.
+
+**Batteries** power gear, cyberware and weapons. An item holds a number of batteries (mods
+can add to that); a **Battery** (€$50) is inserted from the inventory and, once used up,
+becomes a **Spent Battery** that fully recharges from empty in 1 hour. A weapon can use its
+battery as its ammunition: one battery fills the magazine, and swapping it early counts the
+old battery as spent.
 
 **Chipware** (skill chips, Pain Editor, sensory boosts) are Gear that slots into a Neuroport,
 not cyberware. A Skill Chip sets a floor on the relevant skill rank rather than adding to it.

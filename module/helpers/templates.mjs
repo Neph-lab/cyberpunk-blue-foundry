@@ -18,6 +18,7 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/cyberpunk-blue/templates/actor/parts/effects-panel.hbs',
     'systems/cyberpunk-blue/templates/actor/parts/effect-cell.hbs',
     'systems/cyberpunk-blue/templates/parts/roll-button-content.hbs',
+    'systems/cyberpunk-blue/templates/parts/battery-cell.hbs',
     'systems/cyberpunk-blue/templates/parts/net-combat-tab.hbs',
     // Item partials
     'systems/cyberpunk-blue/templates/item/parts/item-effects.hbs',
@@ -29,6 +30,7 @@ export const preloadHandlebarsTemplates = async function () {
     'systems/cyberpunk-blue/templates/item/parts/item-instructions.hbs',
     'systems/cyberpunk-blue/templates/item/parts/item-drug-details.hbs',
     'systems/cyberpunk-blue/templates/item/parts/item-extra-features.hbs',
+    'systems/cyberpunk-blue/templates/item/parts/item-battery.hbs',
     'systems/cyberpunk-blue/templates/item/parts/item-styles-tab.hbs',
   ]);
 };

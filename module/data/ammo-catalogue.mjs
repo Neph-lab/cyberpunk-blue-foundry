@@ -129,11 +129,13 @@ export const AMMO_CATALOGUE = [
     note: 'Standard accelerant',
   }),
   ammoItem({
-    name: 'Basic Battery',
+    // One Battery fills a battery-powered item or weapon (see helpers/battery.mjs).
+    name: 'Battery',
     ammoTypes: { battery: true },
     quantity: 1,
     img: `${ASSET_BASE}/battery.png`,
-    note: '€$50; fully recharges a stun gun (12 shots); 1 hour to recharge from empty',
+    cost: '€$50 (Costly)',
+    note: 'Fully recharges from empty in 1 hour.',
   }),
   ammoItem({
     name: 'Incendiary Shotgun Shells',
@@ -243,15 +245,6 @@ export const AMMO_CATALOGUE = [
     cost: '€$500 (Expensive)',
     quantity: 10,
     note: 'Arasaka precision-injected accelerant. Smart Weapons only. +1 attack; miss by ≤5: roll 1d10+14 as replacement (no re-roll chain).',
-    attackBonus: 1, smartWeaponOnly: true, smartMissReroll: true,
-  }),
-  ammoItem({
-    name: 'Smart Battery',
-    ammoTypes: { battery: true },
-    img: `${ASSET_BASE}/Smart.png`,
-    cost: '€$500 (Expensive)',
-    quantity: 10,
-    note: 'Arasaka precision-charge cell. Smart Weapons only. +1 attack; miss by ≤5: roll 1d10+14 as replacement (no re-roll chain).',
     attackBonus: 1, smartWeaponOnly: true, smartMissReroll: true,
   }),
 

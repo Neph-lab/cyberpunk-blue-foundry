@@ -3,6 +3,23 @@
     {{> "systems/cyberpunk-blue/templates/parts/prose-editor.hbs" name="system.description" value=system.description uuid=item.uuid enriched=enrichedDescription editable=canEditAsOwner}}
   </section>
 
+  {{#if (or canManageRestricted system.batteryCapacity)}}
+    <section class="sheet-panel">
+      <div class="panel-header"><h2>{{localize "CYBER_BLUE.Battery.Label"}}</h2></div>
+      <div class="item-meta-row">
+        <label class="compact-field">
+          <span>{{localize "CYBER_BLUE.Battery.Capacity"}}</span>
+          <input type="number" name="system.batteryCapacity" value="{{system.batteryCapacity}}" data-dtype="Number" min="0" {{#unless canManageRestricted}}disabled{{/unless}} />
+        </label>
+        <label>
+          <span>{{localize "CYBER_BLUE.Battery.Life"}}</span>
+          <input type="text" name="system.batteryLife" value="{{system.batteryLife}}" placeholder="8 hours" {{#unless canManageRestricted}}disabled{{/unless}} />
+        </label>
+      </div>
+      <p class="hint">{{localize "CYBER_BLUE.Battery.ModHint"}}</p>
+    </section>
+  {{/if}}
+
   {{#if (eq system.modType "weaponMod")}}
     <section class="sheet-panel">
       <div class="panel-header panel-actions">

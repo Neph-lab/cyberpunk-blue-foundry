@@ -1,0 +1,8 @@
+{{!-- Battery pool controls for a Gear/Cyberware row's Use column. Expects `battery` from getBatteryPool. --}}
+{{#if battery}}
+  <span class="battery-controls" title="{{battery.tooltip}}">
+    <span class="battery-count"><i class="fas fa-battery-{{#if battery.canUse}}full{{else}}empty{{/if}}"></i> {{battery.installed}}/{{battery.capacity}}</span>
+    <button type="button" data-action="battery-insert" title="{{localize "CYBER_BLUE.Battery.Insert"}}" {{#unless battery.canInsert}}disabled{{/unless}}><i class="fas fa-plus"></i></button>
+    <button type="button" data-action="battery-use" title="{{battery.useTooltip}}" {{#unless battery.canUse}}disabled{{/unless}}><i class="fas fa-battery-empty"></i></button>
+  </span>
+{{/if}}

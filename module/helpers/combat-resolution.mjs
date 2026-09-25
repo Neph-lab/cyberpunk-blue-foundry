@@ -17,6 +17,7 @@ import { playUiSound, suppressNextFailSound, playSfx } from './audio.mjs';
 import { computeVisibilityPenalty } from './visibility.mjs';
 import { resolveEffectiveSp, armorPenFor, BURNING_EDGE_SP_LIMIT } from './armor-pen.mjs';
 import { isBlindAutoMiss, postBlindAutoMiss, postBlindAutoMissTarget } from './blind.mjs';
+import { getBatteryPool, hasChargedBattery, useBattery } from './battery.mjs';
 import {
   getTarget,
   getDistanceMeters,
@@ -1196,7 +1197,8 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
       // ── Electric Charge (Kendachi RA-5 Powered Knife) ──────────────────────
       // On a hit that deals net damage, if the weapon has charges remaining:
       // target must pass DV 15 TECH + Endurance or take 2d6 direct HP damage.
-      if ((weapon.electricCharge ?? false) && netDamage > 0) {
+      // The charge lives in the item's battery: with none installed, nothing happens.
+      if ((weapon.electricCharge ?? false) && netDamage > 0 && hasChargedBattery(item, attacker)) {
         const chargeKey = `electricCharge-${weaponIndex}`;
         const chargesRemaining = item.getFlag('cyberpunk-blue', chargeKey) ?? (weapon.electricChargeMax ?? 0);
         if (chargesRemaining > 0) {
@@ -1229,6 +1231,8 @@ export async function resolveWeaponAttack(attacker, item, weaponIndex) {
               speaker: ChatMessage.getSpeaker({ actor: attacker }),
               content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-battery-empty"></i> ${game.i18n.format('CYBER_BLUE.Combat.ElectricChargeDepleted', { weapon: item.name })}</p></div>`,
             });
+            // The battery holding the charge is now spent.
+            if (getBatteryPool(item, attacker).capacity > 0) await useBattery(attacker, item);
           }
         }
       }

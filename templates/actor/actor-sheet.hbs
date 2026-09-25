@@ -886,6 +886,7 @@
                               <button type="button" data-action="start-instructions" title="{{item.instructionNextLabel}}">{{localize "CYBER_BLUE.Instructions.Activate"}}</button>
                             {{/if}}
                           {{/if}}
+                          {{> "systems/cyberpunk-blue/templates/parts/battery-cell.hbs" battery=item.battery}}
                         </div>
                         <div class="embedded-controls">
                           {{#if item.canDetachPlatform}}
@@ -955,6 +956,7 @@
                             <button type="button" data-action="start-instructions" title="{{item.instructionNextLabel}}">{{localize "CYBER_BLUE.Instructions.Activate"}}</button>
                           {{/if}}
                         {{/if}}
+                        {{> "systems/cyberpunk-blue/templates/parts/battery-cell.hbs" battery=item.battery}}
                       </div>
                       <div class="embedded-controls">
                         <button type="button" data-action="assign-platform" title="{{localize "CYBER_BLUE.Sheet.Buttons.AssignPlatform"}}" {{#unless item.hasEligiblePlatforms}}disabled{{/unless}}><i class="fas fa-link"></i></button>
@@ -1033,12 +1035,15 @@
         {{#if ammoItems.length}}
           <div class="ammo-pills">
             {{#each ammoItems as |item|}}
-              <div class="ammo-pill cpb-shape--hex" data-item-id="{{item.id}}">
+              <div class="ammo-pill cpb-shape--hex{{#if item.system.spent}} is-spent{{/if}}" data-item-id="{{item.id}}">
                 <button type="button" class="item-name-link ammo-pill-name" data-action="edit-item">
                   <img src="{{item.img}}" alt="{{item.name}}" />
                   <span>{{item.name}}</span>
                 </button>
                 <input type="number" class="ammo-pill-qty" min="0" value="{{item.system.quantity}}" data-action="set-ammo-quantity" />
+                {{#if item.system.spent}}
+                  <button type="button" class="ammo-pill-charge" data-action="battery-recharge" title="{{localize "CYBER_BLUE.Battery.Recharge"}}"><i class="fas fa-bolt"></i></button>
+                {{/if}}
               </div>
             {{/each}}
           </div>
@@ -1104,6 +1109,7 @@
                           <button type="button" data-action="start-instructions" title="{{item.instructionNextLabel}}">{{localize "CYBER_BLUE.Instructions.Use"}}</button>
                         {{/if}}
                       {{/if}}
+                      {{> "systems/cyberpunk-blue/templates/parts/battery-cell.hbs" battery=item.battery}}
                     </div>
                     <div class="embedded-controls">
                       {{#unless (eq item.state "equipped")}}<button type="button" data-action="set-gear-state" data-state="equipped" title="{{localize "CYBER_BLUE.Sheet.Buttons.Equip"}}"><i class="fas fa-shield-halved"></i></button>{{/unless}}

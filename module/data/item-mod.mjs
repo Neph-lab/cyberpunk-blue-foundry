@@ -1,4 +1,5 @@
 import CyberBlueItemBase from "./base-item.mjs";
+import { buildModBatteryFields } from "./battery-schema.mjs";
 
 export default class CyberBlueMod extends CyberBlueItemBase {
   static defineSchema() {
@@ -23,6 +24,11 @@ export default class CyberBlueMod extends CyberBlueItemBase {
       }),
       { initial: [] }
     );
+
+    // ── Battery need ───────────────────────────────────────────────────────
+    // batteryCapacity is added to the host item's battery pool while installed;
+    // batteryLife is free text ("8 hours") shown on the host's Use button.
+    Object.assign(schema, buildModBatteryFields());
 
     // ── Slot count ─────────────────────────────────────────────────────────
     // Most mods occupy 1 slot. Under-barrel attachments (BP-2 Plujka, Cavalry,

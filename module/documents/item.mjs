@@ -9,6 +9,7 @@ import {
 import { getActorCyberwareDisableState } from '../helpers/cyberware-disable.mjs';
 import { getGearStateUpdateData, normalizeGearState } from '../helpers/gear.mjs';
 import { getEffectiveItemWeapons } from '../helpers/mods.mjs';
+import { usesBatteryAsAmmo, createSpentBattery } from '../helpers/battery.mjs';
 import { applyFirstRoleSetup, normalizeRoleSystemData } from '../helpers/roles.mjs';
 import { getSelectedStyle } from '../data/style-schema.mjs';
 import { CyberBlueActiveEffect } from './active-effect.mjs';
@@ -83,6 +84,19 @@ export class CyberBlueItem extends Item {
     const styleChanged = changed.system && 'selectedStyle' in changed.system;
     if (game.user.id === userId && ('img' in changed || styleChanged) && !options?.cyberBlueSyncEffectImages) {
       await this.syncEffectImages();
+    }
+
+    // A battery used as Ammo is spent the moment its magazine runs dry. Every
+    // ammo-decrementing path goes through an Item update, so this one check
+    // covers them all. `cyberBlueAmmoBefore` is snapshotted in _preUpdate.
+    const ammoBefore = options?.cyberBlueAmmoBefore;
+    if (game.user.id === userId && ammoBefore && this.parent instanceof Actor && usesBatteryAsAmmo(this)) {
+      const weapons = this.system.weapons ?? [];
+      for (let i = 0; i < weapons.length; i++) {
+        if ((ammoBefore[i] ?? 0) > 0 && (Number(weapons[i]?.ammoCurrent) || 0) === 0) {
+          await createSpentBattery(this.parent, this.system.battery?.loadedUuid || weapons[i]?.ammoTypeUuid);
+        }
+      }
     }
   }
 
@@ -176,6 +190,11 @@ export class CyberBlueItem extends Item {
     const allowed = await super._preUpdate(changed, options, user);
     if (allowed === false) {
       return false;
+    }
+
+    // Snapshot loaded ammo so _onUpdate can tell when a battery magazine empties.
+    if (changed.system?.weapons !== undefined && usesBatteryAsAmmo(this)) {
+      options.cyberBlueAmmoBefore = (this._source.system?.weapons ?? []).map((w) => Number(w?.ammoCurrent) || 0);
     }
 
     if (this.type === 'gear') {

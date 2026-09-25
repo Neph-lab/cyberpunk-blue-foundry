@@ -155,7 +155,7 @@ function entry(opts = {}) {
 }
 
 /** Build a 'gear' Item with type=weapon, equipped state. */
-function weaponItem({ name, manufacturer = '', cost = '', minBody = 0, weapons = [], effects = [], description = '', notes = '', imgPath = '' }) {
+function weaponItem({ name, manufacturer = '', cost = '', minBody = 0, weapons = [], effects = [], description = '', notes = '', imgPath = '', battery = null }) {
   return {
     name,
     type: 'gear',
@@ -172,6 +172,8 @@ function weaponItem({ name, manufacturer = '', cost = '', minBody = 0, weapons =
       armor: { maxSp: 0, currentSp: 0 },
       minBodyReq: minBody,
       weapons,
+      // Battery pool (see data/battery-schema.mjs); only set on battery-powered weapons.
+      ...(battery ? { battery } : {}),
       quantity: 1,
       state: 'carried',
       carried: true,
@@ -456,7 +458,8 @@ const snipers = [
       system: { changes: [{ key: 'cyberblue.disableCyberware.random', type: 'add', value: '2' }] },
       flags: { 'cyberpunk-blue': { isAfflictionEffect: true } },
     }],
-    weapons: [entry({ ...SR_BASE, damage: '0', magazine: 0, shots: 0, tech: true, chargeType: 'keep', damageType: 'affliction', afflictionPrimary: 'tech', afflictionSkill: 'endurance', afflictionDv: 15 })],
+    battery: { capacity: 1, asAmmo: true },
+    weapons: [entry({ ...SR_BASE, damage: '0', magazine: 5, shots: 1, tech: true, chargeType: 'keep', damageType: 'affliction', afflictionPrimary: 'tech', afflictionSkill: 'endurance', afflictionDv: 15 })],
     description: desc('<p>This is a Tech Weapon that keeps its charge once built up.</p><p><strong>CHARGED SHOT:</strong> A charged shot drops to ROF 1, but it sees through thin cover.</p><p>This weapon deals no damage. On a hit, the target must make a <strong>TECH</strong>+<strong>Endurance</strong> check against <strong style="color: var(--cpb-accent);">DV 15</strong> or have two random non-insulated pieces of cyberware disabled, since microwaves bypass physical armor.</p><p><strong>REBOOTING:</strong> Disabled cyberware can be restarted with a <strong>TECH</strong>+<strong>Electronics (Cybernetics)</strong> check against <strong style="color: var(--cpb-accent);">DV 15</strong> as an Action.</p><p><strong>BATTERY:</strong> The weapon is powered by a battery instead of ammunition.</p><p><em>A re-purposed Tsunami Arms Nekomata, a Zetatech Microwaver-55 projector modified beyond recognition and enough electromagnets to send small sparks when all capacitors are powered. It\'s a highly specialist piece of gear, but that also means gonks won\'t know what hit them.</em></p>') }),
   weaponItem({ name: 'Nokota Osprey', manufacturer: 'Nokota', cost: 'EX', imgPath: img(W_ROOT, 'Nokota-Osprey.png'),
     weapons: [
@@ -492,6 +495,7 @@ const special = [
     description: desc('<p>This is a Smart Weapon with an explosive 4m inner / 10m outer radius.</p><p><strong>HOMING GUIDANCE:</strong> ISA rockets home in on their target. When the only moving target is 50m or more away against an unmoving background, a miss by 7 or less means the rocket guides itself onto the target.</p>') }),
   weaponItem({ name: 'Kang Tao TKI-20 Mámù', manufacturer: 'Kang Tao', cost: 'EX', imgPath: img(W_ROOT, 'Kang-Tao-Mámù.png'),
     effects: [{ name: 'Stunned', disabled: true, transfer: false, system: { changes: [] }, flags: { 'cyberpunk-blue': { isAfflictionEffect: true } } }],
+    battery: { capacity: 1, asAmmo: true },
     weapons: [entry({ type: 'stunGun', damage: '3d6', rateOfFire: 2, magazine: 12, hands: 1, concealable: true, rangeTable: R.pistol, shots: 1, damageType: 'affliction', afflictionPrimary: 'body', afflictionSkill: 'endurance', afflictionDv: 13, shockwave: true })],
     description: desc('<p>This is a Stun Gun.</p><p><strong>SHOCKWAVE:</strong> A standing target with <strong>BODY</strong> lower than 8 is pushed 2m away.</p><p><strong>STUN:</strong> A target reduced to 0 HP becomes stable, though criticals still trigger normally.</p><p><strong>BATTERY:</strong> The weapon has no ammunition slot. A replacement &euro;$50 battery takes 1 hour to recharge from empty.</p>') }),
   weaponItem({ name: 'Sanroo Hotness', manufacturer: 'Sanroo', cost: 'EX', imgPath: img(W_ROOT, 'Sanroo-hotness.png'),
@@ -518,7 +522,8 @@ const special = [
       system: { changes: [{ key: 'cyberblue.disableCyberware.random', type: 'add', value: '2' }] },
       flags: { 'cyberpunk-blue': { isAfflictionEffect: true } },
     }],
-    weapons: [entry({ type: 'veryHeavyPistol', damage: '0', rateOfFire: 1, magazine: 0, shots: 0, hands: 1, rangeTable: R.pistol, damageType: 'affliction', afflictionPrimary: 'tech', afflictionSkill: 'endurance', afflictionDv: 15 })],
+    battery: { capacity: 1, asAmmo: true },
+    weapons: [entry({ type: 'veryHeavyPistol', damage: '0', rateOfFire: 1, magazine: 5, shots: 1, hands: 1, rangeTable: R.pistol, damageType: 'affliction', afflictionPrimary: 'tech', afflictionSkill: 'endurance', afflictionDv: 15 })],
     description: desc('<p>This weapon deals no damage. On a hit, the target must make a <strong>TECH</strong>+<strong>Endurance</strong> check against <strong style="color: var(--cpb-accent);">DV 15</strong> or have two random non-insulated pieces of cyberware disabled, since microwaves bypass physical armor.</p><p><strong>REBOOTING:</strong> Disabled cyberware can be restarted with a <strong>TECH</strong>+<strong>Electronics (Cybernetics)</strong> check against <strong style="color: var(--cpb-accent);">DV 15</strong> as an Action.</p><p><strong>BATTERY:</strong> The weapon is powered by a battery instead of ammunition.</p>') }),
 ];
 
@@ -534,8 +539,9 @@ const vhmw = (overrides = {}) => entry({ type: 'veryHeavyMelee', damage: '4d6', 
 
 const melee = [
   weaponItem({ name: 'Kendachi RA-5 Powered Knife', manufacturer: 'Kendachi', cost: 'PR', imgPath: img(W_MELEE, 'Kendachi-knife.png'),
+    battery: { capacity: 1, installed: 1, life: '10 uses' },
     weapons: [lmw({ electricCharge: true, electricChargeMax: 10 })],
-    description: desc('<p>This is a Light Melee weapon that can also be thrown.</p><p><strong>ELECTRIC CHARGE:</strong> The battery holds 10 uses and takes 15 minutes to charge. A target that takes any damage from the knife must make a <strong>TECH</strong>+<strong>Endurance</strong> check against <strong style="color: var(--cpb-accent);">DV 15</strong> or take <strong>2d6</strong> directly to HP. A direct hit on an uninsulated electrical device disables it.</p>') }),
+    description: desc('<p>This is a Light Melee weapon that can also be thrown.</p><p><strong>ELECTRIC CHARGE:</strong> The battery holds 10 uses. A target that takes any damage from the knife must make a <strong>TECH</strong>+<strong>Endurance</strong> check against <strong style="color: var(--cpb-accent);">DV 15</strong> or take <strong>2d6</strong> directly to HP. A direct hit on an uninsulated electrical device disables it.</p>') }),
   weaponItem({ name: 'Militech M2 Combat Knife', manufacturer: 'Militech', cost: 'C', imgPath: img(W_MELEE, 'militech-combat-knife.png'),
     weapons: [lmw()],
     description: desc('<p>This is a standard-issue combat knife.</p>') }),
