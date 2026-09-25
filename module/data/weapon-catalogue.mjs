@@ -450,6 +450,14 @@ const snipers = [
   weaponItem({ name: 'Tsunami Nekomata', manufacturer: 'Tsunami Arms', cost: 'VEX', imgPath: img(W_SNIPER, 'Tsunami-Nekomata.png'),
     weapons: [entry({ ...SR_BASE, tech: true, chargeType: 'keep' })],
     description: desc('<p>This is a Tech Weapon that keeps its charge once built up.</p><p><strong>CHARGED SHOT:</strong> A charged shot drops to ROF 1, but it sees through thin cover and ignores half of the target\'s SP.</p><p><em>The Nekomata is a demanding weapon. It requires care, regular service and time to learn how best to use it. But it\'s worth it. Really, really worth it. This electromag sniper rifle is a technological marvel. The tungsten spike it launches can pierce the thickest armor and walls, and shatter titanium bones. No one is safe from the Nekomata\'s destructive force, which is why the sale of this rifle is strictly regulated. It\'s almost impossible for mercenaries outside the employ of a government or major megacorp to get their hands on one... almost.</em></p>') }),
+  weaponItem({ name: "Neko-Z d'Antoine", cost: 'VEX', imgPath: img(W_SNIPER, 'Neko-Z.png'),
+    effects: [{
+      name: "Cyberware Disabled (Neko-Z d'Antoine)", disabled: true, transfer: false,
+      system: { changes: [{ key: 'cyberblue.disableCyberware.random', type: 'add', value: '2' }] },
+      flags: { 'cyberpunk-blue': { isAfflictionEffect: true } },
+    }],
+    weapons: [entry({ ...SR_BASE, damage: '0', magazine: 0, shots: 0, damageType: 'affliction', afflictionPrimary: 'tech', afflictionSkill: 'endurance', afflictionDv: 15 })],
+    description: desc('<p>This weapon deals no damage. On a hit, the target must make a <strong>TECH</strong>+<strong>Endurance</strong> check against <strong style="color: var(--cpb-accent);">DV 15</strong> or have two random non-insulated pieces of cyberware disabled, since microwaves bypass physical armor.</p><p><strong>REBOOTING:</strong> Disabled cyberware can be restarted with a <strong>TECH</strong>+<strong>Electronics (Cybernetics)</strong> check against <strong style="color: var(--cpb-accent);">DV 15</strong> as an Action.</p><p><strong>BATTERY:</strong> The weapon is powered by a battery instead of ammunition.</p><p><em>A re-purposed Tsunami Arms Nekomata, a Zetatech Microwaver-55 projector modified beyond recognition and enough electromagnets to send small sparks when all capacitors are powered. It\'s a highly specialist piece of gear, but that also means gonks won\'t know what hit them.</em></p>') }),
   weaponItem({ name: 'Nokota Osprey', manufacturer: 'Nokota', cost: 'EX', imgPath: img(W_ROOT, 'Nokota-Osprey.png'),
     weapons: [
       entry({ ...SR_BASE, power: true }),
