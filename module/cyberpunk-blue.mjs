@@ -31,7 +31,6 @@ import {
   getCombatantForToken,
   getTurnState,
   getMovementBudget,
-  resetTurnState,
   addMovementCost,
   grantSprint,
   recordCombatAttack,
@@ -57,11 +56,9 @@ import { ROLE_CATALOGUE } from './data/role-catalogue.mjs';
 import { ABILITY_CATALOGUE } from './data/ability-catalogue.mjs';
 import { LIFEPATH_CATALOGUE } from './data/lifepath-catalogue.mjs';
 import { registerSocketHandlers, applyDamageWithPermission, updateActorWithPermission } from './helpers/socket.mjs';
-import { getPixelsPerMeter, getTokenCenter } from './helpers/targeting.mjs';
 import { syncRoleGrantedItemGroups } from './helpers/world-init.mjs';
 import { refreshAllRicochetLines, clearRicochetLine } from './helpers/ricochet-canvas.mjs';
 import { INFRARED_ID, DetectionModeInfrared, syncActorInfrared } from './helpers/infrared.mjs';
-import { clearWeaponCharge } from './helpers/tech-charge.mjs';
 import { BLIND_ATTACK_CHANGE_KEYS, BLIND_ATTACK_PENALTY } from './helpers/blind.mjs';
 import { expireTimedAfflictions } from './helpers/affliction-attack.mjs';
 import {
@@ -86,7 +83,6 @@ import {
   getAttachedTokens,
 } from './helpers/vehicle-movement.mjs';
 import {
-  executeVehicleTurn,
   rollVehicleInitiative,
   delayDriverToVehicle,
   getVehicleHandling,
@@ -115,7 +111,6 @@ import {
   syncExecutableToProgramActors,
   applyErrorState,
   removeProgramAura,
-  resolveNetTimers,
 } from './helpers/netrunning.mjs';
 import { isNonCombatant as isProgramNonCombatant } from './helpers/net-program-combat.mjs';
 
@@ -818,17 +813,6 @@ Hooks.on('createActiveEffect', async (effect, options) => {
   const actor = effect.parent;
   if (actor instanceof CyberBlueActor && actor.isDead()) {
     await actor.recordPostDeathCrit();
-  }
-});
-
-// ─── Mortally Wounded: end-of-turn death save ────────────────────────────────
-// When a combatant's turn ends, the actor who just finished — if Mortally
-// Wounded — rolls 1d10 vs their Death Save (conscious→unconscious→Dead).
-Hooks.on('combatTurn', async (combat, updateData, updateOptions) => {
-  if (game.user !== game.users.activeGM) return;
-  const prevActor = combat.combatants.get(combat.previous?.combatantId)?.actor;
-  if (prevActor instanceof CyberBlueActor && prevActor.getMortallyWoundedEffect?.()) {
-    await prevActor.rollMortalDeathSave();
   }
 });
 
@@ -1690,97 +1674,6 @@ Hooks.on('updateItem', async (item, changes, options) => {
   await syncSubsystemDestruction(item, options);
 });
 
-// ─── Tech Weapon charge: turn-start housekeeping (GM only) ───────────────────
-// Clears cooldown flags and transitions MOVE AE from 0→half on second+ turns.
-Hooks.on('combatTurn', async (combat, updateData) => {
-  if (!game.user.isGM) return;
-
-  const newTurnIdx  = updateData.turn  ?? 0;
-  const roundNumber = updateData.round ?? combat.round ?? 1;
-  const combatant   = combat.combatants.contents[newTurnIdx];
-  const actor       = combatant?.actor;
-  if (!actor) return;
-
-  for (const item of actor.items) {
-    const weapons = item.system?.weapons;
-    if (!weapons?.length) continue;
-
-    for (let wi = 0; wi < weapons.length; wi++) {
-      // Always clear charge cooldown at start of turn.
-      if (item.getFlag('cyberpunk-blue', `chargeCooldown-${wi}`)) {
-        await item.unsetFlag('cyberpunk-blue', `chargeCooldown-${wi}`);
-      }
-
-      if (!item.getFlag('cyberpunk-blue', `charged-${wi}`)) continue;
-
-      const startRound   = item.getFlag('cyberpunk-blue', `chargeStartRound-${wi}`) ?? roundNumber;
-      const roundsElapsed = roundNumber - startRound;
-
-      // Expire charge after 20 rounds.
-      if (roundsElapsed >= 20) {
-        await clearWeaponCharge(actor, item, wi, false);
-        ChatMessage.create({
-          speaker: ChatMessage.getSpeaker({ actor }),
-          content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt-lightning"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChargeExpired', { weapon: item.name })}</p></div>`,
-        });
-        continue;
-      }
-
-      // After first round: update AE for regular TW (0 → half MOVE).
-      // ImprovedCharge and SR Capacity already start at their ongoing value.
-      if (roundsElapsed >= 1) {
-        const aeId = item.getFlag('cyberpunk-blue', `chargeAeId-${wi}`);
-        const ae   = aeId ? actor.effects?.get(aeId) : null;
-        if (ae && ae.system?.changes?.[0]?.value === '0') {
-          const origMove = item.getFlag('cyberpunk-blue', `chargeOrigMove-${wi}`) ?? 0;
-          const halfMove = String(Math.max(1, Math.ceil(origMove / 2)));
-          await ae.update({ 'system.changes': [{ key: 'system.stats.move.value', type: 'override', value: halfMove }] });
-          ChatMessage.create({
-            speaker: ChatMessage.getSpeaker({ actor }),
-            content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-bolt-lightning"></i> ${game.i18n.format('CYBER_BLUE.Combat.ChargeMoveRestored', { weapon: item.name, move: halfMove })}</p></div>`,
-          });
-        }
-      }
-    }
-  }
-
-  // ── Chomp Ammo detonation (KTech Terrier) ────────────────────────────────
-  // At the START of the attacker's NEXT turn, detonate any pending chomp flags:
-  // roll 1d6 and deal damage to every token within 2m of the stuck target.
-  const chompEntries = Object.entries(actor.flags?.['cyberpunk-blue'] ?? {})
-    .filter(([k]) => k.startsWith('chompPending-'));
-  for (const [key, value] of chompEntries) {
-    const { targetTokenId, setAtRound, setAtTurnIdx, attackerCombatantIdx } = value ?? {};
-    if (attackerCombatantIdx === undefined || attackerCombatantIdx < 0) continue;
-    // Detonate if this is the attacker's combatant slot AND we're past the round/turn when it was set.
-    if (newTurnIdx !== attackerCombatantIdx) continue;
-    if (!(roundNumber > setAtRound || (roundNumber === setAtRound && newTurnIdx > setAtTurnIdx))) continue;
-
-    await actor.unsetFlag('cyberpunk-blue', key);
-
-    const targetToken = canvas.tokens?.get(targetTokenId);
-    if (!targetToken) continue;
-
-    const chompRoll = await new Roll('1d6').evaluate();
-    await chompRoll.toMessage({
-      speaker: ChatMessage.getSpeaker({ actor }),
-      flavor: `<div class="cyberpunk-blue chat-card"><h3><i class="fas fa-bone"></i> ${game.i18n.localize('CYBER_BLUE.Combat.ChompAmmoDetonate')}</h3><p>${game.i18n.format('CYBER_BLUE.Combat.ChompAmmoDmg', { target: targetToken.name, dmg: chompRoll.total })}</p></div>`,
-      rollMode: game.settings.get('core', 'rollMode'),
-    });
-
-    // Find all tokens within 2m of the target
-    const blastRadiusPx = 2 * getPixelsPerMeter();
-    const { x: tx, y: ty } = getTokenCenter(targetToken.document);
-
-    for (const token of canvas.tokens.objects?.children ?? []) {
-      if (!token.actor) continue;
-      const { x: cx, y: cy } = getTokenCenter(token.document);
-      if (Math.hypot(cx - tx, cy - ty) > blastRadiusPx) continue;
-      await applyDamageWithPermission(token.actor, chompRoll.total);
-    }
-  }
-});
-
 // ── Combat turn marker ───────────────────────────────────────────────────────
 // Path to the system's animated "current actor" turn-marker video.
 const TURN_MARKER_SRC = 'systems/cyberpunk-blue/assets/effects/current-actor.webm';
@@ -2109,72 +2002,9 @@ Hooks.on('moveToken', async (tokenDoc, movement, userId) => {
   ui.combat?.render(false);
 });
 
-// ── Combat turn / round resets ────────────────────────────────────────────────
-
-Hooks.on('combatTurn', async (combat, updateData) => {
-  if (!game.user.isGM) return; // only GM writes flag resets
-  const prev = combat.combatants.get(combat.previous?.combatantId);
-  if (prev) await resetTurnState(prev);
-  // Use updateData.turn index to reliably identify the incoming combatant even
-  // when combat.current hasn't settled yet in some Foundry versions.
-  const newTurnIdx = updateData?.turn ?? 0;
-  const curr = combat.combatants.contents[newTurnIdx]
-    ?? combat.combatants.get(combat.current?.combatantId);
-  if (curr) await resetTurnState(curr);
-  ui.combat?.render(false);
-  // Re-render open actor sheets so RoF buttons and movement bar refresh.
-  for (const actor of [prev?.actor, curr?.actor].filter(Boolean)) {
-    actor.sheet?.render(false);
-  }
-
-  // ── Burning condition damage-over-time ───────────────────────────────────────
-  // At the end of a combatant's turn, each active Burning condition deals its
-  // per-turn HP (ignoring armor). Driven here because the statusEffect's
-  // `burnDamage` flag is otherwise inert.
-  if (prev?.actor && ['character', 'npc', 'mook'].includes(prev.actor.type)) {
-    let burn = 0;
-    for (const e of prev.actor.effects) {
-      if (e.disabled) continue;
-      const d = e.getFlag('cyberpunk-blue', 'burnDamage');
-      if (typeof d === 'number') burn += d;
-    }
-    if (burn > 0) {
-      await prev.actor.applyDamage(burn, { ignoreArmor: true });
-      ChatMessage.create({
-        speaker: ChatMessage.getSpeaker({ actor: prev.actor }),
-        content: `<div class="cyberpunk-blue chat-card"><p><i class="fas fa-fire"></i> ${game.i18n.format('CYBER_BLUE.Condition.BurningDamage', { name: prev.actor.name, dmg: burn })}</p></div>`,
-      });
-    }
-  }
-
-  // Resolve pending NET timers (quickhack activation, encrypt/decrypt completion)
-  const _roundNumber = updateData?.round ?? combat.round ?? 1;
-  await resolveNetTimers(combat, _roundNumber);
-
-  // ── Vehicle turn execution ───────────────────────────────────────────────────
-  // When a vehicle combatant's turn starts, execute its automatic turn logic
-  // (coast if a driver is present, drift if unmanned, or acknowledge a pending
-  // Maneuver).  This runs after reset so the combatant's state is clean.
-  if (curr?.actor?.type === 'vehicle') {
-    try {
-      await executeVehicleTurn(curr);
-    } catch (err) {
-      console.error('cyberpunk-blue | vehicle turn execution failed:', err);
-    }
-  }
-});
-
-Hooks.on('combatRound', async (combat) => {
-  if (!game.user.isGM) return; // only GM writes flag resets
-  for (const combatant of combat.combatants.contents) {
-    await resetTurnState(combatant);
-  }
-  ui.combat?.render(false);
-  // Re-render all open sheets so RoF buttons refresh.
-  for (const combatant of combat.combatants.contents) {
-    combatant.actor?.sheet?.render(false);
-  }
-});
+// Turn/round lifecycle (turn-state resets, death saves, Burning, NET timers,
+// Tech Weapon charge, Chomp Ammo, vehicle turns) lives on CyberBlueCombat —
+// see documents/combat.mjs and helpers/turn-events.mjs.
 
 // ── Visibility residue region expiry ─────────────────────────────────────────
 // On each round/turn advance, delete visibility residue regions whose

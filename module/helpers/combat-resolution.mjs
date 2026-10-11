@@ -102,13 +102,17 @@ async function consumeAmmo(item, weaponIndex, shots) {
 async function _setChompPending(attacker, targetToken) {
   const round = game.combat?.round ?? 0;
   const turnIdx = game.combat?.turn ?? 0;
-  const combatantIdx = game.combat?.combatants.contents.findIndex((c) => c.actorId === attacker.id) ?? -1;
+  // Prefer the combatant whose turn it is (an actor may hold several combatants).
+  const current = game.combat?.combatant;
+  const combatantId = current?.actorId === attacker.id
+    ? current.id
+    : (game.combat?.combatants.find((c) => c.actorId === attacker.id)?.id ?? null);
   const key = `chompPending-${Date.now()}`;
   await attacker.setFlag('cyberpunk-blue', key, {
     targetTokenId: targetToken.id,
     setAtRound: round,
     setAtTurnIdx: turnIdx,
-    attackerCombatantIdx: combatantIdx,
+    attackerCombatantId: combatantId,
   });
   ChatMessage.create({
     speaker: ChatMessage.getSpeaker({ actor: attacker }),

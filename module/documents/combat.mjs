@@ -16,8 +16,30 @@
  */
 
 import { rollVehicleInitiative } from '../helpers/vehicle-combat.mjs';
+import { onCombatTurnEnd, onCombatRoundStart, onCombatTurnStart } from '../helpers/turn-events.mjs';
 
 export class CyberBlueCombat extends Combat {
+  /* Turn lifecycle — core runs these after the update, on the active GM only.
+     See helpers/turn-events.mjs for why they replace the combatTurn hooks. */
+
+  /** @inheritDoc */
+  async _onEndTurn(combatant, context) {
+    await super._onEndTurn(combatant, context);
+    await onCombatTurnEnd(this, combatant, context);
+  }
+
+  /** @inheritDoc */
+  async _onStartRound(context) {
+    await super._onStartRound(context);
+    await onCombatRoundStart(this, context);
+  }
+
+  /** @inheritDoc */
+  async _onStartTurn(combatant, context) {
+    await super._onStartTurn(combatant, context);
+    await onCombatTurnStart(this, combatant, context);
+  }
+
   /**
    * Override initiative rolling to intercept vehicle combatants and assign
    * Handling-based initiative, then delegate the rest to the base class.

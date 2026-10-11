@@ -19,7 +19,7 @@
  *
  * Write discipline: flag writes are gated so only one client writes per event.
  *   - movementCost:      the user who initiated the move (moveToken hook userId)
- *   - turn/round resets: GM only (combatTurn / combatRound hooks)
+ *   - turn/round resets: active GM only (CyberBlueCombat turn lifecycle, helpers/turn-events.mjs)
  *   - sprint / attack:   the owning player or GM (direct button/action handler)
  */
 
